@@ -1,5 +1,9 @@
+import UseRoutesCustom from "./hooks/UseRoutesCustom";
+
 function App() {
-  return <div className="text-red-600"> Test template code </div>;
+  const routes = UseRoutesCustom();
+
+  return routes;
 }
 
 export default App;
