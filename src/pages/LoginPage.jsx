@@ -57,7 +57,7 @@ const LoginPage = () => {
               <InputCustom
                 name={"username"}
                 onChange={handleChange}
-                value={values.userName}
+                value={values.username}
                 placeholder={"Please enter user name"}
                 labelContent={"User Name"}
                 error={errors.username}
