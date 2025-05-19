@@ -19,7 +19,7 @@ const LoginPage = () => {
   const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
     useFormik({
       initialValues: {
-        userName: "",
+        username: "",
         password: "",
       },
       onSubmit: (values) => {
@@ -37,7 +37,7 @@ const LoginPage = () => {
           });
       },
       validationSchema: yup.object({
-        userName: yup.string().required("Please do not leave blank"),
+        username: yup.string().required("Please do not leave blank"),
         password: yup
           .string()
           .required("Please do not leave blank")
@@ -54,7 +54,7 @@ const LoginPage = () => {
               <h1 className="text-center text-4xl font-medium">LOGIN</h1>
               {/* username */}
               <InputCustom
-                name={"userName"}
+                name={"username"}
                 onChange={handleChange}
                 value={values.userName}
                 placeholder={"Please enter user name"}
