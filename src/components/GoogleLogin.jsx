@@ -37,15 +37,7 @@ export default function GoogleLogin() {
     // Gửi token về backend
     try {
       const res = await authService.signInByGoogle({ idToken });
-      const data = await res.json();
-
-      if (data.token) {
-        localStorage.setItem("accessToken", data.token);
-        alert("Đăng nhập thành công 🎉");
-        window.location.href = "/";
-      } else {
-        alert("Đăng nhập thất bại!");
-      }
+      console.log("🚀 Đăng nhập thành công:", res.data.result.token);
     } catch (error) {
       console.error("❌ Lỗi đăng nhập:", error);
       alert("Có lỗi khi gửi token về backend!");
