@@ -59,7 +59,7 @@ const LoginPage = () => {
                 onChange={handleChange}
                 value={values.userName}
                 placeholder={"Please enter user name"}
-                labelContent={"User NName"}
+                labelContent={"User Name"}
                 error={errors.username}
                 touched={touched.username}
                 onBlur={handleBlur}
@@ -75,6 +75,7 @@ const LoginPage = () => {
                 touched={touched.password}
                 onBlur={handleBlur}
               />
+
               <div>
                 <button
                   type="submit"

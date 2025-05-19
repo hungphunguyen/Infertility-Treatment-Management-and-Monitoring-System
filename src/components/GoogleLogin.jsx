@@ -1,5 +1,6 @@
 // src/components/GoogleLogin.jsx
 import { useEffect } from "react";
+import { authService } from "../service/auth.service";
 
 export default function GoogleLogin() {
   useEffect(() => {
@@ -34,20 +35,20 @@ export default function GoogleLogin() {
     console.log("🎯 id_token:", idToken);
 
     // Gửi token về backend
-    const res = await fetch("http://localhost:8080/auth/login-google", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idToken }),
-    });
+    try {
+      const res = await authService.signIn(idToken);
+      const data = await res.json();
 
-    const data = await res.json();
-
-    if (data.token) {
-      localStorage.setItem("accessToken", data.token);
-      alert("Đăng nhập thành công 🎉");
-      window.location.href = "/";
-    } else {
-      alert("Đăng nhập thất bại!");
+      if (data.token) {
+        localStorage.setItem("accessToken", data.token);
+        alert("Đăng nhập thành công 🎉");
+        window.location.href = "/";
+      } else {
+        alert("Đăng nhập thất bại!");
+      }
+    } catch (error) {
+      console.error("❌ Lỗi đăng nhập:", error);
+      alert("Có lỗi khi gửi token về backend!");
     }
   };
 
