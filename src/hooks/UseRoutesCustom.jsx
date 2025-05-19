@@ -3,6 +3,7 @@ import { useRoutes } from "react-router-dom";
 import UserTemplate from "../template/UserTemplate";
 import PageNotFound from "../components/PageNotFound";
 import { path } from "../common/path";
+import LoginPage from "../pages/LoginPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -13,6 +14,10 @@ const UseRoutesCustom = () => {
     {
       path: path.pageNotFound,
       element: <PageNotFound />,
+    },
+    {
+      path: path.signIn,
+      element: <LoginPage />,
     },
   ]);
   return routes;
