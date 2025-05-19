@@ -19,7 +19,7 @@ const LoginPage = () => {
   const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
     useFormik({
       initialValues: {
-        userName: "",
+        username: "",
         password: "",
       },
       onSubmit: (values) => {
@@ -28,6 +28,7 @@ const LoginPage = () => {
         authService
           .signIn(values)
           .then((res) => {
+            console.log("res.data");
             console.log(res);
             //thực hiện lưu trự dưới localStorage
             // setLocalStorage
@@ -37,7 +38,7 @@ const LoginPage = () => {
           });
       },
       validationSchema: yup.object({
-        userName: yup.string().required("Please do not leave blank"),
+        username: yup.string().required("Please do not leave blank"),
         password: yup
           .string()
           .required("Please do not leave blank")
@@ -54,13 +55,13 @@ const LoginPage = () => {
               <h1 className="text-center text-4xl font-medium">LOGIN</h1>
               {/* username */}
               <InputCustom
-                name={"userName"}
+                name={"username"}
                 onChange={handleChange}
-                value={values.userName}
+                value={values.username}
                 placeholder={"Please enter user name"}
                 labelContent={"User Name"}
-                error={errors.userName}
-                touched={touched.userName}
+                error={errors.username}
+                touched={touched.username}
                 onBlur={handleBlur}
               />
               <InputCustom
