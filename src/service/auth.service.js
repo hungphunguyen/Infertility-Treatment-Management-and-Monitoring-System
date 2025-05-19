@@ -5,4 +5,7 @@ export const authService = {
   signIn: (data) => {
     return http.post("auth/login", data); // đường dẫn endpoint để hoàn thành request url
   },
+  signInByGoogle: (data) => {
+    return http.post("auth/login-google", data); // đường dẫn endpoint để hoàn thành request url
+  },
 };

@@ -36,7 +36,7 @@ export default function GoogleLogin() {
 
     // Gửi token về backend
     try {
-      const res = await authService.signIn(idToken);
+      const res = await authService.signInByGoogle(idToken);
       const data = await res.json();
 
       if (data.token) {
