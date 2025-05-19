@@ -8,6 +8,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { authService } from "../service/auth.service";
 import { setLocalStorage } from "../utils/util";
+import GoogleLogin from "../components/GoogleLogin";
 const LoginPage = () => {
   const options = {
     animationData: signInAnimation,
@@ -58,9 +59,9 @@ const LoginPage = () => {
                 onChange={handleChange}
                 value={values.userName}
                 placeholder={"Please enter user name"}
-                labelContent={"User Name"}
-                error={errors.userName}
-                touched={touched.userName}
+                labelContent={"User NName"}
+                error={errors.username}
+                touched={touched.username}
                 onBlur={handleBlur}
               />
               <InputCustom
@@ -81,6 +82,7 @@ const LoginPage = () => {
                 >
                   Sign In
                 </button>
+                <GoogleLogin />
                 <Link
                   to={path.signUp}
                   className="mt-3 text-blue-600 hover:underline duration-300"
