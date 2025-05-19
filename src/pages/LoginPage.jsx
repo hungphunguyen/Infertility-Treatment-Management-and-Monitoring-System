@@ -8,6 +8,7 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { authService } from "../service/auth.service";
 import { setLocalStorage } from "../utils/util";
+import GoogleLogin from "../components/GoogleLogin";
 const LoginPage = () => {
   const options = {
     animationData: signInAnimation,
@@ -75,6 +76,7 @@ const LoginPage = () => {
                 touched={touched.password}
                 onBlur={handleBlur}
               />
+
               <div>
                 <button
                   type="submit"
@@ -82,6 +84,7 @@ const LoginPage = () => {
                 >
                   Sign In
                 </button>
+                <GoogleLogin />
                 <Link
                   to={path.signUp}
                   className="mt-3 text-blue-600 hover:underline duration-300"
