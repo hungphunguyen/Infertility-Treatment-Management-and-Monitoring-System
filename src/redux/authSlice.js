@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { getLocgetlStorage } from "../utils/util";
 
 const initialState = {
-  infoUser: getLocgetlStorage("user"),
+  infoUser: JSON.parse(getLocgetlStorage("user")),
 };
 
 const authSlice = createSlice({
