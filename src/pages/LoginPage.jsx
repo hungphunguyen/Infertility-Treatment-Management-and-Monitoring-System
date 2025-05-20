@@ -42,7 +42,7 @@ const LoginPage = () => {
             setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
             let getInfoUser = authService.getMyInfo(getLocgetlStorage("token"));
             console.log(authService.getMyInfo(getLocgetlStorage("token")));
-            setLocalStorage("user", getInfoUser);
+            setLocalStorage("user", getInfoUser.data.result);
             // dispatch(getInforUser(res.data.result));
             // dispatch(getInforUser(res.data.result.token));
 
