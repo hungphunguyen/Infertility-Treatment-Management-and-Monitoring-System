@@ -46,19 +46,17 @@ export default function GoogleLogin() {
       const data = res.data.result;
 
       if (data.token) {
-        // setLocalStorage("username", res.data.result);
-        // setLocalStorage("username", res.data.result.token);
-
+        setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
+        let getInfoUser = authService.getMyInfo(getLocgetStorage("token"));
+        setLocalStorage("user", getInfoUser);
         showNotification("Login successful", "success");
         setTimeout(() => {
           navigate("/");
         }, 1000);
-      } else {
-        showNotification(res.data.result.message, "error");
       }
     } catch (error) {
       console.error("❌ Lỗi đăng nhập:", error);
-      showNotification(res.data.result.message, "error");
+      showNotification(error.response.data.message, "error");
     }
   };
 

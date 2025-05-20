@@ -40,8 +40,9 @@ const LoginPage = () => {
             console.log(res);
             //thực hiện lưu trự dưới localStorage
             setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
-            authService.getMyInfo(getLocgetlStorage("token"));
+            let getInfoUser = authService.getMyInfo(getLocgetlStorage("token"));
             console.log(authService.getMyInfo(getLocgetlStorage("token")));
+            setLocalStorage("user", getInfoUser);
             // dispatch(getInforUser(res.data.result));
             // dispatch(getInforUser(res.data.result.token));
 
