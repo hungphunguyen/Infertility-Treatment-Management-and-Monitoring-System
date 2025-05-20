@@ -34,7 +34,7 @@ const UserHeader = () => {
         <div className="header_logo ">
           <Link to={path.homePage}>Logo here</Link>
         </div>
-        <nav className="header_navigate">{checUserkLogin}</nav>
+        <nav className="header_navigate">{checUserkLogin()}</nav>
       </div>
     </header>
   );
