@@ -52,7 +52,7 @@ const LoginPage = () => {
           })
           .catch((error) => {
             console.log(error);
-            showNotification(error.data.message, "error"); // coi lai respone tu be tra ve
+            showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({
