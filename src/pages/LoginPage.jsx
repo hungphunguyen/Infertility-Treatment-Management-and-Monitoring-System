@@ -36,6 +36,7 @@ const LoginPage = () => {
         authService
           .signIn(values)
           .then((res) => {
+            console.log("res.data");
             console.log(res);
             //thực hiện lưu trự dưới localStorage
             setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao

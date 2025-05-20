@@ -10,7 +10,6 @@ export default function GoogleLogin() {
   const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
-    // Load script Google GIS
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
@@ -28,6 +27,9 @@ export default function GoogleLogin() {
         {
           theme: "outline",
           size: "large",
+          text: "sign_in_with",
+          shape: "rectangular",
+          logo_alignment: "left",
         }
       );
     };
@@ -37,10 +39,8 @@ export default function GoogleLogin() {
 
   const handleCredentialResponse = async (response) => {
     const idToken = response.credential;
+    console.log("✅ Google ID Token:", idToken);
 
-    console.log("🎯 id_token:", idToken);
-
-    // Gửi token về backend
     try {
       const res = await authService.signInByGoogle({ idToken });
       const data = res.data.result;
