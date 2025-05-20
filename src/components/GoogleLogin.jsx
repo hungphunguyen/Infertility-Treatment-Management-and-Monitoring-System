@@ -47,8 +47,10 @@ export default function GoogleLogin() {
 
       if (data.token) {
         setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
-        let getInfoUser = authService.getMyInfo(getLocgetStorage("token"));
-        setLocalStorage("user", getInfoUser.data.result);
+        authService.getMyInfo(getLocgetlStorage("token")).then((res) => {
+          console.log(res.data.result);
+          setLocalStorage("user", JSON.stringify(res.data.result));
+        });
         showNotification("Login successful", "success");
         setTimeout(() => {
           navigate("/");
