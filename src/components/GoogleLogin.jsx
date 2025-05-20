@@ -46,7 +46,9 @@ export default function GoogleLogin() {
       const data = res.data.result;
 
       if (data.token) {
-        setLocalStorage("username", res.data.result);
+        // setLocalStorage("username", res.data.result);
+        // setLocalStorage("username", res.data.result.token);
+
         showNotification("Login successful", "success");
         setTimeout(() => {
           navigate("/");

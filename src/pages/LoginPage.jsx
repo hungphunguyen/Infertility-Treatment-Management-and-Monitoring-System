@@ -7,7 +7,7 @@ import { path } from "../common/path";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { authService } from "../service/auth.service";
-import { setLocalStorage } from "../utils/util";
+import { getLocgetlStorage, setLocalStorage } from "../utils/util";
 import GoogleLogin from "../components/GoogleLogin";
 import { NotificationContext } from "../App";
 import { useDispatch } from "react-redux";
@@ -38,11 +38,11 @@ const LoginPage = () => {
           .then((res) => {
             console.log(res);
             //thực hiện lưu trự dưới localStorage
-            setLocalStorage("username", res.data.result); // coi lai phia be tra du lieu theo format nao
-            setLocalStorage("username", res.data.token); // coi lai phia be tra du lieu theo format nao
-
-            dispatch(getInforUser(res.data.result));
-            dispatch(getInforUser(res.data.result.token));
+            setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
+            authService.getMyInfo(getLocgetlStorage("token"));
+            console.log(authService.getMyInfo(getLocgetlStorage("token")));
+            // dispatch(getInforUser(res.data.result));
+            // dispatch(getInforUser(res.data.result.token));
 
             // thực hiên thông báo chuyển hướng người dùng
             showNotification("Login successful", "success");

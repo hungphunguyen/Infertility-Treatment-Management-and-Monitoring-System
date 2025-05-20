@@ -1,3 +1,4 @@
+import { getLocgetlStorage } from "../utils/util";
 import { http } from "./config";
 
 export const authService = {
@@ -7,5 +8,13 @@ export const authService = {
   },
   signInByGoogle: (data) => {
     return http.post("auth/login-google", data); // đường dẫn endpoint để hoàn thành request url
+  },
+  getMyInfo: () => {
+    const token = getLocgetlStorage();
+    return http.get("user/myInfo", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   },
 };
