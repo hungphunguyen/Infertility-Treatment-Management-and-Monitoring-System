@@ -4,7 +4,7 @@ export function setLocalStorage(key, value) {
   localStorage.setItem(key, stringJson);
 }
 
-export function LocgetlStorage(key) {
+export function getLocgetlStorage(key) {
   // lay du lieu tu local
   const dataLocal = localStorage.getItem(key);
   // kiem tra du lieu khac null thi parse no ra object

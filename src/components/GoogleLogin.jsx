@@ -1,8 +1,14 @@
 // src/components/GoogleLogin.jsx
 import { useEffect } from "react";
 import { authService } from "../service/auth.service";
+import { setLocalStorage } from "../utils/util";
+import { useNavigate } from "react-router-dom";
+import { NotificationContext } from "../App";
 
 export default function GoogleLogin() {
+  const navigate = useNavigate();
+  const { showNotification } = useContext(NotificationContext);
+
   useEffect(() => {
     // Load script Google GIS
     const script = document.createElement("script");
@@ -37,18 +43,20 @@ export default function GoogleLogin() {
     // Gửi token về backend
     try {
       const res = await authService.signInByGoogle({ idToken });
-      const data = await res.json();
+      const data = res.data.result;
 
       if (data.token) {
-        localStorage.setItem("accessToken", data.token);
-        alert("Đăng nhập thành công 🎉");
-        window.location.href = "/";
+        setLocalStorage("username", res.data.result);
+        showNotification("Login successful", "success");
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       } else {
-        alert("Đăng nhập thất bại!");
+        showNotification(res.data.result.message, "error");
       }
     } catch (error) {
       console.error("❌ Lỗi đăng nhập:", error);
-      alert("Có lỗi khi gửi token về backend!");
+      showNotification(res.data.result.message, "error");
     }
   };
 
