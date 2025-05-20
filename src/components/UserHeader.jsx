@@ -9,7 +9,7 @@ const UserHeader = () => {
 
   const checUserkLogin = () => {
     return infoUser ? (
-      <Avatar>{infoUser.fullname}</Avatar>
+      <Avatar>{infoUser.fullName}</Avatar>
     ) : (
       <>
         <Link
