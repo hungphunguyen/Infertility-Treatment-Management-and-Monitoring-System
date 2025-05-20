@@ -9,8 +9,7 @@ export const authService = {
   signInByGoogle: (data) => {
     return http.post("auth/login-google", data); // đường dẫn endpoint để hoàn thành request url
   },
-  getMyInfo: () => {
-    const token = getLocgetlStorage();
+  getMyInfo: (token) => {
     return http.get("user/myInfo", {
       headers: {
         Authorization: `Bearer ${token}`,
