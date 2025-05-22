@@ -33,7 +33,7 @@ const RegisterPage = () => {
             console.log(res);
             showNotification("Register successful", "success");
             setTimeout(() => {
-              navigate("sign-in");
+              navigate("/sign-in");
             }, 1000);
           })
           .catch((errors) => {
