@@ -3,13 +3,10 @@ import { Carousel, Typography, Row, Col, Card, Button, Input, Form, Checkbox, Sp
 import { UserOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import UserHeader from '../components/UserHeader';
 import UserFooter from '../components/UserFooter';
-import { Outlet } from 'react-router-dom';
-import TreatmentOptions from '../components/TreatmentOptions';
-import StatisticsSection from '../components/StatisticsSection';
 
 const { Title, Paragraph, Text } = Typography;
 
-const UserTemplate = () => {
+const HomePage = () => {
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -20,7 +17,7 @@ const UserTemplate = () => {
           <div className="relative h-[600px]">
             <div 
               className="absolute inset-0 bg-cover bg-center" 
-              style={{ backgroundImage: "url('/images/features/iui-vs-ivf.jpg')" }}
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1632149877166-f75d49000351?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2064&q=80')" }}
             />
             <div className="absolute inset-0 bg-black opacity-40" />
             <div className="absolute inset-0 flex items-center">
@@ -40,7 +37,7 @@ const UserTemplate = () => {
           <div className="relative h-[600px]">
             <div 
               className="absolute inset-0 bg-cover bg-center" 
-              style={{ backgroundImage: "url('/images/features/Pc1.jpg')" }}
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1607923662985-3549221a6d4c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')" }}
             />
             <div className="absolute inset-0 bg-black opacity-40" />
             <div className="absolute inset-0 flex items-center">
@@ -60,7 +57,7 @@ const UserTemplate = () => {
           <div className="relative h-[600px]">
             <div 
               className="absolute inset-0 bg-cover bg-center" 
-              style={{ backgroundImage: "url('/images/features/pc7.jpg')" }}
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1527613426441-4da17471b66d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')" }}
             />
             <div className="absolute inset-0 bg-black opacity-40" />
             <div className="absolute inset-0 flex items-center">
@@ -145,7 +142,7 @@ const UserTemplate = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2">
               <img 
-                src="/images/features/pc3.jpg" 
+                src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80" 
                 alt="Doctor" 
                 className="w-full h-56 object-cover"
               />
@@ -164,9 +161,9 @@ const UserTemplate = () => {
 
             <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2">
               <img 
-                src="/images/features/pc4.jpg" 
-                className="h-56 w-full object-cover"
-                alt="Egg Donor"
+                src="https://images.unsplash.com/photo-1581595219315-a187dd40c322?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2062&q=80" 
+                alt="Laboratory" 
+                className="w-full h-56 object-cover"
               />
               <div className="p-6">
                 <h3 className="text-2xl font-semibold text-center mb-4">The Latest High-Tech Equipment</h3>
@@ -183,7 +180,7 @@ const UserTemplate = () => {
 
             <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2">
               <img 
-                src="/images/features/pc5.jpg" 
+                src="https://images.unsplash.com/photo-1616244053823-6d29a8d8e1ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
                 alt="Baby" 
                 className="w-full h-56 object-cover"
               />
@@ -214,11 +211,103 @@ const UserTemplate = () => {
         </div>
       </div>
 
-      {/* Treatment Options Component */}
-      <TreatmentOptions />
+      {/* Treatment Options */}
+      <div className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-2">Popular Treatment Options</h2>
+            <span className="text-[#ff8460] font-medium">OUR PROGRAMS</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2">
+              <img 
+                src="https://images.unsplash.com/photo-1567427361984-0cbe7396fc4c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80" 
+                className="h-56 w-full object-cover"
+                alt="Egg Donor"
+              />
+              <div className="p-6">
+                <h3 className="text-2xl font-semibold mb-4">Egg Donor and Surrogacy</h3>
+                <p className="text-gray-600 mb-4">
+                  At our center we have comprehensive knowledge and experience in the field of egg donor 
+                  and surrogacy. We have a booming base of 1,000 donors.
+                </p>
+                <button className="text-[#ff8460] font-medium hover:text-[#ff6b40]">
+                  <span className="mr-1">+</span> More Info
+                </button>
+              </div>
+            </div>
 
-      {/* Statistics Section Component */}
-      <StatisticsSection />
+            <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2">
+              <img 
+                src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                className="h-56 w-full object-cover"
+                alt="Egg Freezing"
+              />
+              <div className="p-6">
+                <h3 className="text-2xl font-semibold mb-4">Egg Freezing / Preservation</h3>
+                <p className="text-gray-600 mb-4">
+                  Fertility preservation in general, and egg freezing in particular, is quickly becoming a more popular 
+                  procedure for women all over the world each year.
+                </p>
+                <button className="text-[#ff8460] font-medium hover:text-[#ff6b40]">
+                  <span className="mr-1">+</span> More Info
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2">
+              <img 
+                src="https://images.unsplash.com/photo-1522108133347-1a4aa2a7e414?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+                className="h-56 w-full object-cover"
+                alt="Gender Selection"
+              />
+              <div className="p-6">
+                <h3 className="text-2xl font-semibold mb-4">Gender Selection</h3>
+                <p className="text-gray-600 mb-4">
+                  Sex selection can be done either before or after the fertilisation of the egg. Gender selection is the 
+                  attempt to control the gender of human offspring.
+                </p>
+                <button className="text-[#ff8460] font-medium hover:text-[#ff6b40]">
+                  <span className="mr-1">+</span> More Info
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-10">
+            <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out">
+              More Programs
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics Section */}
+      <div className="py-16 bg-cover bg-center text-white" style={{backgroundImage: "linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1531337444940-64aa23d4b2c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2013&q=80')"}}>
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div className="flex justify-center">
+              <div className="rounded-full border-4 border-white p-6 w-64 h-64 flex flex-col items-center justify-center shadow-lg">
+                <span className="text-white opacity-80 text-sm">OVER</span>
+                <div className="text-6xl font-bold text-white">1250</div>
+                <span className="text-[#ff8460] text-sm">Happy Families</span>
+              </div>
+            </div>
+            <div>
+              <h2 className="text-4xl font-bold mb-2">People Recommend Us</h2>
+              <span className="text-[#ff8460] font-medium block mb-4">WHY CHOOSE US</span>
+              <p className="mb-6 text-lg">
+                We provide individualized care and attention for every client during their journey to parenthood. 
+                We offer comprehensive testing to determine the causes of male and female infertility, 
+                and we specialize in IUI and in IVF.
+              </p>
+              <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out">
+                Contact Us
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Testimonials */}
       <div className="py-20 bg-white">
@@ -297,7 +386,7 @@ const UserTemplate = () => {
             </div>
             <div>
               <img 
-                src="/images/features/pc5.jpg" 
+                src="https://images.unsplash.com/photo-1584715642381-c8916df548fd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80" 
                 alt="Mother and baby" 
                 className="w-full rounded-lg shadow-xl"
               />
@@ -334,12 +423,9 @@ const UserTemplate = () => {
         </div>
       </div>
 
-      <Outlet />
       <UserFooter />
     </div>
   );
 };
 
-
-export default UserTemplate;
-
+export default HomePage; 
