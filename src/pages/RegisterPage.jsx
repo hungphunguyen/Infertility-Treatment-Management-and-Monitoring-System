@@ -3,8 +3,9 @@ import React, { useContext } from "react";
 import InputCustom from "../components/Input/InputCustom";
 import { authService } from "../service/auth.service";
 import { NotificationContext } from "../App";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
+import { path } from "../common/path";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -181,7 +182,13 @@ const RegisterPage = () => {
               className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition duration-200"
             >
               Register
-            </button>
+            </button>{" "}
+            <Link
+              to={path.signIn}
+              className="mt-3 text-blue-600 hover:underline duration-300"
+            >
+              Already have account, click here
+            </Link>
           </div>
         </form>
       </div>
