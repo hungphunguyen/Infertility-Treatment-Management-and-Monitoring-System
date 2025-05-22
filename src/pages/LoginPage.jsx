@@ -54,6 +54,7 @@ const LoginPage = () => {
             showNotification("Login successful", "success");
             setTimeout(() => {
               navigate("/");
+              window.location.reload();
             }, 1000);
           })
           .catch((error) => {
