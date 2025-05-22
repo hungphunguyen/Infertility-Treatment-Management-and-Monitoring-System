@@ -16,4 +16,7 @@ export const authService = {
       },
     });
   },
+  signUp: (data) => {
+    return http.post("auth/register", data); // đường dẫn endpoint để hoàn thành request url
+  },
 };

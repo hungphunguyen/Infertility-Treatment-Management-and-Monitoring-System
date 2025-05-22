@@ -63,10 +63,7 @@ const LoginPage = () => {
       },
       validationSchema: yup.object({
         username: yup.string().required("Please do not leave blank"),
-        password: yup
-          .string()
-          .required("Please do not leave blank")
-          .min(6, "Please enter at least 6 characters"),
+        password: yup.string().required("Please do not leave blank"),
       }),
     });
   return (

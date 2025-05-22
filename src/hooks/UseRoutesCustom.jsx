@@ -4,6 +4,7 @@ import UserTemplate from "../template/UserTemplate";
 import PageNotFound from "../components/PageNotFound";
 import { path } from "../common/path";
 import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -18,6 +19,10 @@ const UseRoutesCustom = () => {
     {
       path: path.signIn,
       element: <LoginPage />,
+    },
+    {
+      path: path.signUp,
+      element: <RegisterPage />,
     },
   ]);
   return routes;
