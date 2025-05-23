@@ -18,7 +18,7 @@ export default function GoogleLogin() {
       /* global google */
       window.google.accounts.id.initialize({
         client_id:
-          "102777012744-s07lc3n8j3tpd1prrrhtl5lb723esgcb.apps.googleusercontent.com",
+          "275410243519-d80fcmlrq078l24q9hechprhjraon6e5.apps.googleusercontent.com",
         callback: handleCredentialResponse,
       });
 
