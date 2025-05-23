@@ -2,56 +2,78 @@ import React from "react";
 
 const UserFooter = () => {
   return (
-    <footer className="bg-gray-50 pt-8 border-t border-gray-200">
-      {/* Top section */}
-      <div className="container mx-auto flex flex-col md:flex-row justify-between items-start md:items-center py-8 gap-8">
-        {/* Logo & Description */}
-        <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="rounded-full border-4 border-orange-300 flex items-center justify-center w-20 h-20">
-              <span style={{ fontSize: 40, color: '#ff914d' }}>👤</span>
+    <footer className="bg-[#F5F5F5] pt-12 pb-8 border-t border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          {/* Logo & Description */}
+          <div className="col-span-1">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="rounded-full flex items-center justify-center w-16 h-16 overflow-hidden border-2" style={{ borderColor: '#15A1AC' }}>
+                <img src="/images/logo/logo.jpg" alt="NewLife Fertility Hospital Logo" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-300 bg-clip-text text-transparent">NewLife</div>
+                <div className="text-gray-600 text-sm font-medium">Fertility Hospital</div>
+              </div>
             </div>
-            <div>
-              <div className="text-3xl font-bold">FPT</div>
-              <div className="text-gray-400 text-sm font-semibold">FPT CENTER</div>
+            <div className="text-gray-500 text-sm mt-3 pr-4">
+              We are a brand-new reproductive center. We offer our clients the latest fertility technology and comfort. Our goal is to make our clients happy parents.
             </div>
           </div>
-          <div className="text-gray-400 max-w-xs">
-            We are a brand-new reproductive center. We offer our clients the latest fertility technology and comfort. Our goal is to make our clients happy parents.
+          
+          {/* Location */}
+          <div className="col-span-1">
+            <h3 className="font-bold text-gray-700 mb-4">Our Location</h3>
+            <p className="text-gray-500 text-sm">
+              D1, Long Thạnh Mỹ<br />
+              Thủ Đức, Hồ Chí Minh<br />
+              Việt Nam
+            </p>
+          </div>
+          
+          {/* Contact */}
+          <div className="col-span-1">
+            <h3 className="font-bold text-gray-700 mb-4">Call Us Toll Free</h3>
+            <p className="text-[#ff8460] text-lg font-semibold mb-4">123-456-7890</p>
+            
+            <h3 className="font-bold text-gray-700 mb-2">Email us</h3>
+            <p className="text-gray-500 text-sm">info@yoursite.com</p>
+          </div>
+          
+          {/* Opening Hours */}
+          <div className="col-span-1">
+            <h3 className="font-bold text-gray-700 mb-4">Opening Hours</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="text-gray-500 text-sm">Monday</div>
+              <div className="text-lime-500 text-sm font-semibold text-right">09:00-17:00</div>
+              
+              <div className="text-gray-500 text-sm">Tuesday</div>
+              <div className="text-lime-500 text-sm font-semibold text-right">09:00-17:00</div>
+              
+              <div className="text-gray-500 text-sm">Wednesday</div>
+              <div className="text-lime-500 text-sm font-semibold text-right">09:00-17:00</div>
+              
+              <div className="text-gray-500 text-sm">Thursday</div>
+              <div className="text-lime-500 text-sm font-semibold text-right">09:00-17:00</div>
+              
+              <div className="text-gray-500 text-sm">Friday</div>
+              <div className="text-lime-500 text-sm font-semibold text-right">09:00-17:00</div>
+            </div>
           </div>
         </div>
-        {/* Location & Contact */}
-        <div className="flex-1 flex flex-col gap-2 items-center md:items-start">
-          <div className="font-bold text-lg mb-1">Our Location</div>
-          <div className="text-gray-500">D1,Long Thạnh Mỹ,Thủ Đức,Hồ Chí Minh<br /></div>
-          <div className="font-bold text-lg mt-4 mb-1">Call Us Toll Free</div>
-          <div className="text-orange-400 text-lg font-semibold">123-456-7890</div>
-          <div className="font-bold text-lg mt-4 mb-1">Email us</div>
-          <div className="text-gray-400">info@yoursite.com</div>
-        </div>
-        {/* Opening Hours */}
-        <div className="flex-1 flex flex-col gap-2 items-center md:items-start">
-          <div className="font-bold text-lg mb-1">Opening Hours</div>
-          <div className="flex flex-col gap-1">
-            <div className="flex justify-between gap-4"><span className="text-gray-400">Monday</span><span className="text-lime-500 font-semibold">09:00-17:00</span></div>
-            <div className="flex justify-between gap-4"><span className="text-gray-400">Tuesday</span><span className="text-lime-500 font-semibold">09:00-17:00</span></div>
-            <div className="flex justify-between gap-4"><span className="text-gray-400">Wednesday</span><span className="text-lime-500 font-semibold">09:00-17:00</span></div>
-            <div className="flex justify-between gap-4"><span className="text-gray-400">Thursday</span><span className="text-lime-500 font-semibold">09:00-17:00</span></div>
-            <div className="flex justify-between gap-4"><span className="text-gray-400">Friday</span><span className="text-lime-500 font-semibold">09:00-17:00</span></div>
+        
+        {/* Bottom section */}
+        <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-gray-500 text-sm mb-4 md:mb-0">
+            NewLife Fertility Hospital © 2025. All rights reserved.
           </div>
-        </div>
-      </div>
-      {/* Bottom section */}
-      <div className="border-t border-gray-200 py-4 mt-4 flex flex-col md:flex-row justify-between items-center container mx-auto">
-        <div className="text-gray-400 text-sm mb-2 md:mb-0">
-          AncoraThemes © 2025. All rights reserved.
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="font-semibold mr-2">Follow Us</span>
-          <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-xl text-gray-600 hover:bg-lime-300">X</a>
-          <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-xl text-gray-600 hover:bg-lime-300">f</a>
-          <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-xl text-gray-600 hover:bg-lime-300">📷</a>
-          <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-xl text-gray-600 hover:bg-lime-300">🟢</a>
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-sm mr-2">Follow Us</span>
+            <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300">X</a>
+            <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300">f</a>
+            <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300">📷</a>
+            <a href="#" className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300">🟢</a>
+          </div>
         </div>
       </div>
     </footer>

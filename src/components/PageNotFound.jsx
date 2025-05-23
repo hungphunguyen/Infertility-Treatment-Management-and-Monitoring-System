@@ -15,7 +15,7 @@ const PageNotFound = () => {
 
   return (
     <div>
-      <UserHeader />
+      
       <div className="container">
         <div className="404_content  h-screen flex justify-around items-center h-[70vh] overflow-hidden">
           <div className="404_img w-[700px] ">{View}</div>
@@ -27,7 +27,7 @@ const PageNotFound = () => {
             Go back Home Page
           </Link>
         </div>
-        <UserFooter />
+        
       </div>
     </div>
   );

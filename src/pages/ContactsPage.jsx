@@ -1,100 +1,42 @@
 import React from "react";
-import {
-  Typography,
-  Card,
-  Row,
-  Col,
-  Divider,
-  Form,
-  Input,
-  Button,
-  Space,
-} from "antd";
+import { Typography, Card, Row, Col, Divider } from "antd";
 import {
   PhoneOutlined,
   MailOutlined,
   EnvironmentOutlined,
   ClockCircleOutlined,
-  FacebookOutlined,
-  InstagramOutlined,
-  YoutubeOutlined,
 } from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 
 const { Title, Paragraph, Text } = Typography;
-const { TextArea } = Input;
 
 const contactInfo = [
   {
-    title: "Địa chỉ",
-    content: "123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM",
-    icon: <EnvironmentOutlined style={{ fontSize: 24, color: "#1890ff" }} />,
+    title: "Address",
+    content: "123 New Life Street, Downtown, City",
+    icon: <EnvironmentOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
   {
     title: "Email",
-    content: "info@ivfcenter.vn",
-    icon: <MailOutlined style={{ fontSize: 24, color: "#1890ff" }} />,
+    content: "info@newlife.com",
+    icon: <MailOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
   {
-    title: "Điện thoại",
-    content: "(028) 1234 5678",
-    icon: <PhoneOutlined style={{ fontSize: 24, color: "#1890ff" }} />,
+    title: "Phone",
+    content: "+1 858 794 6363",
+    icon: <PhoneOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
   {
-    title: "Giờ làm việc",
-    content: "Thứ 2 - Thứ 7: 8:00 - 17:00",
-    icon: <ClockCircleOutlined style={{ fontSize: 24, color: "#1890ff" }} />,
-  },
-];
-
-const socialMedia = [
-  {
-    name: "Facebook",
-    url: "https://facebook.com",
-    icon: <FacebookOutlined style={{ fontSize: 32, color: "#1890ff" }} />,
-  },
-  {
-    name: "Instagram",
-    url: "https://instagram.com",
-    icon: <InstagramOutlined style={{ fontSize: 32, color: "#1890ff" }} />,
-  },
-  {
-    name: "Youtube",
-    url: "https://youtube.com",
-    icon: <YoutubeOutlined style={{ fontSize: 32, color: "#1890ff" }} />,
-  },
-];
-
-const branches = [
-  {
-    name: "Trung tâm chính - TP.HCM",
-    address: "123 Đường Nguyễn Văn Linh, Quận 7, TP.HCM",
-    phone: "(028) 1234 5678",
-    email: "hcm@ivfcenter.vn",
-  },
-  {
-    name: "Chi nhánh Hà Nội",
-    address: "456 Đường Láng, Quận Đống Đa, Hà Nội",
-    phone: "(024) 9876 5432",
-    email: "hanoi@ivfcenter.vn",
-  },
-  {
-    name: "Chi nhánh Đà Nẵng",
-    address: "789 Đường Nguyễn Hữu Thọ, Quận Hải Châu, Đà Nẵng",
-    phone: "(0236) 3456 789",
-    email: "danang@ivfcenter.vn",
+    title: "Working Hours",
+    content: "Monday - Saturday: 8:00 - 17:00",
+    icon: <ClockCircleOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
 ];
 
 const ContactsPage = () => {
-  const onFinish = (values) => {
-    console.log("Received values:", values);
-    // Xử lý gửi thông tin liên hệ
-  };
-
   return (
-    <div className="w-full min-h-screen">
+    <div className="min-h-screen">
       <UserHeader />
       <div className="px-4 py-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
@@ -110,31 +52,94 @@ const ContactsPage = () => {
         <Divider />
 
         <div className="mb-12">
-          <Col xs={24} md={12} lg={14}>
-            <div
-              style={{
-                height: "400px",
-                backgroundColor: "#f0f2f5",
-                marginBottom: "1rem",
-              }}
-            >
-              {/* Đây sẽ là bản đồ Google Map */}
-              <div className="w-full h-full flex items-center justify-center">
-                <Text>Google Map sẽ được hiển thị tại đây</Text>
+          <Row gutter={[24, 24]}>
+            <Col xs={24} md={12} lg={14}>
+              <div
+                style={{
+                  height: "400px",
+                  backgroundColor: "#f0f2f5",
+                  marginBottom: "1rem",
+                }}
+              >
+                {/* Đây sẽ là bản đồ Google Map */}
+                <div className="w-full h-full flex items-center justify-center">
+                  <Text>Google Map sẽ được hiển thị tại đây</Text>
+                </div>
               </div>
-            </div>
-            <Row gutter={[16, 16]}>
-              {contactInfo.map((item, index) => (
-                <Col xs={12} sm={6} md={12} lg={6} key={index}>
-                  <Card className="text-center h-full shadow-md">
-                    <div className="mb-2">{item.icon}</div>
-                    <Title level={5}>{item.title}</Title>
-                    <Text>{item.content}</Text>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </Col>
+              <Row gutter={[16, 16]}>
+                {contactInfo.map((item, index) => (
+                  <Col xs={12} sm={6} md={12} lg={6} key={index}>
+                    <Card className="text-center h-full shadow-md">
+                      <div className="mb-2">{item.icon}</div>
+                      <Title level={5}>{item.title}</Title>
+                      <Text>{item.content}</Text>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </Col>
+
+            <Col xs={24} md={12} lg={10}>
+              <Card title="Gửi thông tin liên hệ" className="shadow-md">
+                <Form layout="vertical" onFinish={onFinish}>
+                  <Form.Item
+                    name="name"
+                    label="Họ và tên"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập họ tên" },
+                    ]}
+                  >
+                    <Input placeholder="Nhập họ và tên" />
+                  </Form.Item>
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập email" },
+                      { type: "email", message: "Email không hợp lệ" },
+                    ]}
+                  >
+                    <Input placeholder="Nhập địa chỉ email" />
+                  </Form.Item>
+                  <Form.Item
+                    name="phone"
+                    label="Số điện thoại"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Vui lòng nhập số điện thoại",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="Nhập số điện thoại" />
+                  </Form.Item>
+                  <Form.Item
+                    name="subject"
+                    label="Chủ đề"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập chủ đề" },
+                    ]}
+                  >
+                    <Input placeholder="Nhập chủ đề cần tư vấn" />
+                  </Form.Item>
+                  <Form.Item
+                    name="message"
+                    label="Nội dung"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập nội dung" },
+                    ]}
+                  >
+                    <TextArea rows={4} placeholder="Nhập nội dung cần tư vấn" />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit" block>
+                      Gửi thông tin
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </Card>
+            </Col>
+          </Row>
         </div>
 
         <Divider />
@@ -183,6 +188,7 @@ const ContactsPage = () => {
           </Space>
         </div>
       </div>
+
       <UserFooter />
     </div>
   );

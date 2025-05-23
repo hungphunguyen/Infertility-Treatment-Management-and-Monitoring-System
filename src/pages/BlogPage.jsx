@@ -10,62 +10,62 @@ const { Search } = Input;
 const blogPosts = [
   {
     id: 1,
-    title: "Hiểu về hiếm muộn và các nguyên nhân phổ biến",
+    title: "Understanding Infertility and Common Causes",
     shortDescription:
-      "Tìm hiểu về hiếm muộn, nguyên nhân và các yếu tố ảnh hưởng đến khả năng sinh sản.",
+      "Learn about infertility, its causes and factors affecting reproductive capacity.",
     content:
-      "Hiếm muộn được định nghĩa là tình trạng không thể mang thai sau 12 tháng quan hệ đều đặn không sử dụng biện pháp tránh thai. Theo thống kê, khoảng 10-15% các cặp vợ chồng gặp vấn đề về hiếm muộn. Nguyên nhân có thể đến từ cả hai phía nam và nữ, hoặc đôi khi là sự kết hợp của cả hai...",
-    author: "TS. BS. Nguyễn Văn A",
-    date: "15/06/2023",
-    tags: ["Hiếm muộn", "Nguyên nhân", "Sức khỏe sinh sản"],
+      "Infertility is defined as the inability to conceive after 12 months of regular unprotected intercourse. According to statistics, about 10-15% of couples face infertility issues. Causes can come from both male and female factors, or sometimes a combination of both...",
+    author: "Dr. Andrew Smith, MD",
+    date: "06/15/2023",
+    tags: ["Infertility", "Causes", "Reproductive Health"],
     image: "https://example.com/images/infertility-causes.jpg",
   },
   {
     id: 2,
-    title: "Hành trình IVF - Từ quyết định đến thành công",
+    title: "The IVF Journey - From Decision to Success",
     shortDescription:
-      "Chia sẻ kinh nghiệm thực tế từ một cặp vợ chồng đã thành công với phương pháp IVF.",
+      "Real experience shared by a couple who succeeded with IVF treatment.",
     content:
-      "Sau 5 năm kết hôn và nhiều lần thất bại trong việc có con tự nhiên, chúng tôi quyết định thử phương pháp thụ tinh trong ống nghiệm (IVF). Hành trình này không hề dễ dàng, từ việc chuẩn bị tâm lý, tài chính đến trải qua các quy trình y tế phức tạp...",
-    author: "Nguyễn Thị B & Trần Văn C",
-    date: "03/08/2023",
-    tags: ["IVF", "Kinh nghiệm", "Thành công"],
+      "After 5 years of marriage and many failed attempts to conceive naturally, we decided to try In Vitro Fertilization (IVF). This journey wasn't easy, from psychological preparation and financial planning to going through complex medical procedures...",
+    author: "Emily & James Wilson",
+    date: "08/03/2023",
+    tags: ["IVF", "Experience", "Success Story"],
     image: "https://example.com/images/ivf-journey.jpg",
   },
   {
     id: 3,
-    title: "Dinh dưỡng và lối sống tốt cho người hiếm muộn",
+    title: "Nutrition and Lifestyle for Fertility Enhancement",
     shortDescription:
-      "Những lời khuyên về chế độ ăn uống và lối sống giúp cải thiện khả năng sinh sản.",
+      "Dietary and lifestyle recommendations to improve fertility.",
     content:
-      "Dinh dưỡng và lối sống đóng vai trò quan trọng trong việc cải thiện khả năng sinh sản. Nghiên cứu cho thấy việc duy trì cân nặng hợp lý, ăn uống cân bằng với nhiều rau xanh, trái cây, protein nạc và ngũ cốc nguyên hạt có thể cải thiện chất lượng trứng và tinh trùng...",
-    author: "PGS. TS. Lê Thị D",
-    date: "22/09/2023",
-    tags: ["Dinh dưỡng", "Lối sống", "Sức khỏe sinh sản"],
+      "Nutrition and lifestyle play a crucial role in improving fertility. Research shows that maintaining a healthy weight, balanced diet with plenty of vegetables, fruits, lean protein and whole grains can enhance egg and sperm quality...",
+    author: "Prof. Sarah Johnson, PhD",
+    date: "09/22/2023",
+    tags: ["Nutrition", "Lifestyle", "Reproductive Health"],
     image: "https://example.com/images/fertility-nutrition.jpg",
   },
   {
     id: 4,
-    title: "Hiểu về phương pháp IUI và khi nào nên áp dụng",
+    title: "Understanding IUI and When It's Recommended",
     shortDescription:
-      "Giải thích chi tiết về phương pháp thụ tinh trong tử cung (IUI) và các trường hợp phù hợp.",
+      "Detailed explanation of Intrauterine Insemination (IUI) and suitable cases.",
     content:
-      "Thụ tinh trong tử cung (IUI) là phương pháp hỗ trợ sinh sản tương đối đơn giản và ít xâm lấn, trong đó tinh trùng được xử lý và đưa trực tiếp vào tử cung của người phụ nữ. Phương pháp này thường được khuyến nghị cho các trường hợp vô sinh do yếu tố cổ tử cung, rối loạn phóng noãn nhẹ...",
-    author: "TS. BS. Phạm Văn E",
-    date: "10/11/2023",
-    tags: ["IUI", "Hỗ trợ sinh sản", "Điều trị hiếm muộn"],
+      "Intrauterine Insemination (IUI) is a relatively simple and less invasive fertility treatment where processed sperm is directly placed into a woman's uterus. This method is often recommended for cases involving cervical factor infertility, mild ovulation disorders...",
+    author: "Dr. Robert Thompson, MD",
+    date: "11/10/2023",
+    tags: ["IUI", "Fertility Treatment", "Reproductive Medicine"],
     image: "https://example.com/images/iui-explained.jpg",
   },
   {
     id: 5,
-    title: "Hỗ trợ tâm lý cho người điều trị hiếm muộn",
+    title: "Psychological Support During Fertility Treatment",
     shortDescription:
-      "Tầm quan trọng của sức khỏe tâm lý và các phương pháp hỗ trợ trong quá trình điều trị hiếm muộn.",
+      "The importance of mental health and support methods during fertility treatment.",
     content:
-      "Điều trị hiếm muộn không chỉ là thách thức về mặt thể chất mà còn ảnh hưởng lớn đến sức khỏe tâm lý. Nhiều nghiên cứu cho thấy stress, lo âu và trầm cảm phổ biến ở những người đang điều trị hiếm muộn. Việc nhận được hỗ trợ tâm lý thích hợp có thể giúp cải thiện kết quả điều trị...",
-    author: "ThS. Trịnh Thị F",
-    date: "05/01/2024",
-    tags: ["Tâm lý", "Hỗ trợ", "Stress"],
+      "Fertility treatment is not only a physical challenge but also significantly affects mental health. Many studies show that stress, anxiety and depression are common among people undergoing fertility treatment. Receiving appropriate psychological support can help improve treatment outcomes...",
+    author: "Lisa Parker, MS",
+    date: "01/05/2024",
+    tags: ["Psychology", "Support", "Stress Management"],
     image: "https://example.com/images/psychological-support.jpg",
   },
 ];
@@ -95,15 +95,15 @@ const BlogPage = () => {
       <UserHeader />
       <div className="px-4 py-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <Title level={1} className="text-3xl">Blog & Kiến Thức</Title>
+          <Title level={1} className="text-3xl">Blog & Knowledge</Title>
           <Paragraph className="text-lg mt-4">
-            Chia sẻ kiến thức, kinh nghiệm và thông tin hữu ích về hiếm muộn và các phương pháp điều trị
+            Sharing knowledge, experience and useful information about infertility and treatment methods
           </Paragraph>
         </div>
 
         <div className="mb-8">
           <Search
-            placeholder="Tìm kiếm bài viết..."
+            placeholder="Search articles..."
             allowClear
             enterButton={<SearchOutlined />}
             size="large"
@@ -157,7 +157,7 @@ const BlogPage = () => {
                 </div>
 
                 <Button type="primary" className="mt-4 w-full">
-                  Đọc thêm
+                  Read More
                 </Button>
               </Card>
             </Col>
@@ -166,7 +166,7 @@ const BlogPage = () => {
 
         <div className="mt-12 flex justify-center">
           <Button type="primary" size="large">
-            Xem thêm bài viết
+            View More Articles
           </Button>
         </div>
       </div>
