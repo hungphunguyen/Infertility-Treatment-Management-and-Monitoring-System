@@ -13,7 +13,8 @@ const VerifyPage = () => {
   const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
     useFormik({
       initialValues: {
-        code: "",
+        otp: "",
+        email: infoUser.email,
       },
       onSubmit: (values) => {
         console.log(values);
@@ -54,15 +55,15 @@ const VerifyPage = () => {
         <form className="space-y-5" onSubmit={handleSubmit}>
           <InputCustom
             labelContent="Your code verify"
-            id="code"
-            name="code"
-            placeholder="Enter code"
+            id="otp"
+            name="otp"
+            placeholder="Enter OTP"
             typeInput="text"
-            value={values.code}
+            value={values.otp}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={errors.code}
-            touched={touched.code}
+            error={errors.otp}
+            touched={touched.otp}
           />
           <button className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition">
             Confirm code
