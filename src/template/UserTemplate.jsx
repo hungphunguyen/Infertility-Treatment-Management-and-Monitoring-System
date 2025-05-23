@@ -235,7 +235,7 @@ const UserTemplate = () => {
       </div>
 
       
-      <Outlet />
+        <Outlet />
       <UserFooter />
     </div>
   );

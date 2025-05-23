@@ -10,67 +10,67 @@ const { Title, Paragraph } = Typography;
 const services = [
   {
     id: 1,
-    title: "Thụ tinh trong tử cung (IUI)",
+    title: "Intrauterine Insemination (IUI)",
     description:
-      "Phương pháp thụ tinh trong tử cung là kỹ thuật đưa tinh trùng đã được xử lý vào trong buồng tử cung của người phụ nữ vào đúng thời điểm rụng trứng.",
+      "Intrauterine insemination is a technique of placing processed sperm directly into a woman's uterus at the time of ovulation.",
     icon: <MedicineBoxOutlined style={{ fontSize: 32, color: "#1890ff" }} />,
     details: [
-      "Không cần phẫu thuật, tương đối đơn giản",
-      "Phù hợp với các trường hợp vô sinh nhẹ",
-      "Chi phí thấp hơn so với các phương pháp khác",
-      "Thời gian điều trị ngắn và ít xâm lấn",
+      "No surgery required, relatively simple procedure",
+      "Suitable for cases of mild infertility",
+      "Lower cost compared to other methods",
+      "Short treatment time and minimally invasive",
     ],
     steps: [
-      "Kích thích buồng trứng bằng thuốc (tùy trường hợp)",
-      "Theo dõi sự phát triển của nang trứng",
-      "Tiêm hormone kích thích rụng trứng",
-      "Chuẩn bị và xử lý tinh trùng",
-      "Đưa tinh trùng vào buồng tử cung",
+      "Ovarian stimulation with medication (case dependent)",
+      "Monitoring follicular development",
+      "Hormone injection to trigger ovulation",
+      "Sperm preparation and processing",
+      "Placement of sperm into the uterus",
     ],
-    success: "Tỷ lệ thành công khoảng 10-20% cho mỗi chu kỳ điều trị.",
+    success: "Success rate is approximately 10-20% per treatment cycle.",
   },
   {
     id: 2,
-    title: "Thụ tinh trong ống nghiệm (IVF)",
+    title: "In Vitro Fertilization (IVF)",
     description:
-      "Phương pháp thụ tinh trong ống nghiệm là kỹ thuật kết hợp trứng và tinh trùng trong phòng thí nghiệm, sau đó cấy phôi vào tử cung của người phụ nữ.",
+      "In vitro fertilization is a technique that combines eggs and sperm in a laboratory, followed by embryo transfer into the woman's uterus.",
     icon: <ExperimentOutlined style={{ fontSize: 32, color: "#52c41a" }} />,
     details: [
-      "Phù hợp với nhiều trường hợp vô sinh phức tạp",
-      "Giải pháp cho vô sinh do vòi trứng bị tắc",
-      "Có thể kết hợp với kỹ thuật tiêm tinh trùng vào bào tương trứng (ICSI)",
-      "Có thể sàng lọc di truyền trước khi cấy phôi",
+      "Suitable for many complex infertility cases",
+      "Solution for blocked fallopian tubes",
+      "Can be combined with Intracytoplasmic Sperm Injection (ICSI)",
+      "Genetic screening possible before embryo transfer",
     ],
     steps: [
-      "Kích thích buồng trứng để tạo nhiều trứng",
-      "Chọc hút trứng dưới hướng dẫn siêu âm",
-      "Thụ tinh trứng với tinh trùng trong phòng thí nghiệm",
-      "Nuôi cấy phôi trong 3-5 ngày",
-      "Chuyển phôi vào tử cung",
-      "Hỗ trợ thai kỳ bằng hormone",
+      "Ovarian stimulation to produce multiple eggs",
+      "Egg retrieval under ultrasound guidance",
+      "Fertilization of eggs with sperm in laboratory",
+      "Embryo culture for 3-5 days",
+      "Embryo transfer into the uterus",
+      "Hormonal support for pregnancy",
     ],
-    success: "Tỷ lệ thành công khoảng 30-40% cho mỗi chu kỳ điều trị.",
+    success: "Success rate is approximately 30-40% per treatment cycle.",
   },
   {
     id: 3,
-    title: "Tiêm tinh trùng vào bào tương trứng (ICSI)",
+    title: "Intracytoplasmic Sperm Injection (ICSI)",
     description:
-      "Kỹ thuật ICSI là phương pháp tiêm trực tiếp một tinh trùng vào một trứng để thụ tinh, thường được áp dụng trong trường hợp tinh trùng yếu hoặc ít.",
+      "ICSI is a technique where a single sperm is directly injected into an egg for fertilization, typically used in cases of poor sperm quality or count.",
     icon: <ExperimentOutlined style={{ fontSize: 32, color: "#722ed1" }} />,
     details: [
-      "Giải pháp cho trường hợp tinh trùng ít, yếu hoặc dị dạng",
-      "Tỷ lệ thụ tinh cao hơn so với IVF thông thường",
-      "Có thể áp dụng cho các trường hợp thất bại với IVF thông thường",
-      "Giải pháp cho vô sinh do yếu tố nam",
+      "Solution for cases with low sperm count, poor motility, or abnormal morphology",
+      "Higher fertilization rate compared to conventional IVF",
+      "Can be applied in cases where conventional IVF has failed",
+      "Solution for male factor infertility",
     ],
     steps: [
-      "Kích thích buồng trứng tương tự IVF",
-      "Chọc hút trứng",
-      "Chọn và tiêm một tinh trùng vào trứng",
-      "Nuôi cấy phôi",
-      "Chuyển phôi vào tử cung",
+      "Ovarian stimulation similar to IVF",
+      "Egg retrieval",
+      "Selection and injection of a single sperm into each egg",
+      "Embryo culture",
+      "Embryo transfer into the uterus",
     ],
-    success: "Tỷ lệ thành công khoảng 35-45% tùy thuộc vào từng trường hợp cụ thể.",
+    success: "Success rate is approximately 35-45% depending on each specific case.",
   },
 ];
 
@@ -80,10 +80,10 @@ const ServicesPage = () => {
       <UserHeader />
       <div className="px-4 py-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <Title level={1} className="text-3xl">Dịch vụ điều trị hiếm muộn</Title>
+          <Title level={1} className="text-3xl">Fertility Treatment Services</Title>
           <Paragraph className="text-lg mt-4">
-            Chúng tôi cung cấp các phương pháp điều trị hiếm muộn tiên tiến với đội ngũ y bác sĩ
-            chuyên nghiệp và trang thiết bị hiện đại.
+            We provide advanced fertility treatment methods with a professional medical team
+            and state-of-the-art equipment.
           </Paragraph>
         </div>
 
@@ -101,7 +101,7 @@ const ServicesPage = () => {
               <Col xs={24} md={18}>
                 <Paragraph className="text-lg">{service.description}</Paragraph>
                 
-                <Title level={4}>Ưu điểm</Title>
+                <Title level={4}>Advantages</Title>
                 <List
                   dataSource={service.details}
                   renderItem={(item) => (
@@ -111,7 +111,7 @@ const ServicesPage = () => {
                   )}
                 />
                 
-                <Title level={4} className="mt-4">Quy trình điều trị</Title>
+                <Title level={4} className="mt-4">Treatment Process</Title>
                 <List
                   dataSource={service.steps}
                   renderItem={(item, index) => (
@@ -124,7 +124,7 @@ const ServicesPage = () => {
                 />
                 
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                  <Typography.Text strong>Tỷ lệ thành công: </Typography.Text>
+                  <Typography.Text strong>Success Rate: </Typography.Text>
                   <Typography.Text>{service.success}</Typography.Text>
                 </div>
               </Col>
@@ -133,13 +133,13 @@ const ServicesPage = () => {
         ))}
 
         <div className="mt-12 mb-8 text-center">
-          <Title level={2}>Đặt lịch tư vấn</Title>
+          <Title level={2}>Schedule a Consultation</Title>
           <Paragraph className="mb-6">
-            Hãy liên hệ với chúng tôi để được tư vấn về phương pháp điều trị phù hợp nhất với tình trạng của bạn.
+            Contact us for personalized advice on the most suitable treatment method for your condition.
           </Paragraph>
           <div>
             <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
-              Đặt lịch ngay
+              Book Now
             </button>
           </div>
         </div>

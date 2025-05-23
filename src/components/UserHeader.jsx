@@ -39,20 +39,13 @@ const UserHeader = () => {
           <Link to={path.homePage} className="text-orange-400 hover:text-gray-400">Home</Link>
           <Link to={path.aboutCenter} className= "text-orange-400 hover:text-gray-400">About Center</Link>
           <Link to={path.services} className="text-orange-400 hover:text-gray-400">Services</Link>
-          <Link to={path.ourStaff} className="text-orange-400 hover:text-gray-400">Our Staff</Link>
-          <Link to={path.features} className="text-orange-400 hover:text-gray-400">Features</Link>
+          <Link to={path.ourStaff} className="text-orange-400 hover:text-gray-400">Doctors</Link>
+          
           <Link to={path.blog} className="text-orange-400 hover:text-gray-400">Blog</Link>
           <Link to={path.contacts} className="text-orange-400 hover:text-gray-400">Contacts</Link>
         </nav>
         {/* Search Bar */}
-        <form className="flex items-center border rounded-full px-4 py-1 bg-white">
-          <input
-            type="text"
-            placeholder="Search"
-            className="outline-none px-2 py-1 bg-transparent"
-          />
-          <button type="submit" className="text-xl text-gray-400 ml-2">🔍</button>
-        </form>
+       
       </div>
     </header>
   );

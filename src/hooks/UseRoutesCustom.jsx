@@ -8,7 +8,7 @@ import ServicesPage from "../pages/ServicesPage";
 import BlogPage from "../pages/BlogPage";
 import AboutCenterPage from "../pages/AboutCenterPage";
 import OurStaffPage from "../pages/OurStaffPage";
-import FeaturesPage from "../pages/FeaturesPage";
+
 import ContactsPage from "../pages/ContactsPage";
 
 const UseRoutesCustom = () => {
@@ -41,10 +41,7 @@ const UseRoutesCustom = () => {
       path: path.ourStaff,
       element: <OurStaffPage />,
     },
-    {
-      path: path.features,
-      element: <FeaturesPage />,
-    },
+    
     {
       path: path.contacts,
       element: <ContactsPage />,
