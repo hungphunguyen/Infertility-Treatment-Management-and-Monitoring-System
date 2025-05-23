@@ -31,9 +31,12 @@ const VerifyPage = () => {
               Navigate("/sign-in");
             }, 1000);
           })
-          .catch((error) => {
-            console.log(error);
+          .catch((errors) => {
+            console.log(errors);
             showNotification(errors.response.data.message, "error");
+            //   if(errors.response.data.code)
+
+            // };
           });
       },
       validationSchema: yup.object({
