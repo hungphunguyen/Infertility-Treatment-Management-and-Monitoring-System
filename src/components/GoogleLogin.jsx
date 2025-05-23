@@ -49,11 +49,11 @@ export default function GoogleLogin() {
         setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
         authService.getMyInfo(getLocgetlStorage("token")).then((res) => {
           console.log(res.data.result);
-          setLocalStorage("user", JSON.stringify(res.data.result));
         });
         showNotification("Login successful", "success");
         setTimeout(() => {
           navigate("/");
+          window.location.reload();
         }, 1000);
       }
     } catch (error) {
