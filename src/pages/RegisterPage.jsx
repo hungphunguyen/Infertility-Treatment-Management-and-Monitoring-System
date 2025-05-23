@@ -33,19 +33,14 @@ const RegisterPage = () => {
         authService
           .signUp(values)
           .then((res) => {
-            console.log("res.data");
-            console.log(res);
-            //thực hiện lưu trự dưới localStorage
-            setLocalStorage("user", res.data);
-            dispatch(getInforUser(res.data));
-
+            dispatch(getInforUser(values.email));
             showNotification("Register successful", "success");
             setTimeout(() => {
               navigate("/verify-otp");
             }, 1000);
           })
           .catch((errors) => {
-            console.log(errors);
+            console.log(errors.response);
             showNotification(errors.response.data.message, "error");
           });
       },
