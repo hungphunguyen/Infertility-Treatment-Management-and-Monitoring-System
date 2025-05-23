@@ -36,7 +36,7 @@ const VerifyPage = () => {
           });
       },
       validationSchema: yup.object({
-        code: yup.string().required("Please do not leave blank"),
+        otp: yup.string().required("Please do not leave blank"),
       }),
     });
 
@@ -50,6 +50,7 @@ const VerifyPage = () => {
           Please enter the verification code that we sent to <br />
           <span className="font-medium text-gray-900">
             {infoUser.result.email}
+            {/* asdasd@gmail.comm */}
           </span>{" "}
           in order to activate your account.
         </p>
@@ -67,7 +68,10 @@ const VerifyPage = () => {
             error={errors.otp}
             touched={touched.otp}
           />
-          <button type="submit" className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition">
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition"
+          >
             Confirm code
           </button>
 
