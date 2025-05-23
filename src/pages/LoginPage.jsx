@@ -41,14 +41,6 @@ const LoginPage = () => {
             //thực hiện lưu trự dưới localStorage
             setLocalStorage("token", res.data.result.token);
             // coi lai phia be tra du lieu theo format nao
-            let infoUser;
-            authService.getMyInfo(getLocgetlStorage("token")).then((res) => {
-              infoUser = res.data.result;
-              console.log(res.data.result);
-              setLocalStorage("user", JSON.stringify(infoUser));
-            });
-
-            dispatch(getInforUser(infoUser));
 
             // thực hiên thông báo chuyển hướng người dùng
             showNotification("Login successful", "success");
