@@ -1,6 +1,7 @@
 import React from "react";
 import { Typography, Card, Row, Col, Divider, Avatar, Space, Tag } from "antd";
 import { UserOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 
@@ -93,6 +94,12 @@ const nurses = [
 ];
 
 const OurStaffPage = () => {
+  const navigate = useNavigate();
+
+  const handleDoctorClick = (doctorId) => {
+    navigate(`/doctor/${doctorId}`);
+  };
+
   return (
     <div className="w-full min-h-screen">
       <UserHeader />
@@ -111,8 +118,11 @@ const OurStaffPage = () => {
           <Row gutter={[24, 32]}>
             {doctors.map((doctor) => (
               <Col xs={24} md={12} key={doctor.id}>
-                <Card className="shadow-md h-full">
-                  <Row gutter={16} align="middle">
+                <Card 
+                  className="shadow-md h-full cursor-pointer hover:shadow-lg transition-shadow duration-300"
+                  onClick={() => handleDoctorClick(doctor.id)}
+                >
+                  <Row>
                     <Col xs={24} md={8} className="text-center mb-4 md:mb-0">
                       <Avatar
                         size={120}

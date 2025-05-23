@@ -10,6 +10,7 @@ import AboutCenterPage from "../pages/AboutCenterPage";
 import OurStaffPage from "../pages/OurStaffPage";
 import FeaturesPage from "../pages/FeaturesPage";
 import ContactsPage from "../pages/ContactsPage";
+import DoctorDetailPage from "../pages/DoctorDetailPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -48,6 +49,10 @@ const UseRoutesCustom = () => {
     {
       path: path.contacts,
       element: <ContactsPage />,
+    },
+    {
+      path: path.doctorDetail,
+      element: <DoctorDetailPage />,
     },
   ]);
   return routes;
