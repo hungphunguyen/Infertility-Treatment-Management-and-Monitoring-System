@@ -14,7 +14,7 @@ const VerifyPage = () => {
     useFormik({
       initialValues: {
         otp: "",
-        email: infoUser.email,
+        email: infoUser.result.email,
       },
       onSubmit: (values) => {
         console.log(values);
@@ -48,8 +48,10 @@ const VerifyPage = () => {
         </h2>
         <p className="text-center text-gray-600 mb-6">
           Please enter the verification code that we sent to <br />
-          <span className="font-medium text-gray-900">{infoUser.email}</span> in
-          order to activate your account.
+          <span className="font-medium text-gray-900">
+            {infoUser.result.email}
+          </span>{" "}
+          in order to activate your account.
         </p>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
