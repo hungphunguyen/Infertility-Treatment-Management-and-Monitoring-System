@@ -1,15 +1,26 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { path } from "../common/path";
 import { useSelector } from "react-redux";
 import { Avatar } from "antd";
+import { authService } from "../service/auth.service";
 
 const UserHeader = () => {
-  const { infoUser } = useSelector((state) => state.authSlice);
+  const { token } = useSelector((state) => state.authSlice);
+
+  function getFulllName(idToken) {
+    const [userInfo, setUserInfo] = React.useState(null);
+    useEffect(() => {
+      authService.getMyInfo(idToken)
+      .then((res) => setUserInfo(res.data))
+      .catch((error) => console.log(error))
+    })
+    return userInfo.result.fullName;
+  }
 
   const checUserkLogin = () => {
-    return infoUser ? (
-      <Avatar>{infoUser.fullName}</Avatar>
+    return token ? (
+      <Avatar>{getFulllName(token)}</Avatar>
     ) : (
       <>
         <Link
