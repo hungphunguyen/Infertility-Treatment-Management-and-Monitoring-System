@@ -1,123 +1,260 @@
 import React from "react";
-import { Typography, Card, Row, Col, Divider, Image, Space } from "antd";
+import { Typography, Button, Row, Col, Space } from "antd";
+import { ArrowRightOutlined } from '@ant-design/icons';
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
+import ServicesIcons from "../components/ServicesIcons";
 
 const { Title, Paragraph } = Typography;
 
 const AboutCenterPage = () => {
   return (
-    <div className="w-full min-h-screen">
+    <div className="min-h-screen">
       <UserHeader />
-      <div className="px-4 py-8 max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <Title level={1} className="text-3xl">Về Trung Tâm</Title>
-          <Paragraph className="text-lg mt-4">
-            Tìm hiểu về trung tâm hỗ trợ sinh sản của chúng tôi, lịch sử, sứ mệnh và giá trị
-          </Paragraph>
+      
+      {/* Hero Banner */}
+      <div className="relative h-[400px] w-full overflow-hidden">
+        <img 
+          src="/images/features/pc7.jpg" 
+          alt="Hero Banner" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black opacity-40" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold text-white mb-4">About Center</h1>
+            <div className="flex items-center justify-center text-white">
+              <span className="mx-2">HOME</span>
+              <span className="mx-2">{'>'}</span>
+              <span className="mx-2">ABOUT</span>
+            </div>
+          </div>
         </div>
-
-        <Divider />
-
-        <Row gutter={[24, 24]} align="middle" className="mb-12">
-          <Col xs={24} md={12}>
-            <Title level={2}>Lịch sử hình thành</Title>
-            <Paragraph className="text-lg">
-              Trung tâm Hỗ trợ Sinh sản của chúng tôi được thành lập vào năm 2010 với sứ mệnh mang 
-              lại niềm hạnh phúc cho các gia đình Việt Nam đang gặp khó khăn trong việc có con.
-            </Paragraph>
-            <Paragraph className="text-lg">
-              Với hơn 10 năm kinh nghiệm, chúng tôi đã giúp hàng nghìn cặp vợ chồng thực hiện ước mơ 
-              làm cha mẹ thông qua việc áp dụng các kỹ thuật hỗ trợ sinh sản tiên tiến nhất.
-            </Paragraph>
-          </Col>
-          <Col xs={24} md={12}>
-            <Image
-              src="https://example.com/images/center-building.jpg"
-              alt="Trung tâm hỗ trợ sinh sản"
-              fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAAABJRU5ErkJggg=="
-            />
-          </Col>
-        </Row>
-        
-        <Row gutter={[24, 24]} className="mb-12">
-          <Col xs={24}>
-            <Card className="shadow-md">
-              <Title level={2} className="text-center mb-6">Sứ mệnh và tầm nhìn</Title>
-              <Row gutter={[24, 24]}>
-                <Col xs={24} md={12}>
-                  <Title level={3}>Sứ mệnh</Title>
-                  <Paragraph className="text-lg">
-                    Mang lại hạnh phúc cho các gia đình Việt Nam thông qua các dịch vụ hỗ trợ sinh sản an toàn, 
-                    hiệu quả với chất lượng cao nhất và chi phí hợp lý.
-                  </Paragraph>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Title level={3}>Tầm nhìn</Title>
-                  <Paragraph className="text-lg">
-                    Trở thành trung tâm hỗ trợ sinh sản hàng đầu tại Việt Nam và khu vực Đông Nam Á, 
-                    nơi áp dụng các công nghệ tiên tiến nhất trong điều trị vô sinh hiếm muộn.
-                  </Paragraph>
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-        </Row>
-        
-        <Row gutter={[24, 24]} className="mb-12">
-          <Col xs={24}>
-            <Title level={2} className="text-center mb-6">Giá trị cốt lõi</Title>
-            <Row gutter={[24, 24]}>
-              <Col xs={24} md={8}>
-                <Card className="shadow-md h-full">
-                  <Title level={3}>Chuyên môn</Title>
-                  <Paragraph className="text-lg">
-                    Đội ngũ y bác sĩ giàu kinh nghiệm, được đào tạo tại các nước tiên tiến về hỗ trợ sinh sản.
-                  </Paragraph>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card className="shadow-md h-full">
-                  <Title level={3}>Đồng cảm</Title>
-                  <Paragraph className="text-lg">
-                    Hiểu và chia sẻ những khó khăn, lo lắng của các cặp vợ chồng trong hành trình tìm kiếm hạnh phúc.
-                  </Paragraph>
-                </Card>
-              </Col>
-              <Col xs={24} md={8}>
-                <Card className="shadow-md h-full">
-                  <Title level={3}>Đổi mới</Title>
-                  <Paragraph className="text-lg">
-                    Không ngừng học hỏi, ứng dụng các công nghệ mới nhất trong lĩnh vực hỗ trợ sinh sản.
-                  </Paragraph>
-                </Card>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-        
-        <Row gutter={[24, 24]}>
-          <Col xs={24}>
-            <Title level={2} className="text-center mb-6">Thành tựu</Title>
-            <Card className="shadow-md">
-              <Space direction="vertical" size="large" className="w-full">
-                <div>
-                  <Title level={3}>Hơn 5,000+</Title>
-                  <Paragraph className="text-lg">Em bé đã chào đời nhờ sự hỗ trợ của trung tâm</Paragraph>
-                </div>
-                <div>
-                  <Title level={3}>Trên 70%</Title>
-                  <Paragraph className="text-lg">Tỷ lệ thành công trong các ca thụ tinh trong ống nghiệm</Paragraph>
-                </div>
-                <div>
-                  <Title level={3}>20+</Title>
-                  <Paragraph className="text-lg">Bác sĩ chuyên khoa với kinh nghiệm trung bình trên 10 năm</Paragraph>
-                </div>
-              </Space>
-            </Card>
-          </Col>
-        </Row>
       </div>
+
+      {/* Welcome Section */}
+      <div className="py-20">
+        <div className="container mx-auto px-4">
+          <Row gutter={[48, 48]} className="items-center">
+            <Col xs={24} md={12}>
+              <div>
+                <span className="text-[#ff8460] font-medium">INTRODUCTION</span>
+                <h2 className="text-4xl font-bold mt-2 mb-6">Fertility<br/>Support Center</h2>
+                <p className="text-gray-600 text-lg mb-8">
+                  Our Fertility Support Center was established in 2010 with the mission to bring 
+                  happiness to families who are experiencing difficulties in having children.
+                  With over 10 years of experience, we have helped thousands of couples fulfill their 
+                  dream of becoming parents through the application of the most advanced fertility treatment techniques.
+                </p>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center">
+                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4">
+                      <ArrowRightOutlined />
+                    </div>
+                    <span>In Vitro Fertilization (IVF)</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4">
+                      <ArrowRightOutlined />
+                    </div>
+                    <span>Fertility Preservation</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4">
+                      <ArrowRightOutlined />
+                    </div>
+                    <span>Testing and Diagnosis</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4">
+                      <ArrowRightOutlined />
+                    </div>
+                    <span>Genetic Testing</span>
+                  </div>
+                </div>
+                
+                <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out">
+                  Learn More
+                </button>
+              </div>
+            </Col>
+            <Col xs={24} md={12}>
+              <div className="relative">
+                <img 
+                  src="/images/features/pc5.jpg" 
+                  alt="Mother and baby" 
+                  className="w-full rounded-lg shadow-xl"
+                />
+              </div>
+            </Col>
+          </Row>
+        </div>
+      </div>
+
+      {/* About Center in Numbers */}
+      <div className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-2">Our Achievements</h2>
+            <span className="text-[#ff8460] font-medium">WHO WE ARE</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            <div className="flex items-center space-x-8">
+              <div>
+                <div className="relative">
+                  <div className="w-64 h-64">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <circle cx="50" cy="50" r="45" fill="none" stroke="#ff8460" strokeWidth="6" strokeDasharray="283" strokeDashoffset="70" />
+                      <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" fill="#ff8460" fontSize="28" fontWeight="bold">87%</text>
+                    </svg>
+                  </div>
+                  <div className="text-center mt-4">
+                    <p className="text-gray-500">Success rate</p>
+                    <p className="font-semibold">Successful Pregnancies</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <img 
+                  src="/images/features/pc4.jpg" 
+                  alt="Happy couple" 
+                  className="w-48 h-48 rounded-full object-cover"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-8">
+              <div>
+                <div className="relative">
+                  <div className="w-64 h-64">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <circle cx="50" cy="50" r="45" fill="none" stroke="#ff8460" strokeWidth="6" strokeDasharray="283" strokeDashoffset="70" />
+                      <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" fill="#ff8460" fontSize="28" fontWeight="bold">75%</text>
+                    </svg>
+                  </div>
+                  <div className="text-center mt-4">
+                    <p className="text-gray-500">Success rate</p>
+                    <p className="font-semibold">Successful Surrogacy</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <img 
+                  src="/images/features/pc6.jpg" 
+                  alt="Mother and baby" 
+                  className="w-48 h-48 rounded-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Our Doctors */}
+      <div className="py-20 bg-[#c2da5c]">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-2">Expert Team</h2>
+            <span className="text-white font-medium">OUR DOCTORS</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="flex flex-col md:flex-row">
+                <div className="md:w-1/2">
+                  <img 
+                    src="/images/features/pc3.jpg" 
+                    alt="Male Doctor" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="md:w-1/2 p-8">
+                  <h3 className="text-2xl font-bold mb-2">Dr. Andrew Cruise</h3>
+                  <p className="text-gray-500 uppercase mb-4">REPRODUCTIVE ENDOCRINOLOGY AND INFERTILITY</p>
+                  <div className="flex space-x-2 mt-6">
+                    <a href="#" className="bg-[#c2da5c] rounded-full w-8 h-8 flex items-center justify-center text-white">f</a>
+                    <a href="#" className="bg-[#c2da5c] rounded-full w-8 h-8 flex items-center justify-center text-white">x</a>
+                    <a href="#" className="bg-[#c2da5c] rounded-full w-8 h-8 flex items-center justify-center text-white">in</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="flex flex-col md:flex-row">
+                <div className="md:w-1/2">
+                  <img 
+                    src="/images/features/iui-vs-ivf.jpg" 
+                    alt="Female Doctor" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="md:w-1/2 p-8">
+                  <h3 className="text-2xl font-bold mb-2">Dr. Anne William</h3>
+                  <p className="text-gray-500 uppercase mb-4">REPRODUCTIVE ENDOCRINOLOGY AND INFERTILITY</p>
+                  <div className="flex space-x-2 mt-6">
+                    <a href="#" className="bg-[#c2da5c] rounded-full w-8 h-8 flex items-center justify-center text-white">f</a>
+                    <a href="#" className="bg-[#c2da5c] rounded-full w-8 h-8 flex items-center justify-center text-white">x</a>
+                    <a href="#" className="bg-[#c2da5c] rounded-full w-8 h-8 flex items-center justify-center text-white">in</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-10">
+            <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded transition duration-300 ease-in-out">
+              View More
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Areas of Practice - Title */}
+      <div className="py-12 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold mb-2">Areas of Practice</h2>
+            <span className="text-[#ff8460] font-medium">HOW WE HELP</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Services Icons - Full Width */}
+      <ServicesIcons />
+      
+      {/* View More Button */}
+      <div className="py-10 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out">
+              View More Services
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Appointment Banner */}
+      <div className="relative h-[400px] w-full overflow-hidden">
+        <img 
+          src="/images/features/pc7.jpg" 
+          alt="Appointment Banner" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black opacity-60" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-4xl font-bold text-white mb-2">Book an Appointment today!</h2>
+            <p className="text-white mb-8 text-lg">GET A FREE CONSULTATION</p>
+            <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-8 rounded transition duration-300 ease-in-out text-lg">
+              Ask a Question
+            </button>
+          </div>
+        </div>
+      </div>
+
       <UserFooter />
     </div>
   );

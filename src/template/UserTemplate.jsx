@@ -6,6 +6,7 @@ import UserFooter from '../components/UserFooter';
 import { Outlet } from 'react-router-dom';
 import TreatmentOptions from '../components/TreatmentOptions';
 import StatisticsSection from '../components/StatisticsSection';
+import ServicesIcons from '../components/ServicesIcons';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -77,27 +78,8 @@ const UserTemplate = () => {
         </div>
       </Carousel>
 
-      {/* Services Icons */}
-      <div className="bg-[#c2da5c] py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-            {[
-              { icon: "🧬", title: "BABY NEST" },
-              { icon: "⚤", title: "FERTILITY TESTING" },
-              { icon: "👶", title: "GLOW CARE" },
-              { icon: "👨‍👩‍👧", title: "PARENT PATH" },
-              { icon: "👩", title: "WOMEN'S CONSULTATION" }
-            ].map((service, index) => (
-              <div key={index} className="flex flex-col items-center">
-                <div className="bg-white rounded-full w-28 h-28 flex items-center justify-center mb-4 shadow-md">
-                  <span style={{ fontSize: '40px' }}>{service.icon}</span>
-                </div>
-                <h3 className="text-center font-semibold">{service.title}</h3>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Services Icons Component */}
+      <ServicesIcons />
 
       {/* Welcome Section */}
       <div className="py-20">
@@ -252,94 +234,12 @@ const UserTemplate = () => {
         </div>
       </div>
 
-      {/* Contact Form Section */}
-      <div className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl font-bold mb-2">Make an Appointment!</h2>
-              <span className="text-[#ff8460] font-medium block mb-6">BOOK AN APPOINTMENT TODAY!</span>
-              
-              <form>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <input 
-                      type="text" 
-                      placeholder="Your Name*" 
-                      className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff8460] focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <input 
-                      type="email" 
-                      placeholder="Your Email*" 
-                      className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff8460] focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <textarea 
-                    placeholder="Your Message*" 
-                    rows="4" 
-                    className="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#ff8460] focus:border-transparent"
-                  ></textarea>
-                </div>
-                <div className="mb-4">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2" />
-                    <span className="text-gray-600">I agree that my submitted data is being collected and stored.</span>
-                  </label>
-                </div>
-                <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out">
-                  Send Message
-                </button>
-              </form>
-            </div>
-            <div>
-              <img 
-                src="/images/features/pc5.jpg" 
-                alt="Mother and baby" 
-                className="w-full rounded-lg shadow-xl"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Newsletter */}
-      <div className="py-16 bg-[#c2da5c]">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-white mb-2">Want to Stay Tuned with Updates?</h2>
-          <p className="text-white mb-8 text-lg">SIGN UP FOR NEWSLETTER</p>
-          
-          <div className="max-w-lg mx-auto">
-            <div className="flex flex-col md:flex-row gap-4">
-              <input 
-                type="email" 
-                placeholder="Enter Your Email" 
-                className="flex-grow px-4 py-3 rounded focus:outline-none"
-              />
-              <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-6 rounded transition duration-300 ease-in-out whitespace-nowrap">
-                Submit
-              </button>
-            </div>
-            
-            <div className="mt-4 text-left">
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
-                <span className="text-white">I have read and agree to the terms & conditions</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      
       <Outlet />
       <UserFooter />
     </div>
   );
 };
-
 
 export default UserTemplate;
 
