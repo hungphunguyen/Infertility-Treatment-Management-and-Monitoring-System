@@ -7,6 +7,8 @@ import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { path } from "../common/path";
 import { useDispatch } from "react-redux";
+import { setLocalStorage } from "../utils/util";
+import { getInforUser } from "../redux/authSlice";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
