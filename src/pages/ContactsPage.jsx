@@ -1,5 +1,15 @@
 import React from "react";
-import { Typography, Card, Row, Col, Divider, Form, Input, Button, Space } from "antd";
+import {
+  Typography,
+  Card,
+  Row,
+  Col,
+  Divider,
+  Form,
+  Input,
+  Button,
+  Space,
+} from "antd";
 import {
   PhoneOutlined,
   MailOutlined,
@@ -88,92 +98,51 @@ const ContactsPage = () => {
       <UserHeader />
       <div className="px-4 py-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <Title level={1} className="text-3xl">Liên hệ</Title>
+          <Title level={1} className="text-3xl">
+            Liên hệ
+          </Title>
           <Paragraph className="text-lg mt-4">
-            Liên hệ với chúng tôi để được tư vấn và hỗ trợ về các vấn đề hiếm muộn
+            Liên hệ với chúng tôi để được tư vấn và hỗ trợ về các vấn đề hiếm
+            muộn
           </Paragraph>
         </div>
 
         <Divider />
 
         <div className="mb-12">
-          <Row gutter={[24, 24]}>
-            <Col xs={24} md={12} lg={14}>
-              <div style={{ height: "400px", backgroundColor: "#f0f2f5", marginBottom: "1rem" }}>
-                {/* Đây sẽ là bản đồ Google Map */}
-                <div className="w-full h-full flex items-center justify-center">
-                  <Text>Google Map sẽ được hiển thị tại đây</Text>
-                </div>
+          <Col xs={24} md={12} lg={14}>
+            <div
+              style={{
+                height: "400px",
+                backgroundColor: "#f0f2f5",
+                marginBottom: "1rem",
+              }}
+            >
+              {/* Đây sẽ là bản đồ Google Map */}
+              <div className="w-full h-full flex items-center justify-center">
+                <Text>Google Map sẽ được hiển thị tại đây</Text>
               </div>
-              <Row gutter={[16, 16]}>
-                {contactInfo.map((item, index) => (
-                  <Col xs={12} sm={6} md={12} lg={6} key={index}>
-                    <Card className="text-center h-full shadow-md">
-                      <div className="mb-2">{item.icon}</div>
-                      <Title level={5}>{item.title}</Title>
-                      <Text>{item.content}</Text>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Col>
-            
-            <Col xs={24} md={12} lg={10}>
-              <Card title="Gửi thông tin liên hệ" className="shadow-md">
-                <Form layout="vertical" onFinish={onFinish}>
-                  <Form.Item
-                    name="name"
-                    label="Họ và tên"
-                    rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
-                  >
-                    <Input placeholder="Nhập họ và tên" />
-                  </Form.Item>
-                  <Form.Item
-                    name="email"
-                    label="Email"
-                    rules={[
-                      { required: true, message: "Vui lòng nhập email" },
-                      { type: "email", message: "Email không hợp lệ" },
-                    ]}
-                  >
-                    <Input placeholder="Nhập địa chỉ email" />
-                  </Form.Item>
-                  <Form.Item
-                    name="phone"
-                    label="Số điện thoại"
-                    rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
-                  >
-                    <Input placeholder="Nhập số điện thoại" />
-                  </Form.Item>
-                  <Form.Item
-                    name="subject"
-                    label="Chủ đề"
-                    rules={[{ required: true, message: "Vui lòng nhập chủ đề" }]}
-                  >
-                    <Input placeholder="Nhập chủ đề cần tư vấn" />
-                  </Form.Item>
-                  <Form.Item
-                    name="message"
-                    label="Nội dung"
-                    rules={[{ required: true, message: "Vui lòng nhập nội dung" }]}
-                  >
-                    <TextArea rows={4} placeholder="Nhập nội dung cần tư vấn" />
-                  </Form.Item>
-                  <Form.Item>
-                    <Button type="primary" htmlType="submit" block>
-                      Gửi thông tin
-                    </Button>
-                  </Form.Item>
-                </Form>
-              </Card>
-            </Col>
-          </Row>
+            </div>
+            <Row gutter={[16, 16]}>
+              {contactInfo.map((item, index) => (
+                <Col xs={12} sm={6} md={12} lg={6} key={index}>
+                  <Card className="text-center h-full shadow-md">
+                    <div className="mb-2">{item.icon}</div>
+                    <Title level={5}>{item.title}</Title>
+                    <Text>{item.content}</Text>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Col>
         </div>
 
         <Divider />
 
         <div className="my-12">
-          <Title level={2} className="text-center mb-8">Chi nhánh của chúng tôi</Title>
+          <Title level={2} className="text-center mb-8">
+            Chi nhánh của chúng tôi
+          </Title>
           <Row gutter={[24, 24]}>
             {branches.map((branch, index) => (
               <Col xs={24} md={8} key={index}>
@@ -197,10 +166,17 @@ const ContactsPage = () => {
         <Divider />
 
         <div className="my-12 text-center">
-          <Title level={2} className="mb-6">Theo dõi chúng tôi</Title>
+          <Title level={2} className="mb-6">
+            Theo dõi chúng tôi
+          </Title>
           <Space size="large">
             {socialMedia.map((social, index) => (
-              <a href={social.url} target="_blank" rel="noopener noreferrer" key={index}>
+              <a
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                key={index}
+              >
                 {social.icon}
               </a>
             ))}
@@ -212,4 +188,4 @@ const ContactsPage = () => {
   );
 };
 
-export default ContactsPage; 
+export default ContactsPage;
