@@ -6,9 +6,11 @@ import { NotificationContext } from "../App";
 import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { path } from "../common/path";
+import { useDispatch } from "react-redux";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { showNotification } = useContext(NotificationContext);
 
@@ -31,9 +33,13 @@ const RegisterPage = () => {
           .then((res) => {
             console.log("res.data");
             console.log(res);
+            //thực hiện lưu trự dưới localStorage
+            setLocalStorage("user", res.data);
+            dispatch(getInforUser(res.data));
+
             showNotification("Register successful", "success");
             setTimeout(() => {
-              navigate("/sign-in");
+              navigate("/verify-otp");
             }, 1000);
           })
           .catch((errors) => {

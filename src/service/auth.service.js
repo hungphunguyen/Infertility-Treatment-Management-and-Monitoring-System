@@ -1,3 +1,4 @@
+import { data } from "react-router-dom";
 import { getLocgetlStorage } from "../utils/util";
 import { http } from "./config";
 
@@ -18,5 +19,8 @@ export const authService = {
   },
   signUp: (data) => {
     return http.post("auth/register", data); // đường dẫn endpoint để hoàn thành request url
+  },
+  verify: (data) => {
+    return http.post("auth/verify-otp", data); // đường dẫn endpoint để hoàn thành request url
   },
 };
