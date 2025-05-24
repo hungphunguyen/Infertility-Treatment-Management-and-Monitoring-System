@@ -2,7 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import { getLocgetlStorage } from "../utils/util";
 import { authService } from "../service/auth.service";
 const initialState = {
-  infoUser: authService.getMyInfo(getLocgetlStorage("token")),
+  // infoUser: authService.getMyInfo(getLocgetlStorage("token")),
+  token : getLocgetlStorage("token"),
 };
 
 const authSlice = createSlice({
