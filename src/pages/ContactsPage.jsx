@@ -1,15 +1,19 @@
 import React from "react";
-import { Typography, Card, Row, Col, Divider } from "antd";
+import { Typography, Card, Row, Col, Divider, Form, Input, Button, Space, message } from "antd";
 import {
   PhoneOutlined,
   MailOutlined,
   EnvironmentOutlined,
   ClockCircleOutlined,
+  FacebookOutlined,
+  TwitterOutlined,
+  InstagramOutlined,
 } from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 
 const { Title, Paragraph, Text } = Typography;
+const { TextArea } = Input;
 
 const contactInfo = [
   {
@@ -34,7 +38,48 @@ const contactInfo = [
   },
 ];
 
+const branches = [
+  {
+    name: "Chi nhánh chính",
+    address: "123 New Life Street, Downtown, City",
+    phone: "+1 858 794 6363",
+    email: "main@newlife.com"
+  },
+  {
+    name: "Chi nhánh 2",
+    address: "456 Health Avenue, Uptown, City",
+    phone: "+1 858 794 6364",
+    email: "branch2@newlife.com"
+  },
+  {
+    name: "Chi nhánh 3", 
+    address: "789 Medical Plaza, Midtown, City",
+    phone: "+1 858 794 6365",
+    email: "branch3@newlife.com"
+  }
+];
+
+const socialMedia = [
+  {
+    url: "https://facebook.com",
+    icon: <FacebookOutlined style={{ fontSize: 24, color: "#1877F2" }} />
+  },
+  {
+    url: "https://twitter.com",
+    icon: <TwitterOutlined style={{ fontSize: 24, color: "#1DA1F2" }} />
+  },
+  {
+    url: "https://instagram.com",
+    icon: <InstagramOutlined style={{ fontSize: 24, color: "#E4405F" }} />
+  }
+];
+
 const ContactsPage = () => {
+  const onFinish = (values) => {
+    console.log('Form values:', values);
+    message.success('Cảm ơn bạn! Chúng tôi sẽ liên hệ lại sớm nhất.');
+  };
+
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -44,8 +89,7 @@ const ContactsPage = () => {
             Liên hệ
           </Title>
           <Paragraph className="text-lg mt-4">
-            Liên hệ với chúng tôi để được tư vấn và hỗ trợ về các vấn đề hiếm
-            muộn
+            Liên hệ với chúng tôi để được tư vấn và hỗ trợ về các vấn đề hiếm muộn
           </Paragraph>
         </div>
 
