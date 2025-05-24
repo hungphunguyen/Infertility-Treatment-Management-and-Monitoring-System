@@ -1,6 +1,7 @@
 import React from "react";
-import { Typography, Card, Row, Col, Divider, Avatar, Space, Tag } from "antd";
-import { UserOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons";
+import { Typography, Card, Row, Col, Divider, Avatar, Space, Tag, Button } from "antd";
+import { UserOutlined, MailOutlined, PhoneOutlined, CalendarOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 
@@ -18,6 +19,7 @@ const doctors = [
     email: "andrew.peterson@example.com",
     phone: "+1 (555) 123-4567",
     certificates: ["American Society for Reproductive Medicine", "Asia Pacific Initiative on Reproduction"],
+    value: "dr_peterson"
   },
   {
     id: 2,
@@ -30,6 +32,7 @@ const doctors = [
     email: "sarah.johnson@example.com",
     phone: "+1 (555) 123-4568",
     certificates: ["American Endocrine Society", "International Federation of Fertility Societies"],
+    value: "dr_johnson"
   },
   {
     id: 3,
@@ -42,6 +45,7 @@ const doctors = [
     email: "michael.brown@example.com",
     phone: "+1 (555) 123-4569",
     certificates: ["Asian Society of Embryologists", "International Certificate in Clinical Embryology"],
+    value: "dr_brown"
   },
   {
     id: 4,
@@ -54,10 +58,20 @@ const doctors = [
     email: "emily.roberts@example.com",
     phone: "+1 (555) 123-4570",
     certificates: ["American College of Obstetricians and Gynecologists"],
+    value: "dr_roberts"
   },
 ];
 
 const OurStaffPage = () => {
+  const navigate = useNavigate();
+
+  const handleBooking = (doctorId) => {
+    // Navigate to appointment page with selected doctor as state
+    navigate(`/appointment`, { 
+      state: { selectedDoctor: doctorId }
+    });
+  };
+
   return (
     <div className="w-full min-h-screen">
       <UserHeader />
@@ -115,6 +129,15 @@ const OurStaffPage = () => {
                           <PhoneOutlined className="mr-2" /> {doctor.phone}
                         </Text>
                       </Space>
+                      
+                      <Button 
+                        type="primary" 
+                        icon={<CalendarOutlined />}
+                        className="mt-4 bg-[#ff8460] hover:bg-[#ff6b40] border-none"
+                        onClick={() => handleBooking(doctor.value)}
+                      >
+                        Book Appointment
+                      </Button>
                     </Col>
                   </Row>
                 </Card>
@@ -125,17 +148,20 @@ const OurStaffPage = () => {
 
         <Divider />
 
-
-        <Divider />
-
         <div className="my-12 text-center">
           <Title level={2} className="mb-4">Consult with an Expert</Title>
           <Paragraph className="text-lg mb-6">
             Schedule a consultation with our experts for support with fertility issues
           </Paragraph>
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+          <Button 
+            type="primary" 
+            size="large"
+            icon={<CalendarOutlined />}
+            className="bg-[#ff8460] hover:bg-[#ff6b40] border-none" 
+            onClick={() => navigate('/appointment')}
+          >
             Book an Appointment
-          </button>
+          </Button>
         </div>
       </div>
       <UserFooter />

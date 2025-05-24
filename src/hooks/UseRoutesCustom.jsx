@@ -5,11 +5,13 @@ import PageNotFound from "../components/PageNotFound";
 import { path } from "../common/path";
 import LoginPage from "../pages/LoginPage";
 import ServicesPage from "../pages/ServicesPage";
+import ServiceDetailPage from "../pages/ServiceDetailPage";
 import BlogPage from "../pages/BlogPage";
+import BlogDetailPage from "../pages/BlogDetailPage";
 import AboutCenterPage from "../pages/AboutCenterPage";
 import OurStaffPage from "../pages/OurStaffPage";
-
 import ContactsPage from "../pages/ContactsPage";
+import AppointmentPage from "../pages/AppointmentPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -30,8 +32,16 @@ const UseRoutesCustom = () => {
       element: <ServicesPage />,
     },
     {
+      path: path.serviceDetail,
+      element: <ServiceDetailPage />,
+    },
+    {
       path: path.blog,
       element: <BlogPage />,
+    },
+    {
+      path: path.blogDetail,
+      element: <BlogDetailPage />,
     },
     {
       path: path.aboutCenter,
@@ -41,10 +51,13 @@ const UseRoutesCustom = () => {
       path: path.ourStaff,
       element: <OurStaffPage />,
     },
-    
     {
       path: path.contacts,
       element: <ContactsPage />,
+    },
+    {
+      path: path.appointment,
+      element: <AppointmentPage />,
     },
   ]);
   return routes;
