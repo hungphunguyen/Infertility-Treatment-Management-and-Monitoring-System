@@ -38,69 +38,160 @@ const ContactsPage = () => {
   return (
     <div className="min-h-screen">
       <UserHeader />
-      
-      {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden">
-        <img 
-          src="/images/features/pc7.jpg" 
-          alt="Contact Banner" 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black opacity-40" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Contact Us</h1>
-            <div className="flex items-center justify-center text-white">
-              <span className="mx-2">HOME</span>
-              <span className="mx-2">{'>'}</span>
-              <span className="mx-2">CONTACT</span>
-            </div>
-          </div>
+      <div className="px-4 py-8 max-w-7xl mx-auto">
+        <div className="text-center mb-10">
+          <Title level={1} className="text-3xl">
+            Liên hệ
+          </Title>
+          <Paragraph className="text-lg mt-4">
+            Liên hệ với chúng tôi để được tư vấn và hỗ trợ về các vấn đề hiếm
+            muộn
+          </Paragraph>
         </div>
-      </div>
 
-      <div className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-2">Get In Touch</h2>
-            <span className="text-[#ff8460] font-medium">WE'RE HERE FOR YOU</span>
-          </div>
+        <Divider />
 
+        <div className="mb-12">
           <Row gutter={[24, 24]}>
-            <Col xs={24} lg={24}>
-              <div className="w-full h-[500px] bg-gray-200 mb-8">
-                {/* Google Map will be displayed here */}
-                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.0951782923237!2d105.77960851476353!3d21.028774785998286!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab4cd0c66f05%3A0xea31563511af2e54!2sFPT%20University!5e0!3m2!1sen!2s!4v1652103525381!5m2!1sen!2s"
-                  className="w-full h-full"
-                  style={{ border: 0 }}
-                  allowFullScreen=""
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
+            <Col xs={24} md={12} lg={14}>
+              <div
+                style={{
+                  height: "400px",
+                  backgroundColor: "#f0f2f5",
+                  marginBottom: "1rem",
+                }}
+              >
+                {/* Đây sẽ là bản đồ Google Map */}
+                <div className="w-full h-full flex items-center justify-center">
+                  <Text>Google Map sẽ được hiển thị tại đây</Text>
+                </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Row gutter={[16, 16]}>
                 {contactInfo.map((item, index) => (
-                  <Card key={index} className="text-center shadow-md transition-transform duration-300 hover:shadow-lg hover:-translate-y-1">
-                    <div className="flex flex-col items-center">
-                      <div className="mb-4 bg-[#f0f8ff] w-16 h-16 rounded-full flex items-center justify-center">
-                        {React.cloneElement(item.icon, { style: { fontSize: 28, color: '#ff8460' } })}
-                      </div>
-                      <Title level={4} className="mb-2">{item.title}</Title>
-                      <Text className="text-gray-600">{item.content}</Text>
-                    </div>
-                  </Card>
+                  <Col xs={12} sm={6} md={12} lg={6} key={index}>
+                    <Card className="text-center h-full shadow-md">
+                      <div className="mb-2">{item.icon}</div>
+                      <Title level={5}>{item.title}</Title>
+                      <Text>{item.content}</Text>
+                    </Card>
+                  </Col>
                 ))}
-              </div>
+              </Row>
+            </Col>
+
+            <Col xs={24} md={12} lg={10}>
+              <Card title="Gửi thông tin liên hệ" className="shadow-md">
+                <Form layout="vertical" onFinish={onFinish}>
+                  <Form.Item
+                    name="name"
+                    label="Họ và tên"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập họ tên" },
+                    ]}
+                  >
+                    <Input placeholder="Nhập họ và tên" />
+                  </Form.Item>
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập email" },
+                      { type: "email", message: "Email không hợp lệ" },
+                    ]}
+                  >
+                    <Input placeholder="Nhập địa chỉ email" />
+                  </Form.Item>
+                  <Form.Item
+                    name="phone"
+                    label="Số điện thoại"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Vui lòng nhập số điện thoại",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="Nhập số điện thoại" />
+                  </Form.Item>
+                  <Form.Item
+                    name="subject"
+                    label="Chủ đề"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập chủ đề" },
+                    ]}
+                  >
+                    <Input placeholder="Nhập chủ đề cần tư vấn" />
+                  </Form.Item>
+                  <Form.Item
+                    name="message"
+                    label="Nội dung"
+                    rules={[
+                      { required: true, message: "Vui lòng nhập nội dung" },
+                    ]}
+                  >
+                    <TextArea rows={4} placeholder="Nhập nội dung cần tư vấn" />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button type="primary" htmlType="submit" block>
+                      Gửi thông tin
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </Card>
             </Col>
           </Row>
         </div>
+
+        <Divider />
+
+        <div className="my-12">
+          <Title level={2} className="text-center mb-8">
+            Chi nhánh của chúng tôi
+          </Title>
+          <Row gutter={[24, 24]}>
+            {branches.map((branch, index) => (
+              <Col xs={24} md={8} key={index}>
+                <Card className="shadow-md h-full">
+                  <Title level={3}>{branch.name}</Title>
+                  <Paragraph>
+                    <EnvironmentOutlined className="mr-2" /> {branch.address}
+                  </Paragraph>
+                  <Paragraph>
+                    <PhoneOutlined className="mr-2" /> {branch.phone}
+                  </Paragraph>
+                  <Paragraph>
+                    <MailOutlined className="mr-2" /> {branch.email}
+                  </Paragraph>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </div>
+
+        <Divider />
+
+        <div className="my-12 text-center">
+          <Title level={2} className="mb-6">
+            Theo dõi chúng tôi
+          </Title>
+          <Space size="large">
+            {socialMedia.map((social, index) => (
+              <a
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                key={index}
+              >
+                {social.icon}
+              </a>
+            ))}
+          </Space>
+        </div>
       </div>
-      
+
       <UserFooter />
     </div>
   );
 };
 
-export default ContactsPage; 
+export default ContactsPage;
