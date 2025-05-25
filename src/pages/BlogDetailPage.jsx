@@ -12,382 +12,382 @@ const blogPostsData = [
   {
     id: 1,
     slug: "modern-mothers-8-surprising-facts",
-    title: "Modern Mothers: 8 Surprising Facts",
-    date: "NOVEMBER 10, 2016",
+    title: "Những Bà Mẹ Hiện Đại: 8 Sự Thật Bất Ngờ",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc5.jpg",
-    author: "Dr. Sarah Johnson",
+    author: "TS. Sarah Johnson",
     authorImage: "/images/features/pc11.jpg",
-    readTime: "8 min read",
-    category: "Pregnancy",
-    tags: ["Motherhood", "Pregnancy", "Women's Health"],
-    summary: "Discover the fascinating changes in modern motherhood and how today's mothers navigate their pregnancy journey differently than previous generations.",
+    readTime: "8 phút đọc",
+    category: "Thai Kỳ",
+    tags: ["Làm Mẹ", "Thai Kỳ", "Sức Khỏe Phụ Nữ"],
+    summary: "Khám phá những thay đổi hấp dẫn trong vai trò làm mẹ hiện đại và cách các bà mẹ ngày nay trải qua hành trình mang thai khác biệt so với các thế hệ trước.",
     content: [
-      "Modern motherhood has evolved significantly over the past few decades, with women balancing career, personal aspirations, and family in new ways. Here are eight surprising facts about modern mothers that reflect these changes:",
-      "1. Average age of first-time mothers has increased to 30+ in many developed countries, compared to early 20s in the 1970s.",
-      "2. Over 70% of mothers with children under 18 participate in the labor force, compared to 47% in 1975.",
-      "3. One in five births is now to women over 35, with advanced fertility treatments making this increasingly possible.",
-      "4. Studies show children of working mothers often develop stronger social skills and academic performance.",
-      "5. Modern mothers spend more quality time with their children despite working outside the home more than previous generations.",
-      "6. Digital tools have transformed motherhood, with 90% of new mothers using apps to track baby development, feeding schedules, and health information.",
-      "7. Community support increasingly comes from online sources, with 65% of new mothers joining virtual support groups.",
-      "8. Birth preferences have diversified, with increased interest in natural birthing methods, doula support, and birthing centers alongside traditional hospital births."
+      "Làm mẹ hiện đại đã phát triển đáng kể trong vài thập kỷ qua, với phụ nữ cân bằng giữa sự nghiệp, khát vọng cá nhân và gia đình theo những cách mới. Dưới đây là tám sự thật bất ngờ về những bà mẹ hiện đại phản ánh những thay đổi này:",
+      "1. Độ tuổi trung bình của các bà mẹ lần đầu đã tăng lên trên 30 ở nhiều quốc gia phát triển, so với đầu 20 tuổi vào những năm 1970.",
+      "2. Hơn 70% các bà mẹ có con dưới 18 tuổi tham gia vào lực lượng lao động, so với 47% vào năm 1975.",
+      "3. Một trong năm ca sinh hiện nay là của phụ nữ trên 35 tuổi, với các phương pháp điều trị sinh sản tiên tiến khiến điều này ngày càng khả thi.",
+      "4. Các nghiên cứu cho thấy con cái của các bà mẹ đi làm thường phát triển kỹ năng xã hội và thành tích học tập tốt hơn.",
+      "5. Các bà mẹ hiện đại dành nhiều thời gian chất lượng hơn cho con cái mặc dù làm việc ngoài nhà nhiều hơn so với các thế hệ trước.",
+      "6. Các công cụ số đã thay đổi vai trò làm mẹ, với 90% bà mẹ mới sử dụng ứng dụng để theo dõi sự phát triển của bé, lịch cho ăn và thông tin sức khỏe.",
+      "7. Hỗ trợ cộng đồng ngày càng đến từ các nguồn trực tuyến, với 65% bà mẹ mới tham gia các nhóm hỗ trợ trực tuyến.",
+      "8. Sở thích sinh con đã đa dạng hóa, với sự quan tâm ngày càng tăng đến các phương pháp sinh tự nhiên, hỗ trợ từ doula, và các trung tâm sinh bên cạnh các bệnh viện truyền thống."
     ],
     relatedPosts: [2, 3, 9]
   },
   {
     id: 2,
     slug: "top-7-causes-of-infertility-in-women",
-    title: "Top 7 Causes of Infertility in Women",
-    date: "NOVEMBER 10, 2016",
+    title: "7 Nguyên Nhân Hàng Đầu Gây Vô Sinh Ở Phụ Nữ",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc4.jpg",
-    author: "Dr. Michael Brown",
+    author: "TS. Michael Brown",
     authorImage: "/images/features/pc12.jpg",
-    readTime: "10 min read",
-    category: "Fertility",
-    tags: ["Infertility", "Women's Health", "Reproductive Health"],
-    summary: "Understanding the most common factors that contribute to female infertility and how modern medicine can address these challenges.",
+    readTime: "10 phút đọc",
+    category: "Sinh Sản",
+    tags: ["Vô Sinh", "Sức Khỏe Phụ Nữ", "Sức Khỏe Sinh Sản"],
+    summary: "Hiểu biết về các yếu tố phổ biến nhất góp phần gây vô sinh ở phụ nữ và cách y học hiện đại có thể giải quyết những thách thức này.",
     content: [
-      "Infertility affects approximately 10-15% of couples, with female factors contributing to about one-third of these cases. Understanding the common causes can help women seek appropriate treatment. Here are the top seven causes of infertility in women:",
-      "1. Ovulation Disorders: Problems with ovulation account for about 25% of female infertility cases. Conditions like PCOS (Polycystic Ovary Syndrome), hypothalamic dysfunction, premature ovarian insufficiency, and hyperprolactinemia can disrupt regular egg release.",
-      "2. Fallopian Tube Damage or Blockage: Damaged or blocked fallopian tubes prevent sperm from reaching the egg or block the passage of the fertilized egg to the uterus. This can result from pelvic inflammatory disease, previous surgeries, or endometriosis.",
-      "3. Endometriosis: This condition occurs when tissue similar to the lining of the uterus implants and grows outside the uterus, affecting the function of the ovaries, uterus, and fallopian tubes.",
-      "4. Uterine or Cervical Abnormalities: Structural problems such as fibroids, polyps, or abnormalities in the uterine shape can interfere with implantation or increase the risk of miscarriage.",
-      "5. Primary Ovarian Insufficiency: This occurs when ovaries stop working normally before age 40, reducing estrogen production and egg release.",
-      "6. Age-Related Factors: Female fertility gradually declines with age, particularly after 35, due to decreasing egg quantity and quality.",
-      "7. Unexplained Infertility: In about 10-30% of infertility cases, standard fertility testing cannot identify the specific cause."
+      "Vô sinh ảnh hưởng đến khoảng 10-15% các cặp vợ chồng, với các yếu tố từ phụ nữ chiếm khoảng một phần ba các trường hợp này. Hiểu biết về các nguyên nhân phổ biến có thể giúp phụ nữ tìm kiếm phương pháp điều trị phù hợp. Dưới đây là bảy nguyên nhân hàng đầu gây vô sinh ở phụ nữ:",
+      "1. Rối loạn rụng trứng: Các vấn đề về rụng trứng chiếm khoảng 25% các trường hợp vô sinh ở phụ nữ. Các tình trạng như PCOS (Hội chứng buồng trứng đa nang), rối loạn chức năng vùng dưới đồi, suy buồng trứng sớm, và tăng prolactin huyết có thể làm gián đoạn việc phóng noãn thường xuyên.",
+      "2. Tắc hoặc tổn thương ống dẫn trứng: Ống dẫn trứng bị tổn thương hoặc tắc ngăn tinh trùng tiếp cận trứng hoặc ngăn chặn đường đi của trứng đã thụ tinh đến tử cung. Điều này có thể do bệnh viêm vùng chậu, phẫu thuật trước đó hoặc lạc nội mạc tử cung.",
+      "3. Lạc nội mạc tử cung: Tình trạng này xảy ra khi mô tương tự lớp nội mạc tử cung cấy ghép và phát triển ngoài tử cung, ảnh hưởng đến chức năng của buồng trứng, tử cung và ống dẫn trứng.",
+      "4. Bất thường ở tử cung hoặc cổ tử cung: Các vấn đề cấu trúc như u xơ, polyp hoặc bất thường về hình dạng tử cung có thể cản trở việc cấy ghép phôi hoặc tăng nguy cơ sảy thai.",
+      "5. Suy buồng trứng nguyên phát: Điều này xảy ra khi buồng trứng ngừng hoạt động bình thường trước 40 tuổi, làm giảm sản xuất estrogen và phóng noãn.",
+      "6. Yếu tố liên quan đến tuổi tác: Khả năng sinh sản của phụ nữ giảm dần theo tuổi, đặc biệt sau 35 tuổi, do số lượng và chất lượng trứng giảm.",
+      "7. Vô sinh không rõ nguyên nhân: Trong khoảng 10-30% các trường hợp vô sinh, các xét nghiệm sinh sản tiêu chuẩn không thể xác định nguyên nhân cụ thể."
     ],
     relatedPosts: [3, 6, 7]
   },
   {
     id: 3,
     slug: "ivf-or-ivm-which-is-right-for-you",
-    title: "Which is Right for You: IVF or IVM?",
-    date: "NOVEMBER 10, 2016",
+    title: "IVF hay IVM: Lựa Chọn Nào Phù Hợp Với Bạn?",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc6.jpg",
-    author: "Dr. Andrew Peterson",
+    author: "TS. Andrew Peterson",
     authorImage: "/images/features/pc10.jpg",
-    readTime: "12 min read",
-    category: "Fertility Treatments",
-    tags: ["IVF", "IVM", "Fertility Treatment", "Reproductive Technology"],
-    summary: "A comprehensive comparison of In Vitro Fertilization (IVF) and In Vitro Maturation (IVM) to help you understand which fertility treatment might be best for your situation.",
+    readTime: "12 phút đọc",
+    category: "Điều Trị Sinh Sản",
+    tags: ["IVF", "IVM", "Điều Trị Sinh Sản", "Công Nghệ Sinh Sản"],
+    summary: "So sánh toàn diện giữa Thụ tinh Trong ống nghiệm (IVF) và Trưởng thành Trong ống nghiệm (IVM) để giúp bạn hiểu phương pháp điều trị sinh sản nào phù hợp nhất với tình huống của bạn.",
     content: [
-      "When considering fertility treatments, understanding the differences between IVF and IVM is crucial for making an informed decision. Here's a detailed comparison of these two important fertility procedures:",
-      "In Vitro Fertilization (IVF) is the most widely known and practiced assisted reproductive technology. It involves stimulating the ovaries with hormones to produce multiple eggs, which are then retrieved and fertilized in a laboratory. The resulting embryos are cultured for 3-5 days before the best quality embryos are transferred to the uterus.",
-      "In Vitro Maturation (IVM) is a newer technique where immature eggs are retrieved from the ovaries with minimal or no hormone stimulation. These eggs are then matured in the laboratory before being fertilized. This approach requires fewer medications and monitoring.",
-      "Key differences to consider when choosing between IVF and IVM:",
-      "1. Hormone Stimulation: IVF typically requires 8-12 days of hormone injections to stimulate egg production, while IVM requires minimal or no stimulation.",
-      "2. Cost: IVM is generally less expensive than IVF due to fewer medications and monitoring appointments.",
-      "3. Time Commitment: IVF requires more clinic visits for monitoring, while IVM requires fewer appointments.",
-      "4. Success Rates: IVF currently has higher success rates (30-40% per cycle) compared to IVM (20-30% per cycle).",
-      "5. Ideal Candidates: IVF is suitable for most fertility patients, while IVM may be particularly beneficial for women with PCOS, those at risk of ovarian hyperstimulation syndrome, cancer patients preserving fertility before treatment, or those with hormone-sensitive conditions."
+      "Khi xem xét các phương pháp điều trị sinh sản, việc hiểu sự khác biệt giữa IVF và IVM là rất quan trọng để đưa ra quyết định sáng suốt. Dưới đây là so sánh chi tiết giữa hai quy trình sinh sản quan trọng này:",
+      "Thụ tinh Trong ống nghiệm (IVF) là công nghệ hỗ trợ sinh sản được biết đến và thực hiện rộng rãi nhất. Nó bao gồm kích thích buồng trứng bằng hormone để tạo ra nhiều trứng, sau đó được lấy ra và thụ tinh trong phòng thí nghiệm. Các phôi kết quả được nuôi cấy trong 3-5 ngày trước khi các phôi chất lượng tốt nhất được chuyển vào tử cung.",
+      "Trưởng thành Trong ống nghiệm (IVM) là một kỹ thuật mới hơn, nơi các trứng chưa trưởng thành được lấy ra từ buồng trứng với kích thích hormone tối thiểu hoặc không có. Những trứng này sau đó được trưởng thành trong phòng thí nghiệm trước khi thụ tinh. Phương pháp này yêu cầu ít thuốc hơn và ít giám sát hơn.",
+      "Những khác biệt chính cần xem xét khi lựa chọn giữa IVF và IVM:",
+      "1. Kích thích Hormone: IVF thường yêu cầu tiêm hormone trong 8-12 ngày để kích thích sản xuất trứng, trong khi IVM yêu cầu kích thích tối thiểu hoặc không cần.",
+      "2. Chi phí: IVM thường rẻ hơn IVF do ít thuốc và ít cuộc hẹn giám sát hơn.",
+      "3. Thời gian Cam kết: IVF yêu cầu nhiều lần đến phòng khám để theo dõi hơn, trong khi IVM yêu cầu ít cuộc hẹn hơn.",
+      "4. Tỷ lệ Thành công: IVF hiện có tỷ lệ thành công cao hơn (30-40% mỗi chu kỳ) so với IVM (20-30% mỗi chu kỳ).",
+      "5. Đối tượng Phù hợp: IVF phù hợp với hầu hết các bệnh nhân sinh sản, trong khi IVM có thể đặc biệt hữu ích cho phụ nữ mắc PCOS, những người có nguy cơ hội chứng kích thích buồng trứng quá mức, bệnh nhân ung thư bảo tồn khả năng sinh sản trước điều trị, hoặc những người có tình trạng nhạy cảm với hormone."
     ],
     relatedPosts: [1, 2, 6]
   },
   {
     id: 4,
     slug: "pregnancy-test-step-by-step",
-    title: "How to Take a Pregnancy Test, Step-by-Step",
-    date: "NOVEMBER 10, 2016",
+    title: "Cách Thực Hiện Xét Nghiệm Thai, Từng Bước",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc3.jpg",
-    author: "Dr. Emily Roberts",
+    author: "TS. Emily Roberts",
     authorImage: "/images/features/Pc1.jpg",
-    readTime: "5 min read",
-    category: "Pregnancy",
-    tags: ["Pregnancy Test", "Early Pregnancy", "Women's Health"],
-    summary: "A comprehensive guide on how to properly take a home pregnancy test for the most accurate results.",
+    readTime: "5 phút đọc",
+    category: "Thai Kỳ",
+    tags: ["Xét Nghiệm Thai", "Thai Kỳ Sớm", "Sức Khỏe Phụ Nữ"],
+    summary: "Hướng dẫn toàn diện về cách thực hiện xét nghiệm thai tại nhà đúng cách để có kết quả chính xác nhất.",
     content: [
-      "Taking a pregnancy test correctly is essential for accurate results. Here's a detailed step-by-step guide to help you through the process:",
-      "When to Test:",
-      "• Wait until at least the first day of your missed period for the most accurate results",
-      "• Some sensitive tests can detect pregnancy up to 5 days before your missed period",
-      "• Morning urine contains the highest concentration of hCG (pregnancy hormone)",
+      "Việc thực hiện xét nghiệm thai đúng cách là điều cần thiết để có kết quả chính xác. Dưới đây là hướng dẫn từng bước chi tiết để giúp bạn thực hiện quy trình này:",
+      "Khi Nào Nên Xét Nghiệm:",
+      "• Chờ đến ít nhất ngày đầu tiên của kỳ kinh bị trễ để có kết quả chính xác nhất",
+      "• Một số xét nghiệm nhạy có thể phát hiện thai kỳ sớm đến 5 ngày trước kỳ kinh bị trễ",
+      "• Nước tiểu buổi sáng có nồng độ hCG (hormone thai kỳ) cao nhất",
       
-      "What You'll Need:",
-      "• Home pregnancy test kit",
-      "• Clean cup (if not using a direct stream test)",
-      "• Timer or clock",
-      "• Privacy and a well-lit bathroom",
+      "Những Gì Bạn Cần:",
+      "• Bộ xét nghiệm thai tại nhà",
+      "• Cốc sạch (nếu không sử dụng xét nghiệm trực tiếp dòng chảy)",
+      "• Đồng hồ hoặc đồng hồ bấm giờ",
+      "• Sự riêng tư và phòng tắm có ánh sáng tốt",
       
-      "Step 1: Read the Instructions Carefully",
-      "Each brand of pregnancy test may have slightly different instructions. Take time to read and understand the specific directions for your test.",
+      "Bước 1: Đọc Kỹ Hướng Dẫn",
+      "Mỗi nhãn hiệu xét nghiệm thai có thể có hướng dẫn hơi khác nhau. Hãy dành thời gian để đọc và hiểu các hướng dẫn cụ thể cho xét nghiệm của bạn.",
       
-      "Step 2: Collect Your Urine Sample",
-      "Either urinate directly on the test stick's absorbent tip or collect urine in a clean cup and dip the test as directed.",
+      "Bước 2: Thu Thập Mẫu Nước Tiểu",
+      "Hoặc đi tiểu trực tiếp lên đầu que xét nghiệm hoặc thu thập nước tiểu vào cốc sạch và nhúng que xét nghiệm theo hướng dẫn.",
       
-      "Step 3: Wait the Specified Time",
-      "Place the test on a flat surface and wait exactly as long as the instructions indicate (usually 1-5 minutes). Set a timer to be precise.",
+      "Bước 3: Chờ Thời Gian Chỉ Định",
+      "Đặt que xét nghiệm trên bề mặt phẳng và chờ đúng thời gian được chỉ định (thường là 1-5 phút). Đặt đồng hồ bấm giờ để chính xác.",
       
-      "Step 4: Read the Results",
-      "Check the results window within the timeframe specified. Results read too early or too late may be inaccurate.",
+      "Bước 4: Đọc Kết Quả",
+      "Kiểm tra cửa sổ kết quả trong khoảng thời gian được chỉ định. Kết quả đọc quá sớm hoặc quá muộn có thể không chính xác.",
       
-      "Understanding the Results:",
-      "• Positive: Even a faint second line typically indicates pregnancy",
-      "• Negative: Only the control line appears",
-      "• Invalid: No lines or only a test line (without control line) appears",
+      "Hiểu Kết Quả:",
+      "• Dương tính: Ngay cả một vạch thứ hai mờ thường cho thấy có thai",
+      "• Âm tính: Chỉ xuất hiện vạch kiểm soát",
+      "• Không hợp lệ: Không có vạch nào hoặc chỉ có vạch xét nghiệm (không có vạch kiểm soát)",
       
-      "Next Steps:",
-      "• Positive result: Schedule an appointment with your healthcare provider",
-      "• Negative result but symptoms persist: Wait a few days and test again",
-      "• Invalid result: Repeat with a new test",
+      "Các Bước Tiếp Theo:",
+      "• Kết quả dương tính: Đặt lịch hẹn với nhà cung cấp dịch vụ y tế của bạn",
+      "• Kết quả âm tính nhưng vẫn có triệu chứng: Chờ vài ngày và xét nghiệm lại",
+      "• Kết quả không hợp lệ: Lặp lại với một que xét nghiệm mới",
       
-      "Remember that home pregnancy tests are about 99% accurate when used correctly, but factors like medications, testing too early, or using an expired test can affect results."
+      "Hãy nhớ rằng các xét nghiệm thai tại nhà có độ chính xác khoảng 99% khi sử dụng đúng cách, nhưng các yếu tố như thuốc, xét nghiệm quá sớm, hoặc sử dụng que xét nghiệm hết hạn có thể ảnh hưởng đến kết quả."
     ],
     relatedPosts: [1, 5, 9]
   },
   {
     id: 5,
     slug: "fertility-preservation-for-cancer-patients",
-    title: "Fertility Preservation for Women Diagnosed with Cancer",
-    date: "NOVEMBER 10, 2016",
+    title: "Bảo Quản Khả Năng Sinh Sản Cho Phụ Nữ Được Chẩn Đoán Ung Thư",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc9.jpg",
-    author: "Dr. Sarah Johnson",
+    author: "TS. Sarah Johnson",
     authorImage: "/images/features/pc11.jpg",
-    readTime: "9 min read",
-    category: "Fertility Preservation",
-    tags: ["Cancer", "Fertility Preservation", "Egg Freezing", "Oncofertility"],
-    summary: "Learn about the options available for women diagnosed with cancer to preserve their fertility before undergoing treatments that may affect reproductive function.",
+    readTime: "9 phút đọc",
+    category: "Bảo Quản Sinh Sản",
+    tags: ["Ung Thư", "Bảo Quản Sinh Sản", "Đông Lạnh Trứng", "Sinh Sản Ung Thư"],
+    summary: "Tìm hiểu về các lựa chọn dành cho phụ nữ được chẩn đoán ung thư để bảo quản khả năng sinh sản trước khi trải qua các điều trị có thể ảnh hưởng đến chức năng sinh sản.",
     content: [
-      "A cancer diagnosis is life-changing, and for women of reproductive age, concerns about future fertility add another layer of complexity. Fortunately, advances in reproductive medicine offer several options for fertility preservation before cancer treatment begins.",
+      "Chẩn đoán ung thư là một sự thay đổi lớn trong cuộc sống, và đối với phụ nữ ở độ tuổi sinh sản, những lo lắng về khả năng sinh sản trong tương lai thêm một tầng phức tạp. May mắn thay, những tiến bộ trong y học sinh sản cung cấp một số lựa chọn để bảo quản khả năng sinh sản trước khi bắt đầu điều trị ung thư.",
       
-      "Why Cancer Treatments Affect Fertility:",
-      "Many cancer treatments can compromise fertility. Chemotherapy can damage eggs, radiation to the pelvic area can affect reproductive organs, and some surgeries may remove reproductive structures. The risk varies based on the type of treatment, dosage, and the woman's age.",
+      "Tại Sao Điều Trị Ung Thư Ảnh Hưởng Đến Sinh Sản:",
+      "Nhiều phương pháp điều trị ung thư có thể làm tổn hại khả năng sinh sản. Hóa trị có thể làm tổn thương trứng, xạ trị vùng chậu có thể ảnh hưởng đến các cơ quan sinh sản, và một số phẫu thuật có thể loại bỏ các cấu trúc sinh sản. Mức độ nguy cơ thay đổi dựa trên loại điều trị, liều lượng, và tuổi của phụ nữ.",
       
-      "Fertility Preservation Options:",
+      "Các Lựa Chọn Bảo Quản Sinh Sản:",
       
-      "1. Egg Freezing (Oocyte Cryopreservation)",
-      "This is the most established method for women without partners. The process involves hormone stimulation for 10-14 days, egg retrieval, and freezing unfertilized eggs for future use. For women with cancer, protocols can be modified to reduce hormone exposure.",
+      "1. Đông Lạnh Trứng (Bảo Quản Noãn Bằng Lạnh)",
+      "Đây là phương pháp được thiết lập nhất cho phụ nữ không có bạn đời. Quy trình bao gồm kích thích hormone trong 10-14 ngày, lấy trứng, và đông lạnh các trứng chưa thụ tinh để sử dụng trong tương lai. Đối với phụ nữ bị ung thư, các giao thức có thể được điều chỉnh để giảm tiếp xúc với hormone.",
       
-      "2. Embryo Freezing",
-      "Similar to egg freezing but includes fertilization with partner's or donor sperm before freezing. This offers slightly higher success rates than egg freezing but requires a sperm source.",
+      "2. Đông Lạnh Phôi",
+      "Tương tự như đông lạnh trứng nhưng bao gồm thụ tinh với tinh trùng của bạn đời hoặc người hiến trước khi đông lạnh. Phương pháp này cung cấp tỷ lệ thành công cao hơn một chút so với đông lạnh trứng nhưng yêu cầu một nguồn tinh trùng.",
       
-      "3. Ovarian Tissue Freezing",
-      "This experimental option involves removing and freezing ovarian tissue containing immature eggs. Later, the tissue can be reimplanted. This is the only option for prepubescent girls and women who cannot delay treatment.",
+      "3. Đông Lạnh Mô Buồng Trứng",
+      "Lựa chọn thử nghiệm này bao gồm việc lấy ra và đông lạnh mô buồng trứng chứa các trứng chưa trưởng thành. Sau đó, mô này có thể được cấy ghép lại. Đây là lựa chọn duy nhất cho các bé gái chưa dậy thì và phụ nữ không thể trì hoãn điều trị.",
       
-      "4. Ovarian Suppression During Treatment",
-      "Medications (GnRH agonists) may help protect ovaries during chemotherapy by putting them in a temporary dormant state, though evidence for effectiveness varies.",
+      "4. Ức Chế Buồng Trứng Trong Quá Trình Điều Trị",
+      "Các loại thuốc (chất chủ vận GnRH) có thể giúp bảo vệ buồng trứng trong quá trình hóa trị bằng cách đưa chúng vào trạng thái tạm thời không hoạt động, mặc dù bằng chứng về hiệu quả còn khác nhau.",
       
-      "5. Ovarian Transposition",
-      "For women receiving pelvic radiation, surgically moving the ovaries away from the radiation field may preserve function.",
+      "5. Di Dời Buồng Trứng",
+      "Đối với phụ nữ nhận xạ trị vùng chậu, việc phẫu thuật di chuyển buồng trứng ra khỏi vùng xạ trị có thể bảo vệ chức năng.",
       
-      "The Decision-Making Process:",
-      "• Consult with a reproductive endocrinologist as soon as possible after diagnosis",
-      "• Consider your age, relationship status, treatment plan, and cancer type",
-      "• Discuss financial aspects and insurance coverage",
-      "• Explore emotional support resources for this complex decision",
+      "Quá Trình Ra Quyết Định:",
+      "• Tham khảo ý kiến bác sĩ nội tiết sinh sản ngay sau khi chẩn đoán",
+      "• Xem xét tuổi, tình trạng mối quan hệ, kế hoạch điều trị và loại ung thư",
+      "• Thảo luận về khía cạnh tài chính và bảo hiểm",
+      "• Tìm kiếm các nguồn hỗ trợ cảm xúc cho quyết định phức tạp này",
       
-      "Timing is critical, as fertility preservation ideally occurs before cancer treatment begins. However, in many cases, the process can be expedited to avoid significant treatment delays."
+      "Thời gian là rất quan trọng, vì bảo quản khả năng sinh sản lý tưởng nên được thực hiện trước khi bắt đầu điều trị ung thư. Tuy nhiên, trong nhiều trường hợp, quy trình có thể được đẩy nhanh để tránh trì hoãn điều trị đáng kể."
     ],
     relatedPosts: [2, 3, 7]
   },
   {
     id: 6,
     slug: "male-infertility-facts",
-    title: "Male Infertility: Fact from Fiction",
-    date: "NOVEMBER 10, 2016",
+    title: "Vô Sinh Nam: Sự Thật và Huyền Thoại",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc10.jpg",
-    author: "Dr. Michael Brown",
+    author: "TS. Michael Brown",
     authorImage: "/images/features/pc12.jpg",
-    readTime: "7 min read",
-    category: "Fertility",
-    tags: ["Male Infertility", "Men's Health", "Reproductive Health"],
-    summary: "Separating myths from reality about male infertility causes, diagnosis, and treatment options.",
+    readTime: "7 phút đọc",
+    category: "Sinh Sản",
+    tags: ["Vô Sinh Nam", "Sức Khỏe Nam Giới", "Sức Khỏe Sinh Sản"],
+    summary: "Phân biệt giữa huyền thoại và thực tế về nguyên nhân, chẩn đoán và các lựa chọn điều trị vô sinh nam.",
     content: [
-      "Male infertility is often surrounded by misconceptions and stigma. Understanding the facts is crucial for proper diagnosis and treatment. Let's separate fact from fiction on this important topic.",
+      "Vô sinh nam thường bị bao quanh bởi những quan niệm sai lầm và kỳ thị. Hiểu biết về sự thật là rất quan trọng để chẩn đoán và điều trị đúng cách. Hãy phân biệt giữa sự thật và huyền thoại về chủ đề quan trọng này.",
       
-      "FICTION: Infertility is primarily a female issue.",
-      "FACT: Male factors contribute to approximately 50% of all infertility cases. In about one-third of cases, male factors are the sole cause of infertility.",
+      "Huyền Thoại: Vô sinh chủ yếu là vấn đề của phụ nữ.",
+      "Sự Thật: Các yếu tố từ nam giới góp phần vào khoảng 50% các trường hợp vô sinh. Trong khoảng một phần ba các trường hợp, yếu tố nam là nguyên nhân duy nhất gây vô sinh.",
       
-      "FICTION: Lifestyle factors have minimal impact on male fertility.",
-      "FACT: Several lifestyle factors significantly affect sperm health, including smoking, excessive alcohol consumption, drug use, obesity, exposure to environmental toxins, and prolonged heat to the testicles (from frequent hot tubs, saunas, or tight clothing).",
+      "Huyền Thoại: Các yếu tố lối sống có tác động tối thiểu đến khả năng sinh sản nam.",
+      "Sự Thật: Một số yếu tố lối sống ảnh hưởng đáng kể đến sức khỏe tinh trùng, bao gồm hút thuốc, uống rượu quá mức, sử dụng ma túy, béo phì, tiếp xúc với độc tố môi trường, và tiếp xúc lâu dài với nhiệt độ cao ở tinh hoàn (từ việc sử dụng bồn tắm nước nóng thường xuyên, phòng xông hơi, hoặc mặc quần áo bó sát).",
       
-      "FICTION: Age doesn't affect male fertility.",
-      "FACT: While men produce sperm throughout their lives, sperm quality and quantity decline with age, particularly after 40. Advanced paternal age is also associated with increased risk of genetic abnormalities and certain health conditions in offspring.",
+      "Huyền Thoại: Tuổi tác không ảnh hưởng đến khả năng sinh sản nam.",
+      "Sự Thật: Mặc dù nam giới sản xuất tinh trùng suốt đời, chất lượng và số lượng tinh trùng suy giảm theo tuổi, đặc biệt sau 40 tuổi. Tuổi cha cao cũng liên quan đến tăng nguy cơ bất thường di truyền và một số tình trạng sức khỏe ở con cái.",
       
-      "FICTION: Low sperm count always means infertility.",
-      "FACT: While a normal sperm count improves chances of conception, men with low sperm counts can still father children. Even one healthy sperm can fertilize an egg, especially with assisted reproductive technologies.",
+      "Huyền Thoại: Số lượng tinh trùng thấp luôn đồng nghĩa với vô sinh.",
+      "Sự Thật: Mặc dù số lượng tinh trùng bình thường cải thiện cơ hội thụ thai, nam giới có số lượng tinh trùng thấp vẫn có thể có con. Ngay cả một tinh trùng khỏe mạnh cũng có thể thụ tinh với trứng, đặc biệt với các công nghệ hỗ trợ sinh sản.",
       
-      "FICTION: Male infertility can't be treated.",
-      "FACT: Many causes of male infertility are treatable or can be bypassed with assisted reproductive techniques:",
-      "• Hormonal imbalances can often be corrected with medication",
-      "• Varicoceles (enlarged veins in the scrotum) can be surgically repaired",
-      "• Obstructions in the reproductive tract can sometimes be removed",
-      "• Infections can be treated with antibiotics",
-      "• ICSI (Intracytoplasmic Sperm Injection) can achieve fertilization even with very few sperm",
+      "Huyền Thoại: Vô sinh nam không thể điều trị.",
+      "Sự Thật: Nhiều nguyên nhân gây vô sinh nam có thể điều trị hoặc có thể vượt qua bằng các kỹ thuật hỗ trợ sinh sản:",
+      "• Mất cân bằng hormone thường có thể được điều chỉnh bằng thuốc",
+      "• Giãn tĩnh mạch thừng tinh (tĩnh mạch mở rộng ở bìu) có thể được sửa chữa bằng phẫu thuật",
+      "• Tắc nghẽn trong đường sinh sản đôi khi có thể được loại bỏ",
+      "• Nhiễm trùng có thể được điều trị bằng kháng sinh",
+      "• ICSI (Tiêm tinh trùng vào bào tương) có thể đạt được thụ tinh ngay cả với rất ít tinh trùng",
       
-      "FICTION: If a man has fathered a child before, he can't have fertility problems now.",
-      "FACT: Secondary infertility (difficulty conceiving after previously fathering a child) is common and can result from new health issues, age-related decline in fertility, or changes in lifestyle factors.",
+      "Huyền Thoại: Nếu một người đàn ông đã có con trước đây, anh ta không thể có vấn đề sinh sản bây giờ.",
+      "Sự Thật: Vô sinh thứ phát (khó thụ thai sau khi đã có con trước đó) là phổ biến và có thể do các vấn đề sức khỏe mới, suy giảm sinh sản liên quan đến tuổi, hoặc thay đổi trong các yếu tố lối sống.",
       
-      "FICTION: Sperm quality can't be improved.",
-      "FACT: Many men can improve sperm parameters through lifestyle modifications including:",
-      "• Maintaining a healthy weight",
-      "• Eating a balanced diet rich in antioxidants",
-      "• Regular moderate exercise",
-      "• Reducing stress",
-      "• Avoiding tobacco, excessive alcohol, and recreational drugs",
-      "• Taking appropriate supplements (under medical guidance)"
+      "Huyền Thoại: Chất lượng tinh trùng không thể cải thiện.",
+      "Sự Thật: Nhiều nam giới có thể cải thiện các thông số tinh trùng thông qua các thay đổi lối sống bao gồm:",
+      "• Duy trì cân nặng khỏe mạnh",
+      "• Ăn chế độ ăn uống cân bằng giàu chất chống oxy hóa",
+      "• Tập thể dục vừa phải thường xuyên",
+      "• Giảm căng thẳng",
+      "• Tránh thuốc lá, rượu quá mức, và các chất kích thích",
+      "• Uống bổ sung thích hợp (dưới sự hướng dẫn y tế)"
     ],
     relatedPosts: [2, 3, 7]
   },
   {
     id: 7,
     slug: "endo-and-fertility-health",
-    title: "Endo and Your Fertility Health",
-    date: "NOVEMBER 10, 2016",
+    title: "Lạc Nội Mạc Tử Cung và Sức Khỏe Sinh Sản",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc11.jpg",
-    author: "Dr. Emily Roberts",
+    author: "TS. Emily Roberts",
     authorImage: "/images/features/Pc1.jpg",
-    readTime: "11 min read",
-    category: "Women's Health",
-    tags: ["Endometriosis", "Fertility", "Women's Health", "Reproductive Health"],
-    summary: "How endometriosis affects fertility and what treatment options are available for women with this condition who want to conceive.",
+    readTime: "11 phút đọc",
+    category: "Sức Khỏe Phụ Nữ",
+    tags: ["Lạc Nội Mạc Tử Cung", "Sinh Sản", "Sức Khỏe Phụ Nữ", "Sức Khỏe Sinh Sản"],
+    summary: "Lạc nội mạc tử cung ảnh hưởng đến khả năng sinh sản như thế nào và các lựa chọn điều trị dành cho phụ nữ mắc tình trạng này muốn thụ thai.",
     content: [
-      "Endometriosis affects approximately 10% of women of reproductive age worldwide and is a leading cause of infertility. Understanding the relationship between endometriosis and fertility is crucial for women diagnosed with this condition who hope to have children.",
+      "Lạc nội mạc tử cung ảnh hưởng đến khoảng 10% phụ nữ trong độ tuổi sinh sản trên toàn thế giới và là một nguyên nhân hàng đầu gây vô sinh. Hiểu biết về mối quan hệ giữa lạc nội mạc tử cung và khả năng sinh sản là rất quan trọng cho phụ nữ được chẩn đoán mắc tình trạng này và hy vọng có con.",
       
-      "How Endometriosis Affects Fertility:",
+      "Lạc Nội Mạc Tử Cung Ảnh Hưởng Đến Sinh Sản Như Thế Nào:",
       
-      "Endometriosis occurs when tissue similar to the uterine lining grows outside the uterus. This condition can impact fertility in several ways:",
+      "Lạc nội mạc tử cung xảy ra khi mô tương tự lớp nội mạc tử cung phát triển ngoài tử cung. Tình trạng này có thể ảnh hưởng đến khả năng sinh sản theo nhiều cách:",
       
-      "1. Anatomical Distortion: Severe endometriosis can cause adhesions and scarring that distort pelvic anatomy, potentially blocking fallopian tubes or interfering with ovarian function.",
+      "1. Biến dạng Giải phẫu: Lạc nội mạc tử cung nghiêm trọng có thể gây dính và sẹo làm biến dạng giải phẫu vùng chậu, có khả năng chặn ống dẫn trứng hoặc cản trở chức năng buồng trứng.",
       
-      "2. Inflammation: The inflammatory environment created by endometriosis may be toxic to eggs, sperm, and embryos.",
+      "2. Viêm: Môi trường viêm do lạc nội mạc tử cung có thể gây độc cho trứng, tinh trùng và phôi thai.",
       
-      "3. Hormonal Imbalances: Endometriosis can disrupt the hormonal environment necessary for conception and implantation.",
+      "3. Mất Cân Bằng Hormone: Lạc nội mạc tử cung có thể làm gián đoạn môi trường hormone cần thiết cho việc thụ thai và cấy ghép phôi.",
       
-      "4. Reduced Egg Quality: Some research suggests endometriosis may affect egg quality and ovarian reserve.",
+      "4. Giảm Chất Lượng Trứng: Một số nghiên cứu cho thấy lạc nội mạc tử cung có thể ảnh hưởng đến chất lượng trứng và dự trữ buồng trứng.",
       
-      "5. Implantation Difficulties: Even with normal fallopian tubes, women with endometriosis may have reduced rates of embryo implantation.",
+      "5. Khó Khăn Trong Cấy Ghép: Ngay cả với ống dẫn trứng bình thường, phụ nữ mắc lạc nội mạc tử cung có thể có tỷ lệ cấy ghép phôi thấp hơn.",
       
-      "Fertility Treatment Options for Women with Endometriosis:",
+      "Các Lựa Chọn Điều Trị Sinh Sản Cho Phụ Nữ Mắc Lạc Nội Mạc Tử Cung:",
       
-      "1. Medical Management:",
-      "While hormonal treatments (like birth control pills) are often used to manage endometriosis symptoms, they prevent pregnancy and must be discontinued when trying to conceive. However, some physicians recommend a course of hormonal suppression before attempting conception.",
+      "1. Quản Lý Y Khoa:",
+      "Mặc dù các phương pháp điều trị hormone (như thuốc tránh thai) thường được sử dụng để kiểm soát triệu chứng lạc nội mạc tử cung, chúng ngăn ngừa thai kỳ và phải ngừng khi cố gắng thụ thai. Tuy nhiên, một số bác sĩ khuyên dùng một liệu trình ức chế hormone trước khi thử thụ thai.",
       
-      "2. Surgical Treatment:",
-      "Laparoscopic surgery to remove endometriosis lesions can improve natural fertility rates, particularly for minimal to mild endometriosis. The benefit for severe disease is less clear but may improve IVF outcomes.",
+      "2. Điều Trị Phẫu Thuật:",
+      "Phẫu thuật nội soi để loại bỏ các tổn thương lạc nội mạc tử cung có thể cải thiện tỷ lệ sinh sản tự nhiên, đặc biệt đối với lạc nội mạc tử cung tối thiểu đến nhẹ. Lợi ích đối với bệnh nặng không rõ ràng nhưng có thể cải thiện kết quả IVF.",
       
-      "3. Assisted Reproductive Technologies:",
-      "• Fertility medications with timed intercourse or intrauterine insemination (IUI) may be effective for minimal to mild endometriosis",
-      "• In vitro fertilization (IVF) often provides the highest success rates, especially for moderate to severe cases",
-      "• IVF with ICSI (intracytoplasmic sperm injection) may be recommended if there are concerns about egg quality",
+      "3. Công Nghệ Hỗ Trợ Sinh Sản:",
+      "• Thuốc sinh sản với giao hợp định thời hoặc thụ tinh nhân tạo (IUI) có thể hiệu quả đối với lạc nội mạc tử cung tối thiểu đến nhẹ",
+      "• Thụ tinh trong ống nghiệm (IVF) thường mang lại tỷ lệ thành công cao nhất, đặc biệt đối với các trường hợp trung bình đến nặng",
+      "• IVF với ICSI (tiêm tinh trùng vào bào tương) có thể được khuyến nghị nếu có lo ngại về chất lượng trứng",
       
-      "Timing Considerations:",
-      "For women with known endometriosis who want to have children, timing is an important consideration. Since endometriosis can be progressive and fertility declines with age, it may be advisable not to delay pregnancy attempts for too long after diagnosis.",
+      "Cân Nhắc Về Thời Gian:",
+      "Đối với phụ nữ được chẩn đoán lạc nội mạc tử cung muốn có con, thời gian là một yếu tố quan trọng. Vì lạc nội mạc tử cung có thể tiến triển và khả năng sinh sản giảm theo tuổi, có thể nên không trì hoãn việc thử mang thai quá lâu sau khi chẩn đoán.",
       
-      "The good news is that many women with endometriosis successfully conceive and have healthy pregnancies, either naturally or with appropriate fertility treatments. Early consultation with a reproductive endocrinologist can help develop the most effective treatment plan."
+      "Tin tốt là nhiều phụ nữ mắc lạc nội mạc tử cung thụ thai thành công và có thai kỳ khỏe mạnh, hoặc tự nhiên hoặc với các phương pháp điều trị sinh sản phù hợp. Tham khảo sớm với bác sĩ nội tiết sinh sản có thể giúp phát triển kế hoạch điều trị hiệu quả nhất."
     ],
     relatedPosts: [2, 5, 9]
   },
   {
     id: 8,
     slug: "zika-virus-risks-for-patients",
-    title: "Risk to Patients Exposed to the Zika Virus",
-    date: "NOVEMBER 10, 2016",
+    title: "Nguy Cơ Đối Với Bệnh Nhân Tiếp Xúc Với Virus Zika",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/pc12.jpg",
-    author: "Dr. Andrew Peterson",
+    author: "TS. Andrew Peterson",
     authorImage: "/images/features/pc10.jpg",
-    readTime: "8 min read",
-    category: "Health Alerts",
-    tags: ["Zika Virus", "Pregnancy", "Public Health", "Infectious Disease"],
-    summary: "Understanding the risks of Zika virus exposure for pregnant women and those trying to conceive, along with prevention strategies.",
+    readTime: "8 phút đọc",
+    category: "Cảnh Báo Sức Khỏe",
+    tags: ["Virus Zika", "Thai Kỳ", "Sức Khỏe Cộng Đồng", "Bệnh Truyền Nhiễm"],
+    summary: "Hiểu biết về nguy cơ phơi nhiễm virus Zika đối với phụ nữ mang thai và những người đang cố gắng thụ thai, cùng với các chiến lược phòng ngừa.",
     content: [
-      "The Zika virus emerged as a significant global health concern due to its association with severe birth defects. Understanding the risks and appropriate precautions is essential for fertility patients and pregnant women.",
+      "Virus Zika đã nổi lên như một mối quan ngại sức khỏe toàn cầu đáng kể do liên quan đến các dị tật bẩm sinh nghiêm trọng. Hiểu biết về các nguy cơ và các biện pháp phòng ngừa thích hợp là điều cần thiết cho các bệnh nhân sinh sản và phụ nữ mang thai.",
       
-      "Zika Virus Transmission:",
-      "Zika virus is primarily transmitted through the bite of infected Aedes mosquitoes. It can also be transmitted sexually and from mother to fetus during pregnancy. Most people infected with Zika virus are asymptomatic or experience mild symptoms including fever, rash, joint pain, and conjunctivitis.",
+      "Lây Truyền Virus Zika:",
+      "Virus Zika chủ yếu được lây truyền qua vết cắn của muỗi Aedes bị nhiễm bệnh. Nó cũng có thể lây truyền qua đường tình dục và từ mẹ sang thai nhi trong thai kỳ. Hầu hết những người nhiễm virus Zika không có triệu chứng hoặc chỉ gặp các triệu chứng nhẹ bao gồm sốt, phát ban, đau khớp và viêm kết mạc.",
       
-      "Risks to Pregnancy:",
-      "The greatest concern with Zika virus is its impact on fetal development. Zika virus infection during pregnancy can cause:",
+      "Nguy Cơ Đối Với Thai Kỳ:",
+      "Mối quan ngại lớn nhất với virus Zika là tác động của nó đến sự phát triển của thai nhi. Nhiễm virus Zika trong thai kỳ có thể gây ra:",
       
-      "• Microcephaly (abnormally small head and brain)",
-      "• Other severe brain defects",
-      "• Eye abnormalities",
-      "• Hearing loss",
-      "• Impaired growth",
-      "• Congenital Zika Syndrome (a pattern of birth defects including brain abnormalities, eye defects, joint problems, and muscle tone issues)",
+      "• Đầu nhỏ (đầu và não nhỏ bất thường)",
+      "• Các khuyết tật não nghiêm trọng khác",
+      "• Bất thường về mắt",
+      "• Mất thính lực",
+      "• Suy giảm tăng trưởng",
+      "• Hội chứng Zika bẩm sinh (một mô hình các dị tật bẩm sinh bao gồm bất thường não, khuyết tật mắt, vấn đề khớp và vấn đề về trương lực cơ)",
       
-      "The risk of birth defects appears highest when infection occurs during the first trimester, but the virus can cause complications throughout pregnancy.",
+      "Nguy cơ dị tật bẩm sinh dường như cao nhất khi nhiễm bệnh xảy ra trong ba tháng đầu, nhưng virus có thể gây ra biến chứng trong suốt thai kỳ.",
       
-      "Recommendations for Fertility Patients and Pregnant Women:",
+      "Khuyến Cáo Cho Bệnh Nhân Sinh Sản và Phụ Nữ Mang Thai:",
       
-      "1. Travel Precautions:",
-      "• Avoid travel to areas with active Zika transmission when possible",
-      "• If travel is necessary, take strict mosquito bite prevention measures",
-      "• Check CDC or WHO websites for current Zika travel advisories",
+      "1. Phòng Ngừa Khi Du Lịch:",
+      "• Tránh du lịch đến các khu vực có lây truyền Zika hoạt động nếu có thể",
+      "• Nếu cần du lịch, thực hiện các biện pháp phòng ngừa cắn muỗi nghiêm ngặt",
+      "• Kiểm tra các trang web của CDC hoặc WHO để biết các cảnh báo du lịch Zika hiện tại",
       
-      "2. Timing of Pregnancy:",
-      "• Women exposed to Zika should wait at least 8 weeks before trying to conceive",
-      "• Men exposed to Zika should wait at least 3 months before unprotected sex or providing sperm for assisted reproduction",
+      "2. Thời Điểm Mang Thai:",
+      "• Phụ nữ phơi nhiễm với Zika nên chờ ít nhất 8 tuần trước khi cố gắng thụ thai",
+      "• Nam giới phơi nhiễm với Zika nên chờ ít nhất 3 tháng trước khi quan hệ không bảo vệ hoặc cung cấp tinh trùng cho hỗ trợ sinh sản",
       
-      "3. For Those Undergoing Fertility Treatment:",
-      "• Consider Zika virus testing before beginning treatment if there's potential exposure",
-      "• Some fertility centers may require testing for patients who have traveled to Zika-affected areas",
-      "• Gamete (egg/sperm) donors should be screened for Zika risk factors",
+      "3. Đối Với Những Người Đang Điều Trị Sinh Sản:",
+      "• Cân nhắc xét nghiệm virus Zika trước khi bắt đầu điều trị nếu có khả năng phơi nhiễm",
+      "• Một số trung tâm sinh sản có thể yêu cầu xét nghiệm cho bệnh nhân đã đi đến các khu vực bị ảnh hưởng bởi Zika",
+      "• Người hiến tặng giao tử (trứng/tinh trùng) nên được sàng lọc các yếu tố nguy cơ Zika",
       
-      "4. Prevention Measures:",
-      "• Use EPA-registered insect repellent",
-      "• Wear long-sleeved shirts and long pants",
-      "• Stay in places with air conditioning and window/door screens",
-      "• Remove standing water around homes",
-      "• Use condoms or abstain from sex if a partner may be infected",
+      "4. Biện Pháp Phòng Ngừa:",
+      "• Sử dụng thuốc chống côn trùng đã đăng ký với EPA",
+      "• Mặc áo dài tay và quần dài",
+      "• Ở trong những nơi có điều hòa không khí và màn cửa sổ/cửa ra vào",
+      "• Loại bỏ nước đọng xung quanh nhà",
+      "• Sử dụng bao cao su hoặc kiêng quan hệ nếu bạn tình có thể bị nhiễm bệnh",
       
-      "If you're planning pregnancy or are already pregnant and concerned about potential Zika exposure, consult with your healthcare provider promptly for guidance and testing if appropriate."
+      "Nếu bạn đang lên kế hoạch mang thai hoặc đã mang thai và lo ngại về khả năng phơi nhiễm Zika, hãy tham khảo ý kiến nhà cung cấp dịch vụ y tế của bạn ngay lập tức để được hướng dẫn và xét nghiệm nếu phù hợp."
     ],
     relatedPosts: [1, 4, 9]
   },
   {
     id: 9,
     slug: "endometriosis-and-pregnancy",
-    title: "Endometriosis and Pregnancy",
-    date: "NOVEMBER 10, 2016",
+    title: "Lạc Nội Mạc Tử Cung và Thai Kỳ",
+    date: "NGÀY 10 THÁNG 11, 2016",
     image: "/images/features/Pc1.jpg",
-    author: "Dr. Sarah Johnson",
+    author: "TS. Sarah Johnson",
     authorImage: "/images/features/pc11.jpg",
-    readTime: "10 min read",
-    category: "Pregnancy",
-    tags: ["Endometriosis", "Pregnancy", "Women's Health"],
-    summary: "What women with endometriosis should know about pregnancy, from conception challenges to managing the condition during pregnancy.",
+    readTime: "10 phút đọc",
+    category: "Thai Kỳ",
+    tags: ["Lạc Nội Mạc Tử Cung", "Thai Kỳ", "Sức Khỏe Phụ Nữ"],
+    summary: "Những điều phụ nữ mắc lạc nội mạc tử cung nên biết về thai kỳ, từ những thách thức trong việc thụ thai đến quản lý tình trạng này trong thai kỳ.",
     content: [
-      "For women with endometriosis who become pregnant, understanding how the condition might affect pregnancy—and how pregnancy might affect endometriosis—is important for optimal maternal and fetal health.",
+      "Đối với phụ nữ mắc lạc nội mạc tử cung có thai, việc hiểu cách tình trạng này có thể ảnh hưởng đến thai kỳ—và cách thai kỳ có thể ảnh hưởng đến lạc nội mạc tử cung—là quan trọng để đảm bảo sức khỏe tối ưu cho mẹ và thai nhi.",
       
-      "Endometriosis and Conception:",
-      "While endometriosis can make conception more difficult, many women with the condition do become pregnant naturally. For others, fertility treatments such as ovulation induction, intrauterine insemination (IUI), or in vitro fertilization (IVF) may be needed, depending on the severity of the condition and other fertility factors.",
+      "Lạc Nội Mạc Tử Cung và Thụ Thai:",
+      "Mặc dù lạc nội mạc tử cung có thể làm cho việc thụ thai khó khăn hơn, nhiều phụ nữ mắc tình trạng này vẫn mang thai tự nhiên. Đối với những người khác, các phương pháp điều trị sinh sản như kích thích rụng trứng, thụ tinh nhân tạo (IUI), hoặc thụ tinh trong ống nghiệm (IVF) có thể cần thiết, tùy thuộc vào mức độ nghiêm trọng của tình trạng và các yếu tố sinh sản khác.",
       
-      "Effects of Pregnancy on Endometriosis Symptoms:",
-      "Many women experience temporary relief from endometriosis symptoms during pregnancy. This is primarily due to the hormonal changes that occur, particularly the absence of menstruation and the high levels of progesterone produced during pregnancy that can suppress endometriosis growth.",
+      "Ảnh Hưởng của Thai Kỳ đến Triệu Chứng Lạc Nội Mạc Tử Cung:",
+      "Nhiều phụ nữ trải qua sự giảm triệu chứng lạc nội mạc tử cung tạm thời trong thai kỳ. Điều này chủ yếu do những thay đổi hormone xảy ra, đặc biệt là sự vắng mặt của kinh nguyệt và mức progesterone cao được sản xuất trong thai kỳ có thể ức chế sự phát triển của lạc nội mạc tử cung.",
       
-      "However, it's important to note that pregnancy is not a 'cure' for endometriosis. While symptoms often improve, the underlying condition remains, and symptoms may return after delivery, especially once menstruation resumes.",
+      "Tuy nhiên, điều quan trọng cần lưu ý là thai kỳ không phải là 'phương pháp chữa trị' cho lạc nội mạc tử cung. Mặc dù các triệu chứng thường cải thiện, tình trạng cơ bản vẫn tồn tại, và các triệu chứng có thể trở lại sau khi sinh, đặc biệt khi kinh nguyệt trở lại.",
       
-      "Pregnancy Complications and Endometriosis:",
-      "Research has found that women with endometriosis may have slightly higher risks of certain pregnancy complications:",
+      "Các Biến Chứng Thai Kỳ và Lạc Nội Mạc Tử Cung:",
+      "Nghiên cứu đã phát hiện rằng phụ nữ mắc lạc nội mạc tử cung có thể có nguy cơ cao hơn một chút đối với một số biến chứng thai kỳ:",
       
-      "• Miscarriage (approximately 1.5 times higher risk)",
-      "• Ectopic pregnancy (particularly if the fallopian tubes are affected by endometriosis)",
-      "• Placenta previa (when the placenta covers all or part of the cervix)",
-      "• Preterm birth",
-      "• Cesarean delivery",
-      "• Small for gestational age infants",
-      "• Pregnancy-induced hypertension",
+      "• Sảy thai (nguy cơ cao hơn khoảng 1.5 lần)",
+      "• Thai ngoài tử cung (đặc biệt nếu ống dẫn trứng bị ảnh hưởng bởi lạc nội mạc tử cung)",
+      "• Rau tiền đạo (khi nhau thai che phủ toàn bộ hoặc một phần cổ tử cung)",
+      "• Sinh non",
+      "• Sinh mổ",
+      "• Thai nhi nhỏ so với tuổi thai",
+      "• Tăng huyết áp do thai kỳ",
       
-      "It's important to emphasize that while these risks are statistically higher, the absolute risk remains relatively low, and most women with endometriosis have normal pregnancies and healthy babies.",
+      "Điều quan trọng cần nhấn mạnh rằng mặc dù những nguy cơ này cao hơn về mặt thống kê, nguy cơ tuyệt đối vẫn tương đối thấp, và hầu hết phụ nữ mắc lạc nội mạc tử cung có thai kỳ bình thường và sinh con khỏe mạnh.",
       
-      "Managing Endometriosis During Pregnancy:",
+      "Quản Lý Lạc Nội Mạc Tử Cung Trong Thai Kỳ:",
       
-      "1. Prenatal Care:",
-      "• Inform your obstetrician about your endometriosis diagnosis",
-      "• Consider consulting with a maternal-fetal medicine specialist for high-risk pregnancy care if your endometriosis is severe",
-      "• Attend all recommended prenatal appointments for appropriate monitoring",
+      "1. Chăm Sóc Trước Sinh:",
+      "• Thông báo cho bác sĩ sản khoa về chẩn đoán lạc nội mạc tử cung của bạn",
+      "• Cân nhắc tham khảo ý kiến chuyên gia y học mẹ và thai nhi cho chăm sóc thai kỳ nguy cơ cao nếu lạc nội mạc tử cung của bạn nghiêm trọng",
+      "• Tham dự tất cả các cuộc hẹn trước sinh được khuyến nghị để theo dõi thích hợp",
       
-      "2. Pain Management:",
-      "• Discuss safe pain management options with your healthcare provider if endometriosis pain persists during pregnancy",
-      "• Non-pharmacological approaches like heat therapy, physical therapy, and relaxation techniques may be helpful",
+      "2. Quản Lý Đau:",
+      "• Thảo luận các lựa chọn quản lý đau an toàn với nhà cung cấp dịch vụ y tế của bạn nếu đau do lạc nội mạc tử cung kéo dài trong thai kỳ",
+      "• Các phương pháp không dùng thuốc như liệu pháp nhiệt, vật lý trị liệu, và kỹ thuật thư giãn có thể hữu ích",
       
-      "3. Emotional Support:",
-      "• Pregnancy with a chronic condition can be emotionally challenging",
-      "• Consider joining support groups for women with endometriosis",
-      "• Don't hesitate to discuss mental health concerns with your healthcare team",
+      "3. Hỗ Trợ Tinh Thần:",
+      "• Mang thai với một tình trạng mãn tính có thể gây thách thức về mặt cảm xúc",
+      "• Cân nhắc tham gia các nhóm hỗ trợ cho phụ nữ mắc lạc nội mạc tử cung",
+      "• Đừng ngần ngại thảo luận về các mối quan ngại sức khỏe tinh thần với đội ngũ y tế của bạn",
       
-      "Postpartum Considerations:",
-      "After delivery, endometriosis symptoms typically return once menstrual cycles resume. Breastfeeding may delay the return of symptoms since it can postpone the return of menstruation. Discuss your long-term endometriosis management plan with your healthcare provider during your postpartum check-ups."
+      "Cân Nhắc Sau Sinh:",
+      "Sau khi sinh, các triệu chứng lạc nội mạc tử cung thường trở lại khi chu kỳ kinh nguyệt tiếp tục. Cho con bú có thể trì hoãn sự trở lại của các triệu chứng vì nó có thể trì hoãn sự trở lại của kinh nguyệt. Thảo luận kế hoạch quản lý lạc nội mạc tử cung dài hạn của bạn với nhà cung cấp dịch vụ y tế trong các lần kiểm tra sau sinh."
     ],
     relatedPosts: [1, 4, 7]
   }
@@ -425,7 +425,7 @@ const BlogDetailPage = () => {
   }, [blogSlug, navigate]);
 
   if (!post) {
-    return <div>Loading...</div>;
+    return <div>Đang tải...</div>;
   }
 
   return (
@@ -450,7 +450,7 @@ const BlogDetailPage = () => {
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{post.title}</h1>
             <div className="flex items-center justify-center text-white text-sm">
-              <span className="mx-2">HOME</span>
+              <span className="mx-2">TRANG CHỦ</span>
               <span className="mx-2">{'>'}</span>
               <span className="mx-2">BLOG</span>
               <span className="mx-2">{'>'}</span>
@@ -514,7 +514,7 @@ const BlogDetailPage = () => {
               
               {/* Related Posts - Mobile View */}
               <div className="lg:hidden mb-10">
-                <Title level={4} className="mb-6">Related Articles</Title>
+                <Title level={4} className="mb-6">Bài Viết Liên Quan</Title>
                 <List
                   grid={{ gutter: 16, xs: 1, sm: 2 }}
                   dataSource={relatedPosts}
@@ -536,7 +536,7 @@ const BlogDetailPage = () => {
                                   icon={<RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />}
                                   className="text-[#ff8460] hover:text-[#ff6b40] px-0"
                                 >
-                                  Read More
+                                  Đọc Thêm
                                 </Button>
                               </Space>
                             } 
@@ -554,7 +554,7 @@ const BlogDetailPage = () => {
               {/* Related Posts */}
               <div className="hidden lg:block">
                 <Card 
-                  title="Related Articles" 
+                  title="Bài Viết Liên Quan" 
                   className="mb-8 border border-gray-200"
                   headStyle={{ borderBottom: '2px solid #ff8460' }}
                 >
@@ -590,17 +590,17 @@ const BlogDetailPage = () => {
 
               {/* Categories */}
               <Card 
-                title="Categories" 
+                title="Danh Mục" 
                 className="mb-8 border border-gray-200"
                 headStyle={{ borderBottom: '2px solid #ff8460' }}
               >
                 <List
                   dataSource={[
-                    { name: 'Pregnancy', count: 4 },
-                    { name: 'Fertility', count: 3 },
-                    { name: 'Women\'s Health', count: 5 },
-                    { name: 'Fertility Treatments', count: 2 },
-                    { name: 'Health Alerts', count: 1 }
+                    { name: 'Thai Kỳ', count: 4 },
+                    { name: 'Sinh Sản', count: 3 },
+                    { name: 'Sức Khỏe Phụ Nữ', count: 5 },
+                    { name: 'Điều Trị Sinh Sản', count: 2 },
+                    { name: 'Cảnh Báo Sức Khỏe', count: 1 }
                   ]}
                   renderItem={item => (
                     <List.Item className="border-b last:border-b-0 py-2">
@@ -615,13 +615,13 @@ const BlogDetailPage = () => {
 
               {/* Tags Cloud */}
               <Card 
-                title="Popular Tags" 
+                title="Thẻ Phổ Biến" 
                 className="mb-8 border border-gray-200"
                 headStyle={{ borderBottom: '2px solid #ff8460' }}
               >
                 <div className="flex flex-wrap">
-                  {['Pregnancy', 'Fertility', 'IVF', 'Women\'s Health', 'Endometriosis', 
-                    'Motherhood', 'Egg Freezing', 'Reproductive Health', 'Infertility'].map(tag => (
+                  {['Thai Kỳ', 'Sinh Sản', 'IVF', 'Sức Khỏe Phụ Nữ', 'Lạc Nội Mạc Tử Cung', 
+                    'Làm Mẹ', 'Đông Lạnh Trứng', 'Sức Khỏe Sinh Sản', 'Vô Sinh'].map(tag => (
                     <Tag 
                       key={tag} 
                       className="mr-2 mb-2 py-1 px-3 border-gray-300 cursor-pointer hover:border-[#ff8460] hover:text-[#ff8460] transition-colors"
@@ -634,12 +634,12 @@ const BlogDetailPage = () => {
 
               {/* Subscribe */}
               <Card 
-                title="Subscribe" 
+                title="Đăng Ký" 
                 className="border border-gray-200"
                 headStyle={{ borderBottom: '2px solid #ff8460' }}
               >
                 <Paragraph>
-                  Get the latest articles and insights from our fertility experts
+                  Nhận các bài viết và thông tin mới nhất từ các chuyên gia sinh sản của chúng tôi
                 </Paragraph>
                 <div className="mt-4">
                   <Button 
@@ -647,7 +647,7 @@ const BlogDetailPage = () => {
                     className="w-full bg-[#ff8460] hover:bg-[#ff6b40] border-none"
                     onClick={() => navigate('/contacts')}
                   >
-                    Contact Us
+                    Liên Hệ Với Chúng Tôi
                   </Button>
                 </div>
               </Card>
@@ -661,4 +661,4 @@ const BlogDetailPage = () => {
   );
 };
 
-export default BlogDetailPage; 
+export default BlogDetailPage;

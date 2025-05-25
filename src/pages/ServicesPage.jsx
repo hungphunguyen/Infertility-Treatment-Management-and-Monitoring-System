@@ -11,32 +11,32 @@ const { Title, Paragraph } = Typography;
 const allServices = [
   {
     id: "egg-donor",
-    title: "Egg Donor and Surrogacy",
-    description: "At our center we have comprehensive knowledge and experience in the field of egg donor and surrogacy. We have a booming base of 1,000 donors.",
+    title: "Hiến Trứng và Mang Thai Hộ",
+    description: "Tại trung tâm của chúng tôi, chúng tôi có kiến thức và kinh nghiệm toàn diện trong lĩnh vực hiến trứng và mang thai hộ. Chúng tôi có cơ sở dữ liệu phát triển mạnh với 1.000 người hiến tặng.",
     image: "/images/features/pc4.jpg"
   },
   {
     id: "egg-freezing",
-    title: "Egg Freezing / Preservation",
-    description: "Fertility preservation in general, and egg freezing in particular, is quickly becoming a more popular procedure for women all over the world each year.",
+    title: "Đông Lạnh / Bảo Quản Trứng",
+    description: "Bảo quản khả năng sinh sản nói chung và đông lạnh trứng nói riêng đang nhanh chóng trở thành một quy trình phổ biến hơn đối với phụ nữ trên toàn thế giới mỗi năm.",
     image: "/images/features/pc6.jpg"
   },
   {
     id: "gender-selection",
-    title: "Gender Selection",
-    description: "Sex selection can be done either before or after the fertilisation of the egg. Gender selection is the attempt to control the gender of human offspring.",
+    title: "Lựa Chọn Giới Tính",
+    description: "Lựa chọn giới tính có thể được thực hiện trước hoặc sau khi trứng được thụ tinh. Lựa chọn giới tính là nỗ lực kiểm soát giới tính của con cái.",
     image: "/images/features/iui-vs-ivf.jpg"
   },
   {
     id: "consultation",
-    title: "Fertility Consultation",
-    description: "Personalized consultations with our fertility specialists to discuss your options and develop a treatment plan.",
+    title: "Tư Vấn Sinh Sản",
+    description: "Các buổi tư vấn cá nhân hóa với các chuyên gia sinh sản của chúng tôi để thảo luận về các lựa chọn của bạn và phát triển kế hoạch điều trị.",
     image: "/images/features/pc3.jpg"
   },
   {
     id: "diagnostic-testing",
-    title: "Diagnostic Testing",
-    description: "Comprehensive testing to identify the causes of infertility and determine the most effective treatment approach.",
+    title: "Xét Nghiệm Chẩn Đoán",
+    description: "Xét nghiệm toàn diện để xác định nguyên nhân của vô sinh và xác định phương pháp điều trị hiệu quả nhất.",
     image: "/images/features/pc9.jpg"
   }
 ];
@@ -52,17 +52,17 @@ const ServicesPage = () => {
       <div className="relative h-[400px] w-full overflow-hidden">
         <img 
           src="/images/features/pc4.jpg" 
-          alt="Services Banner" 
+          alt="Băng rôn Dịch vụ" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Services</h1>
+            <h1 className="text-5xl font-bold text-white mb-4">Dịch Vụ</h1>
             <div className="flex items-center justify-center text-white">
-              <span className="mx-2">HOME</span>
+              <span className="mx-2">TRANG CHỦ</span>
               <span className="mx-2">{'>'}</span>
-              <span className="mx-2">SERVICES</span>
+              <span className="mx-2">DỊCH VỤ</span>
             </div>
           </div>
         </div>
@@ -72,9 +72,9 @@ const ServicesPage = () => {
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <Title level={2} className="mb-2">What We Offer</Title>
+            <Title level={2} className="mb-2">Những Gì Chúng Tôi Cung Cấp</Title>
             <div className="mt-2">
-              <span className="text-[#ff8460] font-medium text-lg">OUR SERVICES</span>
+              <span className="text-[#ff8460] font-medium text-lg">DỊCH VỤ CỦA CHÚNG TÔI</span>
             </div>
           </div>
 
@@ -94,7 +94,7 @@ const ServicesPage = () => {
                       {service.description}
                     </Paragraph>
                     <Link to={`/service/${service.id}`} className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto">
-                      <span className="mr-1">+</span> More Info
+                      <span className="mr-1">+</span> Thông Tin Thêm
                     </Link>
                   </div>
                 </div>
@@ -118,7 +118,7 @@ const ServicesPage = () => {
                       {service.description}
                     </Paragraph>
                     <Link to={`/service/${service.id}`} className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto">
-                      <span className="mr-1">+</span> More Info
+                      <span className="mr-1">+</span> Thông Tin Thêm
                     </Link>
                   </div>
                 </div>
@@ -136,25 +136,25 @@ const ServicesPage = () => {
             <div className="md:w-1/2 mb-8 md:mb-0">
               <div className="flex justify-center">
                 <div className="w-64 h-64 rounded-full border-4 border-white flex flex-col items-center justify-center text-white">
-                  <div className="text-sm uppercase">OVER</div>
+                  <div className="text-sm uppercase">HƠN</div>
                   <div className="text-6xl font-bold">1250</div>
-                  <div className="text-sm uppercase text-[#ff8460]">Happy Families</div>
+                  <div className="text-sm uppercase text-[#ff8460]">Gia Đình Hạnh Phúc</div>
                 </div>
               </div>
             </div>
             <div className="md:w-1/2 text-white">
-              <h2 className="text-4xl font-bold mb-4">People Recommend Us</h2>
-              <div className="text-[#ff8460] font-medium mb-4">WHY CHOOSE US</div>
+              <h2 className="text-4xl font-bold mb-4">Mọi Người Đề Xuất Chúng Tôi</h2>
+              <div className="text-[#ff8460] font-medium mb-4">TẠI SAO CHỌN CHÚNG TÔI</div>
               <p className="mb-8">
-                We provide individualized care and attention for every client during their journey to parenthood. 
-                We offer comprehensive testing to determine the causes of male and female infertility, and we 
-                specialize in IUI and in IVF.
+                Chúng tôi cung cấp sự chăm sóc và quan tâm cá nhân hóa cho mỗi khách hàng trong hành trình làm cha mẹ của họ. 
+                Chúng tôi cung cấp xét nghiệm toàn diện để xác định nguyên nhân vô sinh ở nam và nữ, và chúng tôi 
+                chuyên về IUI và IVF.
               </p>
               <Button 
                 onClick={() => navigate('/contacts')}
                 className="bg-[#ff8460] hover:bg-[#ff6b40] text-white border-none rounded py-3 px-8"
               >
-                Contact Us
+                Liên Hệ Với Chúng Tôi
               </Button>
             </div>
           </div>
@@ -166,4 +166,4 @@ const ServicesPage = () => {
   );
 };
 
-export default ServicesPage; 
+export default ServicesPage;

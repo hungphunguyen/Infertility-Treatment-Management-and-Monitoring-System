@@ -5,11 +5,11 @@ const ServicesIcons = () => {
   const navigate = useNavigate();
 
   const services = [
-    { icon: "🧬", title: "BABY NEST", action: () => navigate('/services') },
-    { icon: "⚤", title: "FERTILITY TESTING", action: () => navigate('/service/diagnostic-testing') },
-    { icon: "👶", title: "GLOW CARE", action: () => navigate('/services') },
-    { icon: "👨‍👩‍👧", title: "PARENT PATH", action: () => navigate('/about-center') },
-    { icon: "👩", title: "WOMEN'S CONSULTATION", action: () => navigate('/service/consultation') }
+    { icon: "🧬", title: "NƠI ƯƠM MẦM BÉ", action: () => navigate('/services') },
+    { icon: "⚤", title: "KIỂM TRA KHẢ NĂNG SINH SẢN", action: () => navigate('/service/diagnostic-testing') },
+    { icon: "👶", title: "CHĂM SÓC RẠNG RỠ", action: () => navigate('/services') },
+    { icon: "👨‍👩‍👧", title: "HÀNH TRÌNH LÀM CHA MẸ", action: () => navigate('/about-center') },
+    { icon: "👩", title: "TƯ VẤN SỨC KHỎE PHỤ NỮ", action: () => navigate('/service/consultation') }
   ];
 
   return (
@@ -34,4 +34,4 @@ const ServicesIcons = () => {
   );
 };
 
-export default ServicesIcons; 
+export default ServicesIcons;

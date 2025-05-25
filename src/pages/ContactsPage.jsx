@@ -13,8 +13,8 @@ const { Title, Paragraph, Text } = Typography;
 
 const contactInfo = [
   {
-    title: "Address",
-    content: "123 New Life Street, Downtown, City",
+    title: "Địa chỉ",
+    content: "123 Đường New Life, Trung tâm Thành phố",
     icon: <EnvironmentOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
   {
@@ -23,13 +23,13 @@ const contactInfo = [
     icon: <MailOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
   {
-    title: "Phone",
+    title: "Điện thoại",
     content: "+1 858 794 6363",
     icon: <PhoneOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
   {
-    title: "Working Hours",
-    content: "Monday - Saturday: 8:00 - 17:00",
+    title: "Giờ làm việc",
+    content: "Thứ Hai - Thứ Bảy: 8:00 - 17:00",
     icon: <ClockCircleOutlined style={{ fontSize: 24, color: "#15A1AC" }} />,
   },
 ];
@@ -43,17 +43,17 @@ const ContactsPage = () => {
       <div className="relative h-[400px] w-full overflow-hidden">
         <img 
           src="/images/features/pc7.jpg" 
-          alt="Contact Banner" 
+          alt="Băng rôn Liên hệ" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Contact Us</h1>
+            <h1 className="text-5xl font-bold text-white mb-4">Liên Hệ Với Chúng Tôi</h1>
             <div className="flex items-center justify-center text-white">
-              <span className="mx-2">HOME</span>
+              <span className="mx-2">TRANG CHỦ</span>
               <span className="mx-2">{'>'}</span>
-              <span className="mx-2">CONTACT</span>
+              <span className="mx-2">LIÊN HỆ</span>
             </div>
           </div>
         </div>
@@ -62,14 +62,14 @@ const ContactsPage = () => {
       <div className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-2">Get In Touch</h2>
-            <span className="text-[#ff8460] font-medium">WE'RE HERE FOR YOU</span>
+            <h2 className="text-4xl font-bold mb-2">Giữ Liên Lạc</h2>
+            <span className="text-[#ff8460] font-medium">CHÚNG TÔI Ở ĐÂY VÌ BẠN</span>
           </div>
 
           <Row gutter={[24, 24]}>
             <Col xs={24} lg={24}>
               <div className="w-full h-[500px] bg-gray-200 mb-8">
-                {/* Google Map will be displayed here */}
+                {/* Google Map sẽ được hiển thị tại đây */}
                 <iframe 
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.0951782923237!2d105.77960851476353!3d21.028774785998286!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab4cd0c66f05%3A0xea31563511af2e54!2sFPT%20University!5e0!3m2!1sen!2s!4v1652103525381!5m2!1sen!2s"
                   className="w-full h-full"
@@ -103,4 +103,4 @@ const ContactsPage = () => {
   );
 };
 
-export default ContactsPage; 
+export default ContactsPage;
