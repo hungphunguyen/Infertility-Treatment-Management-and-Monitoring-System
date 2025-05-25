@@ -1,6 +1,6 @@
 import React from "react";
-import { Typography, Card, Row, Col, Divider, Avatar, Space, Tag, Rate } from "antd";
-import { UserOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons";
+import { Typography, Card, Row, Col, Divider, Avatar, Space, Tag, Button, Rate } from "antd";
+import { UserOutlined, MailOutlined, PhoneOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
@@ -11,31 +11,63 @@ const doctors = [
   {
     id: 1,
     name: "PGS.TS.BS Nguyễn Văn A",
+    role: "Giám đốc trung tâm",
     specialization: "Chuyên khoa Sản phụ khoa, Hỗ trợ sinh sản",
+    education: "Tiến sĩ Y khoa, Đại học Y Hà Nội",
+    experience: "Hơn 20 năm kinh nghiệm trong lĩnh vực hỗ trợ sinh sản",
     image: "https://example.com/images/doctor1.jpg",
-    rating: 4.8
+    email: "nguyen.van.a@example.com",
+    phone: "+84 123 456 789",
+    certificates: ["Hội Sản Phụ Khoa Việt Nam", "Hiệp hội Sinh sản Châu Á Thái Bình Dương"],
+    value: "dr_nguyen",
+    rating: 4.8,
+    treatmentType: "IVF"
   },
   {
     id: 2,
     name: "TS.BS Lê Thị B",
+    role: "Phó Giám đốc",
     specialization: "Chuyên khoa Nội tiết sinh sản",
+    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
+    experience: "15 năm kinh nghiệm trong điều trị vô sinh hiếm muộn",
     image: "https://example.com/images/doctor2.jpg",
-    rating: 4.7
+    email: "le.thi.b@example.com",
+    phone: "+84 123 456 790",
+    certificates: ["Hội Nội tiết Việt Nam", "Hiệp hội Sinh sản Quốc tế"],
+    value: "dr_le",
+    rating: 4.7,
+    treatmentType: "IUI"
   },
   {
     id: 3,
     name: "ThS.BS Trần Văn C",
+    role: "Trưởng phòng phôi học",
     specialization: "Phôi học lâm sàng",
+    education: "Thạc sĩ Y khoa, Đại học Y Huế",
+    experience: "12 năm kinh nghiệm trong nuôi cấy phôi",
     image: "https://example.com/images/doctor3.jpg",
-    rating: 4.6
+    email: "tran.van.c@example.com",
+    phone: "+84 123 456 791",
+    certificates: ["Hiệp hội Phôi học Châu Á", "Chứng chỉ Phôi học lâm sàng quốc tế"],
+    value: "dr_tran",
+    rating: 4.6,
+    treatmentType: "IVF"
   },
   {
     id: 4,
     name: "BSCKII Phạm Thị D",
+    role: "Bác sĩ điều trị",
     specialization: "Chuyên khoa Sản phụ khoa",
+    education: "Bác sĩ chuyên khoa II, Đại học Y Hà Nội",
+    experience: "10 năm kinh nghiệm trong điều trị vô sinh",
     image: "https://example.com/images/doctor4.jpg",
-    rating: 4.5
-  },
+    email: "pham.thi.d@example.com",
+    phone: "+84 123 456 792",
+    certificates: ["Hội Sản Phụ Khoa Việt Nam"],
+    value: "dr_pham",
+    rating: 4.5,
+    treatmentType: "IUI"
+  }
 ];
 
 const nurses = [
@@ -45,7 +77,7 @@ const nurses = [
     role: "Điều dưỡng trưởng",
     experience: "15 năm kinh nghiệm",
     education: "Cử nhân Điều dưỡng, Đại học Y Hà Nội",
-    image: "https://example.com/images/nurse1.jpg",
+    image: "https://example.com/images/nurse1.jpg"
   },
   {
     id: 2,
@@ -53,7 +85,7 @@ const nurses = [
     role: "Điều dưỡng",
     experience: "8 năm kinh nghiệm",
     education: "Cử nhân Điều dưỡng, Đại học Y Dược TP.HCM",
-    image: "https://example.com/images/nurse2.jpg",
+    image: "https://example.com/images/nurse2.jpg"
   },
   {
     id: 3,
@@ -61,7 +93,7 @@ const nurses = [
     role: "Điều dưỡng",
     experience: "7 năm kinh nghiệm",
     education: "Cử nhân Điều dưỡng, Đại học Y Huế",
-    image: "https://example.com/images/nurse3.jpg",
+    image: "https://example.com/images/nurse3.jpg"
   },
   {
     id: 4,
@@ -69,8 +101,8 @@ const nurses = [
     role: "Kỹ thuật viên phòng lab",
     experience: "10 năm kinh nghiệm",
     education: "Cử nhân Xét nghiệm, Đại học Y Dược TP.HCM",
-    image: "https://example.com/images/nurse4.jpg",
-  },
+    image: "https://example.com/images/nurse4.jpg"
+  }
 ];
 
 const OurStaffPage = () => {
@@ -78,6 +110,12 @@ const OurStaffPage = () => {
 
   const handleDoctorClick = (doctorId) => {
     navigate(`/doctor/${doctorId}`);
+  };
+
+  const handleBooking = (doctorId) => {
+    navigate(`/appointment`, { 
+      state: { selectedDoctor: doctorId }
+    });
   };
 
   return (
@@ -113,6 +151,16 @@ const OurStaffPage = () => {
                     <Paragraph className="mb-2">
                       {doctor.specialization}
                     </Paragraph>
+                    <div className="mb-2">
+                      {doctor.certificates.map((cert, index) => (
+                        <Tag color="blue" key={index} className="mt-2">
+                          {cert}
+                        </Tag>
+                      ))}
+                    </div>
+                    <div className="mb-2">
+                      <Tag color="green">{doctor.treatmentType}</Tag>
+                    </div>
                     <Rate disabled defaultValue={doctor.rating} allowHalf />
                   </div>
                 </Card>
@@ -158,9 +206,15 @@ const OurStaffPage = () => {
           <Paragraph className="text-lg mb-6">
             Đặt lịch tư vấn với các chuyên gia của chúng tôi để được hỗ trợ về vấn đề hiếm muộn
           </Paragraph>
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+          <Button 
+            type="primary" 
+            size="large"
+            icon={<CalendarOutlined />}
+            className="bg-[#ff8460] hover:bg-[#ff6b40] border-none" 
+            onClick={() => navigate('/appointment')}
+          >
             Đặt lịch hẹn
-          </button>
+          </Button>
         </div>
       </div>
       <UserFooter />

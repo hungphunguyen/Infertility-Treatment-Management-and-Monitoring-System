@@ -4,10 +4,13 @@ export const path = {
   signUp: "/sign-up",
   signIn: "/sign-in",
   services: "/services",
+  serviceDetail: "/service/:serviceId",
   blog: "/blog",
+  blogDetail: "/blog/:blogSlug",
   aboutCenter: "/about-center",
   ourStaff: "/our-staff",
   features: "/features",
   contacts: "/contacts",
   doctorDetail: "/doctor/:id",
+  appointment: "/appointment",
 };

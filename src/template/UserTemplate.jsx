@@ -3,14 +3,16 @@ import { Carousel, Typography, Row, Col, Card, Button, Input, Form, Checkbox, Sp
 import { UserOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import UserHeader from '../components/UserHeader';
 import UserFooter from '../components/UserFooter';
-import { Outlet } from 'react-router-dom';
-import TreatmentOptions from '../components/TreatmentOptions';
+import { Outlet, useNavigate, Link } from 'react-router-dom';
+import SevicesChild from '../components/SevicesChild';
 import StatisticsSection from '../components/StatisticsSection';
 import ServicesIcons from '../components/ServicesIcons';
 
 const { Title, Paragraph, Text } = Typography;
 
 const UserTemplate = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -21,14 +23,17 @@ const UserTemplate = () => {
           <div className="relative h-[600px]">
             <div 
               className="absolute inset-0 bg-cover bg-center" 
-              style={{ backgroundImage: "url('/images/features/iui-vs-ivf.jpg')" }}
+              style={{ backgroundImage: "url('/images/features/pc9.jpg')" }}
             />
             <div className="absolute inset-0 bg-black opacity-40" />
             <div className="absolute inset-0 flex items-center">
               <div className="container mx-auto px-4">
                 <div className="max-w-xl">
                   <h1 className="text-5xl font-bold text-white mb-6">Your Miracle.<br/>Our Mission.</h1>
-                  <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg">
+                  <button 
+                    onClick={() => navigate('/appointment')}
+                    className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg"
+                  >
                     Make an Appointment
                   </button>
                 </div>
@@ -48,7 +53,10 @@ const UserTemplate = () => {
               <div className="container mx-auto px-4">
                 <div className="max-w-xl">
                   <h1 className="text-5xl font-bold text-white mb-6">Expert Care.<br/>Happy Families.</h1>
-                  <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg">
+                  <button 
+                    onClick={() => navigate('/services')}
+                    className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg"
+                  >
                     Learn About Our Services
                   </button>
                 </div>
@@ -68,7 +76,10 @@ const UserTemplate = () => {
               <div className="container mx-auto px-4">
                 <div className="max-w-xl">
                   <h1 className="text-5xl font-bold text-white mb-6">Advanced Technology.<br/>Compassionate Care.</h1>
-                  <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg">
+                  <button 
+                    onClick={() => navigate('/our-staff')}
+                    className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg"
+                  >
                     Meet Our Specialists
                   </button>
                 </div>
@@ -93,7 +104,10 @@ const UserTemplate = () => {
                 We do it as easy as possible for couples to have a baby, whether it's through the use 
                 of egg donation or a gestational carrier.
               </p>
-              <button className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out">
+              <button 
+                onClick={() => navigate('/about-center')}
+                className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out"
+              >
                 More About Us
               </button>
             </div>
@@ -137,7 +151,10 @@ const UserTemplate = () => {
                   Our kind and compassionate care team includes physicians, nurses, medical assistants and other support staff
                 </p>
                 <div className="text-center">
-                  <button className="text-[#ff8460] font-medium hover:text-[#ff6b40]">
+                  <button 
+                    onClick={() => navigate('/our-staff')}
+                    className="text-[#ff8460] font-medium hover:text-[#ff6b40]"
+                  >
                     <span className="mr-1">+</span> More Info
                   </button>
                 </div>
@@ -156,7 +173,10 @@ const UserTemplate = () => {
                   The center is equipped with high-tech and approved equipment that ensures the best possible cooperation with doctors
                 </p>
                 <div className="text-center">
-                  <button className="text-[#ff8460] font-medium hover:text-[#ff6b40]">
+                  <button 
+                    onClick={() => navigate('/about-center')}
+                    className="text-[#ff8460] font-medium hover:text-[#ff6b40]"
+                  >
                     <span className="mr-1">+</span> More Info
                   </button>
                 </div>
@@ -175,7 +195,10 @@ const UserTemplate = () => {
                   We help people fight against reproductive difficulties, infertility or fertility problems who dream of starting a family
                 </p>
                 <div className="text-center">
-                  <button className="text-[#ff8460] font-medium hover:text-[#ff6b40]">
+                  <button 
+                    onClick={() => navigate('/services')}
+                    className="text-[#ff8460] font-medium hover:text-[#ff6b40]"
+                  >
                     <span className="mr-1">+</span> More Info
                   </button>
                 </div>
@@ -190,14 +213,17 @@ const UserTemplate = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold text-white mb-2">Book an Appointment today!</h2>
           <p className="text-white mb-8 text-lg">GET A FREE CONSULTATION</p>
-          <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded transition duration-300 ease-in-out text-lg">
+          <button 
+            onClick={() => navigate('/contacts')}
+            className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded transition duration-300 ease-in-out text-lg"
+          >
             Ask a Question
           </button>
         </div>
       </div>
 
       {/* Treatment Options Component */}
-      <TreatmentOptions />
+      <SevicesChild />
 
       {/* Statistics Section Component */}
       <StatisticsSection />
@@ -235,7 +261,7 @@ const UserTemplate = () => {
       </div>
 
       
-      <Outlet />
+        <Outlet />
       <UserFooter />
     </div>
   );
