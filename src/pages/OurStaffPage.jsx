@@ -15,7 +15,7 @@ const doctors = [
     specialization: "Chuyên khoa Sản phụ khoa, Hỗ trợ sinh sản",
     education: "Tiến sĩ Y khoa, Đại học Y Hà Nội",
     experience: "Hơn 20 năm kinh nghiệm trong lĩnh vực hỗ trợ sinh sản",
-    image: "/images/doctors/doctor1.jpg",
+    image: "/images/doctors/doctor1.png",
     email: "nguyen.van.a@example.com",
     phone: "+84 123 456 789",
     certificates: ["Hội Sản Phụ Khoa Việt Nam", "Hiệp hội Sinh sản Châu Á Thái Bình Dương"],
@@ -30,7 +30,7 @@ const doctors = [
     specialization: "Chuyên khoa Nội tiết sinh sản",
     education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
     experience: "15 năm kinh nghiệm trong điều trị vô sinh hiếm muộn",
-    image: "/images/doctors/doctor2.jpg",
+    image: "/images/doctors/doctor2.png",
     email: "le.thi.b@example.com",
     phone: "+84 123 456 790",
     certificates: ["Hội Nội tiết Việt Nam", "Hiệp hội Sinh sản Quốc tế"],
@@ -77,7 +77,7 @@ const nurses = [
     role: "Điều dưỡng trưởng",
     experience: "15 năm kinh nghiệm",
     education: "Cử nhân Điều dưỡng, Đại học Y Hà Nội",
-    image: "https://example.com/images/nurse1.jpg"
+    image: "/images/nurses/nurses1.jpg"
   },
   {
     id: 2,
@@ -85,7 +85,7 @@ const nurses = [
     role: "Điều dưỡng",
     experience: "8 năm kinh nghiệm",
     education: "Cử nhân Điều dưỡng, Đại học Y Dược TP.HCM",
-    image: "https://example.com/images/nurse2.jpg"
+    image: "/images/nurses/nurses2.webp"
   },
   {
     id: 3,
@@ -93,7 +93,7 @@ const nurses = [
     role: "Điều dưỡng",
     experience: "7 năm kinh nghiệm",
     education: "Cử nhân Điều dưỡng, Đại học Y Huế",
-    image: "https://example.com/images/nurse3.jpg"
+    image: "/images/nurses/nurses3.webp"
   },
   {
     id: 4,
@@ -101,7 +101,7 @@ const nurses = [
     role: "Kỹ thuật viên phòng lab",
     experience: "10 năm kinh nghiệm",
     education: "Cử nhân Xét nghiệm, Đại học Y Dược TP.HCM",
-    image: "https://example.com/images/nurse4.jpg"
+    image: "/images/nurses/nurses4.webp"
   }
 ];
 
