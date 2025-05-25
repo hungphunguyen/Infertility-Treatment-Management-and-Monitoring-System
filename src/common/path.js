@@ -13,4 +13,5 @@ export const path = {
   contacts: "/contacts",
   doctorDetail: "/doctor/:id",
   appointment: "/appointment",
+  admin: "/admin",
 };

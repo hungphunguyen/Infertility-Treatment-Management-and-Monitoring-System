@@ -13,6 +13,7 @@ import OurStaffPage from "../pages/OurStaffPage";
 import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
 import AppointmentPage from "../pages/AppointmentPage";
+import AdminPage from "../pages/AdminPage/AdminPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -63,6 +64,10 @@ const UseRoutesCustom = () => {
     {
       path: path.appointment,
       element: <AppointmentPage />,
+    },
+    {
+      path: path.admin,
+      element: <AdminPage />,
     },
   ]);
   return routes;
