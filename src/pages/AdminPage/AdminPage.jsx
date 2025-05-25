@@ -3,11 +3,11 @@ import { Layout, Typography, Button, Space } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 
 // Import components
-import AdminSidebar from './components/AdminSidebar';
-import AdminDashboard from './components/AdminDashboard';
-import UserManagement from './components/UserManagement';
-import CreateAccount from './components/CreateAccount';
-import Settings from './components/Settings';
+import AdminSidebar from './AdminSidebar';
+import AdminDashboard from './AdminDashboard';
+import UserManagement from './UserManagement';
+import CreateAccount from './CreateAccount';
+import Settings from './Settings';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
