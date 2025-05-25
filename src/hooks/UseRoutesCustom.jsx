@@ -11,6 +11,7 @@ import BlogDetailPage from "../pages/BlogDetailPage";
 import AboutCenterPage from "../pages/AboutCenterPage";
 import OurStaffPage from "../pages/OurStaffPage";
 import ContactsPage from "../pages/ContactsPage";
+import DoctorDetailPage from "../pages/DoctorDetailPage";
 import AppointmentPage from "../pages/AppointmentPage";
 
 const UseRoutesCustom = () => {
@@ -54,6 +55,10 @@ const UseRoutesCustom = () => {
     {
       path: path.contacts,
       element: <ContactsPage />,
+    },
+    {
+      path: path.doctorDetail,
+      element: <DoctorDetailPage />,
     },
     {
       path: path.appointment,

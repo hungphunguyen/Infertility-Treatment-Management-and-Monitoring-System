@@ -1,6 +1,22 @@
 import React from "react";
-import { Typography, Card, Row, Col, Divider, Avatar, Space, Tag, Button } from "antd";
-import { UserOutlined, MailOutlined, PhoneOutlined, CalendarOutlined } from "@ant-design/icons";
+import {
+  Typography,
+  Card,
+  Row,
+  Col,
+  Divider,
+  Avatar,
+  Space,
+  Tag,
+  Button,
+  Rate,
+} from "antd";
+import {
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
@@ -10,65 +26,117 @@ const { Title, Paragraph, Text } = Typography;
 const doctors = [
   {
     id: 1,
-    name: "GS.TS. Andrew Peterson",
-    role: "Giám đốc Trung tâm",
-    specialization: "Sản khoa & Phụ khoa, Y học Sinh sản",
-    education: "Tiến sĩ Y khoa, Trường Y Harvard",
-    experience: "Hơn 20 năm kinh nghiệm trong y học sinh sản",
-    image: "https://example.com/images/doctor1.jpg",
-    email: "andrew.peterson@example.com",
-    phone: "+1 (555) 123-4567",
-    certificates: ["Hiệp hội Y học Sinh sản Hoa Kỳ", "Sáng kiến Châu Á Thái Bình Dương về Sinh sản"],
-    value: "dr_peterson"
+    name: "PGS.TS.BS Nguyễn Văn A",
+    role: "Giám đốc trung tâm",
+    specialization: "Chuyên khoa Sản phụ khoa, Hỗ trợ sinh sản",
+    education: "Tiến sĩ Y khoa, Đại học Y Hà Nội",
+    experience: "Hơn 20 năm kinh nghiệm trong lĩnh vực hỗ trợ sinh sản",
+    image: "/images/doctors/doctor1.png",
+    email: "nguyen.van.a@example.com",
+    phone: "+84 123 456 789",
+    certificates: [
+      "Hội Sản Phụ Khoa Việt Nam",
+      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
+    ],
+    value: "dr_nguyen",
+    rating: 4.8,
+    treatmentType: "IVF",
   },
   {
     id: 2,
-    name: "TS. Sarah Johnson",
+    name: "TS.BS Lê Thị B",
     role: "Phó Giám đốc",
-    specialization: "Nội tiết Sinh sản",
-    education: "Tiến sĩ Y khoa, Đại học Johns Hopkins",
-    experience: "15 năm kinh nghiệm trong điều trị vô sinh",
-    image: "https://example.com/images/doctor2.jpg",
-    email: "sarah.johnson@example.com",
-    phone: "+1 (555) 123-4568",
-    certificates: ["Hiệp hội Nội tiết Hoa Kỳ", "Liên đoàn Quốc tế các Hiệp hội Sinh sản"],
-    value: "dr_johnson"
+    specialization: "Chuyên khoa Nội tiết sinh sản",
+    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
+    experience: "15 năm kinh nghiệm trong điều trị vô sinh hiếm muộn",
+    image: "/images/doctors/doctor2.png",
+    email: "le.thi.b@example.com",
+    phone: "+84 123 456 790",
+    certificates: ["Hội Nội tiết Việt Nam", "Hiệp hội Sinh sản Quốc tế"],
+    value: "dr_le",
+    rating: 4.7,
+    treatmentType: "IUI",
   },
   {
     id: 3,
-    name: "ThS. Michael Brown",
-    role: "Trưởng phòng Phôi học",
-    specialization: "Phôi học Lâm sàng",
-    education: "Thạc sĩ Khoa học, Đại học Stanford",
+    name: "ThS.BS Trần Văn C",
+    role: "Trưởng phòng phôi học",
+    specialization: "Phôi học lâm sàng",
+    education: "Thạc sĩ Y khoa, Đại học Y Huế",
     experience: "12 năm kinh nghiệm trong nuôi cấy phôi",
-    image: "https://example.com/images/doctor3.jpg",
-    email: "michael.brown@example.com",
-    phone: "+1 (555) 123-4569",
-    certificates: ["Hiệp hội Phôi học Châu Á", "Chứng chỉ Quốc tế về Phôi học Lâm sàng"],
-    value: "dr_brown"
+    image: "/images/doctors/doctor3.jpg",
+    email: "tran.van.c@example.com",
+    phone: "+84 123 456 791",
+    certificates: [
+      "Hiệp hội Phôi học Châu Á",
+      "Chứng chỉ Phôi học lâm sàng quốc tế",
+    ],
+    value: "dr_tran",
+    rating: 4.6,
+    treatmentType: "IVF",
   },
   {
     id: 4,
-    name: "TS. Emily Roberts",
-    role: "Bác sĩ Điều trị",
-    specialization: "Sản khoa & Phụ khoa",
-    education: "Chuyên gia Y khoa, Đại học California",
-    experience: "10 năm kinh nghiệm trong điều trị sinh sản",
-    image: "https://example.com/images/doctor4.jpg",
-    email: "emily.roberts@example.com",
-    phone: "+1 (555) 123-4570",
-    certificates: ["Hội Sản phụ khoa Hoa Kỳ"],
-    value: "dr_roberts"
+    name: "BSCKII Phạm Thị D",
+    role: "Bác sĩ điều trị",
+    specialization: "Chuyên khoa Sản phụ khoa",
+    education: "Bác sĩ chuyên khoa II, Đại học Y Hà Nội",
+    experience: "10 năm kinh nghiệm trong điều trị vô sinh",
+    image: "/images/doctors/doctor4.jpg",
+    email: "pham.thi.d@example.com",
+    phone: "+84 123 456 792",
+    certificates: ["Hội Sản Phụ Khoa Việt Nam"],
+    value: "dr_pham",
+    rating: 4.5,
+    treatmentType: "IUI",
+  },
+];
+
+const nurses = [
+  {
+    id: 1,
+    name: "Nguyễn Thị E",
+    role: "Điều dưỡng trưởng",
+    experience: "15 năm kinh nghiệm",
+    education: "Cử nhân Điều dưỡng, Đại học Y Hà Nội",
+    image: "/images/nurses/nurses1.jpg",
+  },
+  {
+    id: 2,
+    name: "Lê Văn F",
+    role: "Điều dưỡng",
+    experience: "8 năm kinh nghiệm",
+    education: "Cử nhân Điều dưỡng, Đại học Y Dược TP.HCM",
+    image: "/images/nurses/nurses2.webp",
+  },
+  {
+    id: 3,
+    name: "Trần Thị G",
+    role: "Điều dưỡng",
+    experience: "7 năm kinh nghiệm",
+    education: "Cử nhân Điều dưỡng, Đại học Y Huế",
+    image: "/images/nurses/nurses3.webp",
+  },
+  {
+    id: 4,
+    name: "Phạm Văn H",
+    role: "Kỹ thuật viên phòng lab",
+    experience: "10 năm kinh nghiệm",
+    education: "Cử nhân Xét nghiệm, Đại học Y Dược TP.HCM",
+    image: "/images/nurses/nurses4.webp",
   },
 ];
 
 const OurStaffPage = () => {
   const navigate = useNavigate();
 
+  const handleDoctorClick = (doctorId) => {
+    navigate(`/doctor/${doctorId}`);
+  };
+
   const handleBooking = (doctorId) => {
-    // Navigate to appointment page with selected doctor as state
-    navigate(`/appointment`, { 
-      state: { selectedDoctor: doctorId }
+    navigate(`/appointment`, {
+      state: { selectedDoctor: doctorId },
     });
   };
 
@@ -77,69 +145,83 @@ const OurStaffPage = () => {
       <UserHeader />
       <div className="px-4 py-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <Title level={1} className="text-3xl">Đội Ngũ Chuyên Gia</Title>
+          <Title level={1} className="text-3xl">
+            Đội ngũ chuyên gia
+          </Title>
           <Paragraph className="text-lg mt-4">
-            Gặp gỡ đội ngũ bác sĩ, chuyên gia và nhân viên y tế giàu kinh nghiệm của chúng tôi
+            Gặp gỡ đội ngũ bác sĩ, chuyên gia và nhân viên y tế giàu kinh nghiệm
+            của chúng tôi
           </Paragraph>
         </div>
 
         <Divider />
 
         <div className="mb-12">
-          <Title level={2} className="mb-6">Đội Ngũ Y tế</Title>
+          <Title level={2} className="mb-6">
+            Đội ngũ y bác sĩ
+          </Title>
           <Row gutter={[24, 32]}>
             {doctors.map((doctor) => (
               <Col xs={24} md={12} key={doctor.id}>
-                <Card className="shadow-md h-full">
-                  <Row gutter={16} align="middle">
-                    <Col xs={24} md={8} className="text-center mb-4 md:mb-0">
-                      <Avatar
-                        size={120}
-                        src={doctor.image}
-                        icon={<UserOutlined />}
-                        className="mb-2"
-                      />
-                      <div>
-                        {doctor.certificates.map((cert, index) => (
-                          <Tag color="blue" key={index} className="mt-2">
-                            {cert}
-                          </Tag>
-                        ))}
-                      </div>
-                    </Col>
-                    <Col xs={24} md={16}>
-                      <Title level={3}>{doctor.name}</Title>
-                      <Title level={5} type="secondary">
-                        {doctor.role}
-                      </Title>
-                      <Paragraph>
-                        <strong>Chuyên môn:</strong> {doctor.specialization}
-                      </Paragraph>
-                      <Paragraph>
-                        <strong>Học vấn:</strong> {doctor.education}
-                      </Paragraph>
-                      <Paragraph>
-                        <strong>Kinh nghiệm:</strong> {doctor.experience}
-                      </Paragraph>
-                      <Space direction="vertical" className="mt-2">
-                        <Text>
-                          <MailOutlined className="mr-2" /> {doctor.email}
-                        </Text>
-                        <Text>
-                          <PhoneOutlined className="mr-2" /> {doctor.phone}
-                        </Text>
-                      </Space>
-                      
-                      <Button 
-                        type="primary" 
-                        icon={<CalendarOutlined />}
-                        className="mt-4 bg-[#ff8460] hover:bg-[#ff6b40] border-none"
-                        onClick={() => handleBooking(doctor.value)}
-                      >
-                        Đặt Lịch Hẹn
-                      </Button>
-                    </Col>
-                  </Row>
+                <Card
+                  className="shadow-md h-full cursor-pointer hover:shadow-lg transition-shadow duration-300"
+                  onClick={() => handleDoctorClick(doctor.id)}
+                >
+                  <div className="text-center">
+                    <Avatar
+                      size={120}
+                      src={doctor.image}
+                      icon={<UserOutlined />}
+                      className="mb-4"
+                    />
+                    <Title level={3}>{doctor.name}</Title>
+                    <Paragraph className="mb-2">
+                      {doctor.specialization}
+                    </Paragraph>
+                    <div className="mb-2">
+                      {doctor.certificates.map((cert, index) => (
+                        <Tag color="blue" key={index} className="mt-2">
+                          {cert}
+                        </Tag>
+                      ))}
+                    </div>
+                    <div className="mb-2">
+                      <Tag color="green">{doctor.treatmentType}</Tag>
+                    </div>
+                    <Rate disabled defaultValue={doctor.rating} allowHalf />
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        </div>
+
+        <Divider />
+
+        <div className="my-12">
+          <Title level={2} className="mb-6">
+            Đội ngũ điều dưỡng và kỹ thuật viên
+          </Title>
+          <Row gutter={[24, 24]}>
+            {nurses.map((nurse) => (
+              <Col xs={24} sm={12} md={6} key={nurse.id}>
+                <Card className="shadow-md text-center h-full">
+                  <Avatar
+                    size={100}
+                    src={nurse.image}
+                    icon={<UserOutlined />}
+                    className="mb-4"
+                  />
+                  <Title level={4}>{nurse.name}</Title>
+                  <Text type="secondary" className="block mb-2">
+                    {nurse.role}
+                  </Text>
+                  <Paragraph>
+                    <strong>Kinh nghiệm:</strong> {nurse.experience}
+                  </Paragraph>
+                  <Paragraph>
+                    <strong>Học vấn:</strong> {nurse.education}
+                  </Paragraph>
                 </Card>
               </Col>
             ))}
@@ -149,18 +231,21 @@ const OurStaffPage = () => {
         <Divider />
 
         <div className="my-12 text-center">
-          <Title level={2} className="mb-4">Tư Vấn Với Chuyên Gia</Title>
+          <Title level={2} className="mb-4">
+            Tham vấn với chuyên gia
+          </Title>
           <Paragraph className="text-lg mb-6">
-            Đặt lịch tư vấn với các chuyên gia của chúng tôi để được hỗ trợ về các vấn đề sinh sản
+            Đặt lịch tư vấn với các chuyên gia của chúng tôi để được hỗ trợ về
+            vấn đề hiếm muộn
           </Paragraph>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             size="large"
             icon={<CalendarOutlined />}
-            className="bg-[#ff8460] hover:bg-[#ff6b40] border-none" 
-            onClick={() => navigate('/appointment')}
+            className="bg-[#ff8460] hover:bg-[#ff6b40] border-none"
+            onClick={() => navigate("/appointment")}
           >
-            Đặt Lịch Hẹn
+            Đặt lịch hẹn
           </Button>
         </div>
       </div>

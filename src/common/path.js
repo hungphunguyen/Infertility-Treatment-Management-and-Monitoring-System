@@ -11,5 +11,6 @@ export const path = {
   ourStaff: "/our-staff",
   features: "/features",
   contacts: "/contacts",
+  doctorDetail: "/doctor/:id",
   appointment: "/appointment",
 };
