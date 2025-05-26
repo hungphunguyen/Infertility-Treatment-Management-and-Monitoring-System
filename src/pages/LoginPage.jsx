@@ -11,7 +11,7 @@ import { getLocgetlStorage, setLocalStorage } from "../utils/util";
 import GoogleLogin from "../components/GoogleLogin";
 import { NotificationContext } from "../App";
 import { useDispatch } from "react-redux";
-import { getInforUser } from "../redux/authSlice";
+import { setToken } from "../redux/authSlice";
 const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -40,15 +40,7 @@ const LoginPage = () => {
             console.log(res);
             //thực hiện lưu trự dưới localStorage
             setLocalStorage("token", res.data.result.token);
-            // coi lai phia be tra du lieu theo format nao
-            let infoUser;
-            authService.getMyInfo(getLocgetlStorage("token")).then((res) => {
-              infoUser = res.data.result;
-              console.log(res.data.result);
-              setLocalStorage("user", JSON.stringify(infoUser));
-            });
-
-            dispatch(getInforUser(infoUser));
+            dispatch(setToken(res.data.result.token));
 
             // thực hiên thông báo chuyển hướng người dùng
             showNotification("Login successful", "success");
@@ -59,7 +51,7 @@ const LoginPage = () => {
           })
           .catch((error) => {
             console.log(error);
-            showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
+            // showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({

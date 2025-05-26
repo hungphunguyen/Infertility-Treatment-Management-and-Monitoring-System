@@ -8,7 +8,7 @@ import * as yup from "yup";
 import { path } from "../common/path";
 import { useDispatch } from "react-redux";
 import { setLocalStorage } from "../utils/util";
-import { getInforUser } from "../redux/authSlice";
+import { getInfoUser } from "../redux/authSlice";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -37,11 +37,12 @@ const RegisterPage = () => {
             console.log(res);
             //thực hiện lưu trự dưới localStorage
             setLocalStorage("user", res.data);
-            dispatch(getInforUser(res.data));
+            dispatch(getInfoUser(res.data));
 
             showNotification("Register successful", "success");
             setTimeout(() => {
               navigate("/verify-otp");
+              window.location.reload();
             }, 1000);
           })
           .catch((errors) => {

@@ -2,19 +2,27 @@ import { createSlice } from "@reduxjs/toolkit";
 import { getLocgetlStorage } from "../utils/util";
 
 const initialState = {
-  infoUser: JSON.parse(getLocgetlStorage("user")),
+  token: getLocgetlStorage("token"),
+  infoUser: getLocgetlStorage("user"),
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    getInforUser: (state, action) => {
+    setToken: (state, action) => {
+      state.token = action.payload;
+    },
+    getInfoUser: (state, action) => {
       state.infoUser = action.payload;
+    },
+    clearAuth: (state) => {
+      state.token = null;
+      state.infoUser = null;
     },
   },
 });
 
-export const { getInforUser } = authSlice.actions;
+export const { setToken, getInfoUser, clearAuth } = authSlice.actions;
 
 export default authSlice.reducer;

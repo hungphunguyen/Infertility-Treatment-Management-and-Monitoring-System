@@ -26,8 +26,9 @@ const VerifyPage = () => {
 
             showNotification("OTP check successful", "success");
             setTimeout(() => {
-              localStorage.clear();
               navigate("/sign-in");
+              localStorage.clear();
+              window.location.reload();
             }, 1000);
           })
           .catch((error) => {

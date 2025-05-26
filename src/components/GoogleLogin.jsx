@@ -4,9 +4,13 @@ import { authService } from "../service/auth.service";
 import { getLocgetlStorage, setLocalStorage } from "../utils/util";
 import { useNavigate } from "react-router-dom";
 import { NotificationContext } from "../App";
+import { useDispatch } from "react-redux";
+import { setToken } from "../redux/authSlice";
 
 export default function GoogleLogin() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
@@ -47,13 +51,12 @@ export default function GoogleLogin() {
 
       if (data.token) {
         setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
-        authService.getMyInfo(getLocgetlStorage("token")).then((res) => {
-          console.log(res.data.result);
-          setLocalStorage("user", JSON.stringify(res.data.result));
-        });
+        dispatch(setToken(res.data.result.token));
+
         showNotification("Login successful", "success");
         setTimeout(() => {
           navigate("/");
+          window.location.reload();
         }, 1000);
       }
     } catch (error) {
