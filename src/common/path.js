@@ -3,6 +3,7 @@ export const path = {
   pageNotFound: "*",
   signUp: "/sign-up",
   signIn: "/sign-in",
+  verify: "/verify-otp",
   services: "/services",
   serviceDetail: "/service/:serviceId",
   blog: "/blog",

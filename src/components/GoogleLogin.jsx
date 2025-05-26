@@ -1,10 +1,19 @@
 // src/components/GoogleLogin.jsx
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { authService } from "../service/auth.service";
+import { getLocgetlStorage, setLocalStorage } from "../utils/util";
+import { useNavigate } from "react-router-dom";
+import { NotificationContext } from "../App";
+import { useDispatch } from "react-redux";
+import { setToken } from "../redux/authSlice";
 
 export default function GoogleLogin() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { showNotification } = useContext(NotificationContext);
+
   useEffect(() => {
-    // Load script Google GIS
     const script = document.createElement("script");
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
@@ -13,7 +22,7 @@ export default function GoogleLogin() {
       /* global google */
       window.google.accounts.id.initialize({
         client_id:
-          "102777012744-s07lc3n8j3tpd1prrrhtl5lb723esgcb.apps.googleusercontent.com",
+          "275410243519-d80fcmlrq078l24q9hechprhjraon6e5.apps.googleusercontent.com",
         callback: handleCredentialResponse,
       });
 
@@ -22,6 +31,9 @@ export default function GoogleLogin() {
         {
           theme: "outline",
           size: "large",
+          text: "sign_in_with",
+          shape: "rectangular",
+          logo_alignment: "left",
         }
       );
     };
@@ -31,16 +43,25 @@ export default function GoogleLogin() {
 
   const handleCredentialResponse = async (response) => {
     const idToken = response.credential;
+    console.log("✅ Google ID Token:", idToken);
 
-    console.log("🎯 id_token:", idToken);
-
-    // Gửi token về backend
     try {
       const res = await authService.signInByGoogle({ idToken });
-      console.log("🚀 Đăng nhập thành công:", res.data.result.token);
+      const data = res.data.result;
+
+      if (data.token) {
+        setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
+        dispatch(setToken(res.data.result.token));
+
+        showNotification("Login successful", "success");
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1000);
+      }
     } catch (error) {
       console.error("❌ Lỗi đăng nhập:", error);
-      alert("Có lỗi khi gửi token về backend!");
+      showNotification(error.response.data.message, "error");
     }
   };
 

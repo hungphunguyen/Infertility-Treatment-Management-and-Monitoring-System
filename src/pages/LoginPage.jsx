@@ -1,15 +1,22 @@
-import React from "react";
+import React, { useContext } from "react";
 import signInAnimation from "./../assets/animation/signIn_Animation.json";
 import { useLottie } from "lottie-react";
 import InputCustom from "../components/Input/InputCustom";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import { authService } from "../service/auth.service";
-import { setLocalStorage } from "../utils/util";
+import { getLocgetlStorage, setLocalStorage } from "../utils/util";
 import GoogleLogin from "../components/GoogleLogin";
+import { NotificationContext } from "../App";
+import { useDispatch } from "react-redux";
+import { setToken } from "../redux/authSlice";
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { showNotification } = useContext(NotificationContext);
+
   const options = {
     animationData: signInAnimation,
     loop: true,
@@ -29,20 +36,27 @@ const LoginPage = () => {
         authService
           .signIn(values)
           .then((res) => {
+            console.log("res.data");
             console.log(res);
             //thực hiện lưu trự dưới localStorage
-            // setLocalStorage
+            setLocalStorage("token", res.data.result.token);
+            dispatch(setToken(res.data.result.token));
+
+            // thực hiên thông báo chuyển hướng người dùng
+            showNotification("Login successful", "success");
+            setTimeout(() => {
+              navigate("/");
+              window.location.reload();
+            }, 1000);
           })
           .catch((error) => {
             console.log(error);
+            // showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({
         username: yup.string().required("Please do not leave blank"),
-        password: yup
-          .string()
-          .required("Please do not leave blank")
-          .min(6, "Please enter at least 6 characters"),
+        password: yup.string().required("Please do not leave blank"),
       }),
     });
   return (
