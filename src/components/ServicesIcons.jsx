@@ -5,11 +5,26 @@ const ServicesIcons = () => {
   const navigate = useNavigate();
 
   const services = [
-    { icon: "🧬", title: "NƠI ƯƠM MẦM BÉ", action: () => navigate('/services') },
-    { icon: "⚤", title: "KIỂM TRA KHẢ NĂNG SINH SẢN", action: () => navigate('/service/diagnostic-testing') },
-    { icon: "👶", title: "CHĂM SÓC RẠNG RỠ", action: () => navigate('/services') },
-    { icon: "👨‍👩‍👧", title: "HÀNH TRÌNH LÀM CHA MẸ", action: () => navigate('/services') },
-    { icon: "👩", title: "TƯ VẤN SỨC KHỎE PHỤ NỮ", action: () => navigate('/service/consultation') }
+    { icon: "🧬", title: "THỤ TINH TRONG ỐNG NGHIỆM (IVF)", action: () => {
+      console.log('Navigating to IVF service detail');
+      navigate('/service-detail/ivf');
+    }},
+    { icon: "💉", title: "THỤ TINH NHÂN TẠO (IUI)", action: () => {
+      console.log('Navigating to IUI service detail');
+      navigate('/service-detail/iui');
+    }},
+    { icon: "🔬", title: "XÉT NGHIỆM VÀ CHẨN ĐOÁN", action: () => {
+      console.log('Navigating to diagnostic testing service detail');
+      navigate('/service-detail/diagnostic-testing');
+    }},
+    { icon: "🧪", title: "XÉT NGHIỆM DI TRUYỀN", action: () => {
+      console.log('Navigating to gender selection service detail');
+      navigate('/service-detail/gender-selection');
+    }},
+    { icon: "👩‍⚕️", title: "TƯ VẤN SINH SẢN", action: () => {
+      console.log('Navigating to consultation service detail');
+      navigate('/service-detail/consultation');
+    }}
   ];
 
   return (

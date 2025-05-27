@@ -92,41 +92,6 @@ const doctors = [
   },
 ];
 
-const nurses = [
-  {
-    id: 1,
-    name: "Nguyễn Thị E",
-    role: "Điều dưỡng trưởng",
-    experience: "15 năm kinh nghiệm",
-    education: "Cử nhân Điều dưỡng, Đại học Y Hà Nội",
-    image: "/images/nurses/nurses1.jpg",
-  },
-  {
-    id: 2,
-    name: "Lê Văn F",
-    role: "Điều dưỡng",
-    experience: "8 năm kinh nghiệm",
-    education: "Cử nhân Điều dưỡng, Đại học Y Dược TP.HCM",
-    image: "/images/nurses/nurses2.webp",
-  },
-  {
-    id: 3,
-    name: "Trần Thị G",
-    role: "Điều dưỡng",
-    experience: "7 năm kinh nghiệm",
-    education: "Cử nhân Điều dưỡng, Đại học Y Huế",
-    image: "/images/nurses/nurses3.webp",
-  },
-  {
-    id: 4,
-    name: "Phạm Văn H",
-    role: "Kỹ thuật viên phòng lab",
-    experience: "10 năm kinh nghiệm",
-    education: "Cử nhân Xét nghiệm, Đại học Y Dược TP.HCM",
-    image: "/images/nurses/nurses4.webp",
-  },
-];
-
 const OurStaffPage = () => {
   const navigate = useNavigate();
 
@@ -190,38 +155,6 @@ const OurStaffPage = () => {
                     </div>
                     <Rate disabled defaultValue={doctor.rating} allowHalf />
                   </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </div>
-
-        <Divider />
-
-        <div className="my-12">
-          <Title level={2} className="mb-6">
-            Đội ngũ điều dưỡng và kỹ thuật viên
-          </Title>
-          <Row gutter={[24, 24]}>
-            {nurses.map((nurse) => (
-              <Col xs={24} sm={12} md={6} key={nurse.id}>
-                <Card className="shadow-md text-center h-full">
-                  <Avatar
-                    size={100}
-                    src={nurse.image}
-                    icon={<UserOutlined />}
-                    className="mb-4"
-                  />
-                  <Title level={4}>{nurse.name}</Title>
-                  <Text type="secondary" className="block mb-2">
-                    {nurse.role}
-                  </Text>
-                  <Paragraph>
-                    <strong>Kinh nghiệm:</strong> {nurse.experience}
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>Học vấn:</strong> {nurse.education}
-                  </Paragraph>
                 </Card>
               </Col>
             ))}

@@ -141,12 +141,7 @@ const UserTemplate = () => {
                 Chúng tôi cung cấp tất cả các dịch vụ y tế mà bạn cần. Mục tiêu của chúng tôi là làm cho khách hàng trở thành những bậc cha mẹ hạnh phúc. 
                 Chúng tôi thực hiện điều này một cách dễ dàng nhất có thể để các cặp đôi có thể có con, dù là thông qua việc sử dụng trứng hiến tặng hay người mang thai hộ.
               </p>
-              <button 
-                onClick={() => navigate('/services')}
-                className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out"
-              >
-                Tìm Hiểu Thêm Về Chúng Tôi
-              </button>
+              
             </div>
             <div className="md:w-1/2 flex justify-center">
               <div className="relative">
@@ -184,17 +179,17 @@ const UserTemplate = () => {
                 </p>
                 
                 <div className="space-y-4 mb-8">
-                  <div className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300" onClick={() => navigate('/service-detail/egg-donor')}>
+                  <div className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300" onClick={() => navigate('/service-detail/ivf')}>
                     <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 hover:bg-[#ff6b40] transition duration-300">
                       <ArrowRightOutlined />
                     </div>
                     <span className="hover:text-[#ff8460] transition duration-300">Thụ tinh trong ống nghiệm (IVF)</span>
                   </div>
-                  <div className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300" onClick={() => navigate('/service-detail/egg-freezing')}>
+                  <div className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300" onClick={() => navigate('/service-detail/iui')}>
                     <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 hover:bg-[#ff6b40] transition duration-300">
                       <ArrowRightOutlined />
                     </div>
-                    <span className="hover:text-[#ff8460] transition duration-300">Bảo quản khả năng sinh sản</span>
+                    <span className="hover:text-[#ff8460] transition duration-300">Thụ tinh nhân tạo (IUI)</span>
                   </div>
                   <div className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300" onClick={() => navigate('/service-detail/diagnostic-testing')}>
                     <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 hover:bg-[#ff6b40] transition duration-300">

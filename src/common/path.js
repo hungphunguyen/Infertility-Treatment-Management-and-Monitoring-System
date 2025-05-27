@@ -5,7 +5,7 @@ export const path = {
   signIn: "/sign-in",
   verify: "/verify-otp",
   services: "/services",
-  serviceDetail: "/service/:serviceId",
+  serviceDetail: "/service-detail/:serviceId",
   blog: "/blog",
   blogDetail: "/blog/:blogSlug",
   ourStaff: "/our-staff",
