@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import signInAnimation from "./../assets/animation/signIn_Animation.json";
 import { useLottie } from "lottie-react";
 import InputCustom from "../components/Input/InputCustom";
@@ -23,6 +23,8 @@ const LoginPage = () => {
   };
 
   const { View } = useLottie(options);
+
+  const [isResend, setIsResend] = useState();
 
   const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
     useFormik({
@@ -50,8 +52,15 @@ const LoginPage = () => {
             }, 1000);
           })
           .catch((error) => {
+            if (error.response.data.code == 1014) {
+              setIsResend(true);
+              showNotification(
+                "If you want to verify please click resend otp!",
+                "warning"
+              );
+            }
             console.log(error);
-            // showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
+            showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({
@@ -98,6 +107,7 @@ const LoginPage = () => {
                   Sign In
                 </button>
                 <GoogleLogin />
+
                 <Link
                   to={path.signUp}
                   className="mt-3 text-blue-600 hover:underline duration-300"
@@ -105,6 +115,11 @@ const LoginPage = () => {
                   If you do not have an account, click here
                 </Link>
               </div>
+              {isResend && (
+                <button className="py-2 px-4 font-medium border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white  duration-300">
+                  Resend OTP
+                </button>
+              )}
             </form>
           </div>
         </div>

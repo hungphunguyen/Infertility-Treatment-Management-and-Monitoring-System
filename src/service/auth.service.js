@@ -23,4 +23,7 @@ export const authService = {
   verify: (data) => {
     return http.post("auth/verify-otp", data); // đường dẫn endpoint để hoàn thành request url
   },
+  resendOtp: (data) => {
+    return http.post("auth/resend-otp", data);
+  },
 };
