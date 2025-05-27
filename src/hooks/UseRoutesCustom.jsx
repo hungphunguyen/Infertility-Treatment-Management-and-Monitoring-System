@@ -10,7 +10,6 @@ import ServicesPage from "../pages/ServicesPage";
 import ServiceDetailPage from "../pages/ServiceDetailPage";
 import BlogPage from "../pages/BlogPage";
 import BlogDetailPage from "../pages/BlogDetailPage";
-import AboutCenterPage from "../pages/AboutCenterPage";
 import OurStaffPage from "../pages/OurStaffPage";
 import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
@@ -51,10 +50,6 @@ const UseRoutesCustom = () => {
     {
       path: path.blogDetail,
       element: <BlogDetailPage />,
-    },
-    {
-      path: path.aboutCenter,
-      element: <AboutCenterPage />,
     },
     {
       path: path.ourStaff,

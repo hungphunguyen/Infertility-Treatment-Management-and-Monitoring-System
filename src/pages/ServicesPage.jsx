@@ -10,15 +10,15 @@ const { Title, Paragraph } = Typography;
 // All services for the services page
 const allServices = [
   {
-    id: "egg-donor",
-    title: "Hiến Trứng và Mang Thai Hộ",
-    description: "Tại trung tâm của chúng tôi, chúng tôi có kiến thức và kinh nghiệm toàn diện trong lĩnh vực hiến trứng và mang thai hộ. Chúng tôi có cơ sở dữ liệu phát triển mạnh với 1.000 người hiến tặng.",
+    id: "ivf",
+    title: "Thụ Tinh Trong Ống Nghiệm (IVF)",
+    description: "IVF là kỹ thuật hỗ trợ sinh sản tiên tiến nhất, trong đó trứng được thụ tinh với tinh trùng trong phòng thí nghiệm, sau đó phôi được chuyển vào tử cung để phát triển thành thai.",
     image: "/images/features/pc4.jpg"
   },
   {
-    id: "egg-freezing",
-    title: "Đông Lạnh / Bảo Quản Trứng",
-    description: "Bảo quản khả năng sinh sản nói chung và đông lạnh trứng nói riêng đang nhanh chóng trở thành một quy trình phổ biến hơn đối với phụ nữ trên toàn thế giới mỗi năm.",
+    id: "iui",
+    title: "Thụ Tinh Nhân Tạo (IUI)",
+    description: "IUI là phương pháp đưa tinh trùng đã được xử lý trực tiếp vào tử cung của người phụ nữ vào thời điểm rụng trứng để tăng cơ hội thụ thai tự nhiên.",
     image: "/images/features/pc6.jpg"
   },
   {
@@ -93,7 +93,7 @@ const ServicesPage = () => {
                     <Paragraph className="text-gray-600 mb-6 flex-grow">
                       {service.description}
                     </Paragraph>
-                    <Link to={`/service/${service.id}`} className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto">
+                    <Link to={`/service-detail/${service.id}`} className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto">
                       <span className="mr-1">+</span> Thông Tin Thêm
                     </Link>
                   </div>
@@ -117,7 +117,7 @@ const ServicesPage = () => {
                     <Paragraph className="text-gray-600 mb-6 flex-grow">
                       {service.description}
                     </Paragraph>
-                    <Link to={`/service/${service.id}`} className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto">
+                    <Link to={`/service-detail/${service.id}`} className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto">
                       <span className="mr-1">+</span> Thông Tin Thêm
                     </Link>
                   </div>

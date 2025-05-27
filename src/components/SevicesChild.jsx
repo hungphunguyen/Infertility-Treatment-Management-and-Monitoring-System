@@ -8,9 +8,9 @@ const SevicesChild = () => {
     <div className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-700 mb-2">What We Offer</h2>
+            <h2 className="text-4xl font-bold text-gray-700 mb-2">Những Gì Chúng Tôi Cung Cấp</h2>
             <div className="mt-2">
-              <span className="text-[#ff8460] font-medium">SERVICES</span>
+              <span className="text-[#ff8460] font-medium">DỊCH VỤ</span>
             </div>
           </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -18,16 +18,16 @@ const SevicesChild = () => {
             <img 
               src="/images/features/pc4.jpg" 
               className="h-56 w-full object-cover"
-              alt="Egg Donor"
+              alt="Người Hiến Trứng"
             />
             <div className="p-6">
-              <h3 className="text-2xl font-semibold mb-4">Egg Donor and Surrogacy</h3>
+              <h3 className="text-2xl font-semibold mb-4">Người Hiến Trứng và Mang Thai Hộ</h3>
               <p className="text-gray-600 mb-4">
-                At our center we have comprehensive knowledge and experience in the field of egg donor 
-                and surrogacy. We have a booming base of 1,000 donors.
+                Tại trung tâm của chúng tôi, chúng tôi có kiến thức và kinh nghiệm toàn diện trong lĩnh vực hiến trứng 
+                và mang thai hộ. Chúng tôi có cơ sở dữ liệu đang phát triển với 1.000 người hiến tặng.
               </p>
               <Link to="/service/egg-donor" className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block">
-                <span className="mr-1">+</span> More Info
+                <span className="mr-1">+</span> Thông Tin Thêm
               </Link>
             </div>
           </div>
@@ -36,16 +36,16 @@ const SevicesChild = () => {
             <img 
               src="/images/features/pc6.jpg" 
               className="h-56 w-full object-cover"
-              alt="Egg Freezing"
+              alt="Đông Lạnh Trứng"
             />
             <div className="p-6">
-              <h3 className="text-2xl font-semibold mb-4">Egg Freezing / Preservation</h3>
+              <h3 className="text-2xl font-semibold mb-4">Đông Lạnh / Bảo Quản Trứng</h3>
               <p className="text-gray-600 mb-4">
-                Fertility preservation in general, and egg freezing in particular, is quickly becoming a more popular 
-                procedure for women all over the world each year.
+                Việc bảo quản khả năng sinh sản nói chung, và đông lạnh trứng nói riêng, đang nhanh chóng trở thành một 
+                thủ tục phổ biến hơn đối với phụ nữ trên toàn thế giới mỗi năm.
               </p>
               <Link to="/service/egg-freezing" className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block">
-                <span className="mr-1">+</span> More Info
+                <span className="mr-1">+</span> Thông Tin Thêm
               </Link>
             </div>
           </div>
@@ -54,16 +54,16 @@ const SevicesChild = () => {
             <img 
               src="/images/features/iui-vs-ivf.jpg" 
               className="h-56 w-full object-cover"
-              alt="Gender Selection"
+              alt="Lựa Chọn Giới Tính"
             />
             <div className="p-6">
-              <h3 className="text-2xl font-semibold mb-4">Gender Selection</h3>
+              <h3 className="text-2xl font-semibold mb-4">Lựa Chọn Giới Tính</h3>
               <p className="text-gray-600 mb-4">
-                Sex selection can be done either before or after the fertilisation of the egg. Gender selection is the 
-                attempt to control the gender of human offspring.
+                Lựa chọn giới tính có thể được thực hiện trước hoặc sau khi trứng được thụ tinh. Lựa chọn giới tính là 
+                nỗ lực kiểm soát giới tính của con cái.
               </p>
               <Link to="/service/gender-selection" className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block">
-                <span className="mr-1">+</span> More Info
+                <span className="mr-1">+</span> Thông Tin Thêm
               </Link>
             </div>
           </div>
@@ -74,7 +74,7 @@ const SevicesChild = () => {
             onClick={() => navigate('/services')}
             className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-8 rounded transition duration-300 ease-in-out"
           >
-            More Programs
+            Các Chương Trình Khác
           </button>
         </div>
       </div>
@@ -82,4 +82,4 @@ const SevicesChild = () => {
   );
 };
 
-export default SevicesChild; 
+export default SevicesChild;

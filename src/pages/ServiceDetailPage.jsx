@@ -9,57 +9,58 @@ const { Title, Paragraph, Text } = Typography;
 
 // Service details data
 const servicesData = {
-  "egg-donor": {
-    id: "egg-donor",
-    title: "Hiến Trứng và Mang Thai Hộ",
-    subTitle: "Xây dựng gia đình thông qua hiến tặng và mang thai hộ",
+  "ivf": {
+    id: "ivf",
+    title: "Thụ Tinh Trong Ống Nghiệm (IVF)",
+    subTitle: "Kỹ thuật hỗ trợ sinh sản tiên tiến nhất",
     heroImage: "/images/features/pc4.jpg",
     description: [
-      "Hiến trứng là quá trình một người phụ nữ hiến trứng của mình cho một người phụ nữ khác để giúp cô ấy thụ thai. Phương pháp này thường được sử dụng khi người mẹ dự định có chất lượng trứng kém, tuổi mẹ cao hoặc có lo ngại về di truyền.",
-      "Mang thai hộ là một thỏa thuận mà một người phụ nữ (người mang thai hộ) mang thai và sinh con cho một cá nhân hoặc cặp đôi khác. Mang thai hộ theo phương pháp gestational sử dụng phôi được tạo ra từ vật liệu di truyền của cha mẹ dự định hoặc trứng/tinh trùng hiến tặng."
+      "Thụ tinh trong ống nghiệm (IVF) là một kỹ thuật hỗ trợ sinh sản trong đó trứng được lấy từ buồng trứng của người phụ nữ và được thụ tinh với tinh trùng trong phòng thí nghiệm. Sau khi thụ tinh, phôi được nuôi cấy trong 3-5 ngày trước khi được chuyển vào tử cung.",
+      "IVF được chỉ định cho nhiều trường hợp vô sinh khác nhau như tắc ống dẫn trứng, vô sinh nam, vô sinh không rõ nguyên nhân, tuổi cao, hoặc thất bại với các phương pháp điều trị khác. Đây là phương pháp có tỷ lệ thành công cao nhất trong các kỹ thuật hỗ trợ sinh sản."
     ],
     benefits: [
-      "Truy cập vào cơ sở dữ liệu với hơn 1.000 người hiến tặng đã được sàng lọc",
-      "Sàng lọc y tế và tâm lý toàn diện",
-      "Hỗ trợ pháp lý trong suốt quá trình",
-      "Tỷ lệ thành công cao với các kỹ thuật phòng thí nghiệm tiên tiến",
-      "Dịch vụ ghép đôi cá nhân hóa cho cha mẹ dự định"
+      "Tỷ lệ thành công cao, đặc biệt với phụ nữ dưới 35 tuổi",
+      "Có thể điều trị nhiều nguyên nhân vô sinh khác nhau",
+      "Cho phép xét nghiệm di truyền phôi trước khi chuyển",
+      "Có thể đông lạnh phôi thừa để sử dụng sau này",
+      "Kiểm soát được số lượng phôi chuyển để giảm nguy cơ đa thai"
     ],
     process: [
-      "Tư vấn và đánh giá ban đầu",
-      "Lựa chọn người hiến trứng hoặc người mang thai hộ từ cơ sở dữ liệu của chúng tôi",
-      "Sàng lọc y tế và đồng bộ hóa chu kỳ",
-      "Lấy trứng từ người hiến hoặc thực hiện quy trình IVF",
-      "Chuyển phôi vào mẹ dự định hoặc người mang thai hộ",
-      "Theo dõi và hỗ trợ thai kỳ"
+      "Tư vấn và đánh giá ban đầu, lập kế hoạch điều trị",
+      "Kích thích buồng trứng bằng thuốc hormone trong 8-12 ngày",
+      "Theo dõi sự phát triển nang trứng qua siêu âm và xét nghiệm máu",
+      "Tiêm thuốc kích thích rụng trứng và lấy trứng sau 36 giờ",
+      "Thụ tinh trứng với tinh trùng trong phòng thí nghiệm",
+      "Nuôi cấy phôi 3-5 ngày và chuyển phôi tốt nhất vào tử cung",
+      "Hỗ trợ hoàng thể và theo dõi thai kỳ"
     ],
-    specialists: [1, 2, 4]
+    specialists: [1, 2, 3]
   },
-  "egg-freezing": {
-    id: "egg-freezing",
-    title: "Đông Lạnh / Bảo Quản Trứng",
-    subTitle: "Bảo vệ khả năng sinh sản của bạn cho tương lai",
+  "iui": {
+    id: "iui",
+    title: "Thụ Tinh Nhân Tạo (IUI)",
+    subTitle: "Phương pháp hỗ trợ sinh sản đơn giản và hiệu quả",
     heroImage: "/images/features/pc6.jpg",
     description: [
-      "Đông lạnh trứng (bảo quản noãn bằng lạnh) là phương pháp dùng để bảo vệ tiềm năng sinh sản ở phụ nữ. Trứng được lấy từ buồng trứng, đông lạnh khi chưa thụ tinh và lưu trữ để sử dụng sau này.",
-      "Quy trình này cung cấp cơ hội cho phụ nữ trì hoãn việc sinh con vì lý do y tế hoặc cá nhân, chẳng hạn như điều trị ung thư, tuổi cao hoặc chưa tìm được đối tác phù hợp."
+      "Thụ tinh nhân tạo trong tử cung (IUI) là một phương pháp hỗ trợ sinh sản trong đó tinh trùng đã được xử lý và tập trung được đưa trực tiếp vào tử cung của người phụ nữ vào thời điểm rụng trứng. Phương pháp này giúp tinh trùng tiếp cận trứng dễ dàng hơn.",
+      "IUI thường được chỉ định cho các trường hợp vô sinh nhẹ như rối loạn rụng trứng, vô sinh cổ tử cung, vô sinh nam nhẹ, hoặc vô sinh không rõ nguyên nhân. Đây là bước đầu tiên trong điều trị vô sinh trước khi chuyển sang IVF."
     ],
     benefits: [
-      "Bảo vệ trứng trẻ hơn, khỏe mạnh hơn để sử dụng trong tương lai",
-      "Linh hoạt trong kế hoạch gia đình",
-      "Lựa chọn bảo vệ khả năng sinh sản trước các điều trị y tế",
-      "Giảm lo âu về suy giảm khả năng sinh sản do tuổi tác",
-      "Kỹ thuật vitrification tiên tiến với tỷ lệ thành công cao"
+      "Quy trình đơn giản, ít xâm lấn và không đau",
+      "Chi phí thấp hơn so với IVF",
+      "Không cần gây mê hay phẫu thuật",
+      "Có thể kết hợp với kích thích rụng trứng nhẹ",
+      "Thời gian điều trị ngắn, ít ảnh hưởng đến cuộc sống"
     ],
     process: [
-      "Đánh giá và xét nghiệm khả năng sinh sản ban đầu",
-      "Kích thích buồng trứng bằng tiêm hormone",
-      "Theo dõi sự phát triển nang trứng qua siêu âm",
-      "Quy trình lấy trứng dưới gây mê nhẹ",
-      "Vitrification (đông lạnh nhanh) trứng trong phòng thí nghiệm",
-      "Lưu trữ trứng đông lạnh dài hạn"
+      "Tư vấn và đánh giá khả năng sinh sản của cả hai vợ chồng",
+      "Theo dõi chu kỳ kinh nguyệt và xác định thời điểm rụng trứng",
+      "Kích thích rụng trứng bằng thuốc (nếu cần thiết)",
+      "Chuẩn bị mẫu tinh trùng và xử lý trong phòng thí nghiệm",
+      "Đưa tinh trùng vào tử cung bằng ống thông mềm",
+      "Hỗ trợ hoàng thể và theo dõi kết quả sau 2 tuần"
     ],
-    specialists: [2, 3, 4]
+    specialists: [1, 2, 4]
   },
   "gender-selection": {
     id: "gender-selection",
@@ -188,8 +189,12 @@ const ServiceDetailPage = () => {
   const [specialists, setSpecialists] = useState([]);
 
   useEffect(() => {
+    console.log('ServiceDetailPage - serviceId:', serviceId);
+    console.log('ServiceDetailPage - servicesData:', servicesData);
+    
     // Check if serviceId exists
     if (!serviceId) {
+      console.log('No serviceId found, redirecting to services');
       // Redirect to services page if serviceId is missing
       navigate('/services');
       return;
@@ -197,6 +202,8 @@ const ServiceDetailPage = () => {
 
     // Find the service by ID
     const serviceData = servicesData[serviceId];
+    console.log('Found serviceData:', serviceData);
+    
     if (serviceData) {
       setService(serviceData);
       
@@ -208,6 +215,7 @@ const ServiceDetailPage = () => {
         setSpecialists(serviceSpecialists);
       }
     } else {
+      console.log('Service not found, redirecting to services');
       // Redirect to services page if service not found
       navigate('/services');
     }
