@@ -23,10 +23,7 @@ const UseRoutesCustom = () => {
       path: path.homePage,
       element: <UserTemplate />,
     },
-    {
-      path: path.pageNotFound,
-      element: <PageNotFound />,
-    },
+
     {
       path: path.signIn,
       element: <LoginPage />,
@@ -78,6 +75,10 @@ const UseRoutesCustom = () => {
     {
       path: path.admin,
       element: <AdminPage />,
+    },
+    {
+      path: path.pageNotFound,
+      element: <PageNotFound />,
     },
   ]);
   return routes;

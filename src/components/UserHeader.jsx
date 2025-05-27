@@ -63,7 +63,7 @@ const UserHeader = () => {
               to={path.admin}
               className="py-2 px-4 font-medium border border-red-500 rounded-md hover:bg-red-500 hover:text-white  duration-300"
             >
-              ADMIN DASHBOAR
+              ADMIN DASHBOARD
             </Link>
           );
         case "DOCTOR":
