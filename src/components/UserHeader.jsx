@@ -111,12 +111,6 @@ const UserHeader = () => {
             Trang chủ
           </Link>
           <Link
-            to={path.aboutCenter}
-            className="text-orange-400 hover:text-gray-400"
-          >
-            Giới thiệu Trung tâm
-          </Link>
-          <Link
             to={path.services}
             className="text-orange-400 hover:text-gray-400"
           >

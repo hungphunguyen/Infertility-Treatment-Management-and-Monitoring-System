@@ -8,7 +8,7 @@ const ServicesIcons = () => {
     { icon: "🧬", title: "NƠI ƯƠM MẦM BÉ", action: () => navigate('/services') },
     { icon: "⚤", title: "KIỂM TRA KHẢ NĂNG SINH SẢN", action: () => navigate('/service/diagnostic-testing') },
     { icon: "👶", title: "CHĂM SÓC RẠNG RỠ", action: () => navigate('/services') },
-    { icon: "👨‍👩‍👧", title: "HÀNH TRÌNH LÀM CHA MẸ", action: () => navigate('/about-center') },
+    { icon: "👨‍👩‍👧", title: "HÀNH TRÌNH LÀM CHA MẸ", action: () => navigate('/services') },
     { icon: "👩", title: "TƯ VẤN SỨC KHỎE PHỤ NỮ", action: () => navigate('/service/consultation') }
   ];
 

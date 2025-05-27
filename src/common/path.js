@@ -8,7 +8,6 @@ export const path = {
   serviceDetail: "/service/:serviceId",
   blog: "/blog",
   blogDetail: "/blog/:blogSlug",
-  aboutCenter: "/about-center",
   ourStaff: "/our-staff",
   features: "/features",
   contacts: "/contacts",
