@@ -1,20 +1,14 @@
 import React from "react";
 import {
   Typography,
-  Card,
-  Row,
-  Col,
   Divider,
   Avatar,
-  Space,
   Tag,
   Button,
   Rate,
 } from "antd";
 import {
   UserOutlined,
-  MailOutlined,
-  PhoneOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -125,40 +119,57 @@ const OurStaffPage = () => {
           <Title level={2} className="mb-6">
             Đội ngũ y bác sĩ
           </Title>
-          <Row gutter={[24, 32]}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {doctors.map((doctor) => (
-              <Col xs={24} md={12} key={doctor.id}>
-                <Card
-                  className="shadow-md h-full cursor-pointer hover:shadow-lg transition-shadow duration-300"
-                  onClick={() => handleDoctorClick(doctor.id)}
-                >
-                  <div className="text-center">
+              <div key={doctor.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="flex flex-col md:flex-row">
+                  <div className="md:w-1/3 p-6 flex justify-center items-center">
                     <Avatar
                       size={120}
                       src={doctor.image}
                       icon={<UserOutlined />}
-                      className="mb-4"
+                      className="border-4 border-[#ff8460]"
                     />
-                    <Title level={3}>{doctor.name}</Title>
-                    <Paragraph className="mb-2">
-                      {doctor.specialization}
-                    </Paragraph>
-                    <div className="mb-2">
-                      {doctor.certificates.map((cert, index) => (
-                        <Tag color="blue" key={index} className="mt-2">
+                  </div>
+                  <div className="md:w-2/3 p-6">
+                    <h3 className="text-xl font-bold mb-2">{doctor.name}</h3>
+                    <p className="text-[#ff8460] font-semibold mb-2">{doctor.role}</p>
+                    <p className="text-gray-600 text-sm mb-3">{doctor.specialization}</p>
+                    <p className="text-gray-600 text-sm mb-3">{doctor.experience}</p>
+                    
+                    <div className="mb-3">
+                      <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
+                      <span className="ml-2 text-gray-600">({doctor.rating})</span>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <Tag color="green" className="mb-1">{doctor.treatmentType}</Tag>
+                      {doctor.certificates.slice(0, 1).map((cert, index) => (
+                        <Tag color="blue" key={index} className="mb-1 text-xs">
                           {cert}
                         </Tag>
                       ))}
                     </div>
-                    <div className="mb-2">
-                      <Tag color="green">{doctor.treatmentType}</Tag>
+                    
+                    <div className="flex space-x-2 mt-4">
+                      <button 
+                        onClick={() => handleDoctorClick(doctor.id)}
+                        className="bg-[#ff8460] hover:bg-[#ff6b40] text-white px-4 py-2 rounded text-sm transition duration-300"
+                      >
+                        Xem chi tiết
+                      </button>
+                      <button 
+                        onClick={() => handleBooking(doctor.value)}
+                        className="bg-[#c2da5c] hover:bg-[#a8c245] text-white px-4 py-2 rounded text-sm transition duration-300"
+                      >
+                        Đặt lịch
+                      </button>
                     </div>
-                    <Rate disabled defaultValue={doctor.rating} allowHalf />
                   </div>
-                </Card>
-              </Col>
+                </div>
+              </div>
             ))}
-          </Row>
+          </div>
         </div>
 
         <Divider />
