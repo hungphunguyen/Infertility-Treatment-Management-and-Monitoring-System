@@ -1,8 +1,8 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import signInAnimation from "./../assets/animation/signIn_Animation.json";
 import { useLottie } from "lottie-react";
 import InputCustom from "../components/Input/InputCustom";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { path } from "../common/path";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -12,10 +12,21 @@ import GoogleLogin from "../components/GoogleLogin";
 import { NotificationContext } from "../App";
 import { useDispatch } from "react-redux";
 import { setToken } from "../redux/authSlice";
+
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { showNotification } = useContext(NotificationContext);
+  const [resetMessage, setResetMessage] = useState("");
+
+  useEffect(() => {
+    // Kiểm tra nếu có thông tin từ trang reset password
+    if (location.state?.message) {
+      setResetMessage(location.state.message);
+      showNotification(location.state.message, "success");
+    }
+  }, [location.state, showNotification]);
 
   const options = {
     animationData: signInAnimation,
@@ -24,17 +35,28 @@ const LoginPage = () => {
 
   const { View } = useLottie(options);
 
-  const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
+  const { handleSubmit, handleChange, values, errors, touched, handleBlur, setFieldValue } =
     useFormik({
       initialValues: {
-        username: "",
+        username: location.state?.username || "",
         password: "",
       },
       onSubmit: (values) => {
         console.log(values);
+        
+        // Kiểm tra xem giá trị nhập vào có phải là email không
+        const isEmail = values.username.includes('@');
+        
+        // Chuẩn bị dữ liệu đăng nhập dựa trên kiểu dữ liệu nhập vào
+        const loginData = isEmail 
+          ? { email: values.username, password: values.password }
+          : { username: values.username, password: values.password };
+        
+        console.log("Login data:", loginData);
+        
         // gọi hàm sử lí bên authService
         authService
-          .signIn(values)
+          .signIn(loginData)
           .then((res) => {
             console.log("res.data");
             console.log(res);
@@ -51,7 +73,7 @@ const LoginPage = () => {
           })
           .catch((error) => {
             console.log(error);
-            // showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
+            showNotification(error.response?.data?.message || "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin!", "error");
           });
       },
       validationSchema: yup.object({
@@ -59,6 +81,7 @@ const LoginPage = () => {
         password: yup.string().required("Please do not leave blank"),
       }),
     });
+
   return (
     <div className="">
       <div className="container">
@@ -67,13 +90,20 @@ const LoginPage = () => {
           <div className="loginPage_form w-1/2">
             <form className="space-y-5" onSubmit={handleSubmit}>
               <h1 className="text-center text-4xl font-medium">LOGIN</h1>
-              {/* username */}
+              
+              {resetMessage && (
+                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                  {resetMessage}
+                </div>
+              )}
+              
+              {/* username or email */}
               <InputCustom
                 name={"username"}
                 onChange={handleChange}
                 value={values.username}
-                placeholder={"Please enter user name"}
-                labelContent={"User Name"}
+                placeholder={"Enter username or email"}
+                labelContent={"Username or Email"}
                 error={errors.username}
                 touched={touched.username}
                 onBlur={handleBlur}
@@ -98,12 +128,20 @@ const LoginPage = () => {
                   Sign In
                 </button>
                 <GoogleLogin />
-                <Link
-                  to={path.signUp}
-                  className="mt-3 text-blue-600 hover:underline duration-300"
-                >
-                  If you do not have an account, click here
-                </Link>
+                <div className="mt-3 flex justify-between items-center">
+                  <Link
+                    to={path.signUp}
+                    className="text-blue-600 hover:underline duration-300"
+                  >
+                    If you do not have an account, click here
+                  </Link>
+                  <Link
+                    to={path.forgotPassword}
+                    className="text-[#ff8460] hover:underline duration-300"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
               </div>
             </form>
           </div>

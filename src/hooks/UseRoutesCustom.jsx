@@ -6,6 +6,8 @@ import { path } from "../common/path";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import VerifyPage from "../pages/VerifyPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ServicesPage from "../pages/ServicesPage";
 import ServiceDetailPage from "../pages/ServiceDetailPage";
 import BlogPage from "../pages/BlogPage";
@@ -37,6 +39,14 @@ const UseRoutesCustom = () => {
     {
       path: path.verify,
       element: <VerifyPage />,
+    },
+    {
+      path: path.forgotPassword,
+      element: <ForgotPasswordPage />,
+    },
+    {
+      path: path.resetPassword,
+      element: <ResetPasswordPage />,
     },
     {
       path: path.services,

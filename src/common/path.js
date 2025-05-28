@@ -4,6 +4,8 @@ export const path = {
   signUp: "/sign-up",
   signIn: "/sign-in",
   verify: "/verify-otp",
+  forgotPassword: "/forgot-password",
+  resetPassword: "/reset-password",
   services: "/services",
   serviceDetail: "/service-detail/:serviceId",
   blog: "/blog",
