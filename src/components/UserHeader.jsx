@@ -50,11 +50,16 @@ const UserHeader = () => {
   };
 
   const checkUserLogin = () => {
+    
     return infoUser ? (
       <Dropdown overlay={accountMenu} trigger={["click"]} placement="bottomRight">
         <div className="flex items-center gap-2 cursor-pointer select-none">
-          <Avatar icon={<UserOutlined />}>
-            {infoUser.fullName && infoUser.fullName.charAt(0).toUpperCase()}
+          <Avatar>
+            { 
+              infoUser.fullName !== null 
+              ? infoUser.fullName.charAt(0).toUpperCase()
+              : <UserOutlined />
+            }
           </Avatar>
           <span className="text-sm font-medium text-gray-700">
             {infoUser.fullName}
