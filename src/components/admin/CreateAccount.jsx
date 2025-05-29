@@ -21,6 +21,7 @@ const CreateAccount = () => {
         roleName: "",
       },
       onSubmit: (values) => {
+        console.log(values);
         adminService
           .createUser(values, token.token)
           .then((res) => {
@@ -34,7 +35,7 @@ const CreateAccount = () => {
       validationSchema: yup.object({
         username: yup.string().required("Please do not leave blank"),
         password: yup.string().required("Please do not leave blank"),
-        role: yup.string().required("Please choose type role"),
+        roleName: yup.string().required("Please choose type role"),
       }),
     });
 
@@ -70,14 +71,14 @@ const CreateAccount = () => {
 
           <div>
             <label
-              htmlFor="role"
+              htmlFor="roleName"
               className="block mb-2 text-sm font-medium text-gray-900"
             >
               Role Name
             </label>
             <select
-              id="role"
-              name="role"
+              id="roleName"
+              name="roleName"
               value={values.role}
               onChange={handleChange}
               onBlur={handleBlur}
