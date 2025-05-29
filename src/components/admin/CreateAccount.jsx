@@ -86,7 +86,6 @@ const CreateAccount = () => {
               <option value="admin">ADMIN</option>
               <option value="manager">MANAGER</option>
               <option value="doctor">DOCTOR</option>
-              <option value="customer">CUSTOMER</option>
             </select>
             {errors.role && touched.role && (
               <p className="text-red-500 text-sm mt-1">{errors.role}</p>

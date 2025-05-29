@@ -20,8 +20,6 @@ const UserHeader = () => {
         setInfoUser(res.data.result);
       })
       .catch((err) => {
-        console.log(err.response.data.message);
-        // setInfoUser(null);
       });
   }, [token]);
 

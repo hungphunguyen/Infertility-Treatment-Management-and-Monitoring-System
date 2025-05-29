@@ -20,7 +20,6 @@ const ResendOtpPage = () => {
       onSubmit: async (values) => {
         try {
           if (step == "email") {
-            console.log(values);
             await authService.resendOtp(values);
             showNotification("OTP code sent, check email!", "success");
             setStep("otp");
@@ -32,7 +31,7 @@ const ResendOtpPage = () => {
               window.location.reload();
             }, 1000);
           }
-        } catch (error) {
+        } catch (errors) {
           showNotification(errors.response.data.message, "error");
         }
       },

@@ -26,12 +26,6 @@ const CustomBarShape = ({ x, y, width, height, fill }) => {
     isNaN(height) ||
     height === 0
   ) {
-    console.warn("❗CustomBarShape nhận giá trị không hợp lệ:", {
-      x,
-      y,
-      width,
-      height,
-    });
     return null;
   }
 
@@ -56,13 +50,10 @@ const UserRoleChart = () => {
     adminService
       .getUsers(token.token)
       .then((res) => {
-        console.log(res);
         const roleCount = {};
         const users = res.data.result;
-        console.log(users);
         users.forEach((user) => {
           const role = user.roleName.name;
-          console.log(role);
           roleCount[role] = (roleCount[role] || 0) + 1;
         });
 
@@ -75,7 +66,6 @@ const UserRoleChart = () => {
         setChartData(formatted);
       })
       .catch((errors) => {
-        console.log(errors);
       });
   }, [token]);
 

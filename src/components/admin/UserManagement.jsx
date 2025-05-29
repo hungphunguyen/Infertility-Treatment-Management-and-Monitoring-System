@@ -26,7 +26,6 @@ const UserManagement = () => {
       .then((res) => {
         setUsers(res.data.result);
         setShowRemoved(isRemoved);
-        showNotification("Get list user success", "success");
       })
       .catch((err) => {
         showNotification(err.response.data.message, "error");

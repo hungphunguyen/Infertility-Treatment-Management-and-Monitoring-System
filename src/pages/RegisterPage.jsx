@@ -32,11 +32,9 @@ const RegisterPage = () => {
         authService
           .signUp(values)
           .then((res) => {
-            console.log("res.data");
-            console.log(res);
             //thực hiện lưu trự dưới localStorage
-            setLocalStorage("user", res.data);
-            dispatch(getInfoUser(res.data));
+            setLocalStorage("user", res.data.result);
+            dispatch(getInfoUser(res.data.result));
 
             showNotification("Register successful", "success");
             setTimeout(() => {

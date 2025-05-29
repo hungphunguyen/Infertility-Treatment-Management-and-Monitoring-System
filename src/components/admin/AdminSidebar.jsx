@@ -43,12 +43,9 @@ const AdminSidebar = ({
     authService
       .getMyInfo(token.token)
       .then((res) => {
-        console.log(res.data.result.roleName.name);
         setInfoUser(res.data.result);
       })
       .catch((err) => {
-        console.log(err.response.data.message);
-        // setInfoUser(null);
       });
   }, [token]);
 
