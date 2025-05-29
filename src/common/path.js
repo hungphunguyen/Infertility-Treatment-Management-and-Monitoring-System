@@ -14,7 +14,7 @@ export const path = {
   features: "/features",
   contacts: "/contacts",
   doctorDetail: "/doctor/:id",
-  appointment: "/appointment",
+  appointment: "/register-service",
   admin: "/admin",
   resendOtp: "/resend-otp",
 };

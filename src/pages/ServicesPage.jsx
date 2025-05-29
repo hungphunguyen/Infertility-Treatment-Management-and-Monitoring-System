@@ -22,18 +22,6 @@ const allServices = [
     image: "/images/features/pc6.jpg"
   },
   {
-    id: "gender-selection",
-    title: "Lựa Chọn Giới Tính",
-    description: "Lựa chọn giới tính có thể được thực hiện trước hoặc sau khi trứng được thụ tinh. Lựa chọn giới tính là nỗ lực kiểm soát giới tính của con cái.",
-    image: "/images/features/iui-vs-ivf.jpg"
-  },
-  {
-    id: "consultation",
-    title: "Tư Vấn Sinh Sản",
-    description: "Các buổi tư vấn cá nhân hóa với các chuyên gia sinh sản của chúng tôi để thảo luận về các lựa chọn của bạn và phát triển kế hoạch điều trị.",
-    image: "/images/features/pc3.jpg"
-  },
-  {
     id: "diagnostic-testing",
     title: "Xét Nghiệm Chẩn Đoán",
     description: "Xét nghiệm toàn diện để xác định nguyên nhân của vô sinh và xác định phương pháp điều trị hiệu quả nhất.",
@@ -78,34 +66,10 @@ const ServicesPage = () => {
             </div>
           </div>
 
-          {/* First row - 3 services */}
+          {/* Services Row */}
           <Row gutter={[32, 32]} className="mb-16">
-            {allServices.slice(0, 3).map((service) => (
+            {allServices.map((service) => (
               <Col xs={24} md={8} key={service.id}>
-                <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col">
-                  <img 
-                    src={service.image} 
-                    alt={service.title} 
-                    className="w-full h-56 object-cover"
-                  />
-                  <div className="p-6 flex-grow flex flex-col">
-                    <Title level={4} className="mb-4">{service.title}</Title>
-                    <Paragraph className="text-gray-600 mb-6 flex-grow">
-                      {service.description}
-                    </Paragraph>
-                    <Link to={`/service-detail/${service.id}`} className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto">
-                      <span className="mr-1">+</span> Thông Tin Thêm
-                    </Link>
-                  </div>
-                </div>
-              </Col>
-            ))}
-          </Row>
-
-          {/* Second row - 2 services centered */}
-          <Row gutter={[32, 32]} justify="center">
-            {allServices.slice(3, 5).map((service) => (
-              <Col xs={24} md={8} lg={6} key={service.id}>
                 <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col">
                   <img 
                     src={service.image} 

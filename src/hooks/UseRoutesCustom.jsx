@@ -15,7 +15,7 @@ import BlogDetailPage from "../pages/BlogDetailPage";
 import OurStaffPage from "../pages/OurStaffPage";
 import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
-import AppointmentPage from "../pages/AppointmentPage";
+import RegisterService from "../pages/RegisterService";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import ResendOtpPage from "../pages/ResendOtpPage";
 
@@ -76,7 +76,7 @@ const UseRoutesCustom = () => {
     },
     {
       path: path.appointment,
-      element: <AppointmentPage />,
+      element: <RegisterService />,
     },
     {
       path: path.admin,
