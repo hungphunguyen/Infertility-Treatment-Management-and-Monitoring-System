@@ -21,14 +21,12 @@ const CreateAccount = () => {
         roleName: "",
       },
       onSubmit: (values) => {
-        console.log(values);
         adminService
           .createUser(values, token.token)
           .then((res) => {
             showNotification("Create user successful", "success");
           })
           .catch((errors) => {
-            console.log(errors);
             showNotification(errors.response.data.message, "error");
           });
       },

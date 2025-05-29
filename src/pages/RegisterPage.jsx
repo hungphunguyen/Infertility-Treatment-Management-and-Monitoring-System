@@ -29,7 +29,6 @@ const RegisterPage = () => {
         address: "",
       },
       onSubmit: (values) => {
-        console.log(values);
         authService
           .signUp(values)
           .then((res) => {
@@ -46,7 +45,6 @@ const RegisterPage = () => {
             }, 1000);
           })
           .catch((errors) => {
-            console.log(errors.response);
             showNotification(errors.response.data.message, "error");
           });
       },

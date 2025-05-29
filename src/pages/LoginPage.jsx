@@ -33,7 +33,6 @@ const LoginPage = () => {
         password: "",
       },
       onSubmit: (values) => {
-        console.log(values);
         // gọi hàm sử lí bên authService
         authService
           .signIn(values)
@@ -59,7 +58,6 @@ const LoginPage = () => {
                 "warning"
               );
             }
-            console.log(error);
             showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },

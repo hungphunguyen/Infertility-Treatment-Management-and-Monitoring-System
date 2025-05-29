@@ -43,7 +43,6 @@ export default function GoogleLogin() {
 
   const handleCredentialResponse = async (response) => {
     const idToken = response.credential;
-    console.log("✅ Google ID Token:", idToken);
 
     try {
       const res = await authService.signInByGoogle({ idToken });
@@ -60,7 +59,6 @@ export default function GoogleLogin() {
         }, 1000);
       }
     } catch (error) {
-      console.error("❌ Lỗi đăng nhập:", error);
       showNotification(error.response.data.message, "error");
     }
   };

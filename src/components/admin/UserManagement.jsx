@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button, Space, Typography, Popconfirm } from "antd";
 import { UserOutlined, DeleteOutlined } from "@ant-design/icons";
 import { adminService } from "../../service/admin.service";
 import { useSelector } from "react-redux";
 import Modal from "react-modal";
+import { NotificationContext } from "../../App";
 
 const { Title } = Typography;
 
@@ -12,6 +13,7 @@ const UserManagement = () => {
 
   const [users, setUsers] = useState([]);
   const [showRemoved, setShowRemoved] = useState(false);
+  const { showNotification } = useContext(NotificationContext);
 
   const fetchUsers = (isRemoved) => {
     if (!token) return;
@@ -22,12 +24,12 @@ const UserManagement = () => {
 
     apiCall(token.token)
       .then((res) => {
-        console.log(res);
         setUsers(res.data.result);
         setShowRemoved(isRemoved);
+        showNotification("Get list user success", "success");
       })
       .catch((err) => {
-        console.error(err);
+        showNotification(err.response.data.message, "error");
       });
   };
 
@@ -52,13 +54,13 @@ const UserManagement = () => {
     adminService
       .deleteUser(id, token.token)
       .then((res) => {
-        console.log(res);
+        showNotification("Removed success", "success");
         setTimeout(() => {
           fetchUsers(showRemoved);
         }, 200);
       })
       .catch((err) => {
-        console.log(err);
+        showNotification(err.response.data.message, "error");
       });
   };
 
@@ -66,13 +68,14 @@ const UserManagement = () => {
     adminService
       .restoreUser(id, token.token)
       .then((res) => {
-        console.log(res);
+        showNotification("Restored success", "success");
+
         setTimeout(() => {
           fetchUsers(showRemoved);
         }, 200);
       })
       .catch((err) => {
-        console.log(err);
+        showNotification(err.response.data.message, "error");
       });
   };
 
@@ -92,14 +95,14 @@ const UserManagement = () => {
     await adminService
       .updateRoleUser(selectedUser.id, selectedRole, token.token)
       .then((res) => {
-        console.log(res);
         setEditModalOpen(false);
+        showNotification("Update role success", "success");
         setTimeout(() => {
           fetchUsers(showRemoved);
         }, 200);
       })
       .catch((err) => {
-        console.log(err);
+        showNotification(err.response.data.message, "error");
       });
   };
 
