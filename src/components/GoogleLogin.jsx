@@ -50,7 +50,7 @@ export default function GoogleLogin() {
       const data = res.data.result;
 
       if (data.token) {
-        setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
+        setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao.
         dispatch(setToken(res.data.result.token));
 
         showNotification("Login successful", "success");
