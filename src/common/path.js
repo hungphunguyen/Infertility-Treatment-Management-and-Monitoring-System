@@ -14,4 +14,5 @@ export const path = {
   doctorDetail: "/doctor/:id",
   appointment: "/appointment",
   admin: "/admin",
+  resendOtp: "/resend-otp",
 };

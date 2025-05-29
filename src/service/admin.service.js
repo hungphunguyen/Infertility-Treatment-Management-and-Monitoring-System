@@ -24,9 +24,25 @@ export const adminService = {
       },
     });
   },
+  restoreUser: (data, token) => {
+    console.log(token);
+    return http.put(`admin/restore-user/${data}`, null, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 
   updateRoleUser: (id, roleName, token) => {
-    return http.put(`admin/update-role/${id}?roleName=${roleName}`, {
+    return http.put(`admin/update-role/${id}?roleName=${roleName}`, null, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  createUser: (data, token) => {
+    return http.post("admin/create-user", data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

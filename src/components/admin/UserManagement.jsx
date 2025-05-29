@@ -1,20 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Button,
-  Card,
-  Avatar,
-  Tag,
-  Space,
-  Typography,
-  Modal,
-  Popconfirm,
-} from "antd";
+import { Button, Space, Typography, Popconfirm } from "antd";
 import { UserOutlined, DeleteOutlined } from "@ant-design/icons";
 import { adminService } from "../../service/admin.service";
 import { useSelector } from "react-redux";
-import { Content } from "antd/es/layout/layout";
-// import Modal from "react-modal";
+import Modal from "react-modal";
 
 const { Title } = Typography;
 
@@ -73,6 +62,20 @@ const UserManagement = () => {
       });
   };
 
+  const handleRestore = (id) => {
+    adminService
+      .restoreUser(id, token.token)
+      .then((res) => {
+        console.log(res);
+        setTimeout(() => {
+          fetchUsers(showRemoved);
+        }, 200);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   // chỉnh sửa cho chức năng update role
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -80,11 +83,12 @@ const UserManagement = () => {
 
   const openEditModal = (user) => {
     setSelectedUser(user);
-    setSelectedRole(user.roleName?.name || "");
+    setSelectedRole(user.roleName.name || "");
     setEditModalOpen(true);
   };
-
-  const handleUpdate = async () => {
+  // update role cho user hoat dong
+  const handleUpdateRole = async () => {
+    console.log(selectedUser.id, selectedRole, token.token);
     await adminService
       .updateRoleUser(selectedUser.id, selectedRole, token.token)
       .then((res) => {
@@ -166,19 +170,23 @@ const UserManagement = () => {
                 {!showRemoved && (
                   <button
                     className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-                    // onClick={handleUpdate(user.id, user.roleName.name)}
+                    onClick={() => openEditModal(user)}
                   >
                     Sửa
                   </button>
                 )}
 
                 {showRemoved ? (
-                  <button
-                    className="text-white bg-green-500 px-3 py-1 rounded hover:bg-green-600"
-                    onClick={() => handleRestore(user.id)}
+                  <Popconfirm
+                    title="Bạn có chắc muốn khôi phục user này không?"
+                    onConfirm={() => handleRestore(user.id)}
+                    okText="Khôi phục"
+                    cancelText="Huỷ"
                   >
-                    Khôi phục
-                  </button>
+                    <button className="text-white bg-green-500 px-3 py-1 rounded hover:bg-green-600">
+                      Khôi phục
+                    </button>
+                  </Popconfirm>
                 ) : (
                   <Popconfirm
                     title="Bạn có chắc muốn xoá user này không?"
@@ -196,6 +204,42 @@ const UserManagement = () => {
           ))}
         </tbody>
       </table>
+      <Modal
+        isOpen={isEditModalOpen}
+        onRequestClose={() => setEditModalOpen(false)}
+        contentLabel="Cập nhật vai trò"
+        className="bg-white p-6 rounded-md shadow-lg max-w-md mx-auto mt-20 outline-none"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
+      >
+        <h2 className="text-xl font-semibold mb-4">Cập nhật vai trò</h2>
+
+        <label className="block mb-2 font-medium">Chọn vai trò:</label>
+        <select
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          className="w-full border px-3 py-2 rounded mb-4"
+        >
+          <option value="ADMIN">ADMIN</option>
+          <option value="MANAGER">MANAGER</option>
+          <option value="DOCTOR">DOCTOR</option>
+          <option value="CUSTOMER">CUSTOMER</option>
+        </select>
+
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={() => setEditModalOpen(false)}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            Huỷ
+          </button>
+          <button
+            onClick={handleUpdateRole}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Cập nhật
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

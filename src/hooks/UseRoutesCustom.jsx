@@ -15,6 +15,7 @@ import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
 import AppointmentPage from "../pages/AppointmentPage";
 import AdminPage from "../pages/AdminPage/AdminPage";
+import ResendOtpPage from "../pages/ResendOtpPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -70,6 +71,10 @@ const UseRoutesCustom = () => {
     {
       path: path.admin,
       element: <AdminPage />,
+    },
+    {
+      path: path.resendOtp,
+      element: <ResendOtpPage />,
     },
     {
       path: path.pageNotFound,

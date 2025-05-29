@@ -116,9 +116,11 @@ const LoginPage = () => {
                 </Link>
               </div>
               {isResend && (
-                <button className="py-2 px-4 font-medium border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white  duration-300">
-                  Resend OTP
-                </button>
+                <Link to={path.resendOtp}>
+                  <button className="py-2 px-4 font-medium border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white  duration-300">
+                    Resend OTP
+                  </button>
+                </Link>
               )}
             </form>
           </div>
