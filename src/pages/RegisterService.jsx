@@ -15,7 +15,7 @@ const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
-const AppointmentPage = () => {
+const RegisterService = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const location = useLocation();
@@ -34,12 +34,10 @@ const AppointmentPage = () => {
     
     // If a service was selected from the service detail page, set the form field
     if (selectedService) {
-      // Map service IDs from the detail page to appointment form values
+      // Map service IDs from the detail page to register service form values
       const serviceMapping = {
-        "egg-donor": "egg_freezing",
-        "egg-freezing": "egg_freezing",
-        "gender-selection": "genetic_testing",
-        "consultation": "consultation",
+        "ivf": "ivf",
+        "iui": "iui",
         "diagnostic-testing": "fertility_check"
       };
       
@@ -75,7 +73,7 @@ const AppointmentPage = () => {
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
-      message.success("Yêu cầu đặt lịch hẹn của bạn đã được gửi thành công!");
+      message.success("Yêu cầu đăng ký dịch vụ của bạn đã được gửi thành công!");
       form.resetFields();
     }, 1500);
   };
@@ -88,17 +86,17 @@ const AppointmentPage = () => {
       <div className="relative h-[400px] w-full overflow-hidden">
         <img 
           src="/images/features/pc8.jpg" 
-          alt="Băng rôn Đặt lịch" 
+          alt="Băng rôn Đăng ký dịch vụ" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Đặt lịch Hẹn</h1>
+            <h1 className="text-5xl font-bold text-white mb-4">Đăng Ký Dịch Vụ</h1>
             <div className="flex items-center justify-center text-white">
               <span className="mx-2">TRANG CHỦ</span>
               <span className="mx-2">{'>'}</span>
-              <span className="mx-2">ĐẶT LỊCH</span>
+              <span className="mx-2">ĐĂNG KÝ DỊCH VỤ</span>
             </div>
           </div>
         </div>
@@ -107,11 +105,11 @@ const AppointmentPage = () => {
       <div className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-2">Lên lịch Thăm khám</h2>
+            <h2 className="text-4xl font-bold mb-2">Đăng Ký Dịch Vụ</h2>
             <span className="text-[#ff8460] font-medium">CHÚNG TÔI Ở ĐÂY ĐỂ HỖ TRỢ BẠN</span>
             <Paragraph className="text-lg mt-6 max-w-3xl mx-auto">
-              Vui lòng điền vào biểu mẫu dưới đây để đặt lịch hẹn. Đội ngũ của chúng tôi sẽ xem xét 
-              yêu cầu của bạn và xác nhận lịch hẹn trong vòng 24 giờ.
+              Vui lòng điền vào biểu mẫu dưới đây để đăng ký dịch vụ. Đội ngũ của chúng tôi sẽ xem xét 
+              yêu cầu của bạn và liên hệ trong vòng 24 giờ.
             </Paragraph>
           </div>
           
@@ -220,35 +218,13 @@ const AppointmentPage = () => {
                       ))}
                     </Select>
                     {selectedDoctor && (
-                      <div className="mt-2">
-                        <Text type="success">Bạn đã chọn một bác sĩ từ đội ngũ của chúng tôi.</Text>
+                      <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                        <Text strong className="text-green-700">
+                          Bác sĩ đã chọn: {doctors.find(doc => doc.value === selectedDoctor)?.label || selectedDoctor}
+                        </Text>
                       </div>
                     )}
                   </Form.Item>
-                  
-                  <Row gutter={[16, 0]}>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="preferredDate"
-                        label="Ngày Ưu tiên"
-                        rules={[{ required: true, message: "Vui lòng chọn một ngày" }]}
-                      >
-                        <DatePicker className="w-full" />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        name="preferredTime"
-                        label="Thời gian Ưu tiên"
-                        rules={[{ required: true, message: "Vui lòng chọn một khung giờ" }]}
-                      >
-                        <Select placeholder="Chọn thời gian">
-                          <Option value="morning">Buổi sáng (9:00 - 12:00)</Option>
-                          <Option value="afternoon">Buổi chiều (13:00 - 17:00)</Option>
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                  </Row>
                   
                   <Form.Item
                     name="medicalHistory"
@@ -268,19 +244,6 @@ const AppointmentPage = () => {
                       <Radio value="yes">Có</Radio>
                       <Radio value="no">Không</Radio>
                     </Radio.Group>
-                  </Form.Item>
-                  
-                  <Form.Item
-                    name="howHeard"
-                    label="Bạn biết đến chúng tôi qua đâu?"
-                  >
-                    <Select placeholder="Vui lòng chọn">
-                      <Option value="internet">Tìm kiếm trên Internet</Option>
-                      <Option value="referral">Giới thiệu từ Bác sĩ</Option>
-                      <Option value="friend">Bạn bè/Gia đình</Option>
-                      <Option value="social">Mạng xã hội</Option>
-                      <Option value="other">Khác</Option>
-                    </Select>
                   </Form.Item>
                   
                   <Divider />
@@ -307,7 +270,7 @@ const AppointmentPage = () => {
                       className="bg-[#ff8460] hover:bg-[#ff6b40] border-none h-12 text-lg px-8"
                       block
                     >
-                      Gửi Yêu cầu Đặt lịch
+                      Gửi Yêu cầu Đăng Ký
                     </Button>
                   </Form.Item>
                 </Form>
@@ -385,4 +348,4 @@ const AppointmentPage = () => {
   );
 };
 
-export default AppointmentPage;
+export default RegisterService;

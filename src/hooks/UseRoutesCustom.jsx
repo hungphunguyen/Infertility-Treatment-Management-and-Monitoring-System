@@ -6,6 +6,8 @@ import { path } from "../common/path";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import VerifyPage from "../pages/VerifyPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ServicesPage from "../pages/ServicesPage";
 import ServiceDetailPage from "../pages/ServiceDetailPage";
 import BlogPage from "../pages/BlogPage";
@@ -13,7 +15,7 @@ import BlogDetailPage from "../pages/BlogDetailPage";
 import OurStaffPage from "../pages/OurStaffPage";
 import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
-import AppointmentPage from "../pages/AppointmentPage";
+import RegisterService from "../pages/RegisterService";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import ResendOtpPage from "../pages/ResendOtpPage";
 
@@ -35,6 +37,14 @@ const UseRoutesCustom = () => {
     {
       path: path.verify,
       element: <VerifyPage />,
+    },
+    {
+      path: path.forgotPassword,
+      element: <ForgotPasswordPage />,
+    },
+    {
+      path: path.resetPassword,
+      element: <ResetPasswordPage />,
     },
     {
       path: path.services,
@@ -66,7 +76,7 @@ const UseRoutesCustom = () => {
     },
     {
       path: path.appointment,
-      element: <AppointmentPage />,
+      element: <RegisterService />,
     },
     {
       path: path.admin,

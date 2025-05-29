@@ -69,7 +69,7 @@ const UserTemplate = () => {
                 <div className="max-w-xl">
                   <h1 className="text-5xl font-bold text-white mb-6">Điều Kỳ Diệu Của Bạn.<br/>Sứ Mệnh Của Chúng Tôi.</h1>
                   <button 
-                    onClick={() => navigate('/appointment')}
+                    onClick={() => navigate('/register-service')}
                     className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg"
                   >
                     Đặt Lịch Hẹn
@@ -191,18 +191,7 @@ const UserTemplate = () => {
                     </div>
                     <span className="hover:text-[#ff8460] transition duration-300">Thụ tinh nhân tạo (IUI)</span>
                   </div>
-                  <div className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300" onClick={() => navigate('/service-detail/diagnostic-testing')}>
-                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 hover:bg-[#ff6b40] transition duration-300">
-                      <ArrowRightOutlined />
-                    </div>
-                    <span className="hover:text-[#ff8460] transition duration-300">Xét nghiệm và Chẩn đoán</span>
-                  </div>
-                  <div className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300" onClick={() => navigate('/service-detail/gender-selection')}>
-                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 hover:bg-[#ff6b40] transition duration-300">
-                      <ArrowRightOutlined />
-                    </div>
-                    <span className="hover:text-[#ff8460] transition duration-300">Xét nghiệm Di truyền</span>
-                  </div>
+                  
                 </div>
                 
                 <button 
@@ -225,70 +214,6 @@ const UserTemplate = () => {
           </Row>
         </div>
       </div>
-
-      
-
-      {/* About Center in Numbers */}
-      <div className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-2">Thành tựu của chúng tôi</h2>
-            <span className="text-[#ff8460] font-medium">CHÚNG TÔI LÀ AI</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
-            <div className="flex items-center space-x-8">
-              <div>
-                <div className="relative">
-                  <div className="w-64 h-64">
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <circle cx="50" cy="50" r="45" fill="none" stroke="#ff8460" strokeWidth="6" strokeDasharray="283" strokeDashoffset="70" />
-                      <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" fill="#ff8460" fontSize="28" fontWeight="bold">87%</text>
-                    </svg>
-                  </div>
-                  <div className="text-center mt-4">
-                    <p className="text-gray-500">Tỷ lệ thành công</p>
-                    <p className="font-semibold">Thai kỳ thành công</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <img 
-                  src="/images/features/pc4.jpg" 
-                  alt="Cặp đôi hạnh phúc" 
-                  className="w-48 h-48 rounded-full object-cover"
-                />
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-8">
-              <div>
-                <div className="relative">
-                  <div className="w-64 h-64">
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <circle cx="50" cy="50" r="45" fill="none" stroke="#ff8460" strokeWidth="6" strokeDasharray="283" strokeDashoffset="70" />
-                      <text x="50" y="50" textAnchor="middle" dominantBaseline="middle" fill="#ff8460" fontSize="28" fontWeight="bold">75%</text>
-                    </svg>
-                  </div>
-                  <div className="text-center mt-4">
-                    <p className="text-gray-500">Tỷ lệ thành công</p>
-                    <p className="font-semibold">Mang thai hộ thành công</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <img 
-                  src="/images/features/pc6.jpg" 
-                  alt="Mẹ và bé" 
-                  className="w-48 h-48 rounded-full object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      
 
       {/* Our Doctors */}
       <div className="py-20 bg-[#c2da5c]">
@@ -338,7 +263,7 @@ const UserTemplate = () => {
                         Xem chi tiết
                       </button>
                       <button 
-                        onClick={() => navigate('/appointment', { state: { selectedDoctor: doctor.value } })}
+                        onClick={() => navigate('/register-service', { state: { selectedDoctor: doctor.value } })}
                         className="bg-[#ff8460] hover:bg-[#ff6b40] text-white px-4 py-2 rounded text-sm transition duration-300"
                       >
                         Đặt lịch
@@ -363,8 +288,6 @@ const UserTemplate = () => {
 
       {/* Recommendation Section */}
       <RecommendationSection />
-
-      
 
       <Outlet />
       <UserFooter />

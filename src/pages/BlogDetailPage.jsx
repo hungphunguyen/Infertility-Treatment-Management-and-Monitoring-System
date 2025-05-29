@@ -494,21 +494,6 @@ const BlogDetailPage = () => {
                 ))}
               </div>
 
-              {/* Tags */}
-              <div className="mb-10">
-                <div className="flex flex-wrap items-center">
-                  <TagOutlined className="mr-2 text-gray-500" />
-                  {post.tags.map(tag => (
-                    <Tag 
-                      key={tag} 
-                      className="mr-2 mb-2 px-3 py-1 border-gray-300"
-                    >
-                      {tag}
-                    </Tag>
-                  ))}
-                </div>
-              </div>
-
               {/* Share */}
               <Divider />
               
@@ -587,50 +572,6 @@ const BlogDetailPage = () => {
                   />
                 </Card>
               </div>
-
-              {/* Categories */}
-              <Card 
-                title="Danh Mục" 
-                className="mb-8 border border-gray-200"
-                headStyle={{ borderBottom: '2px solid #ff8460' }}
-              >
-                <List
-                  dataSource={[
-                    { name: 'Thai Kỳ', count: 4 },
-                    { name: 'Sinh Sản', count: 3 },
-                    { name: 'Sức Khỏe Phụ Nữ', count: 5 },
-                    { name: 'Điều Trị Sinh Sản', count: 2 },
-                    { name: 'Cảnh Báo Sức Khỏe', count: 1 }
-                  ]}
-                  renderItem={item => (
-                    <List.Item className="border-b last:border-b-0 py-2">
-                      <Link to={`/blog`} className="flex justify-between w-full hover:text-[#ff8460] transition-colors">
-                        <span>{item.name}</span>
-                        <span>({item.count})</span>
-                      </Link>
-                    </List.Item>
-                  )}
-                />
-              </Card>
-
-              {/* Tags Cloud */}
-              <Card 
-                title="Thẻ Phổ Biến" 
-                className="mb-8 border border-gray-200"
-                headStyle={{ borderBottom: '2px solid #ff8460' }}
-              >
-                <div className="flex flex-wrap">
-                  {['Thai Kỳ', 'Sinh Sản', 'IVF', 'Sức Khỏe Phụ Nữ', 'Lạc Nội Mạc Tử Cung', 
-                    'Làm Mẹ', 'Đông Lạnh Trứng', 'Sức Khỏe Sinh Sản', 'Vô Sinh'].map(tag => (
-                    <Tag 
-                      key={tag} 
-                      className="mr-2 mb-2 py-1 px-3 border-gray-300 cursor-pointer hover:border-[#ff8460] hover:text-[#ff8460] transition-colors"
-                    >
-                      {tag}
-                    </Tag>
-                  ))}
-                </div>
-              </Card>
 
               {/* Subscribe */}
               <Card 

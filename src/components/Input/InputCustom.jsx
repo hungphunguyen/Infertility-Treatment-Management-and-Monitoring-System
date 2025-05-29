@@ -12,6 +12,7 @@ const InputCustom = ({
   error,
   touched,
   typeInput = "text",
+  maxLength,
 }) => {
   return (
     <div className={classWrapper}>
@@ -32,6 +33,7 @@ const InputCustom = ({
         onChange={onChange}
         value={value}
         onBlur={onBlur}
+        maxLength={maxLength}
       />
       {error && touched ? <p className="text-red-500">{error}</p> : null}
     </div>

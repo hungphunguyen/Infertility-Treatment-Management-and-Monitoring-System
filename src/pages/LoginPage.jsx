@@ -94,7 +94,6 @@ const LoginPage = () => {
                 touched={touched.password}
                 onBlur={handleBlur}
               />
-
               <div>
                 <button
                   type="submit"
@@ -103,13 +102,20 @@ const LoginPage = () => {
                   Sign In
                 </button>
                 <GoogleLogin />
-
-                <Link
-                  to={path.signUp}
-                  className="mt-3 text-blue-600 hover:underline duration-300"
-                >
-                  If you do not have an account, click here
-                </Link>
+                <div className="mt-3 flex justify-between items-center">
+                  <Link
+                    to={path.signUp}
+                    className="text-blue-600 hover:underline duration-300"
+                  >
+                    If you do not have an account, click here
+                  </Link>
+                  <Link
+                    to={path.forgotPassword}
+                    className="text-[#ff8460] hover:underline duration-300"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
               </div>
               {isResend && (
                 <Link to={path.resendOtp}>

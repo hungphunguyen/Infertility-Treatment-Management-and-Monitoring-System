@@ -23,7 +23,13 @@ export const authService = {
   verify: (data) => {
     return http.post("auth/verify-otp", data); // đường dẫn endpoint để hoàn thành request url
   },
+  forgotPassword: (data) => {
+    return http.post("auth/forgot-password", data); // gửi email để nhận OTP
+  },
+  resetPassword: (data) => {
+    return http.post("auth/reset-password", data); // reset password với OTP
+  },
   resendOtp: (data) => {
-    return http.post("auth/resend-otp", data);
+    return http.post("auth/resend-otp", data); // resend OTP
   },
 };

@@ -62,58 +62,6 @@ const servicesData = {
     ],
     specialists: [1, 2, 4]
   },
-  "gender-selection": {
-    id: "gender-selection",
-    title: "Lựa Chọn Giới Tính",
-    subTitle: "Cân bằng gia đình thông qua xét nghiệm di truyền tiên tiến",
-    heroImage: "/images/features/iui-vs-ivf.jpg",
-    description: [
-      "Lựa chọn giới tính là phương pháp khoa học cho phép cha mẹ chọn giới tính của con trước khi mang thai. Phương pháp này thường được thực hiện bằng Xét nghiệm Di truyền Trước Phôi (PGT) trong quá trình IVF.",
-      "Lựa chọn này có thể được chọn để cân bằng gia đình hoặc ngăn ngừa các rối loạn di truyền liên quan đến giới tính truyền sang con."
-    ],
-    benefits: [
-      "Tỷ lệ chính xác cao (trên 99%) trong xác định giới tính",
-      "Lựa chọn cân bằng gia đình",
-      "Ngăn ngừa các rối loạn di truyền liên quan đến giới tính",
-      "Kết hợp với sàng lọc di truyền toàn diện",
-      "Được thực hiện bởi các nhà phôi học giàu kinh nghiệm"
-    ],
-    process: [
-      "Tư vấn ban đầu và tư vấn di truyền",
-      "Quy trình IVF để tạo phôi",
-      "Sinh thiết phôi vào ngày 5-6 của quá trình phát triển",
-      "Phân tích PGT để xác định giới tính và sức khỏe di truyền",
-      "Lựa chọn phôi có giới tính mong muốn",
-      "Chuyển phôi và theo dõi thai kỳ"
-    ],
-    specialists: [1, 3]
-  },
-  "consultation": {
-    id: "consultation",
-    title: "Tư Vấn Sinh Sản",
-    subTitle: "Hướng dẫn chuyên môn cho hành trình sinh sản của bạn",
-    heroImage: "/images/features/pc3.jpg",
-    description: [
-      "Các buổi tư vấn sinh sản của chúng tôi cung cấp đánh giá toàn diện và lời khuyên cá nhân hóa từ các chuyên gia sinh sản giàu kinh nghiệm. Chúng tôi dành thời gian để hiểu tình huống và lịch sử y tế độc đáo của bạn.",
-      "Trong buổi tư vấn, các chuyên gia của chúng tôi sẽ thảo luận về mục tiêu sinh sản của bạn, thực hiện các xét nghiệm cần thiết và phát triển kế hoạch điều trị tùy chỉnh phù hợp với nhu cầu và hoàn cảnh cụ thể của bạn."
-    ],
-    benefits: [
-      "Chú ý cá nhân từ các chuyên gia được chứng nhận",
-      "Đánh giá khả năng sinh sản toàn diện",
-      "Lập kế hoạch điều trị tùy chỉnh",
-      "Giáo dục về tất cả các lựa chọn có sẵn",
-      "Hỗ trợ tinh thần và tâm lý"
-    ],
-    process: [
-      "Xem xét lịch sử y tế đầy đủ",
-      "Khám sức khỏe và xét nghiệm chẩn đoán",
-      "Thảo luận về kết quả xét nghiệm và chẩn đoán",
-      "Giải thích các lựa chọn điều trị",
-      "Phát triển kế hoạch điều trị cá nhân hóa",
-      "Hỗ trợ liên tục trong suốt hành trình sinh sản của bạn"
-    ],
-    specialists: [1, 2, 4]
-  },
   "diagnostic-testing": {
     id: "diagnostic-testing",
     title: "Xét Nghiệm Chẩn Đoán",
@@ -226,7 +174,7 @@ const ServiceDetailPage = () => {
   }
 
   const handleBookAppointment = () => {
-    navigate('/appointment', { 
+    navigate('/register-service', { 
       state: { 
         selectedService: service.id,
         serviceName: service.title
@@ -402,7 +350,7 @@ const ServiceDetailPage = () => {
                   <Button 
                     type="primary" 
                     className="mt-4 bg-[#ff8460] hover:bg-[#ff6b40] border-none"
-                    onClick={() => navigate('/appointment', { 
+                    onClick={() => navigate('/register-service', { 
                       state: { 
                         selectedService: service.id,
                         selectedDoctor: `dr_${doctor.id}` 

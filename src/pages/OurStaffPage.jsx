@@ -94,7 +94,7 @@ const OurStaffPage = () => {
   };
 
   const handleBooking = (doctorId) => {
-    navigate(`/appointment`, {
+    navigate(`/register-service`, {
       state: { selectedDoctor: doctorId },
     });
   };
@@ -187,7 +187,7 @@ const OurStaffPage = () => {
             size="large"
             icon={<CalendarOutlined />}
             className="bg-[#ff8460] hover:bg-[#ff6b40] border-none"
-            onClick={() => navigate("/appointment")}
+            onClick={() => navigate("/register-service")}
           >
             Đặt lịch hẹn
           </Button>
