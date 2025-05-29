@@ -34,7 +34,7 @@ const UserHeader = () => {
     } else if (key === "logout") {
       // Xử lý logout
       localStorage.removeItem("token");
-      window.location.href = "/sign-in";
+      window.location.href = "/";
     }
   };
 
