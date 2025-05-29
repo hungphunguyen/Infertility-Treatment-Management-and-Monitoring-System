@@ -1,8 +1,8 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import signInAnimation from "./../assets/animation/signIn_Animation.json";
 import { useLottie } from "lottie-react";
 import InputCustom from "../components/Input/InputCustom";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -12,21 +12,10 @@ import GoogleLogin from "../components/GoogleLogin";
 import { NotificationContext } from "../App";
 import { useDispatch } from "react-redux";
 import { setToken } from "../redux/authSlice";
-
 const LoginPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
   const { showNotification } = useContext(NotificationContext);
-  const [resetMessage, setResetMessage] = useState("");
-
-  useEffect(() => {
-    // Kiểm tra nếu có thông tin từ trang reset password
-    if (location.state?.message) {
-      setResetMessage(location.state.message);
-      showNotification(location.state.message, "success");
-    }
-  }, [location.state, showNotification]);
 
   const options = {
     animationData: signInAnimation,
@@ -37,17 +26,16 @@ const LoginPage = () => {
 
   const [isResend, setIsResend] = useState();
 
-  const { handleSubmit, handleChange, values, errors, touched, handleBlur, setFieldValue } =
+  const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
     useFormik({
       initialValues: {
-        username: location.state?.username || "",
+        username: "",
         password: "",
       },
       onSubmit: (values) => {
-        console.log(values);
         // gọi hàm sử lí bên authService
         authService
-          .signIn(loginData)
+          .signIn(values)
           .then((res) => {
             console.log("res.data");
             console.log(res);
@@ -63,8 +51,14 @@ const LoginPage = () => {
             }, 1000);
           })
           .catch((error) => {
-            console.log(error);
-            // showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
+            if (error.response.data.code == 1014) {
+              setIsResend(true);
+              showNotification(
+                "If you want to verify please click resend otp!",
+                "warning"
+              );
+            }
+            showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({
@@ -72,7 +66,6 @@ const LoginPage = () => {
         password: yup.string().required("Please do not leave blank"),
       }),
     });
-
   return (
     <div className="">
       <div className="container">
@@ -81,20 +74,13 @@ const LoginPage = () => {
           <div className="loginPage_form w-1/2">
             <form className="space-y-5" onSubmit={handleSubmit}>
               <h1 className="text-center text-4xl font-medium">LOGIN</h1>
-              
-              {resetMessage && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-                  {resetMessage}
-                </div>
-              )}
-              
-              {/* username or email */}
+              {/* username */}
               <InputCustom
                 name={"username"}
                 onChange={handleChange}
                 value={values.username}
-                placeholder={"Enter username or email"}
-                labelContent={"Username or Email"}
+                placeholder={"Please enter user name"}
+                labelContent={"User Name"}
                 error={errors.username}
                 touched={touched.username}
                 onBlur={handleBlur}
@@ -119,12 +105,21 @@ const LoginPage = () => {
                   Sign In
                 </button>
                 <GoogleLogin />
-                <Link
-                  to={path.signUp}
-                  className="mt-3 text-blue-600 hover:underline duration-300"
-                >
-                  If you do not have an account, click here
-                </Link>
+
+                <div className="mt-3 flex justify-between items-center">
+                  <Link
+                    to={path.signUp}
+                    className="text-blue-600 hover:underline duration-300"
+                  >
+                    If you do not have an account, click here
+                  </Link>
+                  <Link
+                    to={path.forgotPassword}
+                    className="text-[#ff8460] hover:underline duration-300"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
               </div>
               {isResend && (
                 <Link to={path.resendOtp}>
