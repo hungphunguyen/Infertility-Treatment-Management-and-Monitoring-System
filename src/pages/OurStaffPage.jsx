@@ -21,7 +21,7 @@ const doctors = [
   {
     id: 1,
     name: "PGS.TS.BS Nguyễn Văn A",
-    role: "Giám đốc trung tâm",
+    role: "Bác sĩ khám",
     specialization: "Chuyên khoa Sản phụ khoa, Hỗ trợ sinh sản",
     education: "Tiến sĩ Y khoa, Đại học Y Hà Nội",
     experience: "Hơn 20 năm kinh nghiệm trong lĩnh vực hỗ trợ sinh sản",
@@ -39,7 +39,7 @@ const doctors = [
   {
     id: 2,
     name: "TS.BS Lê Thị B",
-    role: "Phó Giám đốc",
+    role: "Bác sĩ khám",
     specialization: "Chuyên khoa Nội tiết sinh sản",
     education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
     experience: "15 năm kinh nghiệm trong điều trị vô sinh hiếm muộn",
@@ -71,18 +71,57 @@ const doctors = [
   },
   {
     id: 4,
-    name: "BSCKII Phạm Thị D",
-    role: "Bác sĩ điều trị",
+    name: "TS.BS Nguyễn Thị D",
+    role: "Bác sĩ khám",
     specialization: "Chuyên khoa Sản phụ khoa",
-    education: "Bác sĩ chuyên khoa II, Đại học Y Hà Nội",
-    experience: "10 năm kinh nghiệm trong điều trị vô sinh",
+    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
+    experience: "14 năm kinh nghiệm trong điều trị vô sinh",
     image: "/images/doctors/doctor4.jpg",
-    email: "pham.thi.d@example.com",
+    email: "nguyen.thi.d@example.com",
     phone: "+84 123 456 792",
-    certificates: ["Hội Sản Phụ Khoa Việt Nam"],
-    value: "dr_pham",
-    rating: 4.5,
-    treatmentType: "IUI",
+    certificates: [
+      "Hội Sản Phụ Khoa Việt Nam",
+      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
+    ],
+    value: "dr_nguyen_d",
+    rating: 4.7,
+    treatmentType: "IVF",
+  },
+  {
+    id: 5,
+    name: "TS.BS Nguyễn Thị D",
+    role: "Bác sĩ khám",
+    specialization: "Chuyên khoa Sản phụ khoa",
+    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
+    experience: "14 năm kinh nghiệm trong điều trị vô sinh",
+    image: "/images/doctors/doctor4.jpg",
+    email: "nguyen.thi.d@example.com",
+    phone: "+84 123 456 792",
+    certificates: [
+      "Hội Sản Phụ Khoa Việt Nam",
+      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
+    ],
+    value: "dr_nguyen_d",
+    rating: 4.7,
+    treatmentType: "IVF",
+  },
+  {
+    id: 6,
+    name: "TS.BS Nguyễn Thị D",
+    role: "Bác sĩ khám",
+    specialization: "Chuyên khoa Sản phụ khoa",
+    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
+    experience: "14 năm kinh nghiệm trong điều trị vô sinh",
+    image: "/images/doctors/doctor4.jpg",
+    email: "nguyen.thi.d@example.com",
+    phone: "+84 123 456 792",
+    certificates: [
+      "Hội Sản Phụ Khoa Việt Nam",
+      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
+    ],
+    value: "dr_nguyen_d",
+    rating: 4.7,
+    treatmentType: "IVF",
   },
 ];
 
@@ -119,7 +158,7 @@ const OurStaffPage = () => {
           <Title level={2} className="mb-6">
             Đội ngũ y bác sĩ
           </Title>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {doctors.map((doctor) => (
               <div key={doctor.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="flex flex-col md:flex-row">

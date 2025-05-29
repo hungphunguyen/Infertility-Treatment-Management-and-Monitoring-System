@@ -2,9 +2,10 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { path } from "../common/path";
 import { useSelector } from "react-redux";
-import { Avatar } from "antd";
+import { Avatar, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
+import { SettingOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
 
 const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
@@ -22,18 +23,44 @@ const UserHeader = () => {
       });
   }, [token]);
 
+  const handleMenuClick = ({ key }) => {
+    if (key === "update") {
+      // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
+      window.location.href = "/update-profile";
+    } else if (key === "logout") {
+      // Xử lý logout
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+  };
+
+  const accountMenu = (
+    <Menu onClick={handleMenuClick}>
+      <Menu.Item key="update" icon={<SettingOutlined />}>
+        Cập nhật thông tin
+      </Menu.Item>
+      <Menu.Item key="logout" icon={<LogoutOutlined />} danger>
+        Đăng xuất
+      </Menu.Item>
+    </Menu>
+  );
+
   const isActive = (pathname) => {
     return location.pathname === pathname || location.pathname.startsWith(`${pathname}/`);
   };
 
   const checkUserLogin = () => {
     return infoUser ? (
-      <div className="text-center">
-        <Avatar>{infoUser.fullName}</Avatar> <br />
-        <span className="text-sm font-medium text-gray-700">
-          {infoUser.fullName}
-        </span>
-      </div>
+      <Dropdown overlay={accountMenu} trigger={["click"]} placement="bottomRight">
+        <div className="flex items-center gap-2 cursor-pointer select-none">
+          <Avatar icon={<UserOutlined />}>
+            {infoUser.fullName && infoUser.fullName.charAt(0).toUpperCase()}
+          </Avatar>
+          <span className="text-sm font-medium text-gray-700">
+            {infoUser.fullName}
+          </span>
+        </div>
+      </Dropdown>
     ) : (
       <div className="flex gap-3">
         <Link
