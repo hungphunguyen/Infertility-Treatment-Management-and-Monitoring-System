@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { getLocgetlStorage } from "../utils/util";
-
+import { authService } from "../service/auth.service";
 const initialState = {
   token: getLocgetlStorage("token"),
   infoUser: getLocgetlStorage("user"),

@@ -17,7 +17,6 @@ const UserHeader = () => {
     authService
       .getMyInfo(token.token)
       .then((res) => {
-        console.log(res.data.result.roleName.name);
         setInfoUser(res.data.result);
       })
       .catch((err) => {
@@ -54,7 +53,6 @@ const UserHeader = () => {
   };
 
   const checkUserRole = () => {
-    console.log("check role  " + infoUser);
     if (infoUser) {
       switch (infoUser.roleName.name) {
         case "ADMIN":
@@ -63,7 +61,7 @@ const UserHeader = () => {
               to={path.admin}
               className="py-2 px-4 font-medium border border-red-500 rounded-md hover:bg-red-500 hover:text-white  duration-300"
             >
-              ADMIN DASHBOAR
+              ADMIN DASHBOARD
             </Link>
           );
         case "DOCTOR":

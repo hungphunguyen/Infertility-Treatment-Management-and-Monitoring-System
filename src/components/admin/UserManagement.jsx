@@ -1,149 +1,248 @@
-import React from "react";
-import { Table, Button, Card, Avatar, Tag, Space, Typography } from "antd";
-import {
-  UserOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-  PlusOutlined,
-} from "@ant-design/icons";
+import React, { useContext, useEffect, useState } from "react";
+import { Button, Space, Typography, Popconfirm } from "antd";
+import { UserOutlined, DeleteOutlined } from "@ant-design/icons";
+import { adminService } from "../../service/admin.service";
+import { useSelector } from "react-redux";
+import Modal from "react-modal";
+import { NotificationContext } from "../../App";
 
 const { Title } = Typography;
 
 const UserManagement = () => {
-  // Mock data
-  const users = [
-    {
-      id: 1,
-      username: "john_doe",
-      email: "john@example.com",
-      fullName: "John Doe",
-      role: "customer",
-      status: "active",
-      createdAt: "2024-01-15",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-    },
-    {
-      id: 2,
-      username: "dr_smith",
-      email: "smith@clinic.com",
-      fullName: "Dr. Smith Wilson",
-      role: "doctor",
-      status: "active",
-      createdAt: "2024-01-10",
-      avatar:
-        "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100&h=100&fit=crop&crop=face",
-    },
-    {
-      id: 3,
-      username: "manager_jane",
-      email: "jane@clinic.com",
-      fullName: "Jane Manager",
-      role: "manager",
-      status: "active",
-      createdAt: "2024-01-05",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
-    },
-  ];
+  const token = useSelector((state) => state.authSlice);
 
-  const roleColors = {
-    admin: "red",
-    manager: "blue",
-    doctor: "green",
-    customer: "orange",
+  const [users, setUsers] = useState([]);
+  const [showRemoved, setShowRemoved] = useState(false);
+  const { showNotification } = useContext(NotificationContext);
+
+  const fetchUsers = (isRemoved) => {
+    if (!token) return;
+
+    const apiCall = isRemoved
+      ? adminService.getRemovedUsers
+      : adminService.getUsers;
+
+    apiCall(token.token)
+      .then((res) => {
+        setUsers(res.data.result);
+        setShowRemoved(isRemoved);
+        showNotification("Get list user success", "success");
+      })
+      .catch((err) => {
+        showNotification(err.response.data.message, "error");
+      });
   };
 
-  const statusColors = {
-    active: "green",
-    inactive: "red",
-    pending: "orange",
+  useEffect(() => {
+    fetchUsers(false);
+  }, [token]);
+
+  const getRoleColor = (role) => {
+    switch (role) {
+      case "CUSTOMER":
+        return "bg-yellow-100 text-yellow-700";
+      case "DOCTOR":
+        return "bg-green-100 text-green-700";
+      case "MANAGER":
+        return "bg-blue-100 text-blue-700";
+      default:
+        return "bg-teal-100 text-gray-600";
+    }
   };
 
-  const columns = [
-    {
-      title: "Avatar",
-      dataIndex: "avatar",
-      key: "avatar",
-      render: (avatar) => <Avatar src={avatar} icon={<UserOutlined />} />,
-    },
-    {
-      title: "Tên Đăng Nhập",
-      dataIndex: "username",
-      key: "username",
-    },
-    {
-      title: "Họ Tên",
-      dataIndex: "fullName",
-      key: "fullName",
-    },
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-    },
-    {
-      title: "Vai Trò",
-      dataIndex: "role",
-      key: "role",
-      render: (role) => (
-        <Tag color={roleColors[role]}>
-          {role === "admin" && "Quản Trị Viên"}
-          {role === "manager" && "Quản Lý"}
-          {role === "doctor" && "Bác Sĩ"}
-          {role === "customer" && "Khách Hàng"}
-        </Tag>
-      ),
-    },
-    {
-      title: "Trạng Thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (
-        <Tag color={statusColors[status]}>
-          {status === "active" && "Hoạt Động"}
-          {status === "inactive" && "Không Hoạt Động"}
-          {status === "pending" && "Chờ Duyệt"}
-        </Tag>
-      ),
-    },
-    {
-      title: "Ngày Tạo",
-      dataIndex: "createdAt",
-      key: "createdAt",
-    },
-    {
-      title: "Hành Động",
-      key: "action",
-      render: () => (
-        <Space size="middle">
-          <Button type="primary" icon={<EditOutlined />} size="small">
-            Sửa
-          </Button>
-          <Button type="primary" danger icon={<DeleteOutlined />} size="small">
-            Xóa
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+  const handleDelete = (id) => {
+    adminService
+      .deleteUser(id, token.token)
+      .then((res) => {
+        showNotification("Removed success", "success");
+        setTimeout(() => {
+          fetchUsers(showRemoved);
+        }, 200);
+      })
+      .catch((err) => {
+        showNotification(err.response.data.message, "error");
+      });
+  };
+
+  const handleRestore = (id) => {
+    adminService
+      .restoreUser(id, token.token)
+      .then((res) => {
+        showNotification("Restored success", "success");
+
+        setTimeout(() => {
+          fetchUsers(showRemoved);
+        }, 200);
+      })
+      .catch((err) => {
+        showNotification(err.response.data.message, "error");
+      });
+  };
+
+  // chỉnh sửa cho chức năng update role
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRole, setSelectedRole] = useState("");
+
+  const openEditModal = (user) => {
+    setSelectedUser(user);
+    setSelectedRole(user.roleName.name || "");
+    setEditModalOpen(true);
+  };
+  // update role cho user hoat dong
+  const handleUpdateRole = async () => {
+    console.log(selectedUser.id, selectedRole, token.token);
+    await adminService
+      .updateRoleUser(selectedUser.id, selectedRole, token.token)
+      .then((res) => {
+        setEditModalOpen(false);
+        showNotification("Update role success", "success");
+        setTimeout(() => {
+          fetchUsers(showRemoved);
+        }, 200);
+      })
+      .catch((err) => {
+        showNotification(err.response.data.message, "error");
+      });
+  };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <Title level={3}>Quản Lý User</Title>
         <Space>
-          <Button icon={<SearchOutlined />}>Tìm Kiếm</Button>
-          <Button type="primary" icon={<PlusOutlined />}>
-            Thêm User Mới
+          <Button
+            type="default"
+            className={!showRemoved ? "border-green-500 text-green-600" : ""}
+            icon={<UserOutlined />}
+            onClick={() => fetchUsers(false)}
+          >
+            User hoạt động
+          </Button>
+
+          <Button
+            type="default"
+            className={showRemoved ? "border-red-500 text-red-600" : ""}
+            icon={<DeleteOutlined />}
+            onClick={() => fetchUsers(true)}
+          >
+            User đã bị xoá
           </Button>
         </Space>
       </div>
 
-      <Card>
-        <Table columns={columns} dataSource={users} rowKey="id" />
-      </Card>
+      <table className="w-full border text-sm">
+        <thead>
+          <tr className="bg-gray-100 text-left">
+            <th className="p-2">Tên Đăng Nhập</th>
+            <th className="p-2">Họ Tên</th>
+            <th className="p-2">Email</th>
+            <th className="p-2">Vai Trò</th>
+            <th className="p-2">Trạng Thái</th>
+            <th className="p-2">Hành Động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user, idx) => (
+            <tr key={idx} className="border-t">
+              <td className="p-2">{user.username}</td>
+              <td className="p-2">{user.fullName}</td>
+              <td className="p-2">{user.email}</td>
+              <td className="p-2">
+                <span
+                  className={`px-2 py-1 text-xs rounded ${getRoleColor(
+                    user.roleName?.name
+                  )}`}
+                >
+                  {user.roleName?.name}
+                </span>
+              </td>
+              <td className="p-2">
+                {/* ✅ Hiển thị trạng thái theo removed */}
+                <span
+                  className={`px-2 py-1 text-xs rounded ${
+                    user.removed
+                      ? "bg-red-100 text-red-600"
+                      : "bg-green-100 text-green-600"
+                  }`}
+                >
+                  {user.removed ? "Không hoạt động" : "Hoạt động"}
+                </span>
+              </td>
+              <td className="p-2 space-x-2">
+                {!showRemoved && (
+                  <button
+                    className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                    onClick={() => openEditModal(user)}
+                  >
+                    Sửa
+                  </button>
+                )}
+
+                {showRemoved ? (
+                  <Popconfirm
+                    title="Bạn có chắc muốn khôi phục user này không?"
+                    onConfirm={() => handleRestore(user.id)}
+                    okText="Khôi phục"
+                    cancelText="Huỷ"
+                  >
+                    <button className="text-white bg-green-500 px-3 py-1 rounded hover:bg-green-600">
+                      Khôi phục
+                    </button>
+                  </Popconfirm>
+                ) : (
+                  <Popconfirm
+                    title="Bạn có chắc muốn xoá user này không?"
+                    onConfirm={() => handleDelete(user.id)}
+                    okText="Xoá"
+                    cancelText="Huỷ"
+                  >
+                    <button className="text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600">
+                      Xoá
+                    </button>
+                  </Popconfirm>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Modal
+        isOpen={isEditModalOpen}
+        onRequestClose={() => setEditModalOpen(false)}
+        contentLabel="Cập nhật vai trò"
+        className="bg-white p-6 rounded-md shadow-lg max-w-md mx-auto mt-20 outline-none"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
+      >
+        <h2 className="text-xl font-semibold mb-4">Cập nhật vai trò</h2>
+
+        <label className="block mb-2 font-medium">Chọn vai trò:</label>
+        <select
+          value={selectedRole}
+          onChange={(e) => setSelectedRole(e.target.value)}
+          className="w-full border px-3 py-2 rounded mb-4"
+        >
+          <option value="ADMIN">ADMIN</option>
+          <option value="MANAGER">MANAGER</option>
+          <option value="DOCTOR">DOCTOR</option>
+          <option value="CUSTOMER">CUSTOMER</option>
+        </select>
+
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={() => setEditModalOpen(false)}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            Huỷ
+          </button>
+          <button
+            onClick={handleUpdateRole}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Cập nhật
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

@@ -43,14 +43,13 @@ export default function GoogleLogin() {
 
   const handleCredentialResponse = async (response) => {
     const idToken = response.credential;
-    console.log("✅ Google ID Token:", idToken);
 
     try {
       const res = await authService.signInByGoogle({ idToken });
       const data = res.data.result;
 
       if (data.token) {
-        setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao
+        setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao.
         dispatch(setToken(res.data.result.token));
 
         showNotification("Login successful", "success");
@@ -60,7 +59,6 @@ export default function GoogleLogin() {
         }, 1000);
       }
     } catch (error) {
-      console.error("❌ Lỗi đăng nhập:", error);
       showNotification(error.response.data.message, "error");
     }
   };

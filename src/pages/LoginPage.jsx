@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext } from "react";
 import signInAnimation from "./../assets/animation/signIn_Animation.json";
 import { useLottie } from "lottie-react";
 import InputCustom from "../components/Input/InputCustom";
@@ -35,6 +35,8 @@ const LoginPage = () => {
 
   const { View } = useLottie(options);
 
+  const [isResend, setIsResend] = useState();
+
   const { handleSubmit, handleChange, values, errors, touched, handleBlur, setFieldValue } =
     useFormik({
       initialValues: {
@@ -43,17 +45,6 @@ const LoginPage = () => {
       },
       onSubmit: (values) => {
         console.log(values);
-        
-        // Kiểm tra xem giá trị nhập vào có phải là email không
-        const isEmail = values.username.includes('@');
-        
-        // Chuẩn bị dữ liệu đăng nhập dựa trên kiểu dữ liệu nhập vào
-        const loginData = isEmail 
-          ? { email: values.username, password: values.password }
-          : { username: values.username, password: values.password };
-        
-        console.log("Login data:", loginData);
-        
         // gọi hàm sử lí bên authService
         authService
           .signIn(loginData)
@@ -73,7 +64,7 @@ const LoginPage = () => {
           })
           .catch((error) => {
             console.log(error);
-            showNotification(error.response?.data?.message || "Đăng nhập không thành công. Vui lòng kiểm tra lại thông tin!", "error");
+            // showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({
@@ -128,21 +119,20 @@ const LoginPage = () => {
                   Sign In
                 </button>
                 <GoogleLogin />
-                <div className="mt-3 flex justify-between items-center">
-                  <Link
-                    to={path.signUp}
-                    className="text-blue-600 hover:underline duration-300"
-                  >
-                    If you do not have an account, click here
-                  </Link>
-                  <Link
-                    to={path.forgotPassword}
-                    className="text-[#ff8460] hover:underline duration-300"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
+                <Link
+                  to={path.signUp}
+                  className="mt-3 text-blue-600 hover:underline duration-300"
+                >
+                  If you do not have an account, click here
+                </Link>
               </div>
+              {isResend && (
+                <Link to={path.resendOtp}>
+                  <button className="py-2 px-4 font-medium border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white  duration-300">
+                    Resend OTP
+                  </button>
+                </Link>
+              )}
             </form>
           </div>
         </div>

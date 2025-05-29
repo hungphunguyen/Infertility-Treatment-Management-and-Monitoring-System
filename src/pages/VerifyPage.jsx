@@ -5,6 +5,7 @@ import * as yup from "yup";
 import InputCustom from "../components/Input/InputCustom";
 import { authService } from "../service/auth.service";
 import { NotificationContext } from "../App";
+import { Navigate } from "react-router-dom";
 
 const VerifyPage = () => {
   const { infoUser } = useSelector((state) => state.authSlice);
@@ -14,7 +15,7 @@ const VerifyPage = () => {
     useFormik({
       initialValues: {
         otp: "",
-        email: infoUser.result.email,
+        email: infoUser,
       },
       onSubmit: (values) => {
         console.log(values);
@@ -31,9 +32,12 @@ const VerifyPage = () => {
               window.location.reload();
             }, 1000);
           })
-          .catch((error) => {
-            console.log(error);
+          .catch((errors) => {
+            console.log(errors);
             showNotification(errors.response.data.message, "error");
+            //   if(errors.response.data.code)
+
+            // };
           });
       },
       validationSchema: yup.object({
@@ -50,7 +54,8 @@ const VerifyPage = () => {
         <p className="text-center text-gray-600 mb-6">
           Please enter the verification code that we sent to <br />
           <span className="font-medium text-gray-900">
-            {infoUser.result.email}
+            {infoUser}
+
             {/* asdasd@gmail.comm */}
           </span>{" "}
           in order to activate your account.

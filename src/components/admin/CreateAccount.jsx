@@ -1,110 +1,110 @@
-import React from 'react';
-import { Card, Form, Input, Select, Button, Space, Row, Col } from 'antd';
+import React, { useContext } from "react";
+import { Card, Select } from "antd";
+import { useFormik } from "formik";
+import InputCustom from "../Input/InputCustom";
+import { adminService } from "../../service/admin.service";
+import { useSelector } from "react-redux";
+import { NotificationContext } from "../../App";
+import * as yup from "yup";
 
 const { Option } = Select;
 
 const CreateAccount = () => {
+  const token = useSelector((state) => state.authSlice);
+  const { showNotification } = useContext(NotificationContext);
+
+  const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
+    useFormik({
+      initialValues: {
+        username: "",
+        password: "",
+        roleName: "",
+      },
+      onSubmit: (values) => {
+        adminService
+          .createUser(values, token.token)
+          .then((res) => {
+            showNotification("Create user successful", "success");
+          })
+          .catch((errors) => {
+            showNotification(errors.response.data.message, "error");
+          });
+      },
+      validationSchema: yup.object({
+        username: yup.string().required("Please do not leave blank"),
+        password: yup.string().required("Please do not leave blank"),
+        roleName: yup.string().required("Please choose type role"),
+      }),
+    });
+
   return (
     <Card title="Tạo Tài Khoản Mới">
-      <Form
-        layout="vertical"
-        autoComplete="off"
-      >
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Tên Đăng Nhập"
-              name="username"
-              rules={[
-                { required: true, message: 'Vui lòng nhập tên đăng nhập!' },
-                { min: 3, message: 'Tên đăng nhập phải có ít nhất 3 ký tự!' }
-              ]}
-            >
-              <Input placeholder="Nhập tên đăng nhập" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Họ Tên"
-              name="fullName"
-              rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}
-            >
-              <Input placeholder="Nhập họ tên đầy đủ" />
-            </Form.Item>
-          </Col>
-        </Row>
+      <form onSubmit={handleSubmit}>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+          {/* LEFT COLUMN */}
+          <InputCustom
+            labelContent="Username"
+            id="username"
+            name="username"
+            placeholder="Enter username"
+            value={values.username}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.username}
+            touched={touched.username}
+          />
 
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                { required: true, message: 'Vui lòng nhập email!' },
-                { type: 'email', message: 'Email không hợp lệ!' }
-              ]}
-            >
-              <Input placeholder="Nhập địa chỉ email" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Mật Khẩu"
-              name="password"
-              rules={[
-                { required: true, message: 'Vui lòng nhập mật khẩu!' },
-                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' }
-              ]}
-            >
-              <Input.Password placeholder="Nhập mật khẩu" />
-            </Form.Item>
-          </Col>
-        </Row>
+          <InputCustom
+            labelContent="Password"
+            id="password"
+            name="password"
+            placeholder="Enter password"
+            typeInput="password"
+            value={values.password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.password}
+            touched={touched.password}
+          />
 
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Vai Trò"
-              name="role"
-              rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
+          <div>
+            <label
+              htmlFor="roleName"
+              className="block mb-2 text-sm font-medium text-gray-900"
             >
-              <Select placeholder="Chọn vai trò">
-                <Option value="customer">Khách Hàng</Option>
-                <Option value="doctor">Bác Sĩ</Option>
-                <Option value="manager">Quản Lý</Option>
-                <Option value="admin">Quản Trị Viên</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Trạng Thái"
-              name="status"
-              rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
-              initialValue="active"
+              Role Name
+            </label>
+            <select
+              id="roleName"
+              name="roleName"
+              value={values.role}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-blue-500 focus:border-blue-500"
             >
-              <Select>
-                <Option value="active">Hoạt Động</Option>
-                <Option value="inactive">Không Hoạt Động</Option>
-                <Option value="pending">Chờ Duyệt</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
+              <option value="">-- Select role --</option>
+              <option value="admin">ADMIN</option>
+              <option value="manager">MANAGER</option>
+              <option value="doctor">DOCTOR</option>
+              <option value="customer">CUSTOMER</option>
+            </select>
+            {errors.role && touched.role && (
+              <p className="text-red-500 text-sm mt-1">{errors.role}</p>
+            )}
+          </div>
 
-        <Form.Item>
-          <Space>
-            <Button type="primary" htmlType="submit">
-              Tạo Tài Khoản
-            </Button>
-            <Button>
-              Reset
-            </Button>
-          </Space>
-        </Form.Item>
-      </Form>
+          <div className="mt-8">
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition duration-200"
+            >
+              Register
+            </button>{" "}
+          </div>
+        </div>
+      </form>
     </Card>
   );
 };
 
-export default CreateAccount; 
+export default CreateAccount;
