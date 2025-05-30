@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Typography,
   Divider,
@@ -6,6 +6,7 @@ import {
   Tag,
   Button,
   Rate,
+  Spin,
 } from "antd";
 import {
   UserOutlined,
@@ -14,119 +15,56 @@ import {
 import { useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
+import { doctorService } from "../service/doctor.service";
 
 const { Title, Paragraph, Text } = Typography;
 
-const doctors = [
-  {
-    id: 1,
-    name: "PGS.TS.BS Nguyễn Văn A",
-    role: "Bác sĩ khám",
-    specialization: "Chuyên khoa Sản phụ khoa, Hỗ trợ sinh sản",
-    education: "Tiến sĩ Y khoa, Đại học Y Hà Nội",
-    experience: "Hơn 20 năm kinh nghiệm trong lĩnh vực hỗ trợ sinh sản",
-    image: "/images/doctors/doctor1.png",
-    email: "nguyen.van.a@example.com",
-    phone: "+84 123 456 789",
-    certificates: [
-      "Hội Sản Phụ Khoa Việt Nam",
-      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
-    ],
-    value: "dr_nguyen",
-    rating: 4.8,
-    treatmentType: "IVF",
-  },
-  {
-    id: 2,
-    name: "TS.BS Lê Thị B",
-    role: "Bác sĩ khám",
-    specialization: "Chuyên khoa Nội tiết sinh sản",
-    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
-    experience: "15 năm kinh nghiệm trong điều trị vô sinh hiếm muộn",
-    image: "/images/doctors/doctor2.png",
-    email: "le.thi.b@example.com",
-    phone: "+84 123 456 790",
-    certificates: ["Hội Nội tiết Việt Nam", "Hiệp hội Sinh sản Quốc tế"],
-    value: "dr_le",
-    rating: 4.7,
-    treatmentType: "IUI",
-  },
-  {
-    id: 3,
-    name: "ThS.BS Trần Văn C",
-    role: "Trưởng phòng phôi học",
-    specialization: "Phôi học lâm sàng",
-    education: "Thạc sĩ Y khoa, Đại học Y Huế",
-    experience: "12 năm kinh nghiệm trong nuôi cấy phôi",
-    image: "/images/doctors/doctor3.jpg",
-    email: "tran.van.c@example.com",
-    phone: "+84 123 456 791",
-    certificates: [
-      "Hiệp hội Phôi học Châu Á",
-      "Chứng chỉ Phôi học lâm sàng quốc tế",
-    ],
-    value: "dr_tran",
-    rating: 4.6,
-    treatmentType: "IVF",
-  },
-  {
-    id: 4,
-    name: "TS.BS Nguyễn Thị D",
-    role: "Bác sĩ khám",
-    specialization: "Chuyên khoa Sản phụ khoa",
-    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
-    experience: "14 năm kinh nghiệm trong điều trị vô sinh",
-    image: "/images/doctors/doctor4.jpg",
-    email: "nguyen.thi.d@example.com",
-    phone: "+84 123 456 792",
-    certificates: [
-      "Hội Sản Phụ Khoa Việt Nam",
-      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
-    ],
-    value: "dr_nguyen_d",
-    rating: 4.7,
-    treatmentType: "IVF",
-  },
-  {
-    id: 5,
-    name: "TS.BS Nguyễn Thị D",
-    role: "Bác sĩ khám",
-    specialization: "Chuyên khoa Sản phụ khoa",
-    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
-    experience: "14 năm kinh nghiệm trong điều trị vô sinh",
-    image: "/images/doctors/doctor4.jpg",
-    email: "nguyen.thi.d@example.com",
-    phone: "+84 123 456 792",
-    certificates: [
-      "Hội Sản Phụ Khoa Việt Nam",
-      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
-    ],
-    value: "dr_nguyen_d",
-    rating: 4.7,
-    treatmentType: "IVF",
-  },
-  {
-    id: 6,
-    name: "TS.BS Nguyễn Thị D",
-    role: "Bác sĩ khám",
-    specialization: "Chuyên khoa Sản phụ khoa",
-    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
-    experience: "14 năm kinh nghiệm trong điều trị vô sinh",
-    image: "/images/doctors/doctor4.jpg",
-    email: "nguyen.thi.d@example.com",
-    phone: "+84 123 456 792",
-    certificates: [
-      "Hội Sản Phụ Khoa Việt Nam",
-      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
-    ],
-    value: "dr_nguyen_d",
-    rating: 4.7,
-    treatmentType: "IVF",
-  },
-];
-
 const OurStaffPage = () => {
   const navigate = useNavigate();
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch doctors data from API
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const response = await doctorService.getAllDoctors();
+        
+        if (response.data && response.data.result && Array.isArray(response.data.result)) {
+          // Map API data to component format
+          const mappedDoctors = response.data.result.map(doctor => ({
+            id: doctor.id,
+            name: doctor.fullName,
+            role: doctor.roleName?.description || "Bác sĩ chuyên khoa",
+            specialization: doctor.qualifications || "Chuyên khoa Sản phụ khoa",
+            experience: `${doctor.experienceYears || 0} năm kinh nghiệm`,
+            image: doctor.avatarUrl || "/images/doctors/default-doctor.png",
+            email: doctor.email || "Chưa cập nhật",
+            phone: doctor.phoneNumber || "Chưa cập nhật",
+            certificates: doctor.qualifications ? [doctor.qualifications] : ["Bằng cấp chuyên môn"],
+            value: `dr_${doctor.id}`,
+            rating: 4.5,
+            treatmentType: "IVF",
+            graduationYear: doctor.graduationYear,
+            experienceYears: doctor.experienceYears,
+            username: doctor.username
+          }));
+          
+          setDoctors(mappedDoctors);
+        } else {
+          setDoctors([]);
+        }
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+        setDoctors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   const handleDoctorClick = (doctorId) => {
     navigate(`/doctor/${doctorId}`);
