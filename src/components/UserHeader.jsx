@@ -62,8 +62,8 @@ const UserHeader = () => {
         trigger={["click"]}
         placement="bottomRight"
       >
-        <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold   hover:border-4 hover:border-orange-400 transition-all duration-300 cursor-pointer">
-          <Avatar>
+        <div className="flex items-center gap-2 select-none cursor-pointer ">
+          <Avatar className="w-12 h-12 rounded-full  justify-center text-white font-bold   hover:border-4 hover:border-orange-400 transition-all duration-300">
             {infoUser.fullName !== null ? (
               infoUser.fullName.charAt(0).toUpperCase()
             ) : (
