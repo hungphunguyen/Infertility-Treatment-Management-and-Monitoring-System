@@ -1,5 +1,5 @@
-import React from 'react';
-import { Carousel, Typography, Row, Col, Card, Button, Input, Form, Checkbox, Space, Statistic, Avatar, Tag, Rate } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Carousel, Typography, Row, Col, Card, Button, Input, Form, Checkbox, Space, Statistic, Avatar, Tag, Rate, Spin } from 'antd';
 import { UserOutlined, MailOutlined, PhoneOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import UserHeader from '../components/UserHeader';
 import UserFooter from '../components/UserFooter';
@@ -8,48 +8,56 @@ import SevicesChild from '../components/SevicesChild';
 import StatisticsSection from '../components/StatisticsSection';
 import ServicesIcons from '../components/ServicesIcons';
 import RecommendationSection from '../components/RecommendationSection';
+import { doctorService } from '../service/doctor.service';
 
 const { Title, Paragraph, Text } = Typography;
 
-// Dữ liệu bác sĩ từ OurStaffPage
-const doctors = [
-  {
-    id: 1,
-    name: "PGS.TS.BS Nguyễn Văn A",
-    role: "Giám đốc trung tâm",
-    specialization: "Chuyên khoa Sản phụ khoa, Hỗ trợ sinh sản",
-    education: "Tiến sĩ Y khoa, Đại học Y Hà Nội",
-    experience: "Hơn 20 năm kinh nghiệm trong lĩnh vực hỗ trợ sinh sản",
-    image: "/images/doctors/doctor1.png",
-    email: "nguyen.van.a@example.com",
-    phone: "+84 123 456 789",
-    certificates: [
-      "Hội Sản Phụ Khoa Việt Nam",
-      "Hiệp hội Sinh sản Châu Á Thái Bình Dương",
-    ],
-    value: "dr_nguyen",
-    rating: 4.8,
-    treatmentType: "IVF",
-  },
-  {
-    id: 2,
-    name: "TS.BS Lê Thị B",
-    role: "Phó Giám đốc",
-    specialization: "Chuyên khoa Nội tiết sinh sản",
-    education: "Tiến sĩ Y khoa, Đại học Y Dược TP.HCM",
-    experience: "15 năm kinh nghiệm trong điều trị vô sinh hiếm muộn",
-    image: "/images/doctors/doctor2.png",
-    email: "le.thi.b@example.com",
-    phone: "+84 123 456 790",
-    certificates: ["Hội Nội tiết Việt Nam", "Hiệp hội Sinh sản Quốc tế"],
-    value: "dr_le",
-    rating: 4.7,
-    treatmentType: "IUI",
-  },
-];
-
 const UserTemplate = () => {
   const navigate = useNavigate();
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch doctors data from API
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true);
+        const response = await doctorService.getAllDoctors();
+        
+        if (response.data && response.data.result && Array.isArray(response.data.result)) {
+          // Map API data to component format
+          const mappedDoctors = response.data.result.map(doctor => ({
+            id: doctor.id,
+            name: doctor.fullName,
+            role: doctor.roleName?.description || "Bác sĩ chuyên khoa",
+            specialization: doctor.qualifications || "Chuyên khoa Sản phụ khoa",
+            experience: `${doctor.experienceYears || 0} năm kinh nghiệm`,
+            image: doctor.avatarUrl || "/images/doctors/default-doctor.png",
+            email: doctor.email || "Chưa cập nhật",
+            phone: doctor.phoneNumber || "Chưa cập nhật",
+            certificates: doctor.qualifications ? [doctor.qualifications] : ["Bằng cấp chuyên môn"],
+            value: `dr_${doctor.id}`,
+            rating: 4.5,
+            treatmentType: "IVF",
+            graduationYear: doctor.graduationYear,
+            experienceYears: doctor.experienceYears,
+            username: doctor.username
+          }));
+          
+          setDoctors(mappedDoctors);
+        } else {
+          setDoctors([]);
+        }
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+        setDoctors([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -223,64 +231,76 @@ const UserTemplate = () => {
             <span className="text-white font-medium">BÁC SĨ CỦA CHÚNG TÔI</span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {doctors.map((doctor) => (
-              <div key={doctor.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="flex flex-col md:flex-row">
-                  <div className="md:w-1/3 p-6 flex justify-center items-center">
-                    <Avatar
-                      size={120}
-                      src={doctor.image}
-                      icon={<UserOutlined />}
-                      className="border-4 border-[#c2da5c]"
-                    />
-                  </div>
-                  <div className="md:w-2/3 p-6">
-                    <h3 className="text-xl font-bold mb-2">{doctor.name}</h3>
-                    <p className="text-[#c2da5c] font-semibold mb-2">{doctor.role}</p>
-                    <p className="text-gray-600 text-sm mb-3">{doctor.specialization}</p>
-                    <p className="text-gray-600 text-sm mb-3">{doctor.experience}</p>
-                    
-                    <div className="mb-3">
-                      <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
-                      <span className="ml-2 text-gray-600">({doctor.rating})</span>
+          {loading ? (
+            <div className="text-center py-12">
+              <Spin size="large" />
+              <p className="text-white mt-4">Đang tải thông tin bác sĩ...</p>
+            </div>
+          ) : doctors.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {doctors.slice(0, 2).map((doctor) => (
+                <div key={doctor.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <div className="flex flex-col md:flex-row">
+                    <div className="md:w-1/3 p-6 flex justify-center items-center">
+                      <Avatar
+                        size={120}
+                        src={doctor.image}
+                        icon={<UserOutlined />}
+                        className="border-4 border-[#c2da5c]"
+                      />
                     </div>
-                    
-                    <div className="mb-3">
-                      <Tag color="green" className="mb-1">{doctor.treatmentType}</Tag>
-                      {doctor.certificates.slice(0, 1).map((cert, index) => (
-                        <Tag color="blue" key={index} className="mb-1 text-xs">
-                          {cert}
-                        </Tag>
-                      ))}
-                    </div>
-                    
-                    <div className="flex space-x-2 mt-4">
-                      <button 
-                        onClick={() => navigate(`/doctor/${doctor.id}`)}
-                        className="bg-[#c2da5c] hover:bg-[#a8c245] text-white px-4 py-2 rounded text-sm transition duration-300"
-                      >
-                        Xem chi tiết
-                      </button>
-                      <button 
-                        onClick={() => navigate('/register-service', { state: { selectedDoctor: doctor.value } })}
-                        className="bg-[#ff8460] hover:bg-[#ff6b40] text-white px-4 py-2 rounded text-sm transition duration-300"
-                      >
-                        Đặt lịch
-                      </button>
+                    <div className="md:w-2/3 p-6">
+                      <h3 className="text-xl font-bold mb-2">{doctor.name}</h3>
+                      <p className="text-[#c2da5c] font-semibold mb-2">{doctor.role}</p>
+                      <p className="text-gray-600 text-sm mb-3">{doctor.specialization}</p>
+                      <p className="text-gray-600 text-sm mb-3">{doctor.experience}</p>
+                      
+                      <div className="mb-3">
+                        <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
+                        <span className="ml-2 text-gray-600">({doctor.rating})</span>
+                      </div>
+                      
+                      <div className="mb-3">
+                        <Tag color="green" className="mb-1">{doctor.treatmentType}</Tag>
+                        {doctor.certificates.slice(0, 1).map((cert, index) => (
+                          <Tag color="blue" key={index} className="mb-1 text-xs">
+                            {cert}
+                          </Tag>
+                        ))}
+                      </div>
+                      
+                      <div className="flex space-x-2 mt-4">
+                        <button 
+                          onClick={() => navigate(`/doctor/${doctor.id}`)}
+                          className="bg-[#c2da5c] hover:bg-[#a8c245] text-white px-4 py-2 rounded text-sm transition duration-300"
+                        >
+                          Xem chi tiết
+                        </button>
+                        <button 
+                          onClick={() => navigate('/register-service', { state: { selectedDoctor: doctor.value } })}
+                          className="bg-[#ff8460] hover:bg-[#ff6b40] text-white px-4 py-2 rounded text-sm transition duration-300"
+                        >
+                          Đặt lịch
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-white text-lg">Hiện tại chưa có thông tin bác sĩ.</p>
+              <p className="text-white text-sm mt-2">Vui lòng quay lại sau khi database đã có dữ liệu.</p>
+            </div>
+          )}
           
           <div className="text-center mt-10">
             <button 
               onClick={() => navigate('/our-staff')}
               className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded transition duration-300 ease-in-out"
             >
-              Xem Toàn Bộ Đội Ngũ
+              Xem Toàn Bộ Đội Ngũ ({doctors.length} bác sĩ)
             </button>
           </div>
         </div>
