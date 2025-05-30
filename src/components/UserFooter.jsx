@@ -10,7 +10,7 @@ const UserFooter = () => {
             <div className="flex items-center gap-3 mb-4">
               <div
                 className="rounded-full flex items-center justify-center w-16 h-16 overflow-hidden border-2"
-                style={{ borderColor: "#15A1AC" }}
+                style={{ borderColor: "#FF8460" }}
               >
                 <img
                   src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748582429/z6652986046151_c5b2b5d42778ea78c6b4c3ad7a01fbab_gd14jx.jpg"
