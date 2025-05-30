@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Space, Typography, Popconfirm } from "antd";
 import { UserOutlined, DeleteOutlined } from "@ant-design/icons";
 import { adminService } from "../../service/admin.service";
@@ -12,9 +12,11 @@ const UserManagement = () => {
   const token = useSelector((state) => state.authSlice);
 
   const [users, setUsers] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const [showRemoved, setShowRemoved] = useState(false);
   const { showNotification } = useContext(NotificationContext);
 
+  // thực hiện chức năng gọi danh sách User
   const fetchUsers = (isRemoved) => {
     if (!token) return;
 
@@ -31,11 +33,23 @@ const UserManagement = () => {
         showNotification(err.response.data.message, "error");
       });
   };
+  // lọc user theo từng username và id
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const q = searchText.toLowerCase();
+      return (
+        (user.username || "").toLowerCase().includes(q) ||
+        (user.email || "").toLowerCase().includes(q) ||
+        (user.roleName.name || "").toLowerCase().includes(q)
+      );
+    });
+  }, [users, searchText]);
 
   useEffect(() => {
     fetchUsers(false);
   }, [token]);
 
+  // thực hiện chức năng style với từng role khác nhau
   const getRoleColor = (role) => {
     switch (role) {
       case "CUSTOMER":
@@ -49,6 +63,7 @@ const UserManagement = () => {
     }
   };
 
+  // thực hiện chức năng delete
   const handleDelete = (id) => {
     adminService
       .deleteUser(id, token.token)
@@ -63,6 +78,7 @@ const UserManagement = () => {
       });
   };
 
+  // thực hiện chức năng restore
   const handleRestore = (id) => {
     adminService
       .restoreUser(id, token.token)
@@ -110,6 +126,14 @@ const UserManagement = () => {
       <div className="flex justify-between items-center mb-6">
         <Title level={3}>Quản Lý User</Title>
         <Space>
+          <input
+            type="text"
+            placeholder="Tìm kiếm..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="border border-gray-300 px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-80"
+          />
+
           <Button
             type="default"
             className={!showRemoved ? "border-green-500 text-green-600" : ""}
@@ -142,8 +166,8 @@ const UserManagement = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map((user, idx) => (
-            <tr key={idx} className="border-t">
+          {filteredUsers.map((user, idx) => (
+            <tr key={user.id} className="border-t">
               <td className="p-2">{user.username}</td>
               <td className="p-2">{user.fullName}</td>
               <td className="p-2">{user.email}</td>

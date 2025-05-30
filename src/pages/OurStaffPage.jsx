@@ -1,16 +1,6 @@
 import React from "react";
-import {
-  Typography,
-  Divider,
-  Avatar,
-  Tag,
-  Button,
-  Rate,
-} from "antd";
-import {
-  UserOutlined,
-  CalendarOutlined,
-} from "@ant-design/icons";
+import { Typography, Divider, Avatar, Tag, Button, Rate } from "antd";
+import { UserOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
@@ -141,6 +131,20 @@ const OurStaffPage = () => {
   return (
     <div className="w-full min-h-screen">
       <UserHeader />
+      {/* Hero Banner */}
+      <div className="relative h-[400px] w-full overflow-hidden">
+        <img
+          src="/images/features/pc7.jpg"
+          alt="Băng rôn Blog"
+          className="w-full h-full object-cover object-top"
+        />
+        <div className="absolute inset-0 bg-black opacity-40" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold text-white mb-4">Bác Sĩ</h1>
+          </div>
+        </div>
+      </div>
       <div className="px-4 py-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <Title level={1} className="text-3xl">
@@ -160,7 +164,10 @@ const OurStaffPage = () => {
           </Title>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {doctors.map((doctor) => (
-              <div key={doctor.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div
+                key={doctor.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden"
+              >
                 <div className="flex flex-col md:flex-row">
                   <div className="md:w-1/3 p-6 flex justify-center items-center">
                     <Avatar
@@ -172,32 +179,47 @@ const OurStaffPage = () => {
                   </div>
                   <div className="md:w-2/3 p-6">
                     <h3 className="text-xl font-bold mb-2">{doctor.name}</h3>
-                    <p className="text-[#ff8460] font-semibold mb-2">{doctor.role}</p>
-                    <p className="text-gray-600 text-sm mb-3">{doctor.specialization}</p>
-                    <p className="text-gray-600 text-sm mb-3">{doctor.experience}</p>
-                    
+                    <p className="text-[#ff8460] font-semibold mb-2">
+                      {doctor.role}
+                    </p>
+                    <p className="text-gray-600 text-sm mb-3">
+                      {doctor.specialization}
+                    </p>
+                    <p className="text-gray-600 text-sm mb-3">
+                      {doctor.experience}
+                    </p>
+
                     <div className="mb-3">
-                      <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
-                      <span className="ml-2 text-gray-600">({doctor.rating})</span>
+                      <Rate
+                        disabled
+                        defaultValue={doctor.rating}
+                        allowHalf
+                        className="text-sm"
+                      />
+                      <span className="ml-2 text-gray-600">
+                        ({doctor.rating})
+                      </span>
                     </div>
-                    
+
                     <div className="mb-3">
-                      <Tag color="green" className="mb-1">{doctor.treatmentType}</Tag>
+                      <Tag color="green" className="mb-1">
+                        {doctor.treatmentType}
+                      </Tag>
                       {doctor.certificates.slice(0, 1).map((cert, index) => (
                         <Tag color="blue" key={index} className="mb-1 text-xs">
                           {cert}
                         </Tag>
                       ))}
                     </div>
-                    
+
                     <div className="flex space-x-2 mt-4">
-                      <button 
+                      <button
                         onClick={() => handleDoctorClick(doctor.id)}
                         className="bg-[#ff8460] hover:bg-[#ff6b40] text-white px-4 py-2 rounded text-sm transition duration-300"
                       >
                         Xem chi tiết
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleBooking(doctor.value)}
                         className="bg-[#c2da5c] hover:bg-[#a8c245] text-white px-4 py-2 rounded text-sm transition duration-300"
                       >
