@@ -5,7 +5,11 @@ import { useSelector } from "react-redux";
 import { Avatar, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
-import { SettingOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  SettingOutlined,
+  LogoutOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 
 const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
@@ -19,8 +23,7 @@ const UserHeader = () => {
       .then((res) => {
         setInfoUser(res.data.result);
       })
-      .catch((err) => {
-      });
+      .catch((err) => {});
   }, [token]);
 
   const handleMenuClick = ({ key }) => {
@@ -46,20 +49,26 @@ const UserHeader = () => {
   );
 
   const isActive = (pathname) => {
-    return location.pathname === pathname || location.pathname.startsWith(`${pathname}/`);
+    return (
+      location.pathname === pathname ||
+      location.pathname.startsWith(`${pathname}/`)
+    );
   };
 
   const checkUserLogin = () => {
-    
     return infoUser ? (
-      <Dropdown overlay={accountMenu} trigger={["click"]} placement="bottomRight">
-        <div className="flex items-center gap-2 cursor-pointer select-none">
-          <Avatar>
-            { 
-              infoUser.fullName !== null 
-              ? infoUser.fullName.charAt(0).toUpperCase()
-              : <UserOutlined />
-            }
+      <Dropdown
+        overlay={accountMenu}
+        trigger={["click"]}
+        placement="bottomRight"
+      >
+        <div className="flex items-center gap-2 select-none cursor-pointer ">
+          <Avatar className="w-12 h-12 rounded-full  justify-center text-white font-bold   hover:border-4 hover:border-orange-400 transition-all duration-300">
+            {infoUser.fullName !== null ? (
+              infoUser.fullName.charAt(0).toUpperCase()
+            ) : (
+              <UserOutlined />
+            )}
           </Avatar>
           <span className="text-sm font-medium text-gray-700">
             {infoUser.fullName}
@@ -108,16 +117,19 @@ const UserHeader = () => {
   };
 
   return (
-    <header style={{ borderBottom: "1px solid #f2f2f2" }} className="sticky top-0 bg-white z-50">
+    <header
+      style={{ borderBottom: "1px solid #f2f2f2" }}
+      className="sticky top-0 bg-white z-50"
+    >
       <div className="container mx-auto flex items-center justify-between py-4">
         {/* Logo and Center Name - Left */}
         <div className="flex items-center gap-3">
           <div
             className="rounded-full bg-white flex items-center justify-center w-16 h-16 overflow-hidden border-2"
-            style={{ borderColor: "#15A1AC" }}
+            style={{ borderColor: "#FF8460" }}
           >
             <img
-              src="/images/logo/logo.jpg"
+              src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748582429/z6652986046151_c5b2b5d42778ea78c6b4c3ad7a01fbab_gd14jx.jpg"
               alt="Logo Bệnh viện Sinh sản NewLife"
               className="w-full h-full object-cover"
             />
@@ -137,7 +149,9 @@ const UserHeader = () => {
           <Link
             to={path.homePage}
             className={`hover:text-orange-400 transition-colors ${
-              isActive(path.homePage) && location.pathname === "/" ? "text-orange-400 font-bold text-2xl" : "text-gray-600"
+              isActive(path.homePage) && location.pathname === "/"
+                ? "text-orange-400 font-bold text-2xl"
+                : "text-gray-600"
             }`}
           >
             Trang chủ
@@ -145,7 +159,9 @@ const UserHeader = () => {
           <Link
             to={path.services}
             className={`hover:text-orange-400 transition-colors ${
-              isActive(path.services) ? "text-orange-400 font-bold text-2xl" : "text-gray-600"
+              isActive(path.services)
+                ? "text-orange-400 font-bold text-2xl"
+                : "text-gray-600"
             }`}
           >
             Dịch vụ
@@ -153,15 +169,19 @@ const UserHeader = () => {
           <Link
             to={path.ourStaff}
             className={`hover:text-orange-400 transition-colors ${
-              isActive(path.ourStaff) ? "text-orange-400 font-bold text-2xl" : "text-gray-600"
+              isActive(path.ourStaff)
+                ? "text-orange-400 font-bold text-2xl"
+                : "text-gray-600"
             }`}
           >
             Bác sĩ
           </Link>
-          <Link 
-            to={path.blog} 
+          <Link
+            to={path.blog}
             className={`hover:text-orange-400 transition-colors ${
-              isActive(path.blog) ? "text-orange-400 font-bold text-2xl" : "text-gray-600"
+              isActive(path.blog)
+                ? "text-orange-400 font-bold text-2xl"
+                : "text-gray-600"
             }`}
           >
             Blogs
@@ -169,7 +189,9 @@ const UserHeader = () => {
           <Link
             to={path.contacts}
             className={`hover:text-orange-400 transition-colors ${
-              isActive(path.contacts) ? "text-orange-400 font-bold text-2xl" : "text-gray-600"
+              isActive(path.contacts)
+                ? "text-orange-400 font-bold text-2xl"
+                : "text-gray-600"
             }`}
           >
             Liên hệ
