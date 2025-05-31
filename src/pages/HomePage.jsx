@@ -3,10 +3,21 @@ import { Carousel, Typography, Row, Col, Card, Button, Input, Form, Checkbox, Sp
 import { UserOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import UserHeader from '../components/UserHeader';
 import UserFooter from '../components/UserFooter';
+import UpdateUserForm from '../components/UpdateUserForm';
 
 const { Title, Paragraph, Text } = Typography;
 
 const HomePage = () => {
+  // Giả sử bạn đã có userId và dữ liệu ban đầu của khách hàng
+  const userId = "id_cua_khach_hang"; // Thay bằng id thực tế
+  const initialData = {
+    fullName: "",
+    phoneNumber: "",
+    gender: "",
+    dateOfBirth: "",
+    address: ""
+  };
+
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -424,6 +435,8 @@ const HomePage = () => {
       </div>
 
       <UserFooter />
+
+      <UpdateUserForm userId={userId} initialData={initialData} />
     </div>
   );
 };
