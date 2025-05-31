@@ -37,6 +37,7 @@ const LoginPage = () => {
         authService
           .signIn(values)
           .then((res) => {
+            console.log(res);
             //thực hiện lưu trự dưới localStorage
             setLocalStorage("token", res.data.result.token);
             dispatch(setToken(res.data.result.token));

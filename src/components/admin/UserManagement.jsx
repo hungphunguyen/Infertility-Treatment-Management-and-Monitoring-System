@@ -15,6 +15,8 @@ const UserManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [showRemoved, setShowRemoved] = useState(false);
   const { showNotification } = useContext(NotificationContext);
+  const [isDetailModalOpen, setDetailModalOpen] = useState(false);
+  const [userDetail, setUserDetail] = useState(null);
 
   // thực hiện chức năng gọi danh sách User
   const fetchUsers = (isRemoved) => {
@@ -121,6 +123,17 @@ const UserManagement = () => {
       });
   };
 
+  // detail user
+  const openDetailModal = async (user) => {
+    try {
+      const res = await adminService.getUserById(user.id, token.token);
+      setUserDetail(res.data); // Giả sử res.data là object user detail
+      setDetailModalOpen(true);
+    } catch (err) {
+      showNotification(err.response.data.message, "error");
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -202,6 +215,15 @@ const UserManagement = () => {
                   </button>
                 )}
 
+                {!showRemoved && (
+                  <button
+                    className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                    onClick={() => openDetailModal(user)}
+                  >
+                    Chi tiết
+                  </button>
+                )}
+
                 {showRemoved ? (
                   <Popconfirm
                     title="Bạn có chắc muốn khôi phục user này không?"
@@ -230,6 +252,7 @@ const UserManagement = () => {
           ))}
         </tbody>
       </table>
+      {/* Modal update role */}
       <Modal
         isOpen={isEditModalOpen}
         onRequestClose={() => setEditModalOpen(false)}
@@ -263,6 +286,57 @@ const UserManagement = () => {
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Cập nhật
+          </button>
+        </div>
+      </Modal>
+
+      {/* Modal detail user  */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onRequestClose={() => setDetailModalOpen(false)}
+        contentLabel="Chi tiết user"
+        className="bg-white p-6 rounded-md shadow-lg max-w-md mx-auto mt-20 outline-none"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
+      >
+        <h2 className="text-xl font-semibold mb-4">Chi tiết User</h2>
+
+        {userDetail ? (
+          <div className="space-y-2">
+            <div>
+              <strong>ID:</strong> {userDetail.id}
+            </div>
+            <div>
+              <strong>Tên đăng nhập:</strong> {userDetail.username}
+            </div>
+            <div>
+              <strong>Họ tên:</strong> {userDetail.fullName}
+            </div>
+            <div>
+              <strong>Email:</strong> {userDetail.email}
+            </div>
+            <div>
+              <strong>Vai trò:</strong> {userDetail.roleName?.name}
+            </div>
+            <div>
+              <strong>Trạng thái:</strong>{" "}
+              {userDetail.removed ? "Không hoạt động" : "Hoạt động"}
+            </div>
+            <div>
+              <strong>Ngày tạo:</strong>{" "}
+              {new Date(userDetail.createdAt).toLocaleString()}
+            </div>
+            {/* Thêm các field khác nếu cần */}
+          </div>
+        ) : (
+          <div>Đang tải dữ liệu...</div>
+        )}
+
+        <div className="flex justify-end mt-4">
+          <button
+            onClick={() => setDetailModalOpen(false)}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            Đóng
           </button>
         </div>
       </Modal>

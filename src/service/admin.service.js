@@ -9,6 +9,14 @@ export const adminService = {
     });
   },
 
+  getUserId: (id, token) => {
+    return http.get(`admin/get-user/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
   getRemovedUsers: (token) => {
     return http.get("admin/get-users-removed", {
       headers: {
