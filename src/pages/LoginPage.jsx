@@ -111,6 +111,12 @@ const LoginPage = () => {
                     If you do not have an account, click here
                   </Link>
                   <Link
+                    to={path.homePage}
+                    className="text-blue-500 hover:underline duration-300"
+                  >
+                    Go back home
+                  </Link>
+                  <Link
                     to={path.forgotPassword}
                     className="text-[#ff8460] hover:underline duration-300"
                   >
