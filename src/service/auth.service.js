@@ -32,4 +32,7 @@ export const authService = {
   resendOtp: (data) => {
     return http.post("auth/resend-otp", data); // resend OTP
   },
+  checkIntrospect: (data) => {
+    return http.post("auth/introspect", data);
+  },
 };

@@ -98,7 +98,7 @@ const UserManagement = () => {
       });
   };
 
-  // chỉnh sửa cho chức năng update role
+  // chỉnh sửa cho chức năng update password
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
@@ -108,7 +108,7 @@ const UserManagement = () => {
     setNewPassword("");
     setEditModalOpen(true);
   };
-  // update role cho user hoat dong
+  // update password cho user hoat dong
 
   const handleUpdatePassword = async () => {
     if (!selectedUser || !newPassword) {
@@ -127,7 +127,7 @@ const UserManagement = () => {
       showNotification("Cập nhật mật khẩu thành công", "success");
       fetchUsers(showRemoved);
     } catch (err) {
-      showNotification(err.response?.data?.message, "error");
+      showNotification(err.response.data.message, "error");
       console.log(err);
     }
   };

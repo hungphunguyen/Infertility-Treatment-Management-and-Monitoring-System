@@ -26,6 +26,12 @@ const UserHeader = () => {
       .catch((err) => {});
   }, [token]);
 
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, []);
+
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
       // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
@@ -91,6 +97,17 @@ const UserHeader = () => {
         </Link>
       </div>
     );
+  };
+
+  const checkIntrospect = async () => {
+    try {
+      const res = await authService.checkIntrospect(token.token);
+      if (!res.data.result.valid) {
+        localStorage.removeItem("token");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const checkUserRole = () => {

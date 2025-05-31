@@ -61,8 +61,14 @@ const LoginPage = () => {
           });
       },
       validationSchema: yup.object({
-        username: yup.string().required("Please do not leave blank"),
-        password: yup.string().required("Please do not leave blank"),
+        username: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please do not leave blank"),
+        password: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please do not leave blank"),
       }),
     });
   return (

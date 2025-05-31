@@ -3,6 +3,7 @@ import { NotificationContext } from "../../App";
 import { useFormik } from "formik";
 import { adminService } from "../../service/admin.service";
 import InputCustom from "../Input/InputCustom";
+import * as yup from "yup";
 
 const EditUserFormAdmin = ({ userDetail, token, onUpdated, onClose }) => {
   const { showNotification } = useContext(NotificationContext);
@@ -29,6 +30,13 @@ const EditUserFormAdmin = ({ userDetail, token, onUpdated, onClose }) => {
             showNotification(err.response.data.message, "error");
           });
       },
+      validationSchema: yup.object({
+        fullName: yup.string().trim("Please do not leave blank"),
+        email: yup.string().trim("Please do not leave blank"),
+        phoneNumber: yup.string().trim("Please do not leave blank"),
+        dateOfBirth: yup.string().trim("Please do not leave blank"),
+        address: yup.string().trim("Please do not leave blank"),
+      }),
     });
 
   return (
@@ -76,15 +84,32 @@ const EditUserFormAdmin = ({ userDetail, token, onUpdated, onClose }) => {
           error={errors.phoneNumber}
           touched={touched.phoneNumber}
         />
-        <InputCustom
-          labelContent="Gender"
-          name="gender"
-          value={values.gender}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          error={errors.gender}
-          touched={touched.gender}
-        />
+
+        {/* Gender (select) */}
+        <div>
+          <label
+            htmlFor="gender"
+            className="block mb-2 text-sm font-medium text-gray-900"
+          >
+            Gender
+          </label>
+          <select
+            id="gender"
+            name="gender"
+            value={values.gender}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">-- Select gender --</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          {errors.gender && touched.gender && (
+            <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+          )}
+        </div>
         <InputCustom
           labelContent="Date of Birth"
           name="dateOfBirth"
