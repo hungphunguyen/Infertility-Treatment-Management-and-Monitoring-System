@@ -5,6 +5,8 @@ import { adminService } from "../../service/admin.service";
 import { useSelector } from "react-redux";
 import Modal from "react-modal";
 import { NotificationContext } from "../../App";
+import InputCustom from "../Input/InputCustom";
+import EditUserFormAdmin from "./EditUserFormAdmin";
 
 const { Title } = Typography;
 
@@ -15,6 +17,8 @@ const UserManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [showRemoved, setShowRemoved] = useState(false);
   const { showNotification } = useContext(NotificationContext);
+  const [isDetailModalOpen, setDetailModalOpen] = useState(false);
+  const [userDetail, setUserDetail] = useState(null);
 
   // thực hiện chức năng gọi danh sách User
   const fetchUsers = (isRemoved) => {
@@ -94,31 +98,49 @@ const UserManagement = () => {
       });
   };
 
-  // chỉnh sửa cho chức năng update role
+  // chỉnh sửa cho chức năng update password
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedRole, setSelectedRole] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const openEditModal = (user) => {
     setSelectedUser(user);
-    setSelectedRole(user.roleName.name || "");
+    setNewPassword("");
     setEditModalOpen(true);
   };
-  // update role cho user hoat dong
-  const handleUpdateRole = async () => {
-    console.log(selectedUser.id, selectedRole, token.token);
-    await adminService
-      .updateRoleUser(selectedUser.id, selectedRole, token.token)
-      .then((res) => {
-        setEditModalOpen(false);
-        showNotification("Update role success", "success");
-        setTimeout(() => {
-          fetchUsers(showRemoved);
-        }, 200);
-      })
-      .catch((err) => {
-        showNotification(err.response.data.message, "error");
-      });
+  // update password cho user hoat dong
+
+  const handleUpdatePassword = async () => {
+    if (!selectedUser || !newPassword) {
+      showNotification("Vui lòng nhập mật khẩu mới", "warning");
+      return;
+    }
+
+    try {
+      await adminService.updatePasswordUser(
+        selectedUser.id,
+        newPassword,
+        token.token
+      );
+      setEditModalOpen(false);
+      setNewPassword("");
+      showNotification("Cập nhật mật khẩu thành công", "success");
+      fetchUsers(showRemoved);
+    } catch (err) {
+      showNotification(err.response.data.message, "error");
+      console.log(err);
+    }
+  };
+
+  // detail user
+  const openDetailModal = async (user) => {
+    try {
+      const res = await adminService.getUserId(user.id, token.token);
+      setUserDetail(res.data.result);
+      setDetailModalOpen(true);
+    } catch (err) {
+      showNotification(err.response.data.message, "error");
+    }
   };
 
   return (
@@ -202,6 +224,15 @@ const UserManagement = () => {
                   </button>
                 )}
 
+                {!showRemoved && (
+                  <button
+                    className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                    onClick={() => openDetailModal(user)}
+                  >
+                    Chi tiết
+                  </button>
+                )}
+
                 {showRemoved ? (
                   <Popconfirm
                     title="Bạn có chắc muốn khôi phục user này không?"
@@ -230,26 +261,24 @@ const UserManagement = () => {
           ))}
         </tbody>
       </table>
+      {/* Modal update password */}
       <Modal
         isOpen={isEditModalOpen}
         onRequestClose={() => setEditModalOpen(false)}
-        contentLabel="Cập nhật vai trò"
+        contentLabel="Cập nhật mật khẩu"
         className="bg-white p-6 rounded-md shadow-lg max-w-md mx-auto mt-20 outline-none"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
       >
-        <h2 className="text-xl font-semibold mb-4">Cập nhật vai trò</h2>
+        <h2 className="text-xl font-semibold mb-4">Cập nhật mật khẩu</h2>
 
-        <label className="block mb-2 font-medium">Chọn vai trò:</label>
-        <select
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+        <label className="block mb-2 font-medium">Mật khẩu mới:</label>
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          placeholder="Nhập mật khẩu mới"
           className="w-full border px-3 py-2 rounded mb-4"
-        >
-          <option value="ADMIN">ADMIN</option>
-          <option value="MANAGER">MANAGER</option>
-          <option value="DOCTOR">DOCTOR</option>
-          <option value="CUSTOMER">CUSTOMER</option>
-        </select>
+        />
 
         <div className="flex justify-end space-x-2">
           <button
@@ -259,12 +288,38 @@ const UserManagement = () => {
             Huỷ
           </button>
           <button
-            onClick={handleUpdateRole}
+            onClick={handleUpdatePassword}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Cập nhật
           </button>
         </div>
+      </Modal>
+
+      {/* Modal detail user  */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onRequestClose={() => setDetailModalOpen(false)}
+        contentLabel="Chi tiết user"
+        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl mx-auto mt-20 outline-none"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+          Chi tiết User
+        </h2>
+        {!userDetail ? (
+          <p className="text-gray-400">Đang tải dữ liệu người dùng...</p>
+        ) : (
+          <EditUserFormAdmin
+            userDetail={userDetail}
+            token={token.token}
+            onClose={() => {
+              setUserDetail(null);
+              setDetailModalOpen(false);
+            }}
+            onUpdated={() => fetchUsers(showRemoved)}
+          />
+        )}
       </Modal>
     </div>
   );

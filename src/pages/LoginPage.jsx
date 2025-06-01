@@ -37,6 +37,7 @@ const LoginPage = () => {
         authService
           .signIn(values)
           .then((res) => {
+            console.log(res);
             //thực hiện lưu trự dưới localStorage
             setLocalStorage("token", res.data.result.token);
             dispatch(setToken(res.data.result.token));
@@ -60,8 +61,14 @@ const LoginPage = () => {
           });
       },
       validationSchema: yup.object({
-        username: yup.string().required("Please do not leave blank"),
-        password: yup.string().required("Please do not leave blank"),
+        username: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please do not leave blank"),
+        password: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please do not leave blank"),
       }),
     });
   return (
@@ -108,6 +115,12 @@ const LoginPage = () => {
                     className="text-blue-600 hover:underline duration-300"
                   >
                     If you do not have an account, click here
+                  </Link>
+                  <Link
+                    to={path.homePage}
+                    className="text-blue-500 hover:underline duration-300"
+                  >
+                    Go back home
                   </Link>
                   <Link
                     to={path.forgotPassword}
