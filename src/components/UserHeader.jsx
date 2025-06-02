@@ -95,20 +95,20 @@ const UserHeader = () => {
     );
   };
 
-  useEffect(() => {
-    if (!token?.token) return;
+  // useEffect(() => {
+  //   if (!token?.token) return;
 
-    const interval = setInterval(() => {
-      authService.checkIntrospect(token.token).then((res) => {
-        if (!res.data.result.valid) {
-          localStorage.removeItem("token");
-          window.location.href = "/";
-        }
-      });
-    }, 10 * 60 * 1000); // mỗi 10 phút
+  //   const interval = setInterval(() => {
+  //     authService.checkIntrospect(token.token).then((res) => {
+  //       if (!res.data.result.valid) {
+  //         localStorage.removeItem("token");
+  //         window.location.href = "/";
+  //       }
+  //     });
+  //   }, 10 * 60 * 1000); // mỗi 10 phút
 
-    return () => clearInterval(interval);
-  }, [token]);
+  //   return () => clearInterval(interval);
+  // }, [token]);
 
   const checkUserRole = () => {
     if (infoUser) {
