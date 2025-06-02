@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
+import { useSelector } from "react-redux";
 import { authService } from "../service/auth.service";
 import { NotificationContext } from "../App";
 import InputCustom from "../components/Input/InputCustom";
@@ -11,7 +12,7 @@ import UserFooter from "../components/UserFooter";
 const ProfileUpdate = () => {
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
-  const token = localStorage.getItem("token");
+  const token = useSelector((state) => state.authSlice);
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(false);
 
