@@ -47,17 +47,36 @@ const RegisterPage = () => {
           });
       },
       validationSchema: yup.object({
-        username: yup.string().required("Please do not leave blank"),
-        password: yup.string().required("Please do not leave blank"),
-        fullName: yup.string().required("Full name is required"),
+        username: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please do not leave blank"),
+        password: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please do not leave blank"),
+        fullName: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Full name is required"),
         email: yup
           .string()
+          .trim("Please do not leave blank")
           .email("Invalid email")
           .required("Email is required"),
-        phoneNumber: yup.string().required("Phone is required"),
-        gender: yup.string().required("Please choose your gender"),
+        phoneNumber: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Phone is required"),
+        gender: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please choose your gender"),
         dateOfBirth: yup.date().required("Date of birth is required"),
-        address: yup.string().required("Address is required"),
+        address: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Address is required"),
       }),
     });
 

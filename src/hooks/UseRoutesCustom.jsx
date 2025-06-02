@@ -17,6 +17,7 @@ import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
 import RegisterService from "../pages/RegisterService";
 import AdminPage from "../pages/AdminPage/AdminPage";
+import ManagerPage from "../pages/ManagerPage/ManagerPage";
 import ResendOtpPage from "../pages/ResendOtpPage";
 
 const UseRoutesCustom = () => {
@@ -81,6 +82,10 @@ const UseRoutesCustom = () => {
     {
       path: path.admin,
       element: <AdminPage />,
+    },
+    {
+      path: path.manager,
+      element: <ManagerPage />,
     },
     {
       path: path.resendOtp,

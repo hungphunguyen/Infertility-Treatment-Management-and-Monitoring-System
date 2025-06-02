@@ -9,6 +9,14 @@ export const adminService = {
     });
   },
 
+  getUserId: (id, token) => {
+    return http.get(`admin/get-user/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
   getRemovedUsers: (token) => {
     return http.get("admin/get-users-removed", {
       headers: {
@@ -33,8 +41,20 @@ export const adminService = {
     });
   },
 
-  updateRoleUser: (id, roleName, token) => {
-    return http.put(`admin/update-role/${id}?roleName=${roleName}`, null, {
+  updatePasswordUser: (id, password, token) => {
+    return http.put(
+      `admin/update-user-password/${id}`,
+      { password },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+
+  updateUserById: (id, data, token) => {
+    return http.put(`admin/update-user/${id}`, data, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

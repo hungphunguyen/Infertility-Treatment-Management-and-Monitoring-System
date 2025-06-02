@@ -26,6 +26,12 @@ const UserHeader = () => {
       .catch((err) => {});
   }, [token]);
 
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, []);
+
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
       // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
@@ -93,6 +99,17 @@ const UserHeader = () => {
     );
   };
 
+  const checkIntrospect = async () => {
+    try {
+      const res = await authService.checkIntrospect(token.token);
+      if (!res.data.result.valid) {
+        localStorage.removeItem("token");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const checkUserRole = () => {
     if (infoUser) {
       switch (infoUser.roleName.name) {
@@ -129,7 +146,7 @@ const UserHeader = () => {
             style={{ borderColor: "#FF8460" }}
           >
             <img
-              src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748582429/z6652986046151_c5b2b5d42778ea78c6b4c3ad7a01fbab_gd14jx.jpg"
+              src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
               alt="Logo Bệnh viện Sinh sản NewLife"
               className="w-full h-full object-cover"
             />

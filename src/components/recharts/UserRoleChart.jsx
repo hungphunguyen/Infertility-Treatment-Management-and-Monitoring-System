@@ -42,7 +42,6 @@ const CustomBarShape = ({ x, y, width, height, fill }) => {
 
 const UserRoleChart = () => {
   const token = useSelector((state) => state.authSlice);
-  console.log("Token hiện tại:", token); // log ra xem token có chưa
 
   const [chartData, setChartData] = useState([]);
   useEffect(() => {
@@ -65,8 +64,7 @@ const UserRoleChart = () => {
 
         setChartData(formatted);
       })
-      .catch((errors) => {
-      });
+      .catch((errors) => {});
   }, [token]);
 
   return (
