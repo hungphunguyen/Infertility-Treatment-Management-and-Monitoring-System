@@ -17,5 +17,6 @@ export const path = {
   appointment: "/register-service",
   admin: "/admin",
   manager: "/manager",
+  doctor: "/doctor-dashboard",
   resendOtp: "/resend-otp",
 };

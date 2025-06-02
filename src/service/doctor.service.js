@@ -1,40 +1,6 @@
 import { http } from "./config";
 import { getLocgetlStorage } from "../utils/util";
 
-// Setup interceptors cho doctor service
-const setupDoctorInterceptors = () => {
-  // Request interceptor - thêm token nếu có
-  http.interceptors.request.use(
-    (config) => {
-      const token = getLocgetlStorage("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        config.headers['Content-Type'] = 'application/json';
-      }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
-
-  // Response interceptor - xử lý lỗi
-  http.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      console.error("Doctor API Error:", {
-        status: error.response?.status,
-        message: error.response?.data?.message || error.message,
-        url: error.config?.url
-      });
-      return Promise.reject(error);
-    }
-  );
-};
-
-// Setup interceptors khi service được import
-setupDoctorInterceptors();
-
 export const doctorService = {
   // Lấy danh sách tất cả bác sĩ
   getAllDoctors: async () => {
@@ -51,7 +17,7 @@ export const doctorService = {
     }
   },
   
-  // Lấy thông tin chi tiết một bác sĩ
+  // Lấy thông tin chi tiết một bác sĩ theo ID
   getDoctorById: async (id) => {
     try {
       const response = await http.get(`doctors/${id}`);
@@ -59,6 +25,18 @@ export const doctorService = {
       return response;
     } catch (error) {
       console.error(`💥 Error getting doctor ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Lấy thông tin bác sĩ (alias cho getDoctorById)
+  getDoctorInfo: async (doctorId) => {
+    try {
+      const response = await http.get(`doctors/${doctorId}`);
+      console.log(`📋 Doctor info for ID ${doctorId}:`, response.data);
+      return response;
+    } catch (error) {
+      console.error(`💥 Error fetching doctor info ${doctorId}:`, error);
       throw error;
     }
   },
