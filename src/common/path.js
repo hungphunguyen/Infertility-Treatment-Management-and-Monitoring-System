@@ -18,5 +18,6 @@ export const path = {
   admin: "/admin",
   manager: "/manager",
   doctor: "/doctor-dashboard",
+  updataProfile: "/update-profile",
   resendOtp: "/resend-otp",
 };

@@ -13,14 +13,14 @@ const ProfileUpdate = () => {
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
   const token = useSelector((state) => state.authSlice);
+
   const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Fetch user info when component mounts
     const fetchUserInfo = async () => {
       try {
-        const response = await authService.getMyInfo(token);
+        const response = await authService.getMyInfo(token.token);
         setUserInfo(response.data.result);
       } catch (error) {
         showNotification("Không thể lấy thông tin người dùng", "error");
@@ -47,25 +47,21 @@ const ProfileUpdate = () => {
         }
         try {
           setLoading(true);
-          await authService.updateUser(userInfo.id, values, token);
+          const res = await authService.updateUser(userInfo.id, values, token);
+          console.log(res);
           showNotification("Cập nhật thông tin thành công", "success");
-          // Refresh user info after update
-          const response = await authService.getMyInfo(token);
-          setUserInfo(response.data.result);
-          navigate("/profile");
         } catch (err) {
-          showNotification(err.response?.data?.message || "Cập nhật thông tin thất bại", "error");
-        } finally {
-          setLoading(false);
+          console.log(err);
+          showNotification(err.response?.data?.message, "error");
         }
       },
       validationSchema: yup.object({
         fullName: yup.string().required("Vui lòng nhập họ và tên"),
-        email: yup.string().email("Email không hợp lệ").required("Vui lòng nhập email"),
-        phoneNumber: yup
+        email: yup
           .string()
-          .matches(/^[0-9]{10}$/, "Số điện thoại phải có 10 chữ số")
-          .required("Vui lòng nhập số điện thoại"),
+          .email("Email không hợp lệ")
+          .required("Vui lòng nhập email"),
+        phoneNumber: yup.string().required("Vui lòng nhập số điện thoại"),
         gender: yup.string().required("Vui lòng chọn giới tính"),
         dateOfBirth: yup.string().required("Vui lòng nhập ngày sinh"),
         address: yup.string().required("Vui lòng nhập địa chỉ"),
@@ -75,21 +71,23 @@ const ProfileUpdate = () => {
   return (
     <div className="min-h-screen">
       <UserHeader />
-      
+
       {/* Hero Banner */}
       <div className="relative h-[400px] w-full overflow-hidden">
-        <img 
-          src="/images/features/pc8.jpg" 
-          alt="Cập nhật thông tin cá nhân" 
+        <img
+          src="/images/features/pc8.jpg"
+          alt="Cập nhật thông tin cá nhân"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Cập Nhật Thông Tin Cá Nhân</h1>
+            <h1 className="text-5xl font-bold text-white mb-4">
+              Cập Nhật Thông Tin Cá Nhân
+            </h1>
             <div className="flex items-center justify-center text-white">
               <span className="mx-2">TRANG CHỦ</span>
-              <span className="mx-2">{'>'}</span>
+              <span className="mx-2">{">"}</span>
               <span className="mx-2">THÔNG TIN CÁ NHÂN</span>
             </div>
           </div>
@@ -101,9 +99,12 @@ const ProfileUpdate = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-2">Cập Nhật Thông Tin</h2>
-            <span className="text-[#ff8460] font-medium">GIỮ THÔNG TIN CỦA BẠN LUÔN ĐƯỢC CẬP NHẬT</span>
+            <span className="text-[#ff8460] font-medium">
+              GIỮ THÔNG TIN CỦA BẠN LUÔN ĐƯỢC CẬP NHẬT
+            </span>
             <p className="text-lg mt-6 max-w-3xl mx-auto">
-              Vui lòng cập nhật thông tin cá nhân của bạn để chúng tôi có thể liên hệ và hỗ trợ bạn tốt hơn.
+              Vui lòng cập nhật thông tin cá nhân của bạn để chúng tôi có thể
+              liên hệ và hỗ trợ bạn tốt hơn.
             </p>
           </div>
 
@@ -136,8 +137,7 @@ const ProfileUpdate = () => {
                 labelContent="Email"
                 name="email"
                 value={values.email}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                onChange={() => {}}
                 error={errors.email}
                 touched={touched.email}
               />
@@ -200,10 +200,9 @@ const ProfileUpdate = () => {
               <div className="col-span-2 flex justify-end mt-4">
                 <button
                   type="submit"
-                  disabled={loading}
                   className="bg-[#ff8460] text-white px-6 py-2 rounded hover:bg-[#ff6b40] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Đang cập nhật..." : "Cập nhật"}
+                  Cập nhật
                 </button>
               </div>
             </form>
@@ -216,4 +215,4 @@ const ProfileUpdate = () => {
   );
 };
 
-export default ProfileUpdate; 
+export default ProfileUpdate;

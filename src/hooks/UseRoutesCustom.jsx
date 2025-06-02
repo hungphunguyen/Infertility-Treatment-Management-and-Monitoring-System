@@ -20,6 +20,7 @@ import AdminPage from "../pages/AdminPage/AdminPage";
 import ManagerPage from "../pages/ManagerPage/ManagerPage";
 import ResendOtpPage from "../pages/ResendOtpPage";
 import DoctorDashboard from "../pages/DoctorDashboard";
+import ProfileUpdate from "../pages/ProfileUpdate";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -95,6 +96,11 @@ const UseRoutesCustom = () => {
     {
       path: path.resendOtp,
       element: <ResendOtpPage />,
+    },
+
+    {
+      path: path.updataProfile,
+      element: <ProfileUpdate />,
     },
     {
       path: path.pageNotFound,
