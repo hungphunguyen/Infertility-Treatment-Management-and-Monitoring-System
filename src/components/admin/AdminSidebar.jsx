@@ -5,9 +5,11 @@ import {
   TeamOutlined,
   PlusOutlined,
   LogoutOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
+import { useNavigate } from "react-router-dom";
 
 const { Sider } = Layout;
 const { Title, Text } = Typography;
@@ -19,6 +21,7 @@ const AdminSidebar = ({
   onMenuSelect,
 }) => {
   const token = useSelector((state) => state.authSlice);
+  const navigate = useNavigate();
 
   const menuItems = [
     {
@@ -45,8 +48,7 @@ const AdminSidebar = ({
       .then((res) => {
         setInfoUser(res.data.result);
       })
-      .catch((err) => {
-      });
+      .catch((err) => {});
   }, [token]);
 
   const getCustomInfo = () => {
@@ -88,6 +90,18 @@ const AdminSidebar = ({
         onClick={({ key }) => onMenuSelect(key)}
         items={menuItems}
       />
+
+      {/* Nút về trang chủ */}
+      <div className="px-4 mt-4">
+        <Button
+          type="default"
+          icon={<HomeOutlined />}
+          style={{ width: "100%" }}
+          onClick={() => navigate("/")}
+        >
+          {!collapsed && "Về Trang Chủ"}
+        </Button>
+      </div>
 
       <div className="absolute bottom-4 left-4 right-4">
         <Button

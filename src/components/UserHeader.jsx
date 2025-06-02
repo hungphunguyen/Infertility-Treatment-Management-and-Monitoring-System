@@ -2,13 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { path } from "../common/path";
 import { useSelector } from "react-redux";
-import { Avatar, Dropdown, Menu } from "antd";
+import { Avatar, Button, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
 import {
   SettingOutlined,
   LogoutOutlined,
   UserOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons";
 
 const UserHeader = () => {
@@ -18,6 +19,7 @@ const UserHeader = () => {
 
   useEffect(() => {
     if (!token) return;
+
     authService
       .getMyInfo(token.token)
       .then((res) => {
@@ -25,12 +27,6 @@ const UserHeader = () => {
       })
       .catch((err) => {});
   }, [token]);
-
-  useEffect(() => {
-    if (token?.token) {
-      checkIntrospect();
-    }
-  }, []);
 
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
@@ -99,27 +95,31 @@ const UserHeader = () => {
     );
   };
 
-  const checkIntrospect = async () => {
-    try {
-      const res = await authService.checkIntrospect(token.token);
-      if (!res.data.result.valid) {
-        localStorage.removeItem("token");
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  useEffect(() => {
+    if (!token?.token) return;
+
+    const interval = setInterval(() => {
+      authService.checkIntrospect(token.token).then((res) => {
+        if (!res.data.result.valid) {
+          localStorage.removeItem("token");
+          window.location.href = "/";
+        }
+      });
+    }, 10 * 60 * 1000); // mỗi 10 phút
+
+    return () => clearInterval(interval);
+  }, [token]);
 
   const checkUserRole = () => {
     if (infoUser) {
       switch (infoUser.roleName.name) {
         case "ADMIN":
           return (
-            <Link
-              to={path.admin}
-              className="py-2 px-4 font-medium border border-red-500 rounded-md hover:bg-red-500 hover:text-white duration-300"
-            >
-              ADMIN DASHBOARD
+            <Link to={path.admin}>
+              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
+                <DashboardOutlined />
+                <span>Admin </span>
+              </div>
             </Link>
           );
         case "DOCTOR":

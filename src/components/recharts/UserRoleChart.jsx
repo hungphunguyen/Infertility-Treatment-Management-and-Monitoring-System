@@ -10,87 +10,134 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
+  PieChart,
+  Pie,
   Cell,
 } from "recharts";
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "red", "pink"];
-const CustomBarShape = ({ x, y, width, height, fill }) => {
-  // Kiểm tra nếu height = 0 hoặc y = NaN thì không render
-  if (
-    typeof x !== "number" ||
-    typeof y !== "number" ||
-    typeof width !== "number" ||
-    typeof height !== "number" ||
-    isNaN(x) ||
-    isNaN(y) ||
-    isNaN(width) ||
-    isNaN(height) ||
-    height === 0
-  ) {
-    return null;
-  }
 
-  const path = `
-    M${x},${y + height}
-    C${x + width / 3},${y + height - 10}
-     ${x + (2 * width) / 3},${y + 10}
-     ${x + width},${y}
-    L${x + width},${y + height}
-    Z
-  `;
-  return <path d={path} fill={fill} stroke="none" />;
-};
-
+const COLORS = ["#00C49F", "#FF8042"];
 const UserRoleChart = () => {
   const token = useSelector((state) => state.authSlice);
 
-  const [chartData, setChartData] = useState([]);
+  const [barData, setBarData] = useState([]);
+  const [pieData, setPieData] = useState([]);
   useEffect(() => {
     if (!token) return;
-    adminService
-      .getUsers(token.token)
-      .then((res) => {
+    const fetchData = async () => {
+      try {
+        const activeRes = await adminService.getUsers(token.token);
+        const activeUsers = activeRes.data.result || [];
+
+        const removedRes = await adminService.getRemovedUsers(token.token);
+        const removedUsers = removedRes.data.result || [];
+
         const roleCount = {};
-        const users = res.data.result;
-        users.forEach((user) => {
-          const role = user.roleName.name;
+        activeUsers.forEach((user) => {
+          const role = user.roleName?.name || "UNKNOWN";
           roleCount[role] = (roleCount[role] || 0) + 1;
         });
 
-        // Format lại cho biểu đồ
-        const formatted = Object.entries(roleCount).map(([role, count]) => ({
+        const barFormatted = Object.entries(roleCount).map(([role, count]) => ({
           role,
           users: count,
         }));
+        setBarData(barFormatted);
 
-        setChartData(formatted);
-      })
-      .catch((errors) => {});
+        const pieFormatted = [
+          { name: "Active", value: activeUsers.length },
+          { name: "Inactive", value: removedUsers.length },
+        ];
+        setPieData(pieFormatted);
+      } catch (err) {}
+    };
+
+    fetchData();
   }, [token]);
-
   return (
-    <div>
-      <div style={{ width: "100%", height: 400 }}>
-        <h3>Thống kê User theo Role</h3>
-        <ResponsiveContainer>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="role" />
-            <YAxis allowDecimals={false} />
-            <Tooltip />
-            <Bar
-              dataKey="users"
-              shape={<CustomBarShape />}
-              label={{ position: "top", fill: "#333" }}
+    <div
+      className="min-h-screen px-8 py-6"
+      style={{
+        background: "linear-gradient(135deg, #f0f4f8 0%, #e0ecf7 100%)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "2rem",
+          flexWrap: "wrap",
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            minWidth: 400,
+            backgroundColor: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            padding: 20,
+          }}
+        >
+          <h3
+            style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: 16 }}
+          >
+            📊 Thống kê User theo Role
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={barData}
+              margin={{ top: 10, right: 30, left: 30, bottom: 5 }}
+              barCategoryGap="5%"
             >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="role" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="users" fill="#8884d8" barSize={80} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            minWidth: 400,
+            backgroundColor: "#fff",
+            borderRadius: 12,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            padding: 20,
+          }}
+        >
+          <h3
+            style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: 16 }}
+          >
+            🟢 Thống kê tài khoản đang hoạt động
+          </h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label={({ name, percent }) =>
+                  `${name}: ${(percent * 100).toFixed(0)}%`
+                }
+                dataKey="value"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Legend />
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

@@ -1,71 +1,34 @@
 import { http } from "./config";
 
 export const adminService = {
-  getUsers: (token) => {
-    return http.get("admin/get-users", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  getUsers: () => {
+    return http.get("admin/get-users");
   },
 
-  getUserId: (id, token) => {
-    return http.get(`admin/get-user/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  getUserId: (id) => {
+    return http.get(`admin/get-user/${id}`);
   },
 
-  getRemovedUsers: (token) => {
-    return http.get("admin/get-users-removed", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  getRemovedUsers: () => {
+    return http.get("admin/get-users-removed");
   },
 
-  deleteUser: (data, token) => {
-    return http.delete(`admin/remove-user/${data}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  deleteUser: (data) => {
+    return http.delete(`admin/remove-user/${data}`);
   },
-  restoreUser: (data, token) => {
-    console.log(token);
-    return http.put(`admin/restore-user/${data}`, null, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  restoreUser: (data) => {
+    return http.put(`admin/restore-user/${data}`, null);
   },
 
-  updatePasswordUser: (id, password, token) => {
-    return http.put(
-      `admin/update-user-password/${id}`,
-      { password },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+  updatePasswordUser: (id, password) => {
+    return http.put(`admin/update-user-password/${id}`, { password });
   },
 
-  updateUserById: (id, data, token) => {
-    return http.put(`admin/update-user/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  updateUserById: (id, data) => {
+    return http.put(`admin/update-user/${id}`, data);
   },
 
-  createUser: (data, token) => {
-    return http.post("admin/create-user", data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  createUser: (data) => {
+    return http.post("admin/create-user", data);
   },
 };
