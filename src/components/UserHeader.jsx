@@ -28,6 +28,12 @@ const UserHeader = () => {
       .catch((err) => {});
   }, [token]);
 
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, []);
+
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
       // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
@@ -95,20 +101,30 @@ const UserHeader = () => {
     );
   };
 
-  // useEffect(() => {
-  //   if (!token?.token) return;
+  // const checkIntrospect = async () => {
+  //   try {
+  //     const res = await authService.checkIntrospect(token.token);
+  //     if (!res.data.result.valid) {
+  //       localStorage.removeItem("token");
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
-  //   const interval = setInterval(() => {
-  //     authService.checkIntrospect(token.token).then((res) => {
-  //       if (!res.data.result.valid) {
-  //         localStorage.removeItem("token");
-  //         window.location.href = "/";
-  //       }
-  //     });
-  //   }, 10 * 60 * 1000); // mỗi 10 phút
-
-  //   return () => clearInterval(interval);
-  // }, [token]);
+  const checkIntrospect = async () => {
+    await authService
+      .checkIntrospect(token.token)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        if (err.response.data.code == 1006) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      });
+  };
 
   const checkUserRole = () => {
     if (infoUser) {
@@ -125,7 +141,14 @@ const UserHeader = () => {
         case "DOCTOR":
           return null;
         case "MANAGER":
-          return null;
+          return (
+            <Link to={path.manager}>
+              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
+                <DashboardOutlined />
+                <span>Manager </span>
+              </div>
+            </Link>
+          );
         default:
           return null;
       }

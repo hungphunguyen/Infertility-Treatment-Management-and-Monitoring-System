@@ -221,12 +221,6 @@ const UserManagement = () => {
                   <>
                     <button
                       className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-                      onClick={() => openEditModal(user)}
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
                       onClick={() => openDetailModal(user)}
                     >
                       Chi tiết
@@ -253,7 +247,7 @@ const UserManagement = () => {
                     cancelText="Huỷ"
                   >
                     <button className="text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600">
-                      Xoá
+                      Tắt
                     </button>
                   </Popconfirm>
                 )}
@@ -264,6 +258,42 @@ const UserManagement = () => {
       </table>
 
       {/* Modal cập nhật mật khẩu */}
+
+      {/* Modal chi tiết user */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onRequestClose={() => setDetailModalOpen(false)}
+        contentLabel="Chi tiết user"
+        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl mx-auto outline-none max-h-[90vh] overflow-y-auto"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+      >
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+          Chi tiết User
+        </h2>
+        {!userDetail ? (
+          <p className="text-gray-400">Đang tải dữ liệu người dùng...</p>
+        ) : (
+          <>
+            <EditUserFormAdmin
+              userDetail={userDetail}
+              token={token.token}
+              onClose={() => {
+                setUserDetail(null);
+                setDetailModalOpen(false);
+              }}
+              onUpdated={() => fetchUsers(showRemoved)}
+            />
+            <div className="py-2 flex justify-end">
+              <button
+                className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                onClick={() => openEditModal(userDetail)}
+              >
+                Cập nhật password
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
       <Modal
         isOpen={isEditModalOpen}
         onRequestClose={() => setEditModalOpen(false)}
@@ -294,32 +324,6 @@ const UserManagement = () => {
             Cập nhật
           </button>
         </div>
-      </Modal>
-
-      {/* Modal chi tiết user */}
-      <Modal
-        isOpen={isDetailModalOpen}
-        onRequestClose={() => setDetailModalOpen(false)}
-        contentLabel="Chi tiết user"
-        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl mx-auto mt-20 outline-none"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
-      >
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-          Chi tiết User
-        </h2>
-        {!userDetail ? (
-          <p className="text-gray-400">Đang tải dữ liệu người dùng...</p>
-        ) : (
-          <EditUserFormAdmin
-            userDetail={userDetail}
-            token={token.token}
-            onClose={() => {
-              setUserDetail(null);
-              setDetailModalOpen(false);
-            }}
-            onUpdated={() => fetchUsers(showRemoved)}
-          />
-        )}
       </Modal>
     </div>
   );
