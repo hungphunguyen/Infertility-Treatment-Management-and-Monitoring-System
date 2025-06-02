@@ -53,15 +53,38 @@ const AdminPage = () => {
 
       <Layout>
         <Header style={{ background: "#fff", padding: "0 24px" }}>
-          <div className="flex justify-between items-center">
-            <Title level={2} style={{ margin: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+              padding: "16px 0",
+            }}
+          >
+            <Title
+              level={3}
+              style={{
+                margin: 0,
+                fontWeight: 700,
+                color: "#1f2937",
+                letterSpacing: 0.5,
+                textTransform: "uppercase",
+                textAlign: "center",
+              }}
+            >
               {getPageTitle()}
             </Title>
           </div>
         </Header>
 
         <Content
-          style={{ margin: "24px 16px", padding: 24, background: "#f0f2f5" }}
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            background: "#f0f2f5",
+            minHeight: "calc(100vh - 112px)",
+          }}
         >
           {renderContent()}
         </Content>
