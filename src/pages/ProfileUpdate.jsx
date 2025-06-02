@@ -72,28 +72,6 @@ const ProfileUpdate = () => {
     <div className="min-h-screen">
       <UserHeader />
 
-      {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden">
-        <img
-          src="/images/features/pc8.jpg"
-          alt="Cập nhật thông tin cá nhân"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black opacity-40" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">
-              Cập Nhật Thông Tin Cá Nhân
-            </h1>
-            <div className="flex items-center justify-center text-white">
-              <span className="mx-2">TRANG CHỦ</span>
-              <span className="mx-2">{">"}</span>
-              <span className="mx-2">THÔNG TIN CÁ NHÂN</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Form Section */}
       <div className="py-20">
         <div className="container mx-auto px-4">
@@ -140,6 +118,7 @@ const ProfileUpdate = () => {
                 onChange={() => {}}
                 error={errors.email}
                 touched={touched.email}
+                classWrapper="opacity-60 pointer-events-none"
               />
               <InputCustom
                 labelContent="Số điện thoại"
