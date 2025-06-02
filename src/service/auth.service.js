@@ -35,4 +35,11 @@ export const authService = {
   checkIntrospect: (data) => {
     return http.post("auth/introspect", data);
   },
+  updateUser: (id, data, token) => {
+    return http.put(`user/update/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
 };
