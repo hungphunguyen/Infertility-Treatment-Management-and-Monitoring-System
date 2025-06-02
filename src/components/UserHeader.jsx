@@ -101,17 +101,6 @@ const UserHeader = () => {
     );
   };
 
-  // const checkIntrospect = async () => {
-  //   try {
-  //     const res = await authService.checkIntrospect(token.token);
-  //     if (!res.data.result.valid) {
-  //       localStorage.removeItem("token");
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   const checkIntrospect = async () => {
     await authService
       .checkIntrospect(token.token)
@@ -139,7 +128,14 @@ const UserHeader = () => {
             </Link>
           );
         case "DOCTOR":
-          return null;
+          return (
+            <Link to={path.doctor}>
+              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
+                <DashboardOutlined />
+                <span>Doctor </span>
+              </div>
+            </Link>
+          );
         case "MANAGER":
           return (
             <Link to={path.manager}>
