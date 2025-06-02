@@ -115,7 +115,7 @@ const OurStaffPage = () => {
                   <div className="md:w-1/3 p-6 flex justify-center items-center">
                     <Avatar
                       size={120}
-                      src={doctor.image}
+                      src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748823881/uploads/avt_1e07a251-7ec2-4478-b85b-7adb05572687.jpg"
                       icon={<UserOutlined />}
                       className="border-4 border-[#ff8460]"
                     />
