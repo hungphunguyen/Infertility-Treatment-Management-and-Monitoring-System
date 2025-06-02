@@ -239,51 +239,24 @@ const UserTemplate = () => {
           ) : doctors.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {doctors.slice(0, 2).map((doctor) => (
-                <div key={doctor.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <div className="flex flex-col md:flex-row">
-                    <div className="md:w-1/3 p-6 flex justify-center items-center">
-                      <Avatar
-                        size={120}
-                        src={doctor.image}
-                        icon={<UserOutlined />}
-                        className="border-4 border-[#c2da5c]"
-                      />
-                    </div>
-                    <div className="md:w-2/3 p-6">
-                      <h3 className="text-xl font-bold mb-2">{doctor.name}</h3>
-                      <p className="text-[#c2da5c] font-semibold mb-2">{doctor.role}</p>
-                      <p className="text-gray-600 text-sm mb-3">{doctor.specialization}</p>
-                      <p className="text-gray-600 text-sm mb-3">{doctor.experience}</p>
-                      
-                      <div className="mb-3">
-                        <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
-                        <span className="ml-2 text-gray-600">({doctor.rating})</span>
-                      </div>
-                      
-                      <div className="mb-3">
-                        <Tag color="green" className="mb-1">{doctor.treatmentType}</Tag>
-                        {doctor.certificates.slice(0, 1).map((cert, index) => (
-                          <Tag color="blue" key={index} className="mb-1 text-xs">
-                            {cert}
-                          </Tag>
-                        ))}
-                      </div>
-                      
-                      <div className="flex space-x-2 mt-4">
-                        <button 
-                          onClick={() => navigate(`/doctor/${doctor.id}`)}
-                          className="bg-[#c2da5c] hover:bg-[#a8c245] text-white px-4 py-2 rounded text-sm transition duration-300"
-                        >
-                          Xem chi tiết
-                        </button>
-                        <button 
-                          onClick={() => navigate('/register-service', { state: { selectedDoctor: doctor.value } })}
-                          className="bg-[#ff8460] hover:bg-[#ff6b40] text-white px-4 py-2 rounded text-sm transition duration-300"
-                        >
-                          Đặt lịch
-                        </button>
-                      </div>
-                    </div>
+                <div
+                  key={doctor.id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col items-center p-6 cursor-pointer hover:shadow-lg transition"
+                  onClick={() => navigate(`/doctor/${doctor.id}`)}
+                >
+                  <Avatar
+                    size={120}
+                    src={doctor.image}
+                    icon={<UserOutlined />}
+                    className="border-4 border-[#c2da5c] mb-4"
+                  />
+                  <h3 className="text-xl font-bold mb-2 text-center">{doctor.name}</h3>
+                  <p className="text-[#c2da5c] font-semibold mb-2 text-center">{doctor.role}</p>
+                  <p className="text-gray-600 text-sm mb-3 text-center">{doctor.specialization}</p>
+                  <p className="text-gray-600 text-sm mb-3 text-center">{doctor.experience}</p>
+                  <div className="mb-3 flex items-center justify-center">
+                    <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
+                    <span className="ml-2 text-gray-600">({doctor.rating})</span>
                   </div>
                 </div>
               ))}
