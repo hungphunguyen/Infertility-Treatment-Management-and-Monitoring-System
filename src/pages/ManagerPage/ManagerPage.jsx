@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Typography } from "antd";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { path } from "../../common/path";
 import ManagerSidebar from "../../components/manager/ManagerSidebar";
 import ReportDashboard from "../../components/manager/ReportDashboard";
 import ScheduleManagement from "../../components/manager/ScheduleManagement";
@@ -16,6 +18,37 @@ const { Title } = Typography;
 const ManagerPage = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState("report");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Update selected menu based on current path
+  useEffect(() => {
+    const pathname = location.pathname;
+    if (pathname.includes("/dashboard")) {
+      setSelectedMenu("report");
+    } else if (pathname.includes("/schedule")) {
+      setSelectedMenu("schedule");
+    } else if (pathname.includes("/appointments")) {
+      setSelectedMenu("appointments");
+    } else if (pathname.includes("/doctor-schedule")) {
+      setSelectedMenu("doctor-schedule");
+    } else if (pathname.includes("/today-exams")) {
+      setSelectedMenu("today-exams");
+    } else if (pathname.includes("/feedback")) {
+      setSelectedMenu("feedback");
+    } else if (pathname.includes("/services")) {
+      setSelectedMenu("services");
+    } else if (pathname.includes("/blog")) {
+      setSelectedMenu("blog");
+    } else {
+      // Default to report if no match
+      setSelectedMenu("report");
+      // Redirect to dashboard if at the root manager page
+      if (pathname === "/manager") {
+        navigate(path.managerDashboard);
+      }
+    }
+  }, [location, navigate]);
 
   const getPageTitle = () => {
     switch (selectedMenu) {
@@ -37,29 +70,6 @@ const ManagerPage = () => {
         return "Quản Lý Blog";
       default:
         return "Dashboard";
-    }
-  };
-
-  const renderContent = () => {
-    switch (selectedMenu) {
-      case "report":
-        return <ReportDashboard />;
-      case "schedule":
-        return <ScheduleManagement />;
-      case "appointments":
-        return <AppointmentManagement />;
-      case "doctor-schedule":
-        return <DoctorScheduleView />;
-      case "today-exams":
-        return <TodayExaminations />;
-      case "feedback":
-        return <FeedbackManagement />;
-      case "services":
-        return <ServiceManagement />;
-      case "blog":
-        return <BlogManagement />;
-      default:
-        return <ReportDashboard />;
     }
   };
 
@@ -90,11 +100,21 @@ const ManagerPage = () => {
         <Content
           style={{ margin: "24px 16px", padding: 24, background: "#f0f2f5" }}
         >
-          {renderContent()}
+          <Routes>
+            <Route path="/" element={<ReportDashboard />} />
+            <Route path="/dashboard" element={<ReportDashboard />} />
+            <Route path="/schedule" element={<ScheduleManagement />} />
+            <Route path="/appointments" element={<AppointmentManagement />} />
+            <Route path="/doctor-schedule" element={<DoctorScheduleView />} />
+            <Route path="/today-exams" element={<TodayExaminations />} />
+            <Route path="/feedback" element={<FeedbackManagement />} />
+            <Route path="/services" element={<ServiceManagement />} />
+            <Route path="/blog" element={<BlogManagement />} />
+          </Routes>
         </Content>
       </Layout>
     </Layout>
   );
 };
 
-export default ManagerPage; 
+export default ManagerPage;

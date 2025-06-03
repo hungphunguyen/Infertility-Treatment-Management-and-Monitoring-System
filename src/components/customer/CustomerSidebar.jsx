@@ -1,5 +1,7 @@
 import React from "react";
 import { Menu, Avatar, Typography, Divider, Badge } from "antd";
+import { Link } from "react-router-dom";
+import { path } from "../../common/path";
 import {
   UserOutlined, MedicineBoxOutlined, CalendarOutlined, 
   HeartOutlined, StarOutlined, BellOutlined, MessageOutlined,
@@ -15,37 +17,43 @@ const CustomerSidebar = ({ selectedMenuItem, setSelectedMenuItem, collapsed }) =
       key: "profile",
       icon: <UserOutlined />,
       label: "Hồ Sơ",
-      title: "Xem thông tin cá nhân"
+      title: "Xem thông tin cá nhân",
+      path: path.customerProfile
     },
     {
       key: "update-profile",
       icon: <EditOutlined />,
       label: "Cập Nhật Thông Tin",
-      title: "Cập nhật thông tin cá nhân"
+      title: "Cập nhật thông tin cá nhân",
+      path: path.customerUpdateProfile
     },
     {
       key: "services",
       icon: <MedicineBoxOutlined />,
       label: "Dịch Vụ",
-      title: "Xem dịch vụ đã đăng ký"
+      title: "Xem dịch vụ đã đăng ký",
+      path: path.customerServices
     },
     {
       key: "appointments",
       icon: <CalendarOutlined />,
       label: "Lịch Hẹn",
-      title: "Quản lý lịch hẹn khám"
+      title: "Quản lý lịch hẹn khám",
+      path: path.customerAppointments
     },
     {
       key: "treatment",
       icon: <HeartOutlined />,
       label: "Điều Trị",
-      title: "Theo dõi lịch trình điều trị"
+      title: "Theo dõi lịch trình điều trị",
+      path: path.customerTreatment
     },
     {
       key: "medical-record",
       icon: <FileTextOutlined />,
       label: "Hồ Sơ Y Tế",
-      title: "Xem hồ sơ bệnh án"
+      title: "Xem hồ sơ bệnh án",
+      path: path.customerMedicalRecord
     },
     {
       key: "notifications",
@@ -55,25 +63,29 @@ const CustomerSidebar = ({ selectedMenuItem, setSelectedMenuItem, collapsed }) =
         </Badge>
       ),
       label: "Thông Báo",
-      title: "Thông báo lịch khám và nhắc nhở"
+      title: "Thông báo lịch khám và nhắc nhở",
+      path: path.customerNotifications
     },
     {
       key: "reviews",
       icon: <StarOutlined />,
       label: "Đánh Giá",
-      title: "Đánh giá dịch vụ"
+      title: "Đánh giá dịch vụ",
+      path: path.customerReviews
     },
     {
       key: "feedback",
       icon: <MessageOutlined />,
       label: "Phản Hồi",
-      title: "Gửi phản hồi và khiếu nại"
+      title: "Gửi phản hồi và khiếu nại",
+      path: path.customerFeedback
     },
     {
       key: "payment",
       icon: <CreditCardOutlined />,
       label: "Thanh Toán",
-      title: "Quản lý thanh toán"
+      title: "Quản lý thanh toán",
+      path: path.customerPayment
     }
   ];
 
@@ -124,13 +136,12 @@ const CustomerSidebar = ({ selectedMenuItem, setSelectedMenuItem, collapsed }) =
           key: item.key,
           icon: item.icon,
           label: (
-            <span 
-              onClick={() => setSelectedMenuItem(item.key)}
+            <Link 
+              to={item.path}
               title={collapsed ? item.title : ""}
-              style={{ cursor: "pointer" }}
             >
               {item.label}
-            </span>
+            </Link>
           )
         }))}
       />
@@ -175,4 +186,4 @@ const CustomerSidebar = ({ selectedMenuItem, setSelectedMenuItem, collapsed }) =
   );
 };
 
-export default CustomerSidebar; 
+export default CustomerSidebar;
