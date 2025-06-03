@@ -1,52 +1,73 @@
 import React, { useContext } from "react";
-import { Card, Select } from "antd";
+import { Card, Select, Typography } from "antd";
 import { useFormik } from "formik";
 import InputCustom from "../Input/InputCustom";
 import { adminService } from "../../service/admin.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import * as yup from "yup";
+import { UserAddOutlined } from "@ant-design/icons";
 
+const { Title } = Typography;
 const { Option } = Select;
 
 const CreateAccount = () => {
   const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
 
-  const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
-    useFormik({
-      initialValues: {
-        username: "",
-        password: "",
-        roleName: "",
-      },
-      onSubmit: (values) => {
-        adminService
-          .createUser(values, token.token)
-          .then((res) => {
-            showNotification("Create user successful", "success");
-          })
-          .catch((errors) => {
-            showNotification(errors.response.data.message, "error");
-          });
-      },
-      validationSchema: yup.object({
-        username: yup.string().required("Please do not leave blank"),
-        password: yup.string().required("Please do not leave blank"),
-        roleName: yup.string().required("Please choose type role"),
-      }),
-    });
+  const {
+    handleSubmit,
+    handleChange,
+    values,
+    errors,
+    touched,
+    handleBlur,
+    setFieldValue,
+  } = useFormik({
+    initialValues: {
+      username: "",
+      password: "",
+      roleName: "",
+    },
+    onSubmit: (values) => {
+      adminService
+        .createUser(values, token.token)
+        .then(() => {
+          showNotification("Tạo tài khoản thành công", "success");
+        })
+        .catch((err) => {
+          showNotification(err.response.data.message, "error");
+        });
+    },
+    validationSchema: yup.object({
+      username: yup.string().required("Không được để trống"),
+      password: yup.string().required("Không được để trống"),
+      roleName: yup.string().required("Vui lòng chọn vai trò"),
+    }),
+  });
 
   return (
-    <Card title="Tạo Tài Khoản Mới">
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-          {/* LEFT COLUMN */}
+    <div className="max-w-2xl mx-auto p-6">
+      <Card
+        bordered
+        title={
+          <div className="flex items-center space-x-2">
+            <UserAddOutlined className="text-blue-600 text-xl" />
+            <Title level={4} className="!mb-0">
+              Tạo Tài Khoản Mới
+            </Title>
+          </div>
+        }
+        className="shadow-lg border border-gray-200"
+      >
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-2 gap-x-6 gap-y-4"
+        >
           <InputCustom
             labelContent="Username"
-            id="username"
             name="username"
-            placeholder="Enter username"
+            placeholder="Nhập tên đăng nhập"
             value={values.username}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -56,10 +77,9 @@ const CreateAccount = () => {
 
           <InputCustom
             labelContent="Password"
-            id="password"
             name="password"
-            placeholder="Enter password"
             typeInput="password"
+            placeholder="Nhập mật khẩu"
             value={values.password}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -67,42 +87,37 @@ const CreateAccount = () => {
             touched={touched.password}
           />
 
-          <div>
-            <label
-              htmlFor="roleName"
-              className="block mb-2 text-sm font-medium text-gray-900"
-            >
-              Role Name
+          <div className="col-span-2">
+            <label className="block mb-2 text-sm font-medium text-gray-900">
+              Vai trò
             </label>
-            <select
-              id="roleName"
-              name="roleName"
-              value={values.role}
-              onChange={handleChange}
+            <Select
+              placeholder="Chọn vai trò"
+              value={values.roleName || undefined}
+              onChange={(value) => setFieldValue("roleName", value)}
               onBlur={handleBlur}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full"
             >
-              <option value="">-- Select role --</option>
-              <option value="admin">ADMIN</option>
-              <option value="manager">MANAGER</option>
-              <option value="doctor">DOCTOR</option>
-            </select>
-            {errors.role && touched.role && (
-              <p className="text-red-500 text-sm mt-1">{errors.role}</p>
+              <Option value="admin">Admin</Option>
+              <Option value="manager">Manager</Option>
+              <Option value="doctor">Doctor</Option>
+            </Select>
+            {errors.roleName && touched.roleName && (
+              <p className="text-red-500 text-sm mt-1">{errors.roleName}</p>
             )}
           </div>
 
-          <div className="mt-8">
+          <div className="col-span-2 flex justify-center pt-4">
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition duration-200"
+              className="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-700 transition"
             >
-              Register
-            </button>{" "}
+              Đăng ký
+            </button>
           </div>
-        </div>
-      </form>
-    </Card>
+        </form>
+      </Card>
+    </div>
   );
 };
 

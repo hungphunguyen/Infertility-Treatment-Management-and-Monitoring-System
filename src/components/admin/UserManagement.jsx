@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Space, Typography, Popconfirm } from "antd";
-import { UserOutlined, DeleteOutlined } from "@ant-design/icons";
+import { UserOutlined, DeleteOutlined, CloseOutlined } from "@ant-design/icons";
 import { adminService } from "../../service/admin.service";
 import { useSelector } from "react-redux";
 import Modal from "react-modal";
@@ -241,9 +241,9 @@ const UserManagement = () => {
                   </Popconfirm>
                 ) : (
                   <Popconfirm
-                    title="Bạn có chắc muốn xoá user này không?"
+                    title="Bạn có chắc muốn tắt user này không?"
                     onConfirm={() => handleDelete(user.id)}
-                    okText="Xoá"
+                    okText="tắt"
                     cancelText="Huỷ"
                   >
                     <button className="text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600">
@@ -264,9 +264,17 @@ const UserManagement = () => {
         isOpen={isDetailModalOpen}
         onRequestClose={() => setDetailModalOpen(false)}
         contentLabel="Chi tiết user"
-        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl mx-auto outline-none max-h-[90vh] overflow-y-auto"
+        className="relative bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl mx-auto outline-none max-h-[90vh] overflow-y-auto"
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
       >
+        {/* Nút đóng ở góc phải */}
+        <button
+          onClick={() => setDetailModalOpen(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold"
+          aria-label="Đóng"
+        >
+          <CloseOutlined />
+        </button>
         <h2 className="text-2xl font-semibold mb-6 text-gray-800">
           Chi tiết User
         </h2>
@@ -283,12 +291,19 @@ const UserManagement = () => {
               }}
               onUpdated={() => fetchUsers(showRemoved)}
             />
-            <div className="py-2 flex justify-end">
+            <div className="py-2 flex justify-end space-x-2">
               <button
                 className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
                 onClick={() => openEditModal(userDetail)}
               >
                 Cập nhật password
+              </button>
+              <button
+                type="submit"
+                form="edit-user-form"
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                Cập nhật
               </button>
             </div>
           </>
