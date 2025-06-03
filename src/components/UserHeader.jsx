@@ -47,6 +47,12 @@ const UserHeader = () => {
 
   const accountMenu = (
     <Menu onClick={handleMenuClick}>
+      {/* Nếu là admin thì thêm mục Admin */}
+      {infoUser && infoUser.roleName.name === "ADMIN" && (
+        <Menu.Item key="admin" icon={<DashboardOutlined />}>
+          <Link to={path.admin} style={{ color: 'inherit' }}>Admin</Link>
+        </Menu.Item>
+      )}
       <Menu.Item key="update" icon={<SettingOutlined />}>
         Cập nhật thông tin
       </Menu.Item>
@@ -113,43 +119,6 @@ const UserHeader = () => {
           window.location.reload();
         }
       });
-  };
-
-  const checkUserRole = () => {
-    if (infoUser) {
-      switch (infoUser.roleName.name) {
-        case "ADMIN":
-          return (
-            <Link to={path.admin}>
-              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
-                <DashboardOutlined />
-                <span>Admin </span>
-              </div>
-            </Link>
-          );
-        case "DOCTOR":
-          return (
-            <Link to={path.doctor}>
-              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
-                <DashboardOutlined />
-                <span>Doctor </span>
-              </div>
-            </Link>
-          );
-        case "MANAGER":
-          return (
-            <Link to={path.manager}>
-              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
-                <DashboardOutlined />
-                <span>Manager </span>
-              </div>
-            </Link>
-          );
-        default:
-          return null;
-      }
-    }
-    return null;
   };
 
   return (
@@ -237,7 +206,6 @@ const UserHeader = () => {
         {/* Login/Signup or User Info - Right */}
         <div className="flex items-center">
           <div className="mr-4">{checkUserLogin()}</div>
-          {checkUserRole()}
         </div>
       </div>
     </header>
