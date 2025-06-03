@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Button, Space, Typography, Popconfirm } from "antd";
-import { UserOutlined, DeleteOutlined } from "@ant-design/icons";
+import { UserOutlined, DeleteOutlined, CloseOutlined } from "@ant-design/icons";
 import { adminService } from "../../service/admin.service";
 import { useSelector } from "react-redux";
 import Modal from "react-modal";
@@ -144,7 +144,12 @@ const UserManagement = () => {
   };
 
   return (
-    <div>
+    <div
+      className="min-h-screen px-6 py-6"
+      style={{
+        background: "linear-gradient(135deg, #f0f4f8, #e8f0ff)",
+      }}
+    >
       <div className="flex justify-between items-center mb-6">
         <Title level={3}>Quản Lý User</Title>
         <Space>
@@ -155,7 +160,6 @@ const UserManagement = () => {
             onChange={(e) => setSearchText(e.target.value)}
             className="border border-gray-300 px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-80"
           />
-
           <Button
             type="default"
             className={!showRemoved ? "border-green-500 text-green-600" : ""}
@@ -164,7 +168,6 @@ const UserManagement = () => {
           >
             User hoạt động
           </Button>
-
           <Button
             type="default"
             className={showRemoved ? "border-red-500 text-red-600" : ""}
@@ -176,7 +179,7 @@ const UserManagement = () => {
         </Space>
       </div>
 
-      <table className="w-full border text-sm">
+      <table className="w-full border text-sm bg-white shadow-md rounded">
         <thead>
           <tr className="bg-gray-100 text-left">
             <th className="p-2">Tên Đăng Nhập</th>
@@ -188,7 +191,7 @@ const UserManagement = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredUsers.map((user, idx) => (
+          {filteredUsers.map((user) => (
             <tr key={user.id} className="border-t">
               <td className="p-2">{user.username}</td>
               <td className="p-2">{user.fullName}</td>
@@ -203,7 +206,6 @@ const UserManagement = () => {
                 </span>
               </td>
               <td className="p-2">
-                {/* ✅ Hiển thị trạng thái theo removed */}
                 <span
                   className={`px-2 py-1 text-xs rounded ${
                     user.removed
@@ -216,21 +218,14 @@ const UserManagement = () => {
               </td>
               <td className="p-2 space-x-2">
                 {!showRemoved && (
-                  <button
-                    className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-                    onClick={() => openEditModal(user)}
-                  >
-                    Sửa
-                  </button>
-                )}
-
-                {!showRemoved && (
-                  <button
-                    className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-                    onClick={() => openDetailModal(user)}
-                  >
-                    Chi tiết
-                  </button>
+                  <>
+                    <button
+                      className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                      onClick={() => openDetailModal(user)}
+                    >
+                      Chi tiết
+                    </button>
+                  </>
                 )}
 
                 {showRemoved ? (
@@ -246,13 +241,13 @@ const UserManagement = () => {
                   </Popconfirm>
                 ) : (
                   <Popconfirm
-                    title="Bạn có chắc muốn xoá user này không?"
+                    title="Bạn có chắc muốn tắt user này không?"
                     onConfirm={() => handleDelete(user.id)}
-                    okText="Xoá"
+                    okText="tắt"
                     cancelText="Huỷ"
                   >
                     <button className="text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600">
-                      Xoá
+                      Tắt
                     </button>
                   </Popconfirm>
                 )}
@@ -261,7 +256,59 @@ const UserManagement = () => {
           ))}
         </tbody>
       </table>
-      {/* Modal update password */}
+
+      {/* Modal cập nhật mật khẩu */}
+
+      {/* Modal chi tiết user */}
+      <Modal
+        isOpen={isDetailModalOpen}
+        onRequestClose={() => setDetailModalOpen(false)}
+        contentLabel="Chi tiết user"
+        className="relative bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl mx-auto outline-none max-h-[90vh] overflow-y-auto"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+      >
+        {/* Nút đóng ở góc phải */}
+        <button
+          onClick={() => setDetailModalOpen(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-red-500 text-2xl font-bold"
+          aria-label="Đóng"
+        >
+          <CloseOutlined />
+        </button>
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800">
+          Chi tiết User
+        </h2>
+        {!userDetail ? (
+          <p className="text-gray-400">Đang tải dữ liệu người dùng...</p>
+        ) : (
+          <>
+            <EditUserFormAdmin
+              userDetail={userDetail}
+              token={token.token}
+              onClose={() => {
+                setUserDetail(null);
+                setDetailModalOpen(false);
+              }}
+              onUpdated={() => fetchUsers(showRemoved)}
+            />
+            <div className="py-2 flex justify-end space-x-2">
+              <button
+                className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                onClick={() => openEditModal(userDetail)}
+              >
+                Cập nhật password
+              </button>
+              <button
+                type="submit"
+                form="edit-user-form"
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                Cập nhật
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
       <Modal
         isOpen={isEditModalOpen}
         onRequestClose={() => setEditModalOpen(false)}
@@ -270,7 +317,6 @@ const UserManagement = () => {
         overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
       >
         <h2 className="text-xl font-semibold mb-4">Cập nhật mật khẩu</h2>
-
         <label className="block mb-2 font-medium">Mật khẩu mới:</label>
         <input
           type="password"
@@ -279,7 +325,6 @@ const UserManagement = () => {
           placeholder="Nhập mật khẩu mới"
           className="w-full border px-3 py-2 rounded mb-4"
         />
-
         <div className="flex justify-end space-x-2">
           <button
             onClick={() => setEditModalOpen(false)}
@@ -294,32 +339,6 @@ const UserManagement = () => {
             Cập nhật
           </button>
         </div>
-      </Modal>
-
-      {/* Modal detail user  */}
-      <Modal
-        isOpen={isDetailModalOpen}
-        onRequestClose={() => setDetailModalOpen(false)}
-        contentLabel="Chi tiết user"
-        className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl mx-auto mt-20 outline-none"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-start"
-      >
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800">
-          Chi tiết User
-        </h2>
-        {!userDetail ? (
-          <p className="text-gray-400">Đang tải dữ liệu người dùng...</p>
-        ) : (
-          <EditUserFormAdmin
-            userDetail={userDetail}
-            token={token.token}
-            onClose={() => {
-              setUserDetail(null);
-              setDetailModalOpen(false);
-            }}
-            onUpdated={() => fetchUsers(showRemoved)}
-          />
-        )}
       </Modal>
     </div>
   );

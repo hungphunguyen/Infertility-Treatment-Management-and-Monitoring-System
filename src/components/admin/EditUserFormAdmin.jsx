@@ -31,17 +31,40 @@ const EditUserFormAdmin = ({ userDetail, token, onUpdated, onClose }) => {
           });
       },
       validationSchema: yup.object({
-        fullName: yup.string().trim("Please do not leave blank"),
-        email: yup.string().trim("Please do not leave blank"),
-        phoneNumber: yup.string().trim("Please do not leave blank"),
-        dateOfBirth: yup.string().trim("Please do not leave blank"),
-        address: yup.string().trim("Please do not leave blank"),
+        fullName: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Full name is required"),
+        email: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Email is required"),
+        phoneNumber: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Phone is required"),
+        gender: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Please choose your gender"),
+        dateOfBirth: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Date of birth is required"),
+        address: yup
+          .string()
+          .trim("Please do not leave blank")
+          .required("Address is required"),
       }),
     });
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
+      <form
+        id="edit-user-form"
+        onSubmit={handleSubmit}
+        className="grid grid-cols-2 gap-6"
+      >
         <InputCustom
           labelContent="ID"
           name="id"
@@ -136,15 +159,6 @@ const EditUserFormAdmin = ({ userDetail, token, onUpdated, onClose }) => {
           error={errors.address}
           touched={touched.address}
         />
-
-        <div className="col-span-2 flex justify-end mt-4">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-          >
-            Cập nhật
-          </button>
-        </div>
       </form>
     </div>
   );

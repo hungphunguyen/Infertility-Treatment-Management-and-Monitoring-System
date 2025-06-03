@@ -2,13 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { path } from "../common/path";
 import { useSelector } from "react-redux";
-import { Avatar, Dropdown, Menu } from "antd";
+import { Avatar, Button, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
 import {
   SettingOutlined,
   LogoutOutlined,
   UserOutlined,
+  DashboardOutlined,
 } from "@ant-design/icons";
 
 const UserHeader = () => {
@@ -18,6 +19,7 @@ const UserHeader = () => {
 
   useEffect(() => {
     if (!token) return;
+
     authService
       .getMyInfo(token.token)
       .then((res) => {
@@ -100,14 +102,17 @@ const UserHeader = () => {
   };
 
   const checkIntrospect = async () => {
-    try {
-      const res = await authService.checkIntrospect(token.token);
-      if (!res.data.result.valid) {
-        localStorage.removeItem("token");
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    await authService
+      .checkIntrospect(token.token)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        if (err.response.data.code == 1006) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      });
   };
 
   const checkUserRole = () => {
@@ -115,17 +120,31 @@ const UserHeader = () => {
       switch (infoUser.roleName.name) {
         case "ADMIN":
           return (
-            <Link
-              to={path.admin}
-              className="py-2 px-4 font-medium border border-red-500 rounded-md hover:bg-red-500 hover:text-white duration-300"
-            >
-              ADMIN DASHBOARD
+            <Link to={path.admin}>
+              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
+                <DashboardOutlined />
+                <span>Admin </span>
+              </div>
             </Link>
           );
         case "DOCTOR":
-          return null;
+          return (
+            <Link to={path.doctor}>
+              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
+                <DashboardOutlined />
+                <span>Doctor </span>
+              </div>
+            </Link>
+          );
         case "MANAGER":
-          return null;
+          return (
+            <Link to={path.manager}>
+              <div className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-all duration-300 font-medium">
+                <DashboardOutlined />
+                <span>Manager </span>
+              </div>
+            </Link>
+          );
         default:
           return null;
       }
