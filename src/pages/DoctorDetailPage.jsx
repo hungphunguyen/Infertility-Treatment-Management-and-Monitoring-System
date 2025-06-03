@@ -83,7 +83,14 @@ const DoctorDetailPage = () => {
         <Card>
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} md={6} className="text-center">
-              <Avatar size={120} icon={<UserOutlined />} />
+              {doctor.avatarUrl && (
+                <img
+                  src={doctor.avatarUrl}
+                  alt={doctor.fullName}
+                  className="w-[280px] mx-auto object-cover rounded-t-lg"
+                  style={{ height: '400px' }}
+                />
+              )}
             </Col>
             
             <Col xs={24} md={12}>

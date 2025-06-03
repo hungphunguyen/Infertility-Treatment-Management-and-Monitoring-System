@@ -241,22 +241,29 @@ const UserTemplate = () => {
               {doctors.slice(0, 2).map((doctor) => (
                 <div
                   key={doctor.id}
-                  className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col items-center p-6 cursor-pointer hover:shadow-lg transition"
+                  className="relative w-[280px] mx-auto mb-8 cursor-pointer group"
                   onClick={() => navigate(`/doctor/${doctor.id}`)}
                 >
-                  <Avatar
-                    size={120}
-                    src={doctor.image}
-                    icon={<UserOutlined />}
-                    className="border-4 border-[#c2da5c] mb-4"
-                  />
-                  <h3 className="text-xl font-bold mb-2 text-center">{doctor.name}</h3>
-                  <p className="text-[#c2da5c] font-semibold mb-2 text-center">{doctor.role}</p>
-                  <p className="text-gray-600 text-sm mb-3 text-center">{doctor.specialization}</p>
-                  <p className="text-gray-600 text-sm mb-3 text-center">{doctor.experience}</p>
-                  <div className="mb-3 flex items-center justify-center">
-                    <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
-                    <span className="ml-2 text-gray-600">({doctor.rating})</span>
+                  <div className="relative transition-transform duration-300 group-hover:scale-105">
+                    <img
+                      src={doctor.image}
+                      alt={doctor.name}
+                      className="w-full object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
+                      style={{ height: '400px' }}
+                    />
+                    <div
+                      className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 flex flex-col items-center justify-center text-center shadow-md"
+                      style={{ height: '128px' }}
+                    >
+                      <h3 className="text-xl font-bold mb-1 text-gray-800">{doctor.name}</h3>
+                      <p className="text-[#c2da5c] font-semibold mb-1">{doctor.role}</p>
+                      <p className="text-gray-600 text-sm">{doctor.specialization}</p>
+                      <p className="text-gray-600 text-sm">{doctor.experience}</p>
+                      <div className="mt-1 flex items-center justify-center">
+                        <Rate disabled defaultValue={doctor.rating} allowHalf className="text-sm" />
+                        <span className="ml-2 text-gray-600">({doctor.rating})</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
