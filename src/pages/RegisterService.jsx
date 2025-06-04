@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Typography, Form, Input, Button, Select, DatePicker, Radio, 
-  Divider, Space, Row, Col, Card, Checkbox, message, TimePicker, Spin, notification 
+  Divider, Space, Row, Col, Card, Checkbox, TimePicker, Spin
 } from "antd";
 import { 
   UserOutlined, CalendarOutlined, PhoneOutlined, 
-  MailOutlined, MedicineBoxOutlined, IdcardOutlined, HomeOutlined 
+  MailOutlined, MedicineBoxOutlined, IdcardOutlined, HomeOutlined,
+  CheckCircleOutlined
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
@@ -15,12 +16,16 @@ import { serviceService } from "../service/service.service";
 import { doctorService } from "../service/doctor.service";
 import { getLocgetlStorage } from "../utils/util";
 import dayjs from "dayjs";
+import { NotificationContext } from "../App";
+import 'react-toastify/dist/ReactToastify.css';
+import { useSelector } from "react-redux";
 
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
 const RegisterService = () => {
+  const { showNotification } = useContext(NotificationContext);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -28,6 +33,8 @@ const RegisterService = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
   const location = useLocation();
+  const token = useSelector((state) => state.authSlice.token);
+  const [currentUser, setCurrentUser] = useState(null);
   
   // API data states
   const [treatmentServices, setTreatmentServices] = useState([]);
@@ -42,6 +49,9 @@ const RegisterService = () => {
   const doctorSpecialization = location.state?.doctorSpecialization || null;
   const selectedService = location.state?.selectedService || null;
 
+  // Additional state
+  const [doctorNotAvailable, setDoctorNotAvailable] = useState(false);
+
   // Load user information when component mounts
   useEffect(() => {
     const loadUserInfo = async () => {
@@ -50,18 +60,14 @@ const RegisterService = () => {
         const token = getLocgetlStorage("token");
         
         if (token) {
-          console.log("🔄 Loading user info...");
           const response = await authService.getMyInfo(token);
           
           if (response.data && response.data.result) {
             const userInfo = response.data.result;
-            console.log("👤 User info loaded:", userInfo);
-            console.log("📋 Available fields:", Object.keys(userInfo));
+            setCurrentUser(userInfo);
             
             // Try different possible field names for firstName/lastName
             const firstName = userInfo.firstName || userInfo.fname || userInfo.first_name || userInfo.fullName || userInfo.name || "";
-            
-            console.log("🔍 Extracted name:", { firstName });
             
             // Auto-fill user information
             form.setFieldsValue({
@@ -72,15 +78,10 @@ const RegisterService = () => {
               gender: userInfo.gender || "",
               address: userInfo.address || userInfo.fullAddress || ""
             });
-            
-            message.success("Thông tin cá nhân đã được tự động điền từ tài khoản của bạn!");
           }
-        } else {
-          console.log("⚠️ No token found - user not logged in");
         }
       } catch (error) {
-        console.error("❌ Error loading user info:", error);
-        message.warning("Không thể tải thông tin cá nhân. Vui lòng điền thủ công.");
+        // Silent error handling - don't show notification
       } finally {
         setUserInfoLoading(false);
       }
@@ -109,24 +110,10 @@ const RegisterService = () => {
           price: service.price
         }));
         
-        console.log("📋 Mapped services:", mappedServices);
         setTreatmentServices(mappedServices);
-      } else {
-        console.warn("No services found or invalid response format");
-        // Fallback to default services if API fails
-        setTreatmentServices([
-          { value: "consultation", label: "Tư vấn Ban đầu - 500.000 VND", price: 500000 },
-          { value: "fertility_check", label: "Kiểm tra Khả năng Sinh sản - 2.000.000 VND", price: 2000000 }
-        ]);
       }
     } catch (error) {
-      console.error("Error fetching services:", error);
-      message.error("Không thể tải danh sách dịch vụ. Đang sử dụng dữ liệu mặc định.");
-      // Fallback to default services if API fails
-      setTreatmentServices([
-        { value: "consultation", label: "Tư vấn Ban đầu - 500.000 VND", price: 500000 },
-        { value: "fertility_check", label: "Kiểm tra Khả năng Sinh sản - 2.000.000 VND", price: 2000000 }
-      ]);
+      // Silent error handling
     } finally {
       setServicesLoading(false);
     }
@@ -153,24 +140,10 @@ const RegisterService = () => {
         // Add "No selection" option
         mappedDoctors.push({ value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" });
         
-        console.log("👨‍⚕️ Mapped doctors:", mappedDoctors);
         setDoctors(mappedDoctors);
-      } else {
-        console.warn("No doctors found or invalid response format");
-        // Fallback to default doctors if API fails
-        setDoctors([
-          { value: "doc01", label: "BS. Nguyễn Văn A - Chuyên gia IVF", specialty: "IVF" },
-          { value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" }
-        ]);
       }
     } catch (error) {
-      console.error("Error fetching doctors:", error);
-      message.error("Không thể tải danh sách bác sĩ. Đang sử dụng dữ liệu mặc định.");
-      // Fallback to default doctors if API fails
-      setDoctors([
-        { value: "doc01", label: "BS. Nguyễn Văn A - Chuyên gia IVF", specialty: "IVF" },
-        { value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" }
-      ]);
+      // Silent error handling
     } finally {
       setDoctorsLoading(false);
     }
@@ -179,6 +152,7 @@ const RegisterService = () => {
   useEffect(() => {
     // If a doctor was selected from the doctor's page, set the form field
     if (initialSelectedDoctor) {
+      console.log("Debug - initialSelectedDoctor:", initialSelectedDoctor, typeof initialSelectedDoctor);
       setSelectedDoctor(initialSelectedDoctor);
       form.setFieldsValue({
         doctor: initialSelectedDoctor
@@ -193,105 +167,98 @@ const RegisterService = () => {
     }
   }, [initialSelectedDoctor, selectedService, form]);
 
-  // Mock doctor schedules - would be replaced by API call in production
-  const doctorSchedules = {
-    doc01: [
-      ['Thứ 2 (15/01)', '✅', '❌'],
-      ['Thứ 3 (16/01)', '✅', '✅'],
-      ['Thứ 4 (17/01)', '❌', '✅'],
-      ['Thứ 5 (18/01)', '✅', '✅'],
-      ['Thứ 6 (19/01)', '✅', '❌']
-    ]
-  };
-
   const onDoctorChange = (value) => {
+    console.log("Debug - doctor changed to:", value, typeof value);
     setSelectedDoctor(value);
-    setShowDoctorSchedule(value && value !== "" && doctorSchedules[value]);
+    setShowDoctorSchedule(false); // Disable doctor schedule display since we're not using mock data
   };
 
   const onFinish = (values) => {
     setLoading(true);
-    console.log("📋 Dữ liệu đăng ký dịch vụ:", values);
-    
-    // Format data for API
-    const apiData = {
-      // Personal Information
-      fullName: `${values.firstName}`,
-      firstName: values.firstName,
-      email: values.email,
-      phone: values.phone,
-      dateOfBirth: values.dateOfBirth?.format('YYYY-MM-DD'),
-      gender: values.gender,
-      address: values.address,
-      
-      // Appointment Details
-      appointmentDate: values.appointmentDate?.format('YYYY-MM-DD'),
-      appointmentShift: values.shift,
-      treatmentServiceId: values.treatmentService,
-      doctorId: values.doctor || null,
-      
-      // Medical Information
-      medicalHistory: values.medicalHistory || "",
-      previousTreatment: values.previousTreatment === "yes",
-      cd1Date: values.cd1Date?.format('YYYY-MM-DD'),
-      
-      // Additional info
-      notes: values.notes || "",
-      termsAccepted: values.terms,
-      
-      // Meta
-      createdAt: new Date().toISOString(),
-      status: "pending"
-    };
-    
-    console.log("🚀 API Data:", apiData);
+    setDoctorNotAvailable(false); // Reset trạng thái bác sĩ không khả dụng
     
     // Call the API to register treatment service
     const registerTreatment = async () => {
       try {
+        // Kiểm tra đăng nhập và thông tin người dùng
+        const token = getLocgetlStorage("token");
+        
+        console.log("Debug - currentUser:", currentUser);
+        console.log("Debug - token:", token ? "Có token" : "Không có token");
+        console.log("Debug - form values:", values);
+        console.log("Debug - selectedDoctor:", selectedDoctor);
+        
+        // Kiểm tra xem token có tồn tại không (người dùng đã đăng nhập)
+        if (!token) {
+          showNotification("Vui lòng đăng nhập để đăng ký dịch vụ", "error");
+          setLoading(false);
+          return;
+        }
+        
+        // Kiểm tra xem có thông tin người dùng không
+        if (!currentUser || !currentUser.id) {
+          showNotification("Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại.", "error");
+          setLoading(false);
+          return;
+        }
+        
+        // Kiểm tra xem đã chọn dịch vụ chưa
+        if (!values.treatmentService) {
+          showNotification("Vui lòng chọn dịch vụ điều trị", "error");
+          form.scrollToField('treatmentService');
+          setLoading(false);
+          return;
+        }
+        
+        // Kiểm tra xem đã chọn ngày hẹn chưa
+        if (!values.appointmentDate) {
+          showNotification("Vui lòng chọn ngày thăm khám", "error");
+          form.scrollToField('appointmentDate');
+          setLoading(false);
+          return;
+        }
+
+        // Xử lý doctorId đúng định dạng
+        let doctorId = values.doctor;
+        
+        // Nếu doctorId là chuỗi rỗng, gán null
+        if (doctorId === "") {
+          doctorId = null;
+        }
+        // Nếu doctorId bắt đầu bằng "dr_", cắt bỏ tiền tố
+        else if (typeof doctorId === 'string' && doctorId.startsWith('dr_')) {
+          doctorId = doctorId.substring(3);
+        }
+        
+        console.log("Debug - final doctorId:", doctorId, typeof doctorId);
+
+        // Chuẩn bị dữ liệu đăng ký theo đúng định dạng API yêu cầu
         const registerData = {
-          customerId: getLocgetlStorage("userId") || "string", // Get user ID from storage or use default
-          doctorId: values.doctor || "string",
-          treatmentServiceId: parseInt(values.treatmentService) || 0,
-          startDate: values.appointmentDate?.format('YYYY-MM-DD') || "2025-06-04",
+          customerId: currentUser.id,
+          doctorId: doctorId,
+          treatmentServiceId: parseInt(values.treatmentService),
+          startDate: values.appointmentDate.format('YYYY-MM-DD'),
           shift: values.shift || "morning",
-          cd1Date: values.cd1Date?.format('YYYY-MM-DD') || null
+          cd1Date: values.cd1Date ? values.cd1Date.format('YYYY-MM-DD') : null
         };
         
-        console.log("Sending registration data to API:", registerData);
+        console.log("Debug - registerData:", registerData);
         
-        // Call the actual API
+        // Gọi API đăng ký dịch vụ
         const response = await serviceService.registerTreatmentService(registerData);
-        console.log("Registration response:", response);
         
         setLoading(false);
         
         if (response && response.status >= 200 && response.status < 300) {
-          // Show success message with modal
-          message.success({
-            content: "Đăng ký dịch vụ thành công!",
-            duration: 3,
-            style: {
-              marginTop: '20vh',
-              fontSize: '16px',
-            },
-          });
+          // Hiển thị thông báo thành công
+          showNotification("Đăng ký dịch vụ thành công!", "success");
           
-          // Create a more prominent success notification
-          notification.success({
-            message: 'Đăng ký Thành Công',
-            description: 
-              'Yêu cầu đăng ký dịch vụ của bạn đã được gửi thành công! Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ qua số điện thoại hoặc email đã đăng ký.',
-            duration: 5,
-            placement: 'top',
-          });
-          
-          // Reset form and states
+          // Reset form và các state
           form.resetFields();
           setSelectedDoctor(null);
           setShowDoctorSchedule(false);
           
-          // Redirect to home page after successful registration
+          // Chuyển hướng về trang chủ sau khi đăng ký thành công
           setTimeout(() => {
             navigate('/', { 
               state: { 
@@ -299,33 +266,65 @@ const RegisterService = () => {
                 serviceName: treatmentServices.find(s => s.value === values.treatmentService)?.label || 'Dịch vụ'
               } 
             });
-          }, 3000);
+          }, 2000);
         } else {
-          // Show error message
-          message.error({
-            content: "Đăng ký dịch vụ không thành công. Vui lòng kiểm tra lại thông tin và thử lại.",
-            duration: 5,
-            style: {
-              marginTop: '20vh',
-            },
-          });
-          
-          // Highlight fields that might need attention
+          // Hiển thị thông báo lỗi
+          showNotification("Đăng ký dịch vụ không thành công. Vui lòng kiểm tra lại thông tin và thử lại.", "error");
           form.scrollToField('firstName');
         }
       } catch (error) {
-        console.error("Error registering treatment:", error);
+        // Xử lý lỗi chi tiết
+        let errorMessage = "Đăng ký dịch vụ không thành công. Vui lòng thử lại sau.";
         
-        // Show detailed error message
-        notification.error({
-          message: 'Đăng Ký Thất Bại',
-          description: 'Đã xảy ra lỗi khi đăng ký dịch vụ. Vui lòng kiểm tra lại kết nối mạng và thông tin đã nhập.',
-          duration: 5,
-        });
+        // Kiểm tra các loại lỗi cụ thể
+        if (error.response) {
+          // In ra chi tiết lỗi để debug
+          console.log("Debug - error response:", error.response.status, error.response.data);
+          
+          // Lỗi từ phản hồi của server
+          if (error.response.status === 400) {
+            // Kiểm tra xem có phải lỗi bác sĩ không khả dụng không
+            if (error.response.data && 
+               (error.response.data.message === "Doctor is not available for the selected date and shift" ||
+                error.response.data.message.includes("not available"))) {
+              errorMessage = "Bác sĩ không có lịch trống vào ngày và ca bạn đã chọn. Vui lòng chọn ngày hoặc ca khác.";
+              
+              // Đánh dấu trạng thái bác sĩ không khả dụng
+              setDoctorNotAvailable(true);
+              
+              // Đánh dấu các trường cần sửa
+              form.scrollToField('appointmentDate');
+            } else {
+              errorMessage = "Dữ liệu đăng ký không hợp lệ. Vui lòng kiểm tra lại thông tin.";
+            }
+          } else if (error.response.status === 401) {
+            errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+          } else if (error.response.status === 404) {
+            errorMessage = "Không tìm thấy bác sĩ hoặc dịch vụ. Vui lòng kiểm tra lại thông tin.";
+          } else if (error.response.status === 415) {
+            errorMessage = "Định dạng dữ liệu không được hỗ trợ. Vui lòng thử lại.";
+          } else if (error.response.status === 500) {
+            errorMessage = "Lỗi hệ thống. Vui lòng thử lại sau.";
+          }
+          
+          // Nếu server trả về thông báo lỗi cụ thể
+          if (error.response.data && error.response.data.message) {
+            if (error.response.data.message === "Doctor is not available for the selected date and shift") {
+              errorMessage = "Bác sĩ không có lịch trống vào ngày và ca bạn đã chọn. Vui lòng chọn ngày hoặc ca khác.";
+              setDoctorNotAvailable(true);
+            } else {
+              errorMessage = error.response.data.message;
+            }
+          }
+        } else if (error.request) {
+          // Không nhận được phản hồi từ server
+          errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.";
+        }
         
+        showNotification(errorMessage, "error");
         setLoading(false);
         
-        // Scroll to the top of the form
+        // Cuộn lên đầu form
         const formElement = document.querySelector('.ant-form');
         if (formElement) {
           formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -396,8 +395,7 @@ const RegisterService = () => {
                       <Input 
                         prefix={<UserOutlined />} 
                         placeholder="Họ và Tên" 
-                        size="large" 
-                        loading={userInfoLoading}
+                        size="large"
                       />
                     </Form.Item>
                   </Col>
@@ -413,8 +411,7 @@ const RegisterService = () => {
                       <Input 
                         prefix={<MailOutlined />} 
                         placeholder="Địa chỉ Email" 
-                        size="large" 
-                        loading={userInfoLoading}
+                        size="large"
                       />
                     </Form.Item>
                   </Col>
@@ -430,8 +427,7 @@ const RegisterService = () => {
                       <Input 
                         prefix={<PhoneOutlined />} 
                         placeholder="Số điện thoại" 
-                        size="large" 
-                        loading={userInfoLoading}
+                        size="large"
                       />
                     </Form.Item>
                   </Col>
@@ -444,8 +440,7 @@ const RegisterService = () => {
                       <DatePicker 
                         className="w-full" 
                         size="large" 
-                        placeholder="Chọn ngày sinh" 
-                        loading={userInfoLoading}
+                        placeholder="Chọn ngày sinh"
                       />
                     </Form.Item>
                   </Col>
@@ -458,7 +453,7 @@ const RegisterService = () => {
                       label="Giới tính"
                       rules={[{ required: true, message: "Vui lòng chọn giới tính của bạn" }]}
                     >
-                      <Radio.Group disabled={userInfoLoading}>
+                      <Radio.Group>
                         <Radio value="female">Nữ</Radio>
                         <Radio value="male">Nam</Radio>
                         <Radio value="other">Khác</Radio>
@@ -475,7 +470,6 @@ const RegisterService = () => {
                         prefix={<HomeOutlined />} 
                         placeholder="Địa chỉ thường trú" 
                         size="large" 
-                        loading={userInfoLoading}
                       />
                     </Form.Item>
                   </Col>
@@ -499,6 +493,11 @@ const RegisterService = () => {
                         disabledDate={(current) => current && current < dayjs().startOf('day')}
                       />
                     </Form.Item>
+                    {doctorNotAvailable && (
+                      <div className="text-red-500 text-sm mb-2">
+                        <span>⚠️ Bác sĩ không có lịch trống vào ngày và ca này. Vui lòng chọn ngày hoặc ca khác.</span>
+                      </div>
+                    )}
                   </Col>
                   <Col xs={24} md={12}>
                     <Form.Item
@@ -511,6 +510,11 @@ const RegisterService = () => {
                         <Option value="afternoon">Chiều (13:00–17:00)</Option>
                       </Select>
                     </Form.Item>
+                    {doctorNotAvailable && (
+                      <div className="text-blue-500 text-sm mb-2">
+                        <span>💡 Gợi ý: Thử chọn buổi khám khác hoặc chọn "Không chọn - Bác sĩ có sẵn" để hệ thống tự động phân bác sĩ có lịch trống.</span>
+                      </div>
+                    )}
                   </Col>
                 </Row>
                 
@@ -576,7 +580,21 @@ const RegisterService = () => {
                         </div>
                       )}
                       
-                      
+                      {doctorNotAvailable && (
+                        <div className="mt-3">
+                          <Button 
+                            danger
+                            onClick={() => {
+                              setSelectedDoctor(null);
+                              form.setFieldsValue({ doctor: "" });
+                              setDoctorNotAvailable(false);
+                              showNotification("Đã xóa lựa chọn bác sĩ. Hệ thống sẽ tự động phân bác sĩ có lịch trống.", "info");
+                            }}
+                          >
+                            Chọn bác sĩ khác
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ) : doctorsLoading ? (
                     <div className="flex items-center">
@@ -610,13 +628,7 @@ const RegisterService = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {doctorSchedules[selectedDoctor]?.map((row, index) => (
-                            <tr key={index}>
-                              <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>{row[0]}</td>
-                              <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>{row[1]}</td>
-                              <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>{row[2]}</td>
-                            </tr>
-                          ))}
+                          {/* Doctor schedule content will be populated here */}
                         </tbody>
                       </table>
                     </div>

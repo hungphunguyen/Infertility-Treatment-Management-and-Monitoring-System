@@ -92,7 +92,8 @@ export const serviceService = {
       const token = getLocgetlStorage("token");
       const response = await http.post("treatment-service/register", data, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       console.log("✅ Treatment service registered:", response.data);
