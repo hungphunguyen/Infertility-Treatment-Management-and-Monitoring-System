@@ -1,5 +1,7 @@
 import React from "react";
 import { Menu, Avatar, Typography, Divider } from "antd";
+import { Link } from "react-router-dom";
+import { path } from "../../common/path";
 import {
   DashboardOutlined,
   TeamOutlined,
@@ -17,25 +19,29 @@ const DoctorSidebar = ({ selectedMenuItem, setSelectedMenuItem, collapsed }) => 
       key: "dashboard",
       icon: <DashboardOutlined />,
       label: "Dashboard",
-      title: "Xem tổng quan và lịch hôm nay"
+      title: "Xem tổng quan và lịch hôm nay",
+      path: path.doctorDashboard
     },
     {
       key: "patients",
       icon: <TeamOutlined />,
       label: "Bệnh Nhân",
-      title: "Danh sách bệnh nhân đang điều trị"
+      title: "Danh sách bệnh nhân đang điều trị",
+      path: path.doctorPatients
     },
     {
       key: "test-results",
       icon: <FileTextOutlined />,
       label: "Kết Quả XN",
-      title: "Quản lý kết quả xét nghiệm"
+      title: "Quản lý kết quả xét nghiệm",
+      path: path.doctorTestResults
     },
     {
       key: "profile",
       icon: <UserOutlined />,
       label: "Hồ Sơ",
-      title: "Thông tin cá nhân bác sĩ"
+      title: "Thông tin cá nhân bác sĩ",
+      path: path.doctorProfile
     }
   ];
 
@@ -80,13 +86,12 @@ const DoctorSidebar = ({ selectedMenuItem, setSelectedMenuItem, collapsed }) => 
           key: item.key,
           icon: item.icon,
           label: (
-            <span 
-              onClick={() => setSelectedMenuItem(item.key)}
+            <Link 
+              to={item.path}
               title={collapsed ? item.title : ""}
-              style={{ cursor: "pointer" }}
             >
               {item.label}
-            </span>
+            </Link>
           )
         }))}
       />
@@ -110,4 +115,4 @@ const DoctorSidebar = ({ selectedMenuItem, setSelectedMenuItem, collapsed }) => 
   );
 };
 
-export default DoctorSidebar; 
+export default DoctorSidebar;

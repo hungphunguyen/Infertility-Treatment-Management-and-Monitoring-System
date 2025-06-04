@@ -92,11 +92,11 @@ const DoctorDashboard = () => {
           minHeight: "calc(100vh - 112px)"
         }}>
           <Routes>
-            <Route path="/" element={<DashboardOverview />} />
-            <Route path="/dashboard" element={<DashboardOverview />} />
-            <Route path="/patients" element={<PatientList />} />
-            <Route path="/test-results" element={<TestResults />} />
-            <Route path="/profile" element={<DoctorProfile />} />
+            <Route index element={<DashboardOverview />} />
+            <Route path="dashboard" element={<DashboardOverview />} />
+            <Route path="patients" element={<PatientList />} />
+            <Route path="test-results" element={<TestResults />} />
+            <Route path="profile" element={<DoctorProfile />} />
           </Routes>
         </Content>
       </Layout>

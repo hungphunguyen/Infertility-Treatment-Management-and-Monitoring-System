@@ -1,39 +1,53 @@
-import React from "react";
-import { Typography, Row, Col, Button } from "antd";
-import { RightOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import { Typography, Row, Col, Button, Spin, Empty, Card } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
+import { serviceService } from "../service/service.service";
 
-const { Title, Paragraph } = Typography;
-
-// All services for the services page
-const allServices = [
-  {
-    id: "ivf",
-    title: "Thụ Tinh Trong Ống Nghiệm (IVF)",
-    description:
-      "IVF là kỹ thuật hỗ trợ sinh sản tiên tiến nhất, trong đó trứng được thụ tinh với tinh trùng trong phòng thí nghiệm, sau đó phôi được chuyển vào tử cung để phát triển thành thai.",
-    image: "/images/features/pc4.jpg",
-  },
-  {
-    id: "iui",
-    title: "Thụ Tinh Nhân Tạo (IUI)",
-    description:
-      "IUI là phương pháp đưa tinh trùng đã được xử lý trực tiếp vào tử cung của người phụ nữ vào thời điểm rụng trứng để tăng cơ hội thụ thai tự nhiên.",
-    image: "/images/features/pc6.jpg",
-  },
-  {
-    id: "diagnostic-testing",
-    title: "Xét Nghiệm Chẩn Đoán",
-    description:
-      "Xét nghiệm toàn diện để xác định nguyên nhân của vô sinh và xác định phương pháp điều trị hiệu quả nhất.",
-    image: "/images/features/pc9.jpg",
-  },
-];
+const { Title, Text } = Typography;
 
 const ServicesPage = () => {
   const navigate = useNavigate();
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Hàm lấy danh sách dịch vụ
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Gọi API lấy danh sách dịch vụ không bị xóa
+      const response = await serviceService.getAllNonRemovedServices();
+      
+      if (response && response.data && response.data.result) {
+        // Kiểm tra nếu result là mảng
+        if (Array.isArray(response.data.result)) {
+          setServices(response.data.result);
+        } 
+        // Nếu result là object đơn lẻ
+        else if (typeof response.data.result === 'object') {
+          setServices([response.data.result]);
+        }
+      } else {
+        setServices([]);
+        setError("Không tìm thấy dữ liệu dịch vụ từ API");
+      }
+    } catch (err) {
+      console.error("Error fetching services:", err);
+      setError(`Không thể tải danh sách dịch vụ: ${err.message}`);
+      setServices([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServices();
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -58,44 +72,70 @@ const ServicesPage = () => {
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <Title level={2} className="mb-2">
+            <Title level={1} className="text-gray-800 mb-2">
               Những Gì Chúng Tôi Cung Cấp
             </Title>
             <div className="mt-2">
-              <span className="text-[#ff8460] font-medium text-lg">
+              <Text className="text-[#ff8460] font-medium text-lg uppercase">
                 DỊCH VỤ CỦA CHÚNG TÔI
-              </span>
+              </Text>
             </div>
           </div>
 
-          {/* Services Row */}
-          <Row gutter={[32, 32]} className="mb-16">
-            {allServices.map((service) => (
-              <Col xs={24} md={8} key={service.id}>
-                <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:-translate-y-2 h-full flex flex-col">
-                  <img
-                    src={service.image}
-                    alt={service.title}
-                    className="w-full h-56 object-cover"
-                  />
-                  <div className="p-6 flex-grow flex flex-col">
-                    <Title level={4} className="mb-4">
-                      {service.title}
-                    </Title>
-                    <Paragraph className="text-gray-600 mb-6 flex-grow">
-                      {service.description}
-                    </Paragraph>
-                    <Link
-                      to={`/service-detail/${service.id}`}
-                      className="text-[#ff8460] font-medium hover:text-[#ff6b40] inline-block mt-auto"
-                    >
-                      <span className="mr-1">+</span> Thông Tin Thêm
-                    </Link>
-                  </div>
-                </div>
-              </Col>
-            ))}
-          </Row>
+          {/* Services Display */}
+          {loading ? (
+            <div className="text-center py-10">
+              <Spin size="large" />
+            </div>
+          ) : services.length === 0 ? (
+            <div className="text-center py-10">
+              <Empty description={error || "Không có dịch vụ nào"} />
+              <Button 
+                onClick={() => fetchServices()} 
+                className="mt-3"
+              >
+                Thử lại
+              </Button>
+            </div>
+          ) : (
+            <>
+              
+              <Row gutter={[32, 64]} className="justify-center">
+                {services.map((service) => (
+                  <Col xs={24} md={12} key={service.id}>
+                    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={getServiceImage(service.treatmentTypeName)}
+                          alt={service.name}
+                          className="w-full h-64 object-cover transition-transform duration-500 hover:scale-110"
+                        />
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-2xl font-bold mb-3 text-gray-800">{service.name}</h3>
+                        <p className="text-gray-600 mb-4 line-clamp-3">
+                          {service.description || "Không có mô tả cho dịch vụ này."}
+                        </p>
+                        <div className="flex justify-between items-center mt-4">
+                          {service.price && (
+                            <p className="text-[#ff8460] font-medium">
+                              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}
+                            </p>
+                          )}
+                          <Link
+                            to={`/service-detail/${service.id}`}
+                            className="inline-flex items-center text-[#ff8460] hover:text-[#ff6b40] font-medium"
+                          >
+                            <PlusOutlined className="mr-1" /> Chi tiết
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            </>
+          )}
         </div>
       </div>
 
@@ -145,6 +185,19 @@ const ServicesPage = () => {
       <UserFooter />
     </div>
   );
+};
+
+// Hàm lấy hình ảnh dựa trên loại điều trị
+const getServiceImage = (treatmentType) => {
+  const imageMap = {
+    'IUI': '/images/features/pc6.jpg',
+    'IVF': '/images/features/pc4.jpg',
+    'Diagnostic Testing': '/images/features/pc9.jpg',
+    'Embryo Testing': '/images/features/pc11.jpg',
+    'Egg Freezing': '/images/features/pc12.jpg',
+  };
+  
+  return imageMap[treatmentType] || '/images/features/pc4.jpg';
 };
 
 export default ServicesPage;

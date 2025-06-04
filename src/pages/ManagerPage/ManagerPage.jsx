@@ -101,15 +101,15 @@ const ManagerPage = () => {
           style={{ margin: "24px 16px", padding: 24, background: "#f0f2f5" }}
         >
           <Routes>
-            <Route path="/" element={<ReportDashboard />} />
-            <Route path="/dashboard" element={<ReportDashboard />} />
-            <Route path="/schedule" element={<ScheduleManagement />} />
-            <Route path="/appointments" element={<AppointmentManagement />} />
-            <Route path="/doctor-schedule" element={<DoctorScheduleView />} />
-            <Route path="/today-exams" element={<TodayExaminations />} />
-            <Route path="/feedback" element={<FeedbackManagement />} />
-            <Route path="/services" element={<ServiceManagement />} />
-            <Route path="/blog" element={<BlogManagement />} />
+            <Route index element={<ReportDashboard />} />
+            <Route path="dashboard" element={<ReportDashboard />} />
+            <Route path="schedule" element={<ScheduleManagement />} />
+            <Route path="appointments" element={<AppointmentManagement />} />
+            <Route path="doctor-schedule" element={<DoctorScheduleView />} />
+            <Route path="today-exams" element={<TodayExaminations />} />
+            <Route path="feedback" element={<FeedbackManagement />} />
+            <Route path="services" element={<ServiceManagement />} />
+            <Route path="blog" element={<BlogManagement />} />
           </Routes>
         </Content>
       </Layout>

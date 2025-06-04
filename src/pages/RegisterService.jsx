@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { 
   Typography, Form, Input, Button, Select, DatePicker, Radio, 
-  Divider, Space, Row, Col, Card, Checkbox, message, TimePicker 
+  Divider, Space, Row, Col, Card, Checkbox, message, TimePicker, Spin, notification 
 } from "antd";
 import { 
   UserOutlined, CalendarOutlined, PhoneOutlined, 
   MailOutlined, MedicineBoxOutlined, IdcardOutlined, HomeOutlined 
 } from "@ant-design/icons";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { authService } from "../service/auth.service";
+import { serviceService } from "../service/service.service";
+import { doctorService } from "../service/doctor.service";
 import { getLocgetlStorage } from "../utils/util";
 import dayjs from "dayjs";
 
@@ -20,14 +22,24 @@ const { TextArea } = Input;
 
 const RegisterService = () => {
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [userInfoLoading, setUserInfoLoading] = useState(true);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
   const location = useLocation();
   
+  // API data states
+  const [treatmentServices, setTreatmentServices] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+  const [doctorsLoading, setDoctorsLoading] = useState(false);
+  
   // Get the selected doctor from navigation state if available
   const initialSelectedDoctor = location.state?.selectedDoctor || null;
+  const doctorName = location.state?.doctorName || null;
+  const doctorRole = location.state?.doctorRole || null;
+  const doctorSpecialization = location.state?.doctorSpecialization || null;
   const selectedService = location.state?.selectedService || null;
 
   // Load user information when component mounts
@@ -75,7 +87,94 @@ const RegisterService = () => {
     };
 
     loadUserInfo();
+    fetchTreatmentServices();
+    fetchDoctors();
   }, [form]);
+
+  // Fetch treatment services from API
+  const fetchTreatmentServices = async () => {
+    try {
+      setServicesLoading(true);
+      const response = await serviceService.getAllNonRemovedServices();
+      
+      if (response && response.data && response.data.result) {
+        let servicesData = Array.isArray(response.data.result) 
+          ? response.data.result 
+          : [response.data.result];
+        
+        // Map API data to the format needed for Select options
+        const mappedServices = servicesData.map(service => ({
+          value: service.id.toString(),
+          label: `${service.name} - ${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}`,
+          price: service.price
+        }));
+        
+        console.log("📋 Mapped services:", mappedServices);
+        setTreatmentServices(mappedServices);
+      } else {
+        console.warn("No services found or invalid response format");
+        // Fallback to default services if API fails
+        setTreatmentServices([
+          { value: "consultation", label: "Tư vấn Ban đầu - 500.000 VND", price: 500000 },
+          { value: "fertility_check", label: "Kiểm tra Khả năng Sinh sản - 2.000.000 VND", price: 2000000 }
+        ]);
+      }
+    } catch (error) {
+      console.error("Error fetching services:", error);
+      message.error("Không thể tải danh sách dịch vụ. Đang sử dụng dữ liệu mặc định.");
+      // Fallback to default services if API fails
+      setTreatmentServices([
+        { value: "consultation", label: "Tư vấn Ban đầu - 500.000 VND", price: 500000 },
+        { value: "fertility_check", label: "Kiểm tra Khả năng Sinh sản - 2.000.000 VND", price: 2000000 }
+      ]);
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
+  // Fetch doctors from API
+  const fetchDoctors = async () => {
+    try {
+      setDoctorsLoading(true);
+      const response = await doctorService.getAllDoctors();
+      
+      if (response && response.data && response.data.result) {
+        let doctorsData = Array.isArray(response.data.result) 
+          ? response.data.result 
+          : [response.data.result];
+        
+        // Map API data to the format needed for Select options
+        const mappedDoctors = doctorsData.map(doctor => ({
+          value: doctor.id,
+          label: `${doctor.fullName || "Bác sĩ"} - ${doctor.qualifications || "Chuyên khoa"}`,
+          specialty: doctor.qualifications || "Chuyên khoa"
+        }));
+        
+        // Add "No selection" option
+        mappedDoctors.push({ value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" });
+        
+        console.log("👨‍⚕️ Mapped doctors:", mappedDoctors);
+        setDoctors(mappedDoctors);
+      } else {
+        console.warn("No doctors found or invalid response format");
+        // Fallback to default doctors if API fails
+        setDoctors([
+          { value: "doc01", label: "BS. Nguyễn Văn A - Chuyên gia IVF", specialty: "IVF" },
+          { value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" }
+        ]);
+      }
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+      message.error("Không thể tải danh sách bác sĩ. Đang sử dụng dữ liệu mặc định.");
+      // Fallback to default doctors if API fails
+      setDoctors([
+        { value: "doc01", label: "BS. Nguyễn Văn A - Chuyên gia IVF", specialty: "IVF" },
+        { value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" }
+      ]);
+    } finally {
+      setDoctorsLoading(false);
+    }
+  };
 
   useEffect(() => {
     // If a doctor was selected from the doctor's page, set the form field
@@ -88,41 +187,13 @@ const RegisterService = () => {
     
     // If a service was selected from the service detail page, set the form field
     if (selectedService) {
-      const serviceMapping = {
-        "ivf": "201",
-        "iui": "101", 
-        "diagnostic-testing": "fertility_check"
-      };
-      
       form.setFieldsValue({
-        treatmentService: serviceMapping[selectedService] || "consultation"
+        treatmentService: selectedService.toString()
       });
     }
   }, [initialSelectedDoctor, selectedService, form]);
 
-  const treatmentServices = [
-    { value: "consultation", label: "Tư vấn Ban đầu - 500.000 VND", price: 500000 },
-    { value: "fertility_check", label: "Kiểm tra Khả năng Sinh sản - 2.000.000 VND", price: 2000000 },
-    { value: "101", label: "IUI Cơ bản - 12.000.000 VND", price: 12000000 },
-    { value: "102", label: "IUI Nâng cao - 18.000.000 VND", price: 18000000 },
-    { value: "201", label: "IVF Tiêu chuẩn - 70.000.000 VND", price: 70000000 },
-    { value: "202", label: "IVF Trọn gói - 95.000.000 VND", price: 95000000 },
-    { value: "egg_freezing", label: "Đông lạnh Trứng - 25.000.000 VND", price: 25000000 },
-    { value: "sperm_analysis", label: "Phân tích Tinh trùng - 1.500.000 VND", price: 1500000 },
-    { value: "genetic_testing", label: "Xét nghiệm Di truyền - 8.000.000 VND", price: 8000000 },
-    { value: "follow_up", label: "Tái khám - 300.000 VND", price: 300000 },
-  ];
-
-  const doctors = [
-    { value: "doc01", label: "BS. Nguyễn Văn A - Chuyên gia IVF", specialty: "IVF" },
-    { value: "doc02", label: "BS. Trần Thị B - Chuyên gia Hiếm muộn", specialty: "Hiếm muộn" },
-    { value: "doc03", label: "BS. Lê Văn C - Chuyên gia IUI", specialty: "IUI" },
-    { value: "dr_peterson", label: "GS. TS. Andrew Peterson - Giám đốc Trung tâm", specialty: "Tổng quát" },
-    { value: "dr_johnson", label: "TS. Sarah Johnson - Nội tiết Sinh sản", specialty: "Nội tiết" },
-    { value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" },
-  ];
-
-  // Mock doctor schedules
+  // Mock doctor schedules - would be replaced by API call in production
   const doctorSchedules = {
     doc01: [
       ['Thứ 2 (15/01)', '✅', '❌'],
@@ -130,19 +201,6 @@ const RegisterService = () => {
       ['Thứ 4 (17/01)', '❌', '✅'],
       ['Thứ 5 (18/01)', '✅', '✅'],
       ['Thứ 6 (19/01)', '✅', '❌']
-    ],
-    doc02: [
-      ['Thứ 2 (15/01)', '✅', '✅'],
-      ['Thứ 3 (16/01)', '✅', '✅'],
-      ['Thứ 4 (17/01)', '✅', '✅'],
-      ['Thứ 5 (18/01)', '✅', '✅'],
-      ['Thứ 6 (19/01)', '✅', '✅']
-    ],
-    doc03: [
-      ['Thứ 3 (16/01)', '✅', '❌'],
-      ['Thứ 4 (17/01)', '✅', '❌'],
-      ['Thứ 6 (19/01)', '✅', '✅'],
-      ['Thứ 7 (20/01)', '✅', '✅']
     ]
   };
 
@@ -175,6 +233,7 @@ const RegisterService = () => {
       // Medical Information
       medicalHistory: values.medicalHistory || "",
       previousTreatment: values.previousTreatment === "yes",
+      cd1Date: values.cd1Date?.format('YYYY-MM-DD'),
       
       // Additional info
       notes: values.notes || "",
@@ -187,14 +246,94 @@ const RegisterService = () => {
     
     console.log("🚀 API Data:", apiData);
     
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      message.success("Yêu cầu đăng ký dịch vụ của bạn đã được gửi thành công! Chúng tôi sẽ liên hệ trong vòng 24 giờ.");
-      form.resetFields();
-      setSelectedDoctor(null);
-      setShowDoctorSchedule(false);
-    }, 1500);
+    // Call the API to register treatment service
+    const registerTreatment = async () => {
+      try {
+        const registerData = {
+          customerId: getLocgetlStorage("userId") || "string", // Get user ID from storage or use default
+          doctorId: values.doctor || "string",
+          treatmentServiceId: parseInt(values.treatmentService) || 0,
+          startDate: values.appointmentDate?.format('YYYY-MM-DD') || "2025-06-04",
+          shift: values.shift || "morning",
+          cd1Date: values.cd1Date?.format('YYYY-MM-DD') || null
+        };
+        
+        console.log("Sending registration data to API:", registerData);
+        
+        // Call the actual API
+        const response = await serviceService.registerTreatmentService(registerData);
+        console.log("Registration response:", response);
+        
+        setLoading(false);
+        
+        if (response && response.status >= 200 && response.status < 300) {
+          // Show success message with modal
+          message.success({
+            content: "Đăng ký dịch vụ thành công!",
+            duration: 3,
+            style: {
+              marginTop: '20vh',
+              fontSize: '16px',
+            },
+          });
+          
+          // Create a more prominent success notification
+          notification.success({
+            message: 'Đăng ký Thành Công',
+            description: 
+              'Yêu cầu đăng ký dịch vụ của bạn đã được gửi thành công! Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ qua số điện thoại hoặc email đã đăng ký.',
+            duration: 5,
+            placement: 'top',
+          });
+          
+          // Reset form and states
+          form.resetFields();
+          setSelectedDoctor(null);
+          setShowDoctorSchedule(false);
+          
+          // Redirect to home page after successful registration
+          setTimeout(() => {
+            navigate('/', { 
+              state: { 
+                registrationSuccess: true,
+                serviceName: treatmentServices.find(s => s.value === values.treatmentService)?.label || 'Dịch vụ'
+              } 
+            });
+          }, 3000);
+        } else {
+          // Show error message
+          message.error({
+            content: "Đăng ký dịch vụ không thành công. Vui lòng kiểm tra lại thông tin và thử lại.",
+            duration: 5,
+            style: {
+              marginTop: '20vh',
+            },
+          });
+          
+          // Highlight fields that might need attention
+          form.scrollToField('firstName');
+        }
+      } catch (error) {
+        console.error("Error registering treatment:", error);
+        
+        // Show detailed error message
+        notification.error({
+          message: 'Đăng Ký Thất Bại',
+          description: 'Đã xảy ra lỗi khi đăng ký dịch vụ. Vui lòng kiểm tra lại kết nối mạng và thông tin đã nhập.',
+          duration: 5,
+        });
+        
+        setLoading(false);
+        
+        // Scroll to the top of the form
+        const formElement = document.querySelector('.ant-form');
+        if (formElement) {
+          formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    };
+    
+    registerTreatment();
   };
 
   return (
@@ -230,6 +369,13 @@ const RegisterService = () => {
                 layout="vertical"
                 onFinish={onFinish}
                 scrollToFirstError
+                validateMessages={{
+                  required: '${label} là trường bắt buộc!',
+                  types: {
+                    email: '${label} không đúng định dạng!',
+                    number: '${label} phải là số!'
+                  }
+                }}
               >
                 <Title level={3} className="mb-6" style={{ color: '#333' }}>
                   👤 Thông tin Cá nhân
@@ -368,38 +514,85 @@ const RegisterService = () => {
                   </Col>
                 </Row>
                 
+                <Row gutter={[16, 0]}>
+                  <Col xs={24} md={12}>
+                    <Form.Item
+                      name="cd1Date"
+                      label="Ngày rụng trứng gần nhất (CD1)"
+                      tooltip="CD1 là ngày rụng trứng gần nhất, thông tin quan trọng giúp bác sĩ lập kế hoạch điều trị hiệu quả"
+                      rules={[{ required: false, message: "Vui lòng chọn ngày rụng trứng gần nhất nếu có" }]}
+                    >
+                      <DatePicker 
+                        className="w-full" 
+                        size="large" 
+                        placeholder="Chọn ngày rụng trứng gần nhất"
+                        disabledDate={(current) => current && current > dayjs().endOf('day')}
+                      />
+                    </Form.Item>
+                    <div className="text-gray-500 text-sm mt-1">
+                      <i>Thông tin này giúp bác sĩ xác định chu kỳ kinh nguyệt và lập kế hoạch điều trị phù hợp</i>
+                    </div>
+                  </Col>
+                </Row>
+                
                 <Form.Item
                   name="treatmentService"
                   label="Gói dịch vụ điều trị"
                   rules={[{ required: true, message: "Vui lòng chọn gói dịch vụ" }]}
                 >
-                  <Select placeholder="-- Chọn gói dịch vụ --" size="large">
-                    {treatmentServices.map(service => (
-                      <Option key={service.value} value={service.value}>{service.label}</Option>
-                    ))}
-                  </Select>
+                  {servicesLoading ? (
+                    <div className="flex items-center">
+                      <Spin size="small" className="mr-2" />
+                      <span>Đang tải danh sách dịch vụ...</span>
+                    </div>
+                  ) : (
+                    <Select placeholder="-- Chọn gói dịch vụ --" size="large">
+                      {treatmentServices.map(service => (
+                        <Option key={service.value} value={service.value}>{service.label}</Option>
+                      ))}
+                    </Select>
+                  )}
                 </Form.Item>
                 
                 <Form.Item
                   name="doctor"
-                  label="Chỉ định bác sĩ điều trị (nếu muốn)"
+                  label={initialSelectedDoctor ? "Bác sĩ đã chọn" : "Chỉ định bác sĩ điều trị (nếu muốn)"}
                 >
-                  <Select 
-                    placeholder="-- Không chọn --" 
-                    size="large"
-                    onChange={onDoctorChange}
-                    disabled={initialSelectedDoctor !== null}
-                  >
-                    {doctors.map(doctor => (
-                      <Option key={doctor.value} value={doctor.value}>{doctor.label}</Option>
-                    ))}
-                  </Select>
-                  {initialSelectedDoctor && (
-                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
-                      <Text strong className="text-green-700">
-                        Bác sĩ đã chọn: {doctors.find(doc => doc.value === initialSelectedDoctor)?.label || initialSelectedDoctor}
+                  {initialSelectedDoctor ? (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded">
+                      <Text strong className="text-green-700 text-lg">
+                        {doctorName || doctors.find(doc => doc.value === initialSelectedDoctor)?.label || "Bác sĩ đã được chỉ định"}
                       </Text>
+                      
+                      {doctorRole && (
+                        <div className="mt-1 text-[#ff8460] font-medium">
+                          {doctorRole}
+                        </div>
+                      )}
+                      
+                      {doctorSpecialization && (
+                        <div className="mt-1 text-gray-700">
+                          {doctorSpecialization}
+                        </div>
+                      )}
+                      
+                      
                     </div>
+                  ) : doctorsLoading ? (
+                    <div className="flex items-center">
+                      <Spin size="small" className="mr-2" />
+                      <span>Đang tải danh sách bác sĩ...</span>
+                    </div>
+                  ) : (
+                    <Select 
+                      placeholder="-- Không chọn --" 
+                      size="large"
+                      onChange={onDoctorChange}
+                    >
+                      {doctors.map(doctor => (
+                        <Option key={doctor.value} value={doctor.value}>{doctor.label}</Option>
+                      ))}
+                    </Select>
                   )}
                 </Form.Item>
 

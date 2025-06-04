@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Typography } from "antd";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { path } from "../common/path";
 import CustomerSidebar from "../components/customer/CustomerSidebar";
 import ProfileOverview from "../components/customer/ProfileOverview";
 import MyServices from "../components/customer/MyServices";
@@ -16,35 +18,43 @@ const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const CustomerDashboard = () => {
-  const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
 
-  const renderContent = () => {
-    switch (selectedMenuItem) {
-      case "profile":
-        return <ProfileOverview />;
-      case "services":
-        return <MyServices />;
-      case "appointments":
-        return <AppointmentSchedule />;
-      case "treatment":
-        return <TreatmentProgress />;
-      case "reviews":
-        return <ServiceReview />;
-      case "notifications":
-        return <Notifications />;
-      case "feedback":
-        return <Feedback />;
-      case "medical-record":
-        return <MedicalRecord />;
-      case "payment":
-        return <Payment />;
-      case "update-profile":
-        return <UpdateProfile />;
-      default:
-        return <ProfileOverview />;
+  // Update selected menu item based on current path
+  useEffect(() => {
+    const pathname = location.pathname;
+    if (pathname.includes("/profile")) {
+      setSelectedMenuItem("profile");
+    } else if (pathname.includes("/services")) {
+      setSelectedMenuItem("services");
+    } else if (pathname.includes("/appointments")) {
+      setSelectedMenuItem("appointments");
+    } else if (pathname.includes("/treatment")) {
+      setSelectedMenuItem("treatment");
+    } else if (pathname.includes("/reviews")) {
+      setSelectedMenuItem("reviews");
+    } else if (pathname.includes("/notifications")) {
+      setSelectedMenuItem("notifications");
+    } else if (pathname.includes("/feedback")) {
+      setSelectedMenuItem("feedback");
+    } else if (pathname.includes("/medical-record")) {
+      setSelectedMenuItem("medical-record");
+    } else if (pathname.includes("/payment")) {
+      setSelectedMenuItem("payment");
+    } else if (pathname.includes("/update-profile")) {
+      setSelectedMenuItem("update-profile");
+    } else {
+      // Default to profile if no match
+      setSelectedMenuItem("profile");
+      // Redirect to profile if at the root customer dashboard
+      if (pathname === "/customer-dashboard") {
+        navigate(path.customerProfile);
+      }
     }
-  };
+  }, [location, navigate]);
 
   const getPageTitle = () => {
     switch (selectedMenuItem) {
@@ -111,11 +121,23 @@ const CustomerDashboard = () => {
           background: "#f0f2f5",
           minHeight: "calc(100vh - 112px)"
         }}>
-          {renderContent()}
+          <Routes>
+            <Route index element={<ProfileOverview />} />
+            <Route path="profile" element={<ProfileOverview />} />
+            <Route path="services" element={<MyServices />} />
+            <Route path="appointments" element={<AppointmentSchedule />} />
+            <Route path="treatment" element={<TreatmentProgress />} />
+            <Route path="reviews" element={<ServiceReview />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="feedback" element={<Feedback />} />
+            <Route path="medical-record" element={<MedicalRecord />} />
+            <Route path="payment" element={<Payment />} />
+            <Route path="update-profile" element={<UpdateProfile />} />
+          </Routes>
         </Content>
       </Layout>
     </Layout>
   );
 };
 
-export default CustomerDashboard; 
+export default CustomerDashboard;

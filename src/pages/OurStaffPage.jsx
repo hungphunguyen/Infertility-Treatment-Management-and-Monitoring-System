@@ -65,9 +65,14 @@ const OurStaffPage = () => {
     navigate(`/doctor/${doctorId}`);
   };
 
-  const handleBooking = (doctorId) => {
+  const handleBooking = (doctor) => {
     navigate(`/register-service`, {
-      state: { selectedDoctor: doctorId },
+      state: { 
+        selectedDoctor: doctor.value,
+        doctorName: doctor.name,
+        doctorRole: doctor.role,
+        doctorSpecialization: doctor.specialization
+      },
     });
   };
 
@@ -163,7 +168,7 @@ const OurStaffPage = () => {
                         Xem chi tiết
                       </button>
                       <button
-                        onClick={() => handleBooking(doctor.value)}
+                        onClick={() => handleBooking(doctor)}
                         className="bg-[#c2da5c] hover:bg-[#a8c245] text-white px-4 py-2 rounded text-sm transition duration-300"
                       >
                         Đặt lịch
