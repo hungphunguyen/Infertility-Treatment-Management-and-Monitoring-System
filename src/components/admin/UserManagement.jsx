@@ -70,7 +70,7 @@ const UserManagement = () => {
   // thực hiện chức năng delete
   const handleDelete = (id) => {
     adminService
-      .deleteUser(id, token.token)
+      .deleteUser(id)
       .then((res) => {
         showNotification("Removed success", "success");
         setTimeout(() => {
