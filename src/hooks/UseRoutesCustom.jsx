@@ -20,6 +20,7 @@ import AdminPage from "../pages/AdminPage/AdminPage";
 import ManagerPage from "../pages/ManagerPage/ManagerPage";
 import ResendOtpPage from "../pages/ResendOtpPage";
 import DoctorDashboard from "../pages/DoctorDashboard";
+import CustomerDashboard from "../pages/CustomerDashboard";
 import ProfileUpdate from "../pages/ProfileUpdate";
 
 const UseRoutesCustom = () => {
@@ -86,12 +87,16 @@ const UseRoutesCustom = () => {
       element: <AdminPage />,
     },
     {
-      path: path.manager,
+      path: "/manager/*",
       element: <ManagerPage />,
     },
     {
-      path: path.doctor,
+      path: "/doctor-dashboard/*",
       element: <DoctorDashboard />,
+    },
+    {
+      path: "/customer-dashboard/*",
+      element: <CustomerDashboard />,
     },
     {
       path: path.resendOtp,

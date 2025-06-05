@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Typography } from "antd";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { path } from "../common/path";
 import DoctorSidebar from "../components/doctor/DoctorSidebar";
 import DashboardOverview from "../components/doctor/DashboardOverview";
 import PatientList from "../components/doctor/PatientList";
@@ -10,23 +12,31 @@ const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const DoctorDashboard = () => {
-  const [selectedMenuItem, setSelectedMenuItem] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedMenuItem, setSelectedMenuItem] = useState("dashboard");
 
-  const renderContent = () => {
-    switch (selectedMenuItem) {
-      case "dashboard":
-        return <DashboardOverview />;
-      case "patients":
-        return <PatientList />;
-      case "test-results":
-        return <TestResults />;
-      case "profile":
-        return <DoctorProfile />;
-      default:
-        return <DashboardOverview />;
+  // Update selected menu item based on current path
+  useEffect(() => {
+    const pathname = location.pathname;
+    if (pathname.includes("/dashboard")) {
+      setSelectedMenuItem("dashboard");
+    } else if (pathname.includes("/patients")) {
+      setSelectedMenuItem("patients");
+    } else if (pathname.includes("/test-results")) {
+      setSelectedMenuItem("test-results");
+    } else if (pathname.includes("/profile")) {
+      setSelectedMenuItem("profile");
+    } else {
+      // Default to dashboard if no match
+      setSelectedMenuItem("dashboard");
+      // Redirect to dashboard if at the root doctor dashboard
+      if (pathname === "/doctor-dashboard") {
+        navigate(path.doctorDashboard);
+      }
     }
-  };
+  }, [location, navigate]);
 
   const getPageTitle = () => {
     switch (selectedMenuItem) {
@@ -81,11 +91,17 @@ const DoctorDashboard = () => {
           background: "#f0f2f5",
           minHeight: "calc(100vh - 112px)"
         }}>
-          {renderContent()}
+          <Routes>
+            <Route index element={<DashboardOverview />} />
+            <Route path="dashboard" element={<DashboardOverview />} />
+            <Route path="patients" element={<PatientList />} />
+            <Route path="test-results" element={<TestResults />} />
+            <Route path="profile" element={<DoctorProfile />} />
+          </Routes>
         </Content>
       </Layout>
     </Layout>
   );
 };
 
-export default DoctorDashboard; 
+export default DoctorDashboard;
