@@ -16,29 +16,27 @@ export const path = {
   doctorDetail: "/doctor/:id",
   appointment: "/register-service",
   admin: "/admin",
-  adminDashboard: "/admin/dashboard",
-  adminUsers: "/admin/users",
-  
+
   // Manager routes
-  manager: "/manager/*",
+  manager: "/manager/",
   managerDashboard: "/manager/dashboard",
   managerStaff: "/manager/staff",
   managerServices: "/manager/services",
   managerAppointments: "/manager/appointments",
   managerPatients: "/manager/patients",
   managerReports: "/manager/reports",
-  
+
   // Doctor routes
-  doctor: "/doctor-dashboard/*",
+  doctor: "/doctor-dashboard/",
   doctorDashboard: "/doctor-dashboard/dashboard",
   doctorAppointments: "/doctor-dashboard/appointments",
   doctorPatients: "/doctor-dashboard/patients",
   doctorSchedule: "/doctor-dashboard/schedule",
   doctorTestResults: "/doctor-dashboard/test-results",
   doctorProfile: "/doctor-dashboard/profile",
-  
+
   // Customer routes
-  customer: "/customer-dashboard/*",
+  customer: "/customer-dashboard/",
   customerProfile: "/customer-dashboard/profile",
   customerServices: "/customer-dashboard/services",
   customerAppointments: "/customer-dashboard/appointments",
@@ -49,7 +47,7 @@ export const path = {
   customerMedicalRecord: "/customer-dashboard/medical-record",
   customerPayment: "/customer-dashboard/payment",
   customerUpdateProfile: "/customer-dashboard/update-profile",
-  
+
   updataProfile: "/update-profile",
   resendOtp: "/resend-otp",
 };

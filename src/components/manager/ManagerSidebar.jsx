@@ -1,6 +1,6 @@
 import React from "react";
-import { Layout, Menu } from "antd";
-import { Link } from "react-router-dom";
+import { Button, Layout, Menu } from "antd";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import {
   BarChartOutlined,
@@ -11,62 +11,69 @@ import {
   MessageOutlined,
   AppstoreOutlined,
   EditOutlined,
-  DashboardOutlined
+  DashboardOutlined,
+  HomeOutlined,
 } from "@ant-design/icons";
 
 const { Sider } = Layout;
 
-const ManagerSidebar = ({ collapsed, onCollapse, selectedMenu, onMenuSelect }) => {
+const ManagerSidebar = ({
+  collapsed,
+  onCollapse,
+  selectedMenu,
+  onMenuSelect,
+}) => {
   const menuItems = [
     {
       key: "report",
       icon: <BarChartOutlined />,
       label: "Báo Cáo Doanh Thu",
-      path: path.managerDashboard
+      path: path.managerDashboard,
     },
     {
       key: "schedule",
       icon: <CalendarOutlined />,
       label: "Xếp Lịch Làm Việc",
-      path: "/manager/schedule"
+      path: "/manager/schedule",
     },
     {
       key: "appointments",
       icon: <ScheduleOutlined />,
       label: "Quản Lý Lịch Hẹn",
-      path: path.managerAppointments
+      path: path.managerAppointments,
     },
     {
       key: "doctor-schedule",
       icon: <UserOutlined />,
       label: "Lịch Bác Sĩ Hôm Nay",
-      path: "/manager/doctor-schedule"
+      path: "/manager/doctor-schedule",
     },
     {
       key: "today-exams",
       icon: <ClockCircleOutlined />,
       label: "Lịch Khám Hôm Nay",
-      path: "/manager/today-exams"
+      path: "/manager/today-exams",
     },
     {
       key: "feedback",
       icon: <MessageOutlined />,
       label: "Quản Lý Feedback",
-      path: "/manager/feedback"
+      path: "/manager/feedback",
     },
     {
       key: "services",
       icon: <AppstoreOutlined />,
       label: "Quản Lý Dịch Vụ",
-      path: path.managerServices
+      path: path.managerServices,
     },
     {
       key: "blog",
       icon: <EditOutlined />,
       label: "Quản Lý Blog",
-      path: "/manager/blog"
+      path: "/manager/blog",
     },
   ];
+  const navigate = useNavigate();
 
   return (
     <Sider
@@ -78,9 +85,7 @@ const ManagerSidebar = ({ collapsed, onCollapse, selectedMenu, onMenuSelect }) =
     >
       <div className="p-4 text-center">
         <DashboardOutlined className="text-white text-2xl" />
-        {!collapsed && (
-          <h3 className="text-white mt-2 mb-0">Manager Panel</h3>
-        )}
+        {!collapsed && <h3 className="text-white mt-2 mb-0">Manager Panel</h3>}
       </div>
 
       <Menu
@@ -88,16 +93,24 @@ const ManagerSidebar = ({ collapsed, onCollapse, selectedMenu, onMenuSelect }) =
         selectedKeys={[selectedMenu]}
         mode="inline"
         style={{ borderRight: 0 }}
-        items={menuItems.map(item => ({
+        items={menuItems.map((item) => ({
           key: item.key,
           icon: item.icon,
-          label: (
-            <Link to={item.path}>
-              {item.label}
-            </Link>
-          )
+          label: <Link to={item.path}>{item.label}</Link>,
         }))}
       />
+
+      {/* Nút về trang chủ */}
+      <div className="px-4 mt-4">
+        <Button
+          type="default"
+          icon={<HomeOutlined />}
+          style={{ width: "100%" }}
+          onClick={() => navigate("/")}
+        >
+          {!collapsed && "Về Trang Chủ"}
+        </Button>
+      </div>
     </Sider>
   );
 };
