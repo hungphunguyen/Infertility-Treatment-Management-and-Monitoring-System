@@ -67,11 +67,11 @@ const OurStaffPage = () => {
 
   const handleBooking = (doctor) => {
     navigate(`/register-service`, {
-      state: { 
+      state: {
         selectedDoctor: doctor.value,
         doctorName: doctor.name,
         doctorRole: doctor.role,
-        doctorSpecialization: doctor.specialization
+        doctorSpecialization: doctor.specialization,
       },
     });
   };
@@ -114,30 +114,31 @@ const OurStaffPage = () => {
             {doctors.map((doctor) => (
               <div
                 key={doctor.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
+                className="relative w-[280px] mx-auto mb-8 cursor-pointer group"
+                onClick={() => handleDoctorClick(doctor.id)}
               >
-                <div className="flex flex-col md:flex-row">
-                  <div className="md:w-1/3 p-6 flex justify-center items-center">
-                    <Avatar
-                      size={120}
-                      src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748823881/uploads/avt_1e07a251-7ec2-4478-b85b-7adb05572687.jpg"
-                      icon={<UserOutlined />}
-                      className="border-4 border-[#ff8460]"
-                    />
-                  </div>
-                  <div className="md:w-2/3 p-6">
-                    <h3 className="text-xl font-bold mb-2">{doctor.name}</h3>
-                    <p className="text-[#ff8460] font-semibold mb-2">
+                <div className="relative transition-transform duration-300 group-hover:scale-105">
+                  <img
+                    src={doctor.image}
+                    alt={doctor.name}
+                    className="w-full object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
+                    style={{ height: "400px" }}
+                  />
+                  <div
+                    className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 flex flex-col items-center justify-center text-center shadow-md"
+                    style={{ height: "128px" }}
+                  >
+                    <h3 className="text-xl font-bold mb-1 text-gray-800">
+                      {doctor.name}
+                    </h3>
+                    <p className="text-[#ff8460] font-semibold mb-1">
                       {doctor.role}
                     </p>
-                    <p className="text-gray-600 text-sm mb-3">
+                    <p className="text-gray-600 text-sm">
                       {doctor.specialization}
                     </p>
-                    <p className="text-gray-600 text-sm mb-3">
-                      {doctor.experience}
-                    </p>
-
-                    <div className="mb-3">
+                    <p className="text-gray-600 text-sm">{doctor.experience}</p>
+                    <div className="mt-1 flex items-center justify-center">
                       <Rate
                         disabled
                         defaultValue={doctor.rating}
@@ -147,32 +148,6 @@ const OurStaffPage = () => {
                       <span className="ml-2 text-gray-600">
                         ({doctor.rating})
                       </span>
-                    </div>
-
-                    <div className="mb-3">
-                      <Tag color="green" className="mb-1">
-                        {doctor.treatmentType}
-                      </Tag>
-                      {doctor.certificates.slice(0, 1).map((cert, index) => (
-                        <Tag color="blue" key={index} className="mb-1 text-xs">
-                          {cert}
-                        </Tag>
-                      ))}
-                    </div>
-
-                    <div className="flex space-x-2 mt-4">
-                      <button
-                        onClick={() => handleDoctorClick(doctor.id)}
-                        className="bg-[#ff8460] hover:bg-[#ff6b40] text-white px-4 py-2 rounded text-sm transition duration-300"
-                      >
-                        Xem chi tiết
-                      </button>
-                      <button
-                        onClick={() => handleBooking(doctor)}
-                        className="bg-[#c2da5c] hover:bg-[#a8c245] text-white px-4 py-2 rounded text-sm transition duration-300"
-                      >
-                        Đặt lịch
-                      </button>
                     </div>
                   </div>
                 </div>
