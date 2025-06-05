@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
 import { useSelector } from "react-redux";
 import { Avatar, Button, Dropdown, Menu } from "antd";
@@ -16,6 +16,8 @@ const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
   const location = useLocation();
   const [infoUser, setInfoUser] = useState();
+  const navigate = useNavigate();
+  const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     if (!token) return;
@@ -24,6 +26,18 @@ const UserHeader = () => {
       .getMyInfo(token.token)
       .then((res) => {
         setInfoUser(res.data.result);
+        if (
+          !res.data.result.phone &&
+          res.data.result.roleName.name !== "ADMIN"
+        ) {
+          setTimeout(() => {
+            navigate(path.updataProfile);
+            showNotification(
+              "You must complete your personal profile.",
+              "warning"
+            );
+          }, 1000);
+        }
       })
       .catch((err) => {});
   }, [token]);
@@ -32,16 +46,16 @@ const UserHeader = () => {
     if (token?.token) {
       checkIntrospect();
     }
-  }, []);
+  }, [token]);
 
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
       // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
-      window.location.href = "/update-profile";
+      navigate(path.updataProfile);
     } else if (key === "logout") {
       // Xử lý logout
       localStorage.removeItem("token");
-      window.location.href = "/";
+      navigate(path.homePage);
     }
   };
 

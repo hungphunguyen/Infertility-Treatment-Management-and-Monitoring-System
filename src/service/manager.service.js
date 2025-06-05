@@ -9,7 +9,15 @@ export const managerService = {
     return http.post("work-schedule/bulk-create", payload);
   },
 
+  createWorkScheduleByDay: (data) => {
+    return http.post("work-schedule", data);
+  },
+
   deleteWorkSchedule: (date, doctorId) => {
     return http.delete(`work-schedule/${date}/${doctorId}`);
+  },
+
+  updateWorkSchedule: (doctorId, data) => {
+    return http.put(`work-schedule/${doctorId}`, data);
   },
 };
