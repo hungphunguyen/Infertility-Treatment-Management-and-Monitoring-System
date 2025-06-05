@@ -50,7 +50,30 @@ const UserHeader = () => {
       {/* Nếu là admin thì thêm mục Admin */}
       {infoUser && infoUser.roleName.name === "ADMIN" && (
         <Menu.Item key="admin" icon={<DashboardOutlined />}>
-          <Link to={path.admin} style={{ color: 'inherit' }}>Admin</Link>
+          <Link to={path.admin} style={{ color: "inherit" }}>
+            Admin
+          </Link>
+        </Menu.Item>
+      )}
+      {infoUser && infoUser.roleName.name === "MANAGER" && (
+        <Menu.Item key="manager" icon={<DashboardOutlined />}>
+          <Link to={path.manager} style={{ color: "inherit" }}>
+            Manager
+          </Link>
+        </Menu.Item>
+      )}{" "}
+      {infoUser && infoUser.roleName.name === "CUSTOMER" && (
+        <Menu.Item key="customer" icon={<DashboardOutlined />}>
+          <Link to={path.customer} style={{ color: "inherit" }}>
+            Customer
+          </Link>
+        </Menu.Item>
+      )}{" "}
+      {infoUser && infoUser.roleName.name === "DOCTOR" && (
+        <Menu.Item key="doctor" icon={<DashboardOutlined />}>
+          <Link to={path.doctor} style={{ color: "inherit" }}>
+            Doctor
+          </Link>
         </Menu.Item>
       )}
       <Menu.Item key="update" icon={<SettingOutlined />}>
