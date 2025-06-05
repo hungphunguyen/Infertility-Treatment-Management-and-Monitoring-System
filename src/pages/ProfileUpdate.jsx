@@ -46,7 +46,7 @@ const ProfileUpdate = () => {
           return;
         }
         try {
-          const res = await authService.updateUser(userInfo.id, values, token);
+          const res = await authService.updateUser(userInfo.id, values);
           console.log(res);
           showNotification("Cập nhật thông tin thành công", "success");
         } catch (err) {
@@ -110,15 +110,30 @@ const ProfileUpdate = () => {
                 error={errors.fullName}
                 touched={touched.fullName}
               />
-              <InputCustom
-                labelContent="Email"
-                name="email"
-                value={values.email}
-                onChange={() => {}}
-                error={errors.email}
-                touched={touched.email}
-                classWrapper="opacity-60 pointer-events-none"
-              />
+              {userInfo &&
+              !userInfo.phoneNumber &&
+              userInfo.roleName.name !== "CUSTOMER" ? (
+                <InputCustom
+                  labelContent="Email"
+                  name="email"
+                  value={values.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  error={errors.email}
+                  touched={touched.email}
+                />
+              ) : (
+                <InputCustom
+                  labelContent="Email"
+                  name="email"
+                  value={values.email}
+                  onChange={() => {}}
+                  error={errors.email}
+                  touched={touched.email}
+                  classWrapper="opacity-60 pointer-events-none"
+                />
+              )}
+
               <InputCustom
                 labelContent="Số điện thoại"
                 name="phoneNumber"

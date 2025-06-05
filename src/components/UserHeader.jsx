@@ -26,8 +26,9 @@ const UserHeader = () => {
       .getMyInfo(token.token)
       .then((res) => {
         setInfoUser(res.data.result);
+        console.log(res);
         if (
-          !res.data.result.phone &&
+          !res.data.result.phoneNumber &&
           res.data.result.roleName.name !== "ADMIN"
         ) {
           setTimeout(() => {
