@@ -1,277 +1,315 @@
-import React, { useState } from "react";
-import { 
-  Card, 
-  Typography, 
-  Form, 
-  Select, 
-  DatePicker, 
-  TimePicker, 
-  Button, 
-  Table, 
-  Space,
-  message,
-  Row,
-  Col,
-  Divider
-} from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
-
-const { Title } = Typography;
-const { Option } = Select;
+import React, { useContext, useEffect, useState } from "react";
+import { Typography, Select, Popconfirm } from "antd";
+import { doctorService } from "../../service/doctor.service";
+import { NotificationContext } from "../../App";
+import { useSelector } from "react-redux";
+import { authService } from "../../service/auth.service";
+import { managerService } from "../../service/manager.service";
 
 const ScheduleManagement = () => {
-  const [form] = Form.useForm();
-  const [schedules, setSchedules] = useState([
-    {
-      key: 1,
-      weekday: "MONDAY",
-      startTime: "08:00",
-      endTime: "17:00"
-    }
-  ]);
-  const [selectedDoctor, setSelectedDoctor] = useState("");
-  const [startWeek, setStartWeek] = useState(null);
+  const token = useSelector((state) => state.authSlice);
+  const [infoUser, setInfoUser] = useState();
+  useEffect(() => {
+    if (!token) return;
 
-  // Mock doctors data - replace with API call
-  const doctors = [
-    { id: 1, name: "Dr. John Smith", specialty: "Cardiology" },
-    { id: 2, name: "Dr. Sarah Wilson", specialty: "Pediatrics" },
-    { id: 3, name: "Dr. Michael Brown", specialty: "Neurology" },
-    { id: 4, name: "Dr. Emily Davis", specialty: "Dermatology" },
+    authService
+      .getMyInfo()
+      .then((res) => {
+        setInfoUser(res.data.result);
+      })
+      .catch((err) => {});
+  }, [token]);
+  const days = [
+    "MONDAY",
+    "TUESDAY",
+    "WEDNESDAY",
+    "THURSDAY",
+    "FRIDAY",
+    "SATURDAY",
+    "SUNDAY",
   ];
+  const shiftOptions = ["", "MORNING", "AFTERNOON", "FULL DAY"];
+  const [shiftByDay, setShiftByDay] = useState({});
+  const { Option } = Select;
+  const [doctorList, setDoctorList] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const { showNotification } = useContext(NotificationContext);
+  const [scheduleMap, setScheduleMap] = useState({});
 
-  const weekdays = [
-    "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", 
-    "FRIDAY", "SATURDAY", "SUNDAY"
-  ];
+  const handleChange = (day, value) => {
+    setShiftByDay((prev) => ({
+      ...prev,
+      [day]: value,
+    }));
+  };
 
-  const addSchedule = (values) => {
-    const { weekday, startTime, endTime } = values;
-    
-    // Check if weekday already exists
-    if (schedules.find(s => s.weekday === weekday)) {
-      message.error("This weekday already has a schedule!");
-      return;
-    }
-
-    // Validate time
-    if (startTime.isAfter(endTime)) {
-      message.error("Start time must be before end time!");
-      return;
-    }
-
-    const newSchedule = {
-      key: Date.now(),
-      weekday,
-      startTime: startTime.format("HH:mm"),
-      endTime: endTime.format("HH:mm")
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const doctors = await doctorService.getAllDoctors();
+        setDoctorList(doctors.data.result);
+      } catch (error) {
+        message.error("Không thể tải danh sách bác sĩ");
+      }
     };
 
-    setSchedules([...schedules, newSchedule]);
-    form.resetFields(['weekday', 'startTime', 'endTime']);
-    message.success("Schedule added successfully!");
-  };
+    fetchDoctors();
+  }, []);
 
-  const deleteSchedule = (key) => {
-    setSchedules(schedules.filter(s => s.key !== key));
-    message.success("Schedule deleted successfully!");
-  };
+  const handleSubmit = async () => {
+    const selectedCount = Object.values(shiftByDay).filter(Boolean).length;
 
-  const submitSchedule = () => {
-    if (!selectedDoctor) {
-      message.error("Please select a doctor!");
+    if (selectedCount === 0) {
+      showNotification("Bạn phải chọn ít nhất 1 ca làm", "error");
       return;
     }
-    if (!startWeek) {
-      message.error("Please select start week!");
+    if (!selectedDoctor || !selectedMonth) {
+      showNotification("Please select full doctor and month", "error");
       return;
     }
-    if (schedules.length === 0) {
-      message.error("Please add at least one working day!");
-      return;
-    }
+    const rules = Object.entries(shiftByDay)
+      .filter(([_, shift]) => shift)
+      .map(([weekday, shift]) => ({
+        weekday,
+        shift,
+      }));
+    const payload = {
+      doctorId: selectedDoctor.id,
+      month: selectedMonth,
+      rules,
+      createdBy: infoUser.id,
+    };
 
-    // Here you would make API call to save the schedule
-    console.log("Creating schedule:", {
-      doctorId: selectedDoctor,
-      startWeek: startWeek.format("YYYY-MM-DD"),
-      schedules
-    });
-    
-    message.success("Doctor schedule created successfully!");
+    try {
+      const res = await managerService.createWorkScheduleBulk(payload);
+      showNotification(res.data.result, "success");
+      getWorkScheduleMonth();
+    } catch (err) {
+      console.error(" Lỗi gửi lịch:", err);
+      console.log(payload);
+    }
   };
 
-  const columns = [
-    {
-      title: "Weekday",
-      dataIndex: "weekday",
-      key: "weekday",
-      render: (weekday) => <strong>{weekday}</strong>
-    },
-    {
-      title: "Start Time",
-      dataIndex: "startTime",
-      key: "startTime",
-    },
-    {
-      title: "End Time", 
-      dataIndex: "endTime",
-      key: "endTime",
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Button 
-          type="primary" 
-          danger 
-          size="small"
-          icon={<DeleteOutlined />}
-          onClick={() => deleteSchedule(record.key)}
-        >
-          Delete
-        </Button>
-      ),
-    },
-  ];
+  const getWorkScheduleMonth = async () => {
+    if (!selectedDoctor || !selectedMonth) return;
+
+    try {
+      const res = await managerService.getWorkScheduleMonth(selectedDoctor.id);
+
+      const allSchedule = res.data.result.schedules;
+
+      const map = {};
+      Object.entries(allSchedule).forEach(([date, shift]) => {
+        if (date.startsWith(selectedMonth)) {
+          map[date] = shift;
+        }
+      });
+
+      setScheduleMap(map);
+    } catch (err) {
+      console.error("Không thể lấy lịch tháng:", err);
+    }
+  };
+
+  useEffect(() => {
+    getWorkScheduleMonth();
+  }, [selectedDoctor, selectedMonth]);
+
+  const handleDelete = (date, doctorId) => {
+    managerService
+      .deleteWorkSchedule(date, doctorId)
+      .then((res) => {
+        showNotification("Removed success", "success");
+        getWorkScheduleMonth();
+      })
+      .catch(err);
+  };
+
+  const getCalendarGrid = (monthStr) => {
+    const [year, month] = monthStr.split("-").map(Number);
+    const firstDate = new Date(year, month - 1, 1);
+    const totalDays = new Date(year, month, 0).getDate();
+    const firstDay = firstDate.getDay(); // 0=CN
+
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+    const calendar = [];
+    let day = 1;
+
+    for (let i = 0; i < 6 && day <= totalDays; i++) {
+      const week = [];
+      for (let j = 0; j < 7; j++) {
+        if ((i === 0 && j < offset) || day > totalDays) {
+          week.push(null);
+        } else {
+          week.push(
+            `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+              2,
+              "0"
+            )}`
+          );
+          day++;
+        }
+      }
+      calendar.push(week);
+    }
+
+    return calendar;
+  };
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-      <Card className="shadow-md">
-        <Title level={2} style={{ marginBottom: "2rem", color: "#333" }}>
-          Create Doctor Schedule
-        </Title>
+    <div className="max-w-5xl mx-auto my-10 bg-white p-6 rounded shadow">
+      <h1 className="text-center text-white text-2xl font-semibold bg-blue-600 py-4 rounded">
+        Bảng ca làm theo tuần mẫu
+      </h1>
 
-        <Form form={form} layout="vertical" onFinish={addSchedule}>
-          {/* Doctor Selection */}
-          <Form.Item
-            label="Select Doctor"
-            required
-            style={{ marginBottom: "1.5rem" }}
-          >
-            <Select
-              placeholder="Choose a doctor..."
-              value={selectedDoctor}
-              onChange={setSelectedDoctor}
-              size="large"
-            >
-              {doctors.map(doctor => (
-                <Option key={doctor.id} value={doctor.id}>
-                  {doctor.name} - {doctor.specialty}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div>
+          <label className="block font-semibold mb-1">🗓️ Chọn tháng:</label>
+          <input
+            type="month"
+            className="border rounded p-2 w-full"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          />
+        </div>
 
-          {/* Start Week Selection */}
-          <Form.Item
-            label="Start Week (Monday)"
-            required
-            style={{ marginBottom: "2rem" }}
-          >
-            <DatePicker
-              placeholder="Select start week"
-              value={startWeek}
-              onChange={setStartWeek}
-              size="large"
-              style={{ width: "100%" }}
-              picker="week"
-            />
-          </Form.Item>
-
-          <Divider />
-
-          {/* Add Working Days Section */}
-          <Card 
-            title="Add Working Days" 
-            style={{ margin: "2rem 0", border: "1px solid #ddd" }}
-          >
-            <Row gutter={16} align="bottom">
-              <Col span={8}>
-                <Form.Item
-                  name="weekday"
-                  label="Select Day"
-                  rules={[{ required: true, message: "Please select a weekday!" }]}
-                >
-                  <Select placeholder="Select day..." size="large">
-                    {weekdays.map(day => (
-                      <Option key={day} value={day}>{day}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-              <Col span={5}>
-                <Form.Item
-                  name="startTime"
-                  label="Start Time"
-                  rules={[{ required: true, message: "Please select start time!" }]}
-                >
-                  <TimePicker 
-                    format="HH:mm" 
-                    size="large"
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={5}>
-                <Form.Item
-                  name="endTime"
-                  label="End Time"
-                  rules={[{ required: true, message: "Please select end time!" }]}
-                >
-                  <TimePicker 
-                    format="HH:mm" 
-                    size="large"
-                    style={{ width: "100%" }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={6}>
-                <Form.Item>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit"
-                    icon={<PlusOutlined />}
-                    size="large"
-                    style={{ width: "100%" }}
-                  >
-                    Add Schedule
-                  </Button>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            {/* Schedule Table */}
-            <div style={{ marginTop: "1.5rem" }}>
-              <Table
-                columns={columns}
-                dataSource={schedules}
-                pagination={false}
-                size="small"
-                style={{ marginTop: "1rem" }}
-              />
-            </div>
-          </Card>
-
-          {/* Submit Button */}
-          <Button 
-            type="primary" 
-            size="large"
-            onClick={submitSchedule}
-            style={{ 
-              width: "100%", 
-              marginTop: "1rem",
-              height: "50px",
-              fontSize: "16px"
+        <div>
+          <label className="block font-semibold mb-1">👨‍⚕️ Chọn bác sĩ:</label>
+          <Select
+            showSearch
+            placeholder="Chọn bác sĩ"
+            optionFilterProp="children"
+            className="w-full"
+            filterOption={(input, option) =>
+              option.children.toLowerCase().includes(input.toLowerCase())
+            }
+            onChange={(value) => {
+              const doctor = doctorList.find((d) => d.id === value);
+              setSelectedDoctor(doctor);
             }}
           >
-            Create Schedule
-          </Button>
-        </Form>
-      </Card>
+            {doctorList.map((doctor) => (
+              <Option key={doctor.id} value={doctor.id}>
+                {doctor.fullName}
+              </Option>
+            ))}
+          </Select>
+        </div>
+      </div>
+
+      <div className="mt-8 overflow-x-auto">
+        <table className="w-full table-auto border border-collapse">
+          <thead>
+            <tr className="bg-blue-300 text-black font-semibold">
+              {days.map((day) => (
+                <th
+                  key={day}
+                  className="border p-3 text-center whitespace-nowrap"
+                >
+                  {day}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {days.map((day) => (
+                <td key={day} className="border p-2 text-center align-top">
+                  <select
+                    className="w-full border rounded px-2 py-1 text-sm"
+                    value={shiftByDay[day] || ""}
+                    onChange={(e) => handleChange(day, e.target.value)}
+                  >
+                    <option value="">-- chọn ca --</option>
+                    {shiftOptions
+                      .filter((s) => s)
+                      .map((shift) => (
+                        <option key={shift} value={shift}>
+                          {shift}
+                        </option>
+                      ))}
+                  </select>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={handleSubmit}
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded text-sm font-semibold shadow"
+        >
+          Xác nhận
+        </button>
+      </div>
+      <table className="w-full border border-gray-300 table-fixed text-sm mt-10">
+        <thead>
+          <tr className="bg-blue-100 text-center text-gray-700 font-semibold">
+            {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"].map(
+              (day) => (
+                <th key={day} className="border border-gray-300 py-2">
+                  {day}
+                </th>
+              )
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {getCalendarGrid(selectedMonth).map((week, i) => (
+            <tr key={i}>
+              {week.map((dateStr, j) => (
+                <td
+                  key={j}
+                  className=" group h-28 border border-gray-300 p-2 align-top relative hover:bg-gray-50"
+                >
+                  {dateStr && (
+                    <>
+                      {/* Số ngày */}
+                      <div className="text-right text-xs font-medium text-gray-600">
+                        {+dateStr.split("-")[2]}
+                      </div>
+
+                      {/* Có ca làm thì hiển thị */}
+                      {scheduleMap[dateStr] ? (
+                        <div className="mt-1 space-y-1 relative ">
+                          <div className="text-green-700 text-xs font-semibold">
+                            {scheduleMap[dateStr]}
+                          </div>
+                          <Popconfirm
+                            title="Xoá lịch ngày này?"
+                            onConfirm={() =>
+                              handleDelete(dateStr, selectedDoctor.id)
+                            }
+                            okText="Xoá"
+                            cancelText="Huỷ"
+                          >
+                            <button
+                              className="absolute top-5 left-0 bg-red-500 text-white text-xs px-2 py-1 rounded 
+                      opacity-0 group-hover:opacity-100 transition duration-200"
+                            >
+                              Xoá
+                            </button>
+                          </Popconfirm>
+                        </div>
+                      ) : (
+                        // Nếu không có lịch
+                        <div className="text-xs italic text-gray-400 mt-1">
+                          Nghỉ
+                        </div>
+                      )}
+                    </>
+                  )}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default ScheduleManagement; 
+export default ScheduleManagement;

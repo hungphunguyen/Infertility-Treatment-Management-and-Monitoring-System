@@ -46,7 +46,6 @@ const ProfileUpdate = () => {
           return;
         }
         try {
-          setLoading(true);
           const res = await authService.updateUser(userInfo.id, values, token);
           console.log(res);
           showNotification("Cập nhật thông tin thành công", "success");

@@ -11,11 +11,7 @@ export const authService = {
     return http.post("auth/login-google", data); // đường dẫn endpoint để hoàn thành request url
   },
   getMyInfo: (token) => {
-    return http.get("user/myInfo", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    return http.get("user/myInfo");
   },
   signUp: (data) => {
     return http.post("auth/register", data); // đường dẫn endpoint để hoàn thành request url
@@ -35,11 +31,7 @@ export const authService = {
   checkIntrospect: (data) => {
     return http.post("auth/introspect", data);
   },
-  updateUser: (id, data, token) => {
-    return http.put(`user/update/${id}`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  updateUser: (id, data) => {
+    return http.put(`user/update/${id}`, data);
   },
 };
