@@ -293,7 +293,7 @@ const UserManagement = () => {
             />
             <div className="py-2 flex justify-end space-x-2">
               <button
-                className="text-white bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
+                className="text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600"
                 onClick={() => openEditModal(userDetail)}
               >
                 Cập nhật password
