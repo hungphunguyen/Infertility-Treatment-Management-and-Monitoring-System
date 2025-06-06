@@ -53,5 +53,22 @@ export const doctorService = {
       console.error(`💥 Error updating doctor ${id}:`, error);
       throw error;
     }
+  },
+  
+  // Lấy danh sách bác sĩ có lịch trống theo ngày và ca
+  getAvailableDoctors: async (date, shift) => {
+    try {
+      const response = await http.get("doctors/available", {
+        params: {
+          date: date,
+          shift: shift
+        }
+      });
+      console.log(`📅 Available doctors for ${date} (${shift}):`, response.data);
+      return response;
+    } catch (error) {
+      console.error(`💥 Error getting available doctors:`, error);
+      throw error;
+    }
   }
 }; 
