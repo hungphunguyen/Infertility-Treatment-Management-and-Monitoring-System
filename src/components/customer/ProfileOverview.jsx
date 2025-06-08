@@ -9,6 +9,7 @@ import {
   MedicineBoxOutlined, HeartOutlined, CheckCircleOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -27,6 +28,8 @@ const ProfileOverview = () => {
     completedTreatments: 1,
     upcomingAppointments: 2
   };
+
+  const navigate = useNavigate();
 
   return (
     <div>

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
 import { useSelector } from "react-redux";
 import { Avatar, Button, Dropdown, Menu } from "antd";
@@ -10,12 +10,14 @@ import {
   LogoutOutlined,
   UserOutlined,
   DashboardOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 
 const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
   const location = useLocation();
   const [infoUser, setInfoUser] = useState();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) return;
@@ -36,12 +38,18 @@ const UserHeader = () => {
 
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
-      // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
       window.location.href = "/update-profile";
     } else if (key === "logout") {
-      // Xử lý logout
       localStorage.removeItem("token");
       window.location.href = "/";
+    } else if (key === "create-blog") {
+      if (infoUser.roleName.name === "DOCTOR") {
+        navigate("/doctor/create-blog");
+      } else if (infoUser.roleName.name === "CUSTOMER") {
+        navigate("/customer/create-blog");
+      } else if (infoUser.roleName.name === "MANAGER") {
+        navigate("/manager/create-blog");
+      }
     }
   };
 
@@ -61,19 +69,24 @@ const UserHeader = () => {
             Manager
           </Link>
         </Menu.Item>
-      )}{" "}
+      )}
       {infoUser && infoUser.roleName.name === "CUSTOMER" && (
         <Menu.Item key="customer" icon={<DashboardOutlined />}>
           <Link to={path.customer} style={{ color: "inherit" }}>
             Customer
           </Link>
         </Menu.Item>
-      )}{" "}
+      )}
       {infoUser && infoUser.roleName.name === "DOCTOR" && (
         <Menu.Item key="doctor" icon={<DashboardOutlined />}>
           <Link to={path.doctor} style={{ color: "inherit" }}>
             Doctor
           </Link>
+        </Menu.Item>
+      )}
+      {infoUser && infoUser.roleName.name !== "ADMIN" && (
+        <Menu.Item key="create-blog" icon={<EditOutlined />}>
+          Tạo Blog
         </Menu.Item>
       )}
       <Menu.Item key="update" icon={<SettingOutlined />}>

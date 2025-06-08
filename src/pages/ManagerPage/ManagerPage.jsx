@@ -10,7 +10,8 @@ import DoctorScheduleView from "../../components/manager/DoctorScheduleView";
 import TodayExaminations from "../../components/manager/TodayExaminations";
 import FeedbackManagement from "../../components/manager/FeedbackManagement";
 import ServiceManagement from "../../components/manager/ServiceManagement";
-import BlogManagement from "../../components/manager/BlogManagement";
+import BlogManagement from "../../components/blog/BlogManagement";
+import BlogApproval from "../../components/blog/BlogApproval";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -109,7 +110,8 @@ const ManagerPage = () => {
             <Route path="today-exams" element={<TodayExaminations />} />
             <Route path="feedback" element={<FeedbackManagement />} />
             <Route path="services" element={<ServiceManagement />} />
-            <Route path="blog" element={<BlogManagement />} />
+            <Route path="blog-management" element={<BlogManagement />} />
+            <Route path="blog-approval" element={<BlogApproval />} />
           </Routes>
         </Content>
       </Layout>

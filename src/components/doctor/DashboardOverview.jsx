@@ -12,10 +12,13 @@ import {
   PhoneOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 const DashboardOverview = () => {
+  const navigate = useNavigate();
+
   // Mock data for today's appointments
   const todayAppointments = [
     {
@@ -265,28 +268,6 @@ const DashboardOverview = () => {
                 </div>
               )}
             />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Quick Actions */}
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-        <Col span={24}>
-          <Card title="Hoạt động gần đây">
-            <Timeline>
-              <Timeline.Item color="green">
-                <Text>09:45 - Hoàn thành khám cho bệnh nhân Nguyễn Thị Mai</Text>
-              </Timeline.Item>
-              <Timeline.Item color="blue">
-                <Text>09:30 - Bắt đầu khám bệnh nhân Trần Văn Hùng</Text>
-              </Timeline.Item>
-              <Timeline.Item>
-                <Text>08:00 - Bắt đầu ca làm việc</Text>
-              </Timeline.Item>
-              <Timeline.Item color="gray">
-                <Text>07:30 - Đăng nhập hệ thống</Text>
-              </Timeline.Item>
-            </Timeline>
           </Card>
         </Col>
       </Row>
