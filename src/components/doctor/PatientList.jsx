@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, Table, Button, Space, Tag, Avatar, Modal, Tabs, Descriptions, 
-  Timeline, Progress, Row, Col, Input, Select, Typography 
+  Timeline, Progress, Row, Col, Input, Select, Typography, Spin, message 
 } from "antd";
 import {
   UserOutlined, EyeOutlined, EditOutlined, SearchOutlined,
-  PhoneOutlined, MailOutlined, CalendarOutlined, MedicineBoxOutlined
+  PhoneOutlined, MailOutlined, CalendarOutlined, MedicineBoxOutlined,
+  ReloadOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { treatmentService } from "../../service/treatment.service";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -15,101 +17,79 @@ const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 const PatientList = () => {
+  const [loading, setLoading] = useState(true);
+  const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [apiResponse, setApiResponse] = useState(null);
+  const [doctorId, setDoctorId] = useState(null);
 
-  // Mock patient data
-  const patients = [
-    {
-      key: 1,
-      id: "BN001",
-      name: "Nguyễn Thị Mai",
-      age: 32,
-      phone: "0912345678",
-      email: "mai.nguyen@email.com",
-      treatment: "IVF",
-      status: "in-treatment",
-      startDate: "2024-01-15",
-      progress: 65,
-      lastVisit: "2024-01-20",
-      nextVisit: "2024-01-25",
-      avatar: null,
-      medicalHistory: "Vô sinh nguyên phát, AMH thấp",
-      treatmentPlan: "Kích thích buồng trứng, theo dõi phôi",
-      notes: "Bệnh nhân hợp tác tốt, phản ứng tốt với thuốc"
-    },
-    {
-      key: 2,
-      id: "BN002", 
-      name: "Trần Văn Hùng",
-      age: 35,
-      phone: "0987654321",
-      email: "hung.tran@email.com",
-      treatment: "IUI",
-      status: "completed",
-      startDate: "2023-12-01",
-      progress: 100,
-      lastVisit: "2024-01-18",
-      nextVisit: null,
-      avatar: null,
-      medicalHistory: "Giảm số lượng tinh trùng",
-      treatmentPlan: "IUI với xử lý tinh trùng",
-      notes: "Điều trị thành công, thai kỳ 8 tuần"
-    },
-    {
-      key: 3,
-      id: "BN003",
-      name: "Lê Thị Lan", 
-      age: 28,
-      phone: "0901234567",
-      email: "lan.le@email.com",
-      treatment: "Tư vấn",
-      status: "consulting",
-      startDate: "2024-01-20",
-      progress: 25,
-      lastVisit: "2024-01-20",
-      nextVisit: "2024-01-27",
-      avatar: null,
-      medicalHistory: "Chu kỳ kinh không đều",
-      treatmentPlan: "Xét nghiệm hormone, siêu âm",
-      notes: "Cần theo dõi thêm chu kỳ"
-    },
-    {
-      key: 4,
-      id: "BN004",
-      name: "Phạm Minh Đức",
-      age: 38,
-      phone: "0934567890", 
-      email: "duc.pham@email.com",
-      treatment: "IVF",
-      status: "paused",
-      startDate: "2024-01-10",
-      progress: 40,
-      lastVisit: "2024-01-19",
-      nextVisit: "2024-02-01",
-      avatar: null,
-      medicalHistory: "Nang buồng trứng đa nang",
-      treatmentPlan: "Điều chỉnh hormone trước IVF",
-      notes: "Tạm dừng để ổn định hormone"
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Decode JWT token manually
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const decoded = JSON.parse(jsonPayload);
+        console.log('Decoded token:', decoded);
+        setDoctorId(decoded.sub);
+        console.log('Doctor ID from token:', decoded.sub);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        message.error('Không thể xác thực thông tin bác sĩ');
+      }
     }
-  ];
+  }, []);
+
+  useEffect(() => {
+    if (doctorId) {
+      fetchPatients();
+    }
+  }, [doctorId]);
+
+  const calculateEndDate = (treatmentSteps) => {
+    if (!treatmentSteps || treatmentSteps.length === 0) return null;
+
+    // Lấy ngày thực hiện của bước cuối cùng đã hoàn thành
+    const completedSteps = treatmentSteps.filter(step => step.status === "CONFIRMED");
+    if (completedSteps.length > 0) {
+      const lastCompletedStep = completedSteps[completedSteps.length - 1];
+      return lastCompletedStep.actualDate;
+    }
+
+    // Nếu chưa có bước nào hoàn thành, lấy ngày dự kiến của bước cuối cùng
+    const lastStep = treatmentSteps[treatmentSteps.length - 1];
+    return lastStep.scheduledDate;
+  };
 
   const getStatusTag = (status) => {
     const statusMap = {
-      "in-treatment": { color: "blue", text: "Đang điều trị" },
-      "completed": { color: "green", text: "Hoàn thành" },
-      "consulting": { color: "orange", text: "Tư vấn" },
-      "paused": { color: "red", text: "Tạm dừng" }
+      "InProgress": { color: "blue", text: "Đang điều trị" },
+      "Completed": { color: "green", text: "Hoàn thành" },
+      "Pending": { color: "orange", text: "Chờ xử lý" },
+      "Cancelled": { color: "red", text: "Đã hủy" }
     };
     return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
   };
 
-  const getTreatmentProgress = (progress, status) => {
+  const calculateProgress = (treatmentSteps) => {
+    if (!treatmentSteps || treatmentSteps.length === 0) return 0;
+    const completedSteps = treatmentSteps.filter(step => step.status === "CONFIRMED").length;
+    return Math.round((completedSteps / treatmentSteps.length) * 100);
+  };
+
+  const getTreatmentProgress = (treatmentSteps, status) => {
+    const progress = calculateProgress(treatmentSteps);
     let color = "#1890ff";
-    if (status === "completed") color = "#52c41a";
-    if (status === "paused") color = "#f5222d";
+    if (status === "Completed") color = "#52c41a";
+    if (status === "Cancelled") color = "#f5222d";
     
     return (
       <Progress 
@@ -121,6 +101,66 @@ const PatientList = () => {
     );
   };
 
+  const fetchPatients = async () => {
+    if (!doctorId) {
+      message.error('Không tìm thấy ID bác sĩ');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+      console.log('Fetch Patients Response:', response);
+      
+      if (response?.data?.code === 1000) {
+        if (response.data.result && response.data.result.length > 0) {
+          setPatients(response.data.result);
+        } else {
+          message.info('Chưa có bệnh nhân nào được gán cho bác sĩ này');
+          setPatients([]);
+        }
+      } else {
+        message.warning('API trả về mã không xác định: ' + response?.data?.code);
+      }
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      message.error('Có lỗi xảy ra khi lấy dữ liệu bệnh nhân: ' + (error.message || 'Lỗi không xác định'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const testApi = async () => {
+    if (!doctorId) {
+      message.error('Không tìm thấy ID bác sĩ');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+      console.log('API Response:', response);
+      setApiResponse(response);
+      
+      if (response?.data?.code === 1000) {
+        if (response.data.result && response.data.result.length > 0) {
+          message.success('Lấy dữ liệu thành công!');
+          setPatients(response.data.result);
+        } else {
+          message.info('Chưa có bệnh nhân nào được gán cho bác sĩ này');
+          setPatients([]);
+        }
+      } else {
+        message.warning('API trả về mã không xác định: ' + response?.data?.code);
+      }
+    } catch (error) {
+      console.error('API Error:', error);
+      message.error('Lỗi khi gọi API: ' + (error.message || 'Lỗi không xác định'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const viewPatient = (patient) => {
     setSelectedPatient(patient);
     setModalVisible(true);
@@ -128,7 +168,7 @@ const PatientList = () => {
 
   const columns = [
     {
-      title: "Mã BN",
+      title: "ID",
       dataIndex: "id",
       key: "id",
       render: (id) => <Tag color="blue">{id}</Tag>
@@ -144,10 +184,10 @@ const PatientList = () => {
             style={{ marginRight: 12, backgroundColor: "#1890ff" }}
           />
           <div>
-            <Text strong>{record.name}</Text>
+            <Text strong>{record.customerName}</Text>
             <br />
             <Text type="secondary" style={{ fontSize: "12px" }}>
-              {record.age} tuổi • {record.phone}
+              {record.customerId}
             </Text>
           </div>
         </div>
@@ -155,8 +195,8 @@ const PatientList = () => {
     },
     {
       title: "Điều trị",
-      dataIndex: "treatment",
-      key: "treatment",
+      dataIndex: "treatmentServiceName",
+      key: "treatmentServiceName",
       render: (treatment) => <Tag color="cyan">{treatment}</Tag>
     },
     {
@@ -170,24 +210,26 @@ const PatientList = () => {
       key: "progress",
       render: (_, record) => (
         <div>
-          {getTreatmentProgress(record.progress, record.status)}
+          {getTreatmentProgress(record.treatmentSteps, record.status)}
           <Text style={{ fontSize: "12px", color: "#666" }}>
-            {record.progress}%
+            {calculateProgress(record.treatmentSteps)}%
           </Text>
         </div>
       )
     },
     {
-      title: "Lần khám cuối",
-      dataIndex: "lastVisit",
-      key: "lastVisit",
+      title: "Ngày bắt đầu",
+      dataIndex: "startDate",
+      key: "startDate",
       render: (date) => dayjs(date).format("DD/MM/YYYY")
     },
     {
-      title: "Lần khám tới",
-      dataIndex: "nextVisit",
-      key: "nextVisit",
-      render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-"
+      title: "Ngày kết thúc",
+      key: "endDate",
+      render: (_, record) => {
+        const endDate = calculateEndDate(record.treatmentSteps);
+        return endDate ? dayjs(endDate).format("DD/MM/YYYY") : "-";
+      }
     },
     {
       title: "Thao tác",
@@ -215,20 +257,74 @@ const PatientList = () => {
 
   // Filter data
   const filteredData = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchText.toLowerCase()) ||
-                         patient.id.toLowerCase().includes(searchText.toLowerCase());
+    const matchesSearch = patient.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
+                         patient.id.toString().includes(searchText);
     const matchesStatus = statusFilter === "all" || patient.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  const timelineItems = selectedPatient?.treatmentSteps?.map((step, index) => ({
+    key: index,
+    color: step.status === "CONFIRMED" ? "green" : "blue",
+    children: (
+      <>
+        <Text strong>{step.name}</Text>
+        <br />
+        <Text type="secondary">
+          {step.scheduledDate ? `Ngày dự kiến: ${dayjs(step.scheduledDate).format("DD/MM/YYYY")}` : "Chưa lên lịch"}
+        </Text>
+        {step.actualDate && (
+          <Text type="secondary">
+            <br />
+            Ngày thực hiện: {dayjs(step.actualDate).format("DD/MM/YYYY")}
+          </Text>
+        )}
+        {step.notes && (
+          <Text type="secondary">
+            <br />
+            Ghi chú: {step.notes}
+          </Text>
+        )}
+      </>
+    )
+  })) || [];
+
   return (
     <div>
+      {/* Test API Button */}
+      <Card className="mb-6">
+        <Row gutter={16} align="middle">
+          <Col span={24}>
+            <Space>
+              <Button 
+                type="primary" 
+                icon={<ReloadOutlined />}
+                onClick={testApi}
+                loading={loading}
+              >
+                Test API
+              </Button>
+              {doctorId && (
+                <Text type="secondary">
+                  Doctor ID: {doctorId}
+                </Text>
+              )}
+              {apiResponse && (
+                <Text type="secondary">
+                  Last API Response: {JSON.stringify(apiResponse)}
+                </Text>
+              )}
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+
       {/* Filters */}
       <Card className="mb-6">
         <Row gutter={16} align="middle">
           <Col span={8}>
             <Search
-              placeholder="Tìm kiếm tên hoặc mã bệnh nhân..."
+              placeholder="Tìm kiếm tên hoặc ID bệnh nhân..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               style={{ width: "100%" }}
@@ -241,10 +337,10 @@ const PatientList = () => {
               style={{ width: "100%" }}
             >
               <Option value="all">Tất cả trạng thái</Option>
-              <Option value="in-treatment">Đang điều trị</Option>
-              <Option value="completed">Hoàn thành</Option>
-              <Option value="consulting">Tư vấn</Option>
-              <Option value="paused">Tạm dừng</Option>
+              <Option value="InProgress">Đang điều trị</Option>
+              <Option value="Completed">Hoàn thành</Option>
+              <Option value="Pending">Chờ xử lý</Option>
+              <Option value="Cancelled">Đã hủy</Option>
             </Select>
           </Col>
           <Col span={10} style={{ textAlign: "right" }}>
@@ -257,12 +353,15 @@ const PatientList = () => {
 
       {/* Patient Table */}
       <Card title="Danh Sách Bệnh Nhân Đang Điều Trị">
-        <Table
-          columns={columns}
-          dataSource={filteredData}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 1000 }}
-        />
+        <Spin spinning={loading}>
+          <Table
+            columns={columns}
+            dataSource={filteredData}
+            rowKey="id"
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: 1000 }}
+          />
+        </Spin>
       </Card>
 
       {/* Patient Detail Modal */}
@@ -284,65 +383,39 @@ const PatientList = () => {
           <Tabs defaultActiveKey="info">
             <TabPane tab="Thông tin cơ bản" key="info">
               <Descriptions column={2} bordered>
-                <Descriptions.Item label="Mã bệnh nhân">{selectedPatient.id}</Descriptions.Item>
-                <Descriptions.Item label="Họ tên">{selectedPatient.name}</Descriptions.Item>
-                <Descriptions.Item label="Tuổi">{selectedPatient.age}</Descriptions.Item>
-                <Descriptions.Item label="Điện thoại">{selectedPatient.phone}</Descriptions.Item>
-                <Descriptions.Item label="Email">{selectedPatient.email}</Descriptions.Item>
-                <Descriptions.Item label="Phương pháp điều trị">{selectedPatient.treatment}</Descriptions.Item>
+                <Descriptions.Item label="ID">{selectedPatient.id}</Descriptions.Item>
+                <Descriptions.Item label="Họ tên">{selectedPatient.customerName}</Descriptions.Item>
+                <Descriptions.Item label="Mã bệnh nhân">{selectedPatient.customerId}</Descriptions.Item>
+                <Descriptions.Item label="Bác sĩ">{selectedPatient.doctorName}</Descriptions.Item>
+                <Descriptions.Item label="Phương pháp điều trị">{selectedPatient.treatmentServiceName}</Descriptions.Item>
                 <Descriptions.Item label="Trạng thái">
                   {getStatusTag(selectedPatient.status)}
                 </Descriptions.Item>
                 <Descriptions.Item label="Tiến độ">
-                  <Progress percent={selectedPatient.progress} size="small" />
+                  <Progress 
+                    percent={calculateProgress(selectedPatient.treatmentSteps)} 
+                    size="small" 
+                  />
                 </Descriptions.Item>
                 <Descriptions.Item label="Ngày bắt đầu">
                   {dayjs(selectedPatient.startDate).format("DD/MM/YYYY")}
                 </Descriptions.Item>
-                <Descriptions.Item label="Lần khám cuối">
-                  {dayjs(selectedPatient.lastVisit).format("DD/MM/YYYY")}
+                <Descriptions.Item label="Ngày kết thúc">
+                  {calculateEndDate(selectedPatient.treatmentSteps) 
+                    ? dayjs(calculateEndDate(selectedPatient.treatmentSteps)).format("DD/MM/YYYY") 
+                    : "-"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Ngày tạo">
+                  {dayjs(selectedPatient.createdDate).format("DD/MM/YYYY")}
+                </Descriptions.Item>
+                <Descriptions.Item label="Thanh toán">
+                  {selectedPatient.paid ? "Đã thanh toán" : "Chưa thanh toán"}
                 </Descriptions.Item>
               </Descriptions>
-              
-              <div style={{ marginTop: 16 }}>
-                <Title level={5}>Tiền sử bệnh</Title>
-                <Text>{selectedPatient.medicalHistory}</Text>
-              </div>
-              
-              <div style={{ marginTop: 16 }}>
-                <Title level={5}>Kế hoạch điều trị</Title>
-                <Text>{selectedPatient.treatmentPlan}</Text>
-              </div>
-              
-              <div style={{ marginTop: 16 }}>
-                <Title level={5}>Ghi chú</Title>
-                <Text>{selectedPatient.notes}</Text>
-              </div>
             </TabPane>
             
             <TabPane tab="Tiến trình điều trị" key="progress">
-              <Timeline>
-                <Timeline.Item color="green">
-                  <Text strong>20/01/2024 - Khám tái khám</Text>
-                  <br />
-                  <Text type="secondary">Theo dõi phản ứng với thuốc kích thích. Kết quả tốt.</Text>
-                </Timeline.Item>
-                <Timeline.Item color="blue">
-                  <Text strong>18/01/2024 - Tiêm thuốc kích thích</Text>
-                  <br />
-                  <Text type="secondary">Bắt đầu chu kỳ kích thích buồng trứng.</Text>
-                </Timeline.Item>
-                <Timeline.Item color="blue">
-                  <Text strong>15/01/2024 - Bắt đầu điều trị</Text>
-                  <br />
-                  <Text type="secondary">Khám ban đầu, lập kế hoạch điều trị IVF.</Text>
-                </Timeline.Item>
-                <Timeline.Item>
-                  <Text strong>10/01/2024 - Tư vấn ban đầu</Text>
-                  <br />
-                  <Text type="secondary">Tư vấn về phương pháp điều trị phù hợp.</Text>
-                </Timeline.Item>
-              </Timeline>
+              <Timeline items={timelineItems} />
             </TabPane>
           </Tabs>
         )}

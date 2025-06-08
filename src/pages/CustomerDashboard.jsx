@@ -13,6 +13,7 @@ import Feedback from "../components/customer/Feedback";
 import MedicalRecord from "../components/customer/MedicalRecord";
 import Payment from "../components/customer/Payment";
 import UpdateProfile from "../components/customer/UpdateProfile";
+import { authService } from "../service/auth.service";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -22,6 +23,21 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await authService.getMyInfo();
+        if (response?.data?.result) {
+          setUserInfo(response.data.result);
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   // Update selected menu item based on current path
   useEffect(() => {
@@ -112,7 +128,7 @@ const CustomerDashboard = () => {
             {getPageTitle()}
           </Title>
           <div style={{ color: "#666" }}>
-            Chào mừng, Phú Lâm Nguyên
+            Chào mừng, {userInfo?.fullName || 'Khách hàng'}
           </div>
         </Header>
         

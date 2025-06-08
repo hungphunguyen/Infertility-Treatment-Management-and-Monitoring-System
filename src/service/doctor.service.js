@@ -70,5 +70,41 @@ export const doctorService = {
       console.error(`💥 Error getting available doctors:`, error);
       throw error;
     }
+  },
+
+  // Lấy danh sách bác sĩ và lịch làm việc
+  getDoctorSchedules: async () => {
+    try {
+      const response = await http.get("doctors");
+      console.log("📅 Doctor schedules:", response.data);
+      return response;
+    } catch (error) {
+      console.error("💥 Error getting doctor schedules:", error);
+      throw error;
+    }
+  },
+
+  // Lấy lịch làm việc của bác sĩ theo ngày
+  getDoctorSchedulesByDate: async (date) => {
+    try {
+      const response = await http.get(`doctors/schedules/${date}`);
+      console.log(`📅 Doctor schedules for ${date}:`, response.data);
+      return response;
+    } catch (error) {
+      console.error(`💥 Error getting doctor schedules for ${date}:`, error);
+      throw error;
+    }
+  },
+
+  // Lấy thống kê số bệnh nhân đã khám theo ngày
+  getDoctorStatistics: async (date) => {
+    try {
+      const response = await http.get(`doctors/statistics/${date}`);
+      console.log(`📊 Doctor statistics for ${date}:`, response.data);
+      return response;
+    } catch (error) {
+      console.error(`💥 Error getting doctor statistics for ${date}:`, error);
+      throw error;
+    }
   }
 }; 
