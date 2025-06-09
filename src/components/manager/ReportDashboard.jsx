@@ -1,34 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Card, 
-  Row, 
-  Col, 
-  Statistic, 
-  Select, 
-  DatePicker, 
+import {
+  Card,
+  Row,
+  Col,
+  Statistic,
+  Select,
+  DatePicker,
   Table,
-  Tag
+  Tag,
 } from "antd";
-import { 
-  DollarOutlined, 
-  UserOutlined, 
+import {
+  DollarOutlined,
+  UserOutlined,
   CalendarOutlined,
-  RiseOutlined 
+  RiseOutlined,
 } from "@ant-design/icons";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   Legend,
   BarChart,
   Bar,
   PieChart,
   Pie,
   Cell,
-  ResponsiveContainer
+  ResponsiveContainer,
 } from "recharts";
 
 const { Option } = Select;
@@ -71,7 +71,7 @@ const ReportDashboard = () => {
       title: "Doanh thu",
       dataIndex: "revenue",
       key: "revenue",
-      render: (value) => `${value.toLocaleString('vi-VN')} VNĐ`,
+      render: (value) => `${value.toLocaleString("vi-VN")} VNĐ`,
       sorter: (a, b) => a.revenue - b.revenue,
     },
     {
@@ -85,46 +85,26 @@ const ReportDashboard = () => {
   const topServicesData = [
     { key: 1, name: "IVF", count: 85, revenue: 450000000, percentage: 45 },
     { key: 2, name: "IUI", count: 65, revenue: 180000000, percentage: 25 },
-    { key: 3, name: "Khám tư vấn", count: 120, revenue: 120000000, percentage: 20 },
-    { key: 4, name: "Xét nghiệm", count: 45, revenue: 80000000, percentage: 10 },
+    {
+      key: 3,
+      name: "Khám tư vấn",
+      count: 120,
+      revenue: 120000000,
+      percentage: 20,
+    },
+    {
+      key: 4,
+      name: "Xét nghiệm",
+      count: 45,
+      revenue: 80000000,
+      percentage: 10,
+    },
   ];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   return (
     <div>
-      {/* Filters */}
-      <Card className="mb-6">
-        <Row gutter={16} align="middle">
-          <Col span={6}>
-            <Select
-              value={timeFilter}
-              onChange={setTimeFilter}
-              style={{ width: "100%" }}
-            >
-              <Option value="week">Tuần</Option>
-              <Option value="month">Tháng</Option>
-              <Option value="quarter">Quý</Option>
-              <Option value="year">Năm</Option>
-            </Select>
-          </Col>
-          <Col span={8}>
-            <RangePicker
-              style={{ width: "100%" }}
-              onChange={setSelectedDate}
-              placeholder={["Từ ngày", "Đến ngày"]}
-            />
-          </Col>
-          <Col span={10}>
-            <div className="text-right">
-              <span className="text-gray-500">
-                Cập nhật lần cuối: {new Date().toLocaleString('vi-VN')}
-              </span>
-            </div>
-          </Col>
-        </Row>
-      </Card>
-
       {/* Key Metrics */}
       <Row gutter={16} className="mb-6">
         <Col span={6}>
@@ -133,7 +113,7 @@ const ReportDashboard = () => {
               title="Tổng Doanh Thu Tháng"
               value={280000000}
               precision={0}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: "#3f8600" }}
               prefix={<DollarOutlined />}
               suffix="VNĐ"
             />
@@ -144,7 +124,7 @@ const ReportDashboard = () => {
             <Statistic
               title="Số Lịch Hẹn"
               value={210}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: "#1890ff" }}
               prefix={<CalendarOutlined />}
             />
           </Card>
@@ -154,7 +134,7 @@ const ReportDashboard = () => {
             <Statistic
               title="Bệnh Nhân Mới"
               value={145}
-              valueStyle={{ color: '#cf1322' }}
+              valueStyle={{ color: "#cf1322" }}
               prefix={<UserOutlined />}
             />
           </Card>
@@ -165,7 +145,7 @@ const ReportDashboard = () => {
               title="Tăng Trưởng"
               value={16.7}
               precision={1}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: "#3f8600" }}
               prefix={<RiseOutlined />}
               suffix="%"
             />
@@ -182,26 +162,29 @@ const ReportDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip 
+                <Tooltip
                   formatter={(value, name) => {
-                    if (name === 'revenue') {
-                      return [`${value.toLocaleString('vi-VN')} VNĐ`, 'Doanh thu'];
+                    if (name === "revenue") {
+                      return [
+                        `${value.toLocaleString("vi-VN")} VNĐ`,
+                        "Doanh thu",
+                      ];
                     }
                     return [value, name];
                   }}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#8884d8" 
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#8884d8"
                   strokeWidth={3}
                   name="Doanh thu"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="appointments" 
-                  stroke="#82ca9d" 
+                <Line
+                  type="monotone"
+                  dataKey="appointments"
+                  stroke="#82ca9d"
                   name="Lịch hẹn"
                 />
               </LineChart>
@@ -217,13 +200,18 @@ const ReportDashboard = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                 >
                   {serviceRevenueData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -246,4 +234,4 @@ const ReportDashboard = () => {
   );
 };
 
-export default ReportDashboard; 
+export default ReportDashboard;

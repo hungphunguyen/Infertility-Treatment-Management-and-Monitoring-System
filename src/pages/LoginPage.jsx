@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import signInAnimation from "./../assets/animation/signIn_Animation.json";
+import signInAnimation from "./../assets/animation/Animation - 1744810564155.json";
 import { useLottie } from "lottie-react";
 import InputCustom from "../components/Input/InputCustom";
 import { Link, useNavigate } from "react-router-dom";
@@ -46,7 +46,6 @@ const LoginPage = () => {
             showNotification("Login successful", "success");
             setTimeout(() => {
               navigate("/");
-              window.location.reload();
             }, 1000);
           })
           .catch((error) => {
@@ -71,74 +70,94 @@ const LoginPage = () => {
           .required("Please do not leave blank"),
       }),
     });
+
   return (
-    <div className="">
-      <div className="container">
-        <div className="loginPage_content flex items-center h-screen">
-          <div className="loginPage_img w-1/2">{View}</div>
-          <div className="loginPage_form w-1/2">
-            <form className="space-y-5" onSubmit={handleSubmit}>
-              <h1 className="text-center text-4xl font-medium">LOGIN</h1>
-              {/* username */}
-              <InputCustom
-                name={"username"}
-                onChange={handleChange}
-                value={values.username}
-                placeholder={"Please enter user name"}
-                labelContent={"User Name"}
-                error={errors.username}
-                touched={touched.username}
-                onBlur={handleBlur}
-              />
-              <InputCustom
-                name={"password"}
-                onChange={handleChange}
-                value={values.password}
-                labelContent={"Password"}
-                placeholder={"Please enter password"}
-                typeInput="password"
-                error={errors.password}
-                touched={touched.password}
-                onBlur={handleBlur}
-              />
-              <div>
-                <button
-                  type="submit"
-                  className="inline-block w-full bg-black text-white py-2 px-5 rounded-md"
-                >
-                  Sign In
-                </button>
-                <GoogleLogin />
-                <div className="mt-3 flex justify-between items-center">
-                  <Link
-                    to={path.signUp}
-                    className="text-blue-600 hover:underline duration-300"
-                  >
-                    If you do not have an account, click here
-                  </Link>
-                  <Link
-                    to={path.homePage}
-                    className="text-blue-500 hover:underline duration-300"
-                  >
-                    Go back home
-                  </Link>
-                  <Link
-                    to={path.forgotPassword}
-                    className="text-[#ff8460] hover:underline duration-300"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
-              </div>
-              {isResend && (
-                <Link to={path.resendOtp}>
-                  <button className="py-2 px-4 font-medium border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white  duration-300">
-                    Resend OTP
-                  </button>
-                </Link>
-              )}
-            </form>
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-r from-red-700 to-orange-600 overflow-hidden">
+      {/* Lớp phủ glass effect */}
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-0" />
+
+      <div className="relative z-10 flex flex-col items-center text-white w-full max-w-md px-6 py-12 bg-white/10 backdrop-blur-md rounded-xl shadow-2xl">
+        {/* Logo + Title */}
+        <div className="mb-6 flex flex-col items-center">
+          <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center mb-2 shadow-md">
+            <span className="text-orange-500 font-bold text-2xl">⬢</span>
           </div>
+          <h1 className="text-2xl font-semibold text-white">Account Login</h1>
+        </div>
+
+        {/* Form */}
+        <form className="w-full space-y-5" onSubmit={handleSubmit}>
+          {/* Username */}
+          <div className="relative">
+            <span className="absolute inset-y-0 left-3 flex items-center text-orange-600">
+              <i className="fas fa-user"></i>
+            </span>
+            <InputCustom
+              name="username"
+              onChange={handleChange}
+              value={values.username}
+              placeholder="Username or Email address"
+              labelContent={null}
+              error={errors.username}
+              touched={touched.username}
+              onBlur={handleBlur}
+              className="pl-10 bg-orange-200 text-black"
+            />
+          </div>
+
+          {/* Password */}
+          <div className="relative">
+            <span className="absolute inset-y-0 left-3 flex items-center text-orange-600">
+              <i className="fas fa-lock"></i>
+            </span>
+            <InputCustom
+              name="password"
+              onChange={handleChange}
+              value={values.password}
+              placeholder="Password"
+              labelContent={null}
+              typeInput="password"
+              error={errors.password}
+              touched={touched.password}
+              onBlur={handleBlur}
+              className="pl-10 bg-orange-200 text-black"
+            />
+          </div>
+
+          {/* Remember + Forgot */}
+          <div className="flex justify-between text-sm text-white">
+            <Link to={path.forgotPassword} className="hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+
+          {/* Login Button */}
+          <button
+            type="submit"
+            className="w-full py-2 rounded bg-[#7c2d12] hover:bg-[#5a1f0e] text-white font-semibold transition duration-300"
+          >
+            Login
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="my-6 w-full border-t border-orange-300 text-center text-sm text-white relative">
+          <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-white/10 px-2 backdrop-blur">
+            Or login with
+          </span>
+        </div>
+
+        {/* Google Login */}
+        <div className="flex justify-center">
+          <GoogleLogin />
+        </div>
+
+        {/* Sign up */}
+        <div className="mt-6 text-sm text-white">
+          Don't have an account?{" "}
+          <Link to={path.signUp} className="underline hover:text-orange-100">
+            Sign Up
+          </Link>
         </div>
       </div>
     </div>

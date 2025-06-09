@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Button, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
@@ -11,6 +11,7 @@ import {
   UserOutlined,
   DashboardOutlined,
 } from "@ant-design/icons";
+import { clearAuth } from "../redux/authSlice";
 
 const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
@@ -18,7 +19,7 @@ const UserHeader = () => {
   const [infoUser, setInfoUser] = useState();
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
-
+  const dispatch = useDispatch();
   useEffect(() => {
     if (!token) return;
 
@@ -55,8 +56,9 @@ const UserHeader = () => {
       navigate(path.updataProfile);
     } else if (key === "logout") {
       // Xử lý logout
+      dispatch(clearAuth());
       localStorage.removeItem("token");
-      navigate(path.homePage);
+      window.location.reload();
     }
   };
 

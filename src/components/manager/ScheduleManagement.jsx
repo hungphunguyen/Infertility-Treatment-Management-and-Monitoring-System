@@ -28,7 +28,7 @@ const ScheduleManagement = () => {
     "SATURDAY",
     "SUNDAY",
   ];
-  const shiftOptions = ["", "MORNING", "AFTERNOON", "FULL DAY"];
+  const shiftOptions = ["", "MORNING", "AFTERNOON", "FULL_DAY"];
   const [shiftByDay, setShiftByDay] = useState({});
   const { Option } = Select;
   const [doctorList, setDoctorList] = useState([]);

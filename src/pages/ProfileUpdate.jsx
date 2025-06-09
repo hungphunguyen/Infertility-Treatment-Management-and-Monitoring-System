@@ -20,7 +20,7 @@ const ProfileUpdate = () => {
     // Fetch user info when component mounts
     const fetchUserInfo = async () => {
       try {
-        const response = await authService.getMyInfo(token.token);
+        const response = await authService.getMyInfo();
         setUserInfo(response.data.result);
       } catch (error) {
         showNotification("Không thể lấy thông tin người dùng", "error");
