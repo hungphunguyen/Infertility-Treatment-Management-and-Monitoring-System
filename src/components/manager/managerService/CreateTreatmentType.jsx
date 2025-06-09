@@ -32,7 +32,7 @@ const CreateTreatmentType = ({ onSuccess }) => {
     <div className="">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
         <h2 className="text-2xl font-bold mb-8 text-center">
-          Create Type Of Treatment
+          Tạo phương pháp điều trị
         </h2>
         <form className="space-y-5" onSubmit={handleSubmit}>
           {/* name of type */}

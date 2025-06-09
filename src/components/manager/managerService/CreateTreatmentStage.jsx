@@ -70,12 +70,12 @@ const CreateTreatmentStage = ({ onSuccess }) => {
   return (
     <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
       <h2 className="text-2xl font-bold mb-8 text-center">
-        Create Treatment Stage
+        Tạo liệu trình điều trị
       </h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1" htmlFor="typeId">
-            Chọn loại điều trị
+            Chọn phương pháp điều trị
           </label>
           <select
             id="typeId"

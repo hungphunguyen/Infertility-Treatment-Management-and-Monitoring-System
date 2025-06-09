@@ -66,7 +66,7 @@ const CreateTreatmentService = () => {
   return (
     <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
       <h2 className="text-2xl font-bold mb-8 text-center">
-        Create Treatment Service
+        Tạo dịch vụ khám bệnh
       </h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
