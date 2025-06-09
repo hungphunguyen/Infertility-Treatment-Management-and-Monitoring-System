@@ -23,7 +23,11 @@ export const blogService = {
 
   // Tạo blog mới
   createBlog: (data, token) => {
-    return http.post("blogs", data);
+    return http.post(`blogs?userId=${data.userId}`, {
+      title: data.title,
+      content: data.content,
+      sourceReference: data.sourceReference
+    });
   },
 
   // Cập nhật blog
@@ -38,11 +42,18 @@ export const blogService = {
 
   // Duyệt blog (approve)
   approveBlog: (blogId, token) => {
-    return http.post(`blogs/approve/${blogId}`);
+    return http.post(`blogs/approve/${blogId}`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
   },
-
   // Từ chối blog (reject)
   rejectBlog: (blogId, token) => {
-    return http.post(`blogs/reject/${blogId}`);
+    return http.post(`blogs/reject/${blogId}`, {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
   },
 }; 
