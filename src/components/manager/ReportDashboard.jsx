@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Card,
   Row,
@@ -15,6 +15,8 @@ import {
   CalendarOutlined,
   RiseOutlined,
 } from "@ant-design/icons";
+import { managerService } from "../../service/manager.service";
+import { NotificationContext } from "../../App";
 import {
   LineChart,
   Line,
@@ -23,11 +25,6 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
   ResponsiveContainer,
 } from "recharts";
 
@@ -35,27 +32,86 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 const ReportDashboard = () => {
-  const [timeFilter, setTimeFilter] = useState("month");
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [statistics, setStatistics] = useState({
+    totalRevenue: 0,
+    totalAppointments: 0,
+    totalCustomersTreated: 0,
+  });
 
-  // Mock data - thay thế bằng API calls
-  const revenueData = [
-    { month: "T1", revenue: 150000000, appointments: 120, services: 85 },
-    { month: "T2", revenue: 180000000, appointments: 145, services: 102 },
-    { month: "T3", revenue: 220000000, appointments: 168, services: 125 },
-    { month: "T4", revenue: 195000000, appointments: 152, services: 110 },
-    { month: "T5", revenue: 240000000, appointments: 189, services: 140 },
-    { month: "T6", revenue: 280000000, appointments: 210, services: 165 },
-  ];
+  const [topServices, setTopServices] = useState([]);
+  const { showNotification } = useContext(NotificationContext);
+  const [chartData, setChartData] = useState([]);
+  const [yAxisUnit, setYAxisUnit] = useState("VNĐ");
+  const [yAxisDivider, setYAxisDivider] = useState(1);
+  useEffect(() => {
+    const renderData = async () => {
+      try {
+        const res1 = await managerService.managerStatistic();
+        const res2 = await managerService.managerChart();
+        const res3 = await managerService.managerDashboardService();
 
-  const serviceRevenueData = [
-    { name: "IVF", value: 45, revenue: 450000000 },
-    { name: "IUI", value: 25, revenue: 180000000 },
-    { name: "Khám tư vấn", value: 20, revenue: 120000000 },
-    { name: "Xét nghiệm", value: 10, revenue: 80000000 },
-  ];
+        if (res1?.data?.result) {
+          setStatistics({
+            totalRevenue: res1.data.result.totalRevenue,
+            totalAppointments: res1.data.result.totalAppointments,
+            totalCustomersTreated: res1.data.result.totalCustomersTreated,
+          });
+        }
 
-  const topServicesColumns = [
+        if (res2?.data?.result) {
+          const parsedChartData = res2.data.result.map((item) => {
+            const monthNumber = new Date(item.month).getMonth() + 1;
+            return {
+              month: `T${monthNumber}`,
+              revenue: Number(item.totalRevenue),
+              appointments: Number(item.totalTreatmentServiceInMonth),
+            };
+          });
+          setChartData(parsedChartData);
+
+          // Tính giá trị doanh thu lớn nhất
+          const maxRevenue = Math.max(...parsedChartData.map((d) => d.revenue));
+
+          // Lấy đơn vị phù hợp
+          const { unit, divider } = getYAxisUnit(maxRevenue);
+
+          // Lưu lại để dùng khi render
+          setYAxisUnit(unit);
+          setYAxisDivider(divider);
+        }
+
+        if (res3?.data?.result) {
+          const totalRevenueAllServices = res3.data.result.reduce(
+            (acc, item) => acc + item.totalRevenue,
+            0
+          ); // cộng tổng tất cả doanh thu của dịch vụ
+
+          const servicesWithRatio = res3.data.result.map((item, index) => ({
+            key: index,
+            name: item.name,
+            totalUses: item.totalUses,
+            totalRevenue: item.totalRevenue,
+            ratio: Math.round(
+              (item.totalRevenue / totalRevenueAllServices) * 100
+            ), // tính phần trăm của từng dịch vụ khi map ra
+          }));
+
+          setTopServices(servicesWithRatio);
+        }
+      } catch (error) {
+        console.error(error);
+        showNotification(error.response.data.message, "error");
+      }
+    };
+
+    renderData();
+  }, []);
+
+  const formatCurrency = (value) => {
+    return value.toLocaleString("vi-VN") + " VNĐ";
+  };
+
+  const serviceColumns = [
     {
       title: "Dịch vụ",
       dataIndex: "name",
@@ -63,173 +119,139 @@ const ReportDashboard = () => {
     },
     {
       title: "Số lượng",
-      dataIndex: "count",
-      key: "count",
-      sorter: (a, b) => a.count - b.count,
+      dataIndex: "totalUses",
+      key: "totalUses",
     },
     {
       title: "Doanh thu",
-      dataIndex: "revenue",
-      key: "revenue",
-      render: (value) => `${value.toLocaleString("vi-VN")} VNĐ`,
-      sorter: (a, b) => a.revenue - b.revenue,
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
+      render: (value) => formatCurrency(value),
     },
     {
       title: "Tỷ lệ",
-      dataIndex: "percentage",
-      key: "percentage",
+      dataIndex: "ratio",
+      key: "ratio",
       render: (value) => <Tag color="green">{value}%</Tag>,
     },
   ];
 
-  const topServicesData = [
-    { key: 1, name: "IVF", count: 85, revenue: 450000000, percentage: 45 },
-    { key: 2, name: "IUI", count: 65, revenue: 180000000, percentage: 25 },
-    {
-      key: 3,
-      name: "Khám tư vấn",
-      count: 120,
-      revenue: 120000000,
-      percentage: 20,
-    },
-    {
-      key: 4,
-      name: "Xét nghiệm",
-      count: 45,
-      revenue: 80000000,
-      percentage: 10,
-    },
-  ];
+  const getYAxisUnit = (max) => {
+    if (max >= 1_000_000_000) {
+      return { unit: "tỷ", divider: 1_000_000_000 };
+    }
+    if (max >= 1_000_000) {
+      return { unit: "triệu", divider: 1_000_000 };
+    }
+    if (max >= 1_000) {
+      return { unit: "nghìn", divider: 1_000 };
+    }
+    return { unit: "VNĐ", divider: 1 }; // fallback
+  };
 
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+  if (!statistics) {
+    return (
+      <div style={{ padding: 24, textAlign: "center" }}>
+        <Spin size="large" tip="Đang tải dữ liệu thống kê..." />
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {/* Key Metrics */}
-      <Row gutter={16} className="mb-6">
-        <Col span={6}>
+    <div style={{ padding: 24 }}>
+      <Row gutter={16}>
+        <Col span={8}>
           <Card>
             <Statistic
               title="Tổng Doanh Thu Tháng"
-              value={280000000}
-              precision={0}
-              valueStyle={{ color: "#3f8600" }}
+              value={statistics.totalRevenue}
               prefix={<DollarOutlined />}
-              suffix="VNĐ"
+              valueStyle={{ color: "green" }}
+              formatter={formatCurrency}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card>
             <Statistic
               title="Số Lịch Hẹn"
-              value={210}
-              valueStyle={{ color: "#1890ff" }}
+              value={statistics.totalAppointments}
               prefix={<CalendarOutlined />}
+              valueStyle={{ color: "blue" }}
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={8}>
           <Card>
             <Statistic
               title="Bệnh Nhân Mới"
-              value={145}
-              valueStyle={{ color: "#cf1322" }}
+              value={statistics.totalCustomersTreated}
               prefix={<UserOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Tăng Trưởng"
-              value={16.7}
-              precision={1}
-              valueStyle={{ color: "#3f8600" }}
-              prefix={<RiseOutlined />}
-              suffix="%"
+              valueStyle={{ color: "red" }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Charts */}
-      <Row gutter={16} className="mb-6">
-        <Col span={16}>
+      {/* Row 2: Biểu đồ */}
+      <Row style={{ marginTop: 32 }}>
+        <Col span={24}>
           <Card title="Biểu Đồ Doanh Thu Theo Tháng">
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
+              <LineChart
+                data={chartData}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
-                <YAxis />
+                <YAxis
+                  tickFormatter={(value) =>
+                    `${(value / yAxisDivider).toLocaleString(
+                      "vi-VN"
+                    )} ${yAxisUnit}`
+                  }
+                />
+
                 <Tooltip
-                  formatter={(value, name) => {
-                    if (name === "revenue") {
-                      return [
-                        `${value.toLocaleString("vi-VN")} VNĐ`,
-                        "Doanh thu",
-                      ];
-                    }
-                    return [value, name];
-                  }}
+                  formatter={(value) =>
+                    `${Number(value).toLocaleString("vi-VN")} VNĐ`
+                  }
                 />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="revenue"
+                  name="Doanh thu"
                   stroke="#8884d8"
                   strokeWidth={3}
-                  name="Doanh thu"
+                  dot={{ r: 4 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="appointments"
-                  stroke="#82ca9d"
                   name="Lịch hẹn"
+                  stroke="#82ca9d"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </Card>
         </Col>
-        <Col span={8}>
-          <Card title="Phân Bố Doanh Thu Theo Dịch Vụ">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={serviceRevenueData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {serviceRevenueData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+      </Row>
+
+      {/* Bảng Top Dịch Vụ */}
+      <Row style={{ marginTop: 32 }}>
+        <Col span={24}>
+          <Card title="Top Dịch Vụ Theo Doanh Thu">
+            <Table
+              columns={serviceColumns}
+              dataSource={topServices}
+              pagination={false}
+            />
           </Card>
         </Col>
       </Row>
-
-      {/* Top Services Table */}
-      <Card title="Top Dịch Vụ Theo Doanh Thu">
-        <Table
-          columns={topServicesColumns}
-          dataSource={topServicesData}
-          pagination={false}
-          size="small"
-        />
-      </Card>
     </div>
   );
 };

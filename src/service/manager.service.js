@@ -55,4 +55,16 @@ export const managerService = {
   restoreTreatmentService: (id) => {
     return http.put(`treatment-service/restore/${id}`, null);
   },
+
+  managerStatistic: () => {
+    return http.get("managers/dashboard/statistic");
+  },
+
+  managerChart: () => {
+    return http.get("managers/dashboard/chart");
+  },
+
+  managerDashboardService: () => {
+    return http.get("managers/dashboard/service");
+  },
 };
