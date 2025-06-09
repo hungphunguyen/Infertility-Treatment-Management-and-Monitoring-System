@@ -45,8 +45,11 @@ const CreateBlogPage = () => {
   } = useFormik({
     initialValues: {
       title: "",
+      summary: "",
       content: "",
-      sourceReference: "",
+      category: "",
+      tags: "",
+      readTime: "",
     },
     onSubmit: async (values) => {
       try {
@@ -58,7 +61,10 @@ const CreateBlogPage = () => {
 
         const data = {
           ...values,
-          userId: currentUser.id
+          userId: currentUser.id,
+          author: currentUser.fullName || currentUser.username,
+          tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
+          status: 'pending'
         };
 
         const response = await blogService.createBlog(data, token.token);
@@ -77,8 +83,10 @@ const CreateBlogPage = () => {
     },
     validationSchema: yup.object({
       title: yup.string().required("Vui lòng nhập tiêu đề!"),
+      summary: yup.string().required("Vui lòng nhập tóm tắt!"),
       content: yup.string().required("Vui lòng nhập nội dung!"),
-      sourceReference: yup.string().required("Vui lòng nhập nguồn tham khảo!"),
+      category: yup.string().required("Vui lòng nhập danh mục!"),
+      readTime: yup.string().required("Vui lòng nhập thời gian đọc!"),
     }),
   });
 
@@ -109,6 +117,18 @@ const CreateBlogPage = () => {
           />
 
           <InputCustom
+            labelContent="Tóm tắt"
+            name="summary"
+            typeInput="textarea"
+            placeholder="Nhập tóm tắt bài viết"
+            value={values.summary}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.summary}
+            touched={touched.summary}
+          />
+
+          <InputCustom
             labelContent="Nội dung"
             name="content"
             typeInput="textarea"
@@ -121,14 +141,34 @@ const CreateBlogPage = () => {
           />
 
           <InputCustom
-            labelContent="Nguồn tham khảo"
-            name="sourceReference"
-            placeholder="Nhập nguồn tham khảo"
-            value={values.sourceReference}
+            labelContent="Danh mục"
+            name="category"
+            placeholder="Nhập danh mục"
+            value={values.category}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={errors.sourceReference}
-            touched={touched.sourceReference}
+            error={errors.category}
+            touched={touched.category}
+          />
+
+          <InputCustom
+            labelContent="Tags (phân cách bằng dấu phẩy)"
+            name="tags"
+            placeholder="VD: IVF, Thai kỳ, Sức khỏe"
+            value={values.tags}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+
+          <InputCustom
+            labelContent="Thời gian đọc"
+            name="readTime"
+            placeholder="VD: 5 phút đọc"
+            value={values.readTime}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.readTime}
+            touched={touched.readTime}
           />
 
           <div className="flex justify-center pt-4">
