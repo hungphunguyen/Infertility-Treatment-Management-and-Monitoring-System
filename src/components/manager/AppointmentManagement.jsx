@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Card, Tag, Space, Typography, Spin, DatePicker, Select, Button } from 'antd';
+import { Table, Card, Tag, Space, Typography, Spin, DatePicker, Select, Button, Input } from 'antd';
 import { treatmentService } from '../../service/treatment.service';
 import dayjs from 'dayjs';
 
@@ -13,6 +13,7 @@ const AppointmentManagement = () => {
   const [dateRange, setDateRange] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [serviceFilter, setServiceFilter] = useState('all');
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     fetchAppointments();
@@ -63,32 +64,41 @@ const AppointmentManagement = () => {
     }
   };
 
-  const handleFilter = () => {
+  useEffect(() => {
     let filtered = [...appointments];
 
-    // Filter by date range
-    if (dateRange) {
-      const [start, end] = dateRange;
-      filtered = filtered.filter(appointment => {
-        const appointmentDate = dayjs(appointment.startDate);
-        return appointmentDate.isAfter(start) && appointmentDate.isBefore(end);
-      });
-    }
-
-    // Filter by status
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(appointment => appointment.status === statusFilter);
-    }
-
-    // Filter by service
-    if (serviceFilter !== 'all') {
-      filtered = filtered.filter(appointment => 
-        appointment.treatmentServiceName.includes(serviceFilter)
+    // Lọc theo searchText
+    if (searchText.trim()) {
+      const lower = searchText.toLowerCase();
+      filtered = filtered.filter(app =>
+        (app.customerName && app.customerName.toLowerCase().includes(lower)) ||
+        (app.doctorName && app.doctorName.toLowerCase().includes(lower)) ||
+        (app.treatmentServiceName && app.treatmentServiceName.toLowerCase().includes(lower)) ||
+        (app.id && app.id.toString().includes(lower))
       );
     }
 
+    // Lọc theo ngày
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      const [start, end] = dateRange;
+      filtered = filtered.filter(app => {
+        const d = dayjs(app.startDate);
+        return d.isSameOrAfter(start, 'day') && d.isSameOrBefore(end, 'day');
+      });
+    }
+
+    // Lọc theo trạng thái
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(app => app.status === statusFilter);
+    }
+
+    // Lọc theo dịch vụ
+    if (serviceFilter !== 'all') {
+      filtered = filtered.filter(app => app.treatmentServiceName.includes(serviceFilter));
+    }
+
     setFilteredAppointments(filtered);
-  };
+  }, [appointments, searchText, dateRange, statusFilter, serviceFilter]);
 
   const columns = [
     {
@@ -155,8 +165,16 @@ const AppointmentManagement = () => {
         <Title level={4}>Quản lý lịch hẹn điều trị</Title>
         
         <Space style={{ marginBottom: 16 }}>
+          <Input.Search
+            placeholder="Tìm kiếm khách hàng, bác sĩ, dịch vụ, mã lịch hẹn..."
+            value={searchText}
+            onChange={e => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: 300 }}
+          />
           <RangePicker
-            onChange={(dates) => setDateRange(dates)}
+            onChange={setDateRange}
+            value={dateRange}
             format="DD/MM/YYYY"
           />
           <Select
@@ -181,14 +199,11 @@ const AppointmentManagement = () => {
               { value: 'IVF', label: 'Thụ tinh trong ống nghiệm (IVF)' },
             ]}
           />
-          <Button type="primary" onClick={handleFilter}>
-            Lọc
-          </Button>
           <Button onClick={() => {
+            setSearchText('');
             setDateRange(null);
             setStatusFilter('all');
             setServiceFilter('all');
-            setFilteredAppointments(appointments);
           }}>
             Đặt lại
           </Button>
@@ -202,7 +217,7 @@ const AppointmentManagement = () => {
             scroll={{ x: 1300 }}
             pagination={{
               pageSize: 10,
-              showSizeChanger: true,
+              showSizeChanger: false,
               showTotal: (total) => `Tổng số ${total} lịch hẹn`,
             }}
           />

@@ -55,32 +55,49 @@ const DoctorScheduleView = () => {
     fetchData();
   }, []);
 
+  const fetchDoctorsByShift = async (date, shift) => {
+    const response = await doctorService.getAvailableDoctors(date, shift);
+    return (response?.data?.result || []).map(doctor => ({
+      ...doctor,
+      shift: shift === 'MORNING' ? 'Sáng' : shift === 'AFTERNOON' ? 'Chiều' : 'Cả ngày',
+      startTime: shift === 'MORNING' ? '08:00' : shift === 'AFTERNOON' ? '13:00' : '08:00',
+      endTime: shift === 'MORNING' ? '12:00' : shift === 'AFTERNOON' ? '17:00' : '17:00',
+      key: doctor.id,
+      doctorId: doctor.id,
+      doctorName: doctor.fullName,
+      specialty: doctor.specialty || doctor.qualifications || doctor.roleName?.description || "Bác sĩ điều trị",
+      phone: doctor.phoneNumber
+    }));
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [doctorsResponse, treatmentResponse] = await Promise.all([
-        doctorService.getDoctorSchedules(),
-        treatmentService.getTreatmentRecordsForManager()
-      ]);
-      
-      if (doctorsResponse?.data?.result) {
-        const doctors = Array.isArray(doctorsResponse.data.result) 
-          ? doctorsResponse.data.result 
-          : [doctorsResponse.data.result];
-        
-        // Transform API data to match our table structure
-        const transformedSchedules = doctors.map((doctor, index) => ({
-          key: index + 1,
-          doctorId: doctor.id,
-          doctorName: doctor.fullName,
-          specialty: doctor.specialty || doctor.qualifications || doctor.roleName?.description || "Bác sĩ điều trị",
-          phone: doctor.phoneNumber
-        }));
-
-        setDoctorSchedules(transformedSchedules);
-        setFilteredData(transformedSchedules);
+      const today = dayjs().format('YYYY-MM-DD');
+      let doctors = [];
+      if (shiftFilter === 'all') {
+        // Gọi cả 3 ca, merge lại, loại trùng
+        const [morning, afternoon, fullDay] = await Promise.all([
+          fetchDoctorsByShift(today, 'MORNING'),
+          fetchDoctorsByShift(today, 'AFTERNOON'),
+          fetchDoctorsByShift(today, 'FULL_DAY')
+        ]);
+        // Merge, ưu tiên Cả ngày > Sáng/Chiều
+        const doctorMap = new Map();
+        fullDay.forEach(d => doctorMap.set(d.doctorId, d));
+        morning.forEach(d => { if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d); });
+        afternoon.forEach(d => { if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d); });
+        doctors = Array.from(doctorMap.values());
+      } else {
+        // Chỉ gọi đúng ca
+        const apiShift = shiftFilter === 'Sáng' ? 'MORNING' : shiftFilter === 'Chiều' ? 'AFTERNOON' : 'FULL_DAY';
+        doctors = await fetchDoctorsByShift(today, apiShift);
       }
+      setDoctorSchedules(doctors);
+      setFilteredData(doctors);
 
+      // Fetch treatment records
+      const treatmentResponse = await treatmentService.getTreatmentRecordsForManager();
       if (treatmentResponse?.data?.result) {
         setTreatmentRecords(treatmentResponse.data.result);
       }
@@ -178,11 +195,14 @@ const DoctorScheduleView = () => {
       key: "shift",
       render: (_, record) => {
         const stats = getDoctorStats(record.doctorName);
+        let color = "blue";
+        if (record.shift === "Chiều") color = "orange";
+        if (record.shift === "Cả ngày") color = "purple";
         return (
           <div>
             <div className="flex items-center space-x-2">
-              <Tag color="blue">Cả ngày</Tag>
-              <span className="text-sm text-gray-500">08:00 - 17:00</span>
+              <Tag color={color}>{record.shift}</Tag>
+              <span className="text-sm text-gray-500">{record.startTime} - {record.endTime}</span>
             </div>
             <div className="text-sm text-gray-500 mt-1">
               {stats.totalPatients} bệnh nhân hôm nay

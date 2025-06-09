@@ -686,6 +686,37 @@ const RegisterService = () => {
     registerTreatment();
   };
 
+  const [hasUnfinishedAppointment, setHasUnfinishedAppointment] = useState(false);
+
+  // Sử dụng API đúng cho customer
+  const checkUnfinishedAppointment = async (customerId) => {
+    try {
+      const token = getLocgetlStorage('token');
+      const res = await fetch(`http://54.199.236.209/infertility-system-api/appointments/customer/${customerId}`, {
+        headers: {
+          'accept': '*/*',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        // Kiểm tra trạng thái chưa hoàn thành
+        const unfinished = data.result.some(
+          appt => !['COMPLETED', 'CANCELLED'].includes(appt.status)
+        );
+        setHasUnfinishedAppointment(unfinished);
+      }
+    } catch (err) {
+      // Xử lý lỗi nếu cần
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser && currentUser.id) {
+      checkUnfinishedAppointment(currentUser.id);
+    }
+  }, [currentUser]);
+
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -714,11 +745,20 @@ const RegisterService = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-lg" style={{ backgroundColor: '#fff', borderRadius: '8px' }}>
+              {hasUnfinishedAppointment && (
+                <Alert
+                  message="Bạn đã có lịch hẹn điều trị chưa hoàn thành. Vui lòng hoàn thành lịch hẹn trước khi đăng ký mới."
+                  type="warning"
+                  showIcon
+                  className="mb-4"
+                />
+              )}
               <Form
                 form={form}
                 layout="vertical"
                 onFinish={onFinish}
                 scrollToFirstError
+                disabled={hasUnfinishedAppointment}
                 validateMessages={{
                   required: '${label} là trường bắt buộc!',
                   types: {
