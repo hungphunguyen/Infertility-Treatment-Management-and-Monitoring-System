@@ -92,25 +92,28 @@ const AdminPage = () => {
           <div
             style={{
               display: "flex",
-              justifyContent: "center",
+              justifyContent: "space-between",
               alignItems: "center",
               height: "100%",
               padding: "16px 0",
             }}
           >
             <Title
-              level={3}
+              level={2}
               style={{
                 margin: 0,
-                fontWeight: 700,
-                color: "#1f2937",
-                letterSpacing: 0.5,
-                textTransform: "uppercase",
-                textAlign: "center",
+                alignItems: "center",
+                marginLeft: 250,
               }}
             >
               {getPageTitle()}
             </Title>
+            <div className="text-right">
+              <p className="text-sm text-gray-500 mb-0">Admin Dashboard</p>
+              <p className="text-xs text-gray-400 mb-0">
+                {new Date().toLocaleDateString("vi-VN")}
+              </p>
+            </div>
           </div>
         </Header>
 
@@ -120,6 +123,7 @@ const AdminPage = () => {
             padding: 24,
             background: "#f0f2f5",
             minHeight: "calc(100vh - 112px)",
+            marginLeft: 250,
           }}
         >
           {renderContent()}

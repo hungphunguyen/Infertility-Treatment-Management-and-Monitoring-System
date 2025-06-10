@@ -25,6 +25,7 @@ export const path = {
   managerAppointments: "/manager/appointments",
   managerPatients: "/manager/patients",
   managerReports: "/manager/reports",
+  managerRenderCreateTreatmentService: "/manager/create-treatment-service",
 
   // Doctor routes
   doctor: "/doctor-dashboard/",

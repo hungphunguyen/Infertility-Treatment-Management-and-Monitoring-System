@@ -82,6 +82,14 @@ const ManagerSidebar = ({
       onCollapse={onCollapse}
       theme="dark"
       width={250}
+      style={{
+        position: "fixed",
+        height: "100vh",
+        left: 0,
+        top: 0,
+        zIndex: 1000,
+        overflow: "auto",
+      }}
     >
       <div className="p-4 text-center">
         <DashboardOutlined className="text-white text-2xl" />

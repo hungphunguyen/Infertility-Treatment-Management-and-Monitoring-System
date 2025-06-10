@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Button, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
@@ -11,12 +11,15 @@ import {
   UserOutlined,
   DashboardOutlined,
 } from "@ant-design/icons";
+import { clearAuth } from "../redux/authSlice";
 
 const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
   const location = useLocation();
   const [infoUser, setInfoUser] = useState();
-
+  const navigate = useNavigate();
+  const { showNotification } = useContext(NotificationContext);
+  const dispatch = useDispatch();
   useEffect(() => {
     if (!token) return;
 
@@ -24,6 +27,19 @@ const UserHeader = () => {
       .getMyInfo(token.token)
       .then((res) => {
         setInfoUser(res.data.result);
+        console.log(res);
+        if (
+          !res.data.result.phoneNumber &&
+          res.data.result.roleName.name !== "ADMIN"
+        ) {
+          setTimeout(() => {
+            navigate(path.updataProfile);
+            showNotification(
+              "You must complete your personal profile.",
+              "warning"
+            );
+          }, 1000);
+        }
       })
       .catch((err) => {});
   }, [token]);
@@ -32,16 +48,17 @@ const UserHeader = () => {
     if (token?.token) {
       checkIntrospect();
     }
-  }, []);
+  }, [token]);
 
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
       // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
-      window.location.href = "/update-profile";
+      navigate(path.updataProfile);
     } else if (key === "logout") {
       // Xử lý logout
+      dispatch(clearAuth());
       localStorage.removeItem("token");
-      window.location.href = "/";
+      window.location.reload();
     }
   };
 

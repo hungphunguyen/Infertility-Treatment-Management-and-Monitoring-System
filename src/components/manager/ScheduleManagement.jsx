@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Typography, Select, Popconfirm } from "antd";
+import { Typography, Select, Popconfirm, Modal } from "antd";
 import { doctorService } from "../../service/doctor.service";
 import { NotificationContext } from "../../App";
 import { useSelector } from "react-redux";
@@ -28,7 +28,7 @@ const ScheduleManagement = () => {
     "SATURDAY",
     "SUNDAY",
   ];
-  const shiftOptions = ["", "MORNING", "AFTERNOON", "FULL DAY"];
+  const shiftOptions = ["", "MORNING", "AFTERNOON", "FULL_DAY"];
   const [shiftByDay, setShiftByDay] = useState({});
   const { Option } = Select;
   const [doctorList, setDoctorList] = useState([]);
@@ -36,6 +36,9 @@ const ScheduleManagement = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const { showNotification } = useContext(NotificationContext);
   const [scheduleMap, setScheduleMap] = useState({});
+  const [editingDate, setEditingDate] = useState(null);
+  const [editingShift, setEditingShift] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleChange = (day, value) => {
     setShiftByDay((prev) => ({
@@ -124,6 +127,42 @@ const ScheduleManagement = () => {
         getWorkScheduleMonth();
       })
       .catch(err);
+  };
+
+  const handleUpdate = (doctorId, data) => {
+    managerService
+      .updateWorkSchedule(doctorId, data)
+      .then((res) => {
+        showNotification("Update work schedule success", "success");
+        getWorkScheduleMonth();
+      })
+      .catch((err) => {
+        console.log(err);
+        showNotification(err.response.data.message, "error");
+      });
+  };
+
+  const handleCreateByDay = (doctorId, data) => {
+    managerService
+      .createWorkScheduleByDay({
+        doctorId: doctorId,
+        workDate: data.workDate,
+        shift: data.shift,
+        createdBy: infoUser.id,
+      })
+      .then((res) => {
+        showNotification("Create work schedule success", "success");
+        getWorkScheduleMonth();
+      })
+      .catch((err) => {
+        console.error("Lỗi tạo lịch:", err);
+      });
+  };
+
+  const openEditModal = (dateStr) => {
+    setEditingDate(dateStr);
+    setEditingShift(scheduleMap[dateStr] || "");
+    setIsModalVisible(true);
   };
 
   const getCalendarGrid = (monthStr) => {
@@ -263,41 +302,24 @@ const ScheduleManagement = () => {
               {week.map((dateStr, j) => (
                 <td
                   key={j}
-                  className=" group h-28 border border-gray-300 p-2 align-top relative hover:bg-gray-50"
+                  onClick={() => dateStr && openEditModal(dateStr)}
+                  className="group h-28 border border-gray-300 p-2 align-top relative hover:bg-gray-50 cursor-pointer"
                 >
                   {dateStr && (
                     <>
-                      {/* Số ngày */}
                       <div className="text-right text-xs font-medium text-gray-600">
                         {+dateStr.split("-")[2]}
                       </div>
 
-                      {/* Có ca làm thì hiển thị */}
                       {scheduleMap[dateStr] ? (
-                        <div className="mt-1 space-y-1 relative ">
-                          <div className="text-green-700 text-xs font-semibold">
+                        <div className="mt-1 space-y-1">
+                          <div className="text-green-700 text-xs font-semibold text-center">
                             {scheduleMap[dateStr]}
                           </div>
-                          <Popconfirm
-                            title="Xoá lịch ngày này?"
-                            onConfirm={() =>
-                              handleDelete(dateStr, selectedDoctor.id)
-                            }
-                            okText="Xoá"
-                            cancelText="Huỷ"
-                          >
-                            <button
-                              className="absolute top-5 left-0 bg-red-500 text-white text-xs px-2 py-1 rounded 
-                      opacity-0 group-hover:opacity-100 transition duration-200"
-                            >
-                              Xoá
-                            </button>
-                          </Popconfirm>
                         </div>
                       ) : (
-                        // Nếu không có lịch
-                        <div className="text-xs italic text-gray-400 mt-1">
-                          Nghỉ
+                        <div className="text-center text-xs italic text-gray-400 mt-1">
+                          + Thêm ca làm <br /> (nghỉ)
                         </div>
                       )}
                     </>
@@ -308,6 +330,68 @@ const ScheduleManagement = () => {
           ))}
         </tbody>
       </table>
+      <Modal
+        title={`Cập nhật lịch: ${editingDate}`}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+      >
+        <div className="mb-4">
+          <label className="block mb-1 font-medium">Chọn ca làm:</label>
+          <Select
+            className="w-full"
+            value={editingShift}
+            onChange={(value) => setEditingShift(value)}
+          >
+            {shiftOptions
+              .filter((s) => s)
+              .map((shift) => (
+                <Select.Option key={shift} value={shift}>
+                  {shift}
+                </Select.Option>
+              ))}
+          </Select>
+        </div>
+
+        <div className="flex justify-between">
+          {scheduleMap[editingDate] && (
+            <Popconfirm
+              title="Xoá lịch ngày này?"
+              onConfirm={() => {
+                handleDelete(editingDate, selectedDoctor.id);
+                isModalVisible(false);
+              }}
+              okText="Xoá"
+              cancelText="Huỷ"
+            >
+              <button className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                Xoá
+              </button>
+            </Popconfirm>
+          )}
+          <button
+            onClick={() => {
+              const payload = {
+                workDate: editingDate,
+                shift: editingShift,
+              };
+
+              if (scheduleMap[editingDate]) {
+                // Cập nhật
+                handleUpdate(selectedDoctor.id, payload);
+              } else {
+                // Tạo mới
+                handleCreateByDay(selectedDoctor.id, payload);
+              }
+
+              setIsModalVisible(false);
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          >
+            {scheduleMap[editingDate] ? "Cập nhật" : "Tạo mới"}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
