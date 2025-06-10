@@ -33,6 +33,7 @@ import {
 import dayjs from "dayjs";
 import { doctorService } from "../../service/doctor.service";
 import { treatmentService } from "../../service/treatment.service";
+import { http } from '../../service/config';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -48,12 +49,24 @@ const DoctorScheduleView = () => {
   const [doctorModalVisible, setDoctorModalVisible] = useState(false);
   const [doctorDetails, setDoctorDetails] = useState(null);
   const [loadingDoctorDetails, setLoadingDoctorDetails] = useState(false);
-  const [treatmentRecords, setTreatmentRecords] = useState([]);
+  const [todayAppointments, setTodayAppointments] = useState([]);
 
-  // Fetch doctor schedules and treatment records when component mounts
+  // Fetch doctor schedules and today's appointments when component mounts
   useEffect(() => {
     fetchData();
+    fetchTodayAppointments();
   }, []);
+
+  const fetchTodayAppointments = async () => {
+    try {
+      const response = await http.get('/appointments/get-all');
+      const today = dayjs().format('YYYY-MM-DD');
+      const filtered = response.data.result.filter(item => item.appointmentDate === today);
+      setTodayAppointments(filtered);
+    } catch (error) {
+      setTodayAppointments([]);
+    }
+  };
 
   const fetchDoctorsByShift = async (date, shift) => {
     const response = await doctorService.getAvailableDoctors(date, shift);
@@ -95,12 +108,6 @@ const DoctorScheduleView = () => {
       }
       setDoctorSchedules(doctors);
       setFilteredData(doctors);
-
-      // Fetch treatment records
-      const treatmentResponse = await treatmentService.getTreatmentRecordsForManager();
-      if (treatmentResponse?.data?.result) {
-        setTreatmentRecords(treatmentResponse.data.result);
-      }
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -156,16 +163,11 @@ const DoctorScheduleView = () => {
   };
 
   const getDoctorStats = (doctorName) => {
-    const doctorRecords = treatmentRecords.filter(record => record.doctorName === doctorName);
-    const today = dayjs().format('YYYY-MM-DD');
-    const todayRecords = doctorRecords.filter(record => record.startDate === today);
-    
-    return {
-      totalPatients: todayRecords.length,
-      completedPatients: todayRecords.filter(record => record.status === 'Completed').length,
-      inProgressPatients: todayRecords.filter(record => record.status === 'InProgress').length,
-      pendingPatients: todayRecords.filter(record => record.status === 'Pending').length
-    };
+    const patients = todayAppointments.filter(a => a.doctorName === doctorName);
+    const total = patients.length;
+    const completed = patients.filter(a => a.status === "COMPLETED").length;
+    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { total, completed, progress };
   };
 
   const columns = [
@@ -205,7 +207,7 @@ const DoctorScheduleView = () => {
               <span className="text-sm text-gray-500">{record.startTime} - {record.endTime}</span>
             </div>
             <div className="text-sm text-gray-500 mt-1">
-              {stats.totalPatients} bệnh nhân hôm nay
+              {stats.total} bệnh nhân hôm nay
             </div>
           </div>
         );
@@ -219,7 +221,7 @@ const DoctorScheduleView = () => {
         return (
           <div>
             <div className="font-semibold">
-              {stats.completedPatients}/{stats.totalPatients}
+              {stats.completed}/{stats.total}
             </div>
             <div className="text-sm text-gray-500">
               Đã khám/Tổng
@@ -233,20 +235,16 @@ const DoctorScheduleView = () => {
       key: "progress",
       render: (_, record) => {
         const stats = getDoctorStats(record.doctorName);
-        const percentage = stats.totalPatients > 0 
-          ? Math.round((stats.completedPatients / stats.totalPatients) * 100)
-          : 0;
-        
         return (
           <div className="w-full">
             <div className="flex justify-between text-sm mb-1">
               <span>Tiến độ</span>
-              <span>{percentage}%</span>
+              <span>{stats.progress}%</span>
             </div>
             <Progress 
-              percent={percentage} 
+              percent={stats.progress} 
               size="small"
-              status={percentage === 100 ? "success" : "active"}
+              status={stats.progress === 100 ? "success" : "active"}
             />
           </div>
         );
@@ -273,11 +271,8 @@ const DoctorScheduleView = () => {
   // Calculate statistics
   const stats = {
     totalDoctors: doctorSchedules.length,
-    totalPatients: treatmentRecords.filter(record => record.startDate === dayjs().format('YYYY-MM-DD')).length,
-    completedPatients: treatmentRecords.filter(record => 
-      record.startDate === dayjs().format('YYYY-MM-DD') && 
-      record.status === 'Completed'
-    ).length
+    totalPatients: todayAppointments.length,
+    completedPatients: todayAppointments.filter(a => a.status === "COMPLETED").length
   };
 
   return (

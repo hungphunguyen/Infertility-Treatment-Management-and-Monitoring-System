@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Menu, Avatar, Typography, Divider, Badge, Button } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
@@ -17,6 +17,7 @@ import {
   EditOutlined,
   HomeOutlined,
 } from "@ant-design/icons";
+import { authService } from "../../service/auth.service";
 
 const { Text } = Typography;
 
@@ -25,6 +26,7 @@ const CustomerSidebar = ({
   setSelectedMenuItem,
   collapsed,
 }) => {
+  const [userName, setUserName] = useState("");
   const menuItems = [
     {
       key: "profile",
@@ -103,6 +105,18 @@ const CustomerSidebar = ({
   ];
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await authService.getMyInfo();
+        setUserName(res?.data?.result?.fullName || "Khách hàng");
+      } catch {
+        setUserName("Khách hàng");
+      }
+    };
+    fetchUser();
+  }, []);
+
   const handleLogout = () => {
     // Clear token and redirect to login
     localStorage.removeItem("token");
@@ -110,14 +124,27 @@ const CustomerSidebar = ({
   };
 
   return (
-    <div style={{ height: "100%" }}>
+    <div
+      style={{
+        background: "#001529",
+        color: "#fff",
+        height: "100vh",
+        position: "fixed",
+        left: 0,
+        top: 0,
+        zIndex: 1000,
+        width: collapsed ? 80 : 250,
+        overflow: "auto",
+        transition: "width 0.2s"
+      }}
+    >
       {/* Customer Info */}
       <div
         style={{
           padding: collapsed ? "16px 8px" : "24px",
           textAlign: "center",
-          background: "#fafafa",
-          borderBottom: "1px solid #f0f0f0",
+          background: "#001529",
+          borderBottom: "1px solid #222",
         }}
       >
         <Avatar
@@ -131,11 +158,11 @@ const CustomerSidebar = ({
         {!collapsed && (
           <>
             <div style={{ marginTop: 8 }}>
-              <Text strong style={{ fontSize: "16px", color: "#52c41a" }}>
-                Phú Lâm Nguyên
+              <Text strong style={{ fontSize: "16px", color: "#fff" }}>
+                {userName}
               </Text>
             </div>
-            <Text type="secondary" style={{ fontSize: "12px" }}>
+            <Text type="secondary" style={{ fontSize: "12px", color: "#bfbfbf" }}>
               Khách hàng thân thiết
             </Text>
           </>
@@ -146,16 +173,18 @@ const CustomerSidebar = ({
       <Menu
         mode="inline"
         selectedKeys={[selectedMenuItem]}
+        theme="dark"
         style={{
           border: "none",
           background: "transparent",
-          height: "calc(100% - 200px)",
+          color: "#fff",
+          height: "auto",
         }}
         items={menuItems.map((item) => ({
           key: item.key,
           icon: item.icon,
           label: (
-            <Link to={item.path} title={collapsed ? item.title : ""}>
+            <Link to={item.path} title={collapsed ? item.title : ""} style={{ color: "#fff" }}>
               {item.label}
             </Link>
           ),
@@ -167,14 +196,19 @@ const CustomerSidebar = ({
         <Button
           type="default"
           icon={<HomeOutlined />}
-          style={{ width: "100%" }}
+          style={{
+            width: "100%",
+            color: "#001529",
+            background: "#fff",
+            border: "none",
+          }}
           onClick={() => navigate("/")}
         >
-          {!collapsed && "Về Trang Chủ"}
+          {!collapsed && <span style={{ marginLeft: 8 }}>Về Trang Chủ</span>}
         </Button>
       </div>
 
-      {/* Bottom Actions */}
+      {/* Footer */}
       {!collapsed && (
         <div
           style={{
@@ -182,8 +216,10 @@ const CustomerSidebar = ({
             bottom: 16,
             left: 16,
             right: 16,
+            color: "#bfbfbf"
           }}
         >
+          <Divider style={{ margin: "8px 0", borderColor: "#222" }} />
           <Text
             type="secondary"
             style={{
@@ -191,6 +227,7 @@ const CustomerSidebar = ({
               display: "block",
               textAlign: "center",
               marginTop: "8px",
+              color: "#bfbfbf"
             }}
           >
             Hệ thống khách hàng v1.0

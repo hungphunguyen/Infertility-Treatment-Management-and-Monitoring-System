@@ -7,6 +7,7 @@ import DashboardOverview from "../components/doctor/DashboardOverview";
 import PatientList from "../components/doctor/PatientList";
 import TestResults from "../components/doctor/TestResults";
 import DoctorProfile from "../components/doctor/DoctorProfile";
+import DoctorWorkSchedule from "../components/doctor/DoctorWorkSchedule";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -20,7 +21,9 @@ const DoctorDashboard = () => {
   // Update selected menu item based on current path
   useEffect(() => {
     const pathname = location.pathname;
-    if (pathname.includes("/dashboard")) {
+    if (pathname.includes("/work-schedule")) {
+      setSelectedMenuItem("work-schedule");
+    } else if (pathname.includes("/dashboard")) {
       setSelectedMenuItem("dashboard");
     } else if (pathname.includes("/patients")) {
       setSelectedMenuItem("patients");
@@ -29,9 +32,7 @@ const DoctorDashboard = () => {
     } else if (pathname.includes("/profile")) {
       setSelectedMenuItem("profile");
     } else {
-      // Default to dashboard if no match
       setSelectedMenuItem("dashboard");
-      // Redirect to dashboard if at the root doctor dashboard
       if (pathname === "/doctor-dashboard") {
         navigate(path.doctorDashboard);
       }
@@ -97,6 +98,7 @@ const DoctorDashboard = () => {
             <Route path="patients" element={<PatientList />} />
             <Route path="test-results" element={<TestResults />} />
             <Route path="profile" element={<DoctorProfile />} />
+            <Route path="work-schedule" element={<DoctorWorkSchedule />} />
           </Routes>
         </Content>
       </Layout>

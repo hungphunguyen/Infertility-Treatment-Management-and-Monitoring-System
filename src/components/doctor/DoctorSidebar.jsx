@@ -1,5 +1,5 @@
-import React from "react";
-import { Menu, Avatar, Typography, Divider, Button } from "antd";
+import React, { useEffect, useState } from "react";
+import { Menu, Avatar, Typography, Divider, Button, Spin, Dropdown } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import {
@@ -11,6 +11,7 @@ import {
   MedicineBoxOutlined,
   HomeOutlined,
 } from "@ant-design/icons";
+import { authService } from "../../service/auth.service";
 
 const { Text } = Typography;
 
@@ -19,6 +20,7 @@ const DoctorSidebar = ({
   setSelectedMenuItem,
   collapsed,
 }) => {
+  const [userName, setUserName] = useState("");
   const menuItems = [
     {
       key: "dashboard",
@@ -26,6 +28,20 @@ const DoctorSidebar = ({
       label: "Dashboard",
       title: "Xem tổng quan và lịch hôm nay",
       path: path.doctorDashboard,
+    },
+    {
+      key: "profile",
+      icon: <UserOutlined />,
+      label: "Hồ Sơ",
+      title: "Thông tin cá nhân bác sĩ",
+      path: path.doctorProfile,
+    },
+    {
+      key: "work-schedule",
+      icon: <CalendarOutlined />,
+      label: "Lịch Làm Việc",
+      title: "Xem lịch làm việc của tôi",
+      path: path.doctorWorkSchedule,
     },
     {
       key: "patients",
@@ -41,25 +57,44 @@ const DoctorSidebar = ({
       title: "Quản lý kết quả xét nghiệm",
       path: path.doctorTestResults,
     },
-    {
-      key: "profile",
-      icon: <UserOutlined />,
-      label: "Hồ Sơ",
-      title: "Thông tin cá nhân bác sĩ",
-      path: path.doctorProfile,
-    },
+    
   ];
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await authService.getMyInfo();
+        setUserName(res?.data?.result?.fullName || "Bác sĩ");
+      } catch {
+        setUserName("Bác sĩ");
+      }
+    };
+    fetchUser();
+  }, []);
+
   return (
-    <div style={{ height: "100%" }}>
+    <div
+      style={{
+        background: "#001529",
+        color: "#fff",
+        height: "100vh",
+        position: "fixed",
+        left: 0,
+        top: 0,
+        zIndex: 1000,
+        width: collapsed ? 80 : 250,
+        overflow: "auto",
+        transition: "width 0.2s"
+      }}
+    >
       {/* Doctor Info */}
       <div
         style={{
           padding: collapsed ? "16px 8px" : "24px",
           textAlign: "center",
-          background: "#fafafa",
-          borderBottom: "1px solid #f0f0f0",
+          background: "#001529",
+          borderBottom: "1px solid #222",
         }}
       >
         <Avatar
@@ -73,11 +108,11 @@ const DoctorSidebar = ({
         {!collapsed && (
           <>
             <div style={{ marginTop: 8 }}>
-              <Text strong style={{ fontSize: "16px", color: "#1890ff" }}>
-                BS. Nguyễn Văn A
+              <Text strong style={{ fontSize: "16px", color: "#fff" }}>
+                {userName}
               </Text>
             </div>
-            <Text type="secondary" style={{ fontSize: "12px" }}>
+            <Text type="secondary" style={{ fontSize: "12px", color: "#bfbfbf" }}>
               Chuyên gia IVF
             </Text>
           </>
@@ -88,16 +123,18 @@ const DoctorSidebar = ({
       <Menu
         mode="inline"
         selectedKeys={[selectedMenuItem]}
+        theme="dark"
         style={{
           border: "none",
           background: "transparent",
-          height: "calc(100% - 140px)",
+          color: "#fff",
+          height: "auto",
         }}
         items={menuItems.map((item) => ({
           key: item.key,
           icon: item.icon,
           label: (
-            <Link to={item.path} title={collapsed ? item.title : ""}>
+            <Link to={item.path} title={collapsed ? item.title : ""} style={{ color: "#fff" }}>
               {item.label}
             </Link>
           ),
@@ -111,9 +148,9 @@ const DoctorSidebar = ({
           icon={<HomeOutlined />}
           style={{
             width: "100%",
-            display: "flex",
-            justifyContent: collapsed ? "center" : "flex-start",
-            alignItems: "center",
+            color: "#001529",
+            background: "#fff",
+            border: "none",
           }}
           onClick={() => navigate("/")}
         >
@@ -130,11 +167,12 @@ const DoctorSidebar = ({
             left: 24,
             right: 24,
             textAlign: "center",
+            color: "#bfbfbf"
           }}
         >
-          <Divider style={{ margin: "8px 0" }} />
-          <Text type="secondary" style={{ fontSize: "11px" }}>
-            Hệ thống quản lý bác sĩ v1.0
+          <Divider style={{ margin: "8px 0", borderColor: "#222" }} />
+          <Text type="secondary" style={{ fontSize: "11px", color: "#bfbfbf" }}>
+            Hệ thống quản lý bác sĩ 
           </Text>
         </div>
       )}

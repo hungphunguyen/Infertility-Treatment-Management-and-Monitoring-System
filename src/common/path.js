@@ -35,6 +35,7 @@ export const path = {
   doctorSchedule: "/doctor-dashboard/schedule",
   doctorTestResults: "/doctor-dashboard/test-results",
   doctorProfile: "/doctor-dashboard/profile",
+  doctorWorkSchedule: "/doctor-dashboard/work-schedule",
 
   // Customer routes
   customer: "/customer-dashboard/",
@@ -51,4 +52,5 @@ export const path = {
 
   updataProfile: "/update-profile",
   resendOtp: "/resend-otp",
+  
 };
