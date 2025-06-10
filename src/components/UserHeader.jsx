@@ -84,11 +84,6 @@ const UserHeader = () => {
           </Link>
         </Menu.Item>
       )}
-      {infoUser && infoUser.roleName.name !== "ADMIN" && (
-        <Menu.Item key="create-blog" icon={<EditOutlined />}>
-          Tạo Blog
-        </Menu.Item>
-      )}
       <Menu.Item key="update" icon={<SettingOutlined />}>
         Cập nhật thông tin
       </Menu.Item>
@@ -158,32 +153,16 @@ const UserHeader = () => {
   };
 
   return (
-    <header
-      style={{ borderBottom: "1px solid #f2f2f2" }}
-      className="sticky top-0 bg-white z-50"
-    >
-      <div className="container mx-auto flex items-center justify-between py-4">
-        {/* Logo and Center Name - Left */}
-        <div className="flex items-center gap-3">
-          <div
-            className="rounded-full bg-white flex items-center justify-center w-16 h-16 overflow-hidden border-2"
-            style={{ borderColor: "#FF8460" }}
-          >
-            <img
-              src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
-              alt="Logo Bệnh viện Sinh sản NewLife"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div>
-            <div className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-300 bg-clip-text text-transparent">
-              NewLife
-            </div>
-            <div className="text-gray-600 text-sm font-medium">
-              Bệnh viện Sinh sản
-            </div>
-          </div>
-        </div>
+    <header className="bg-white shadow-md">
+      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        {/* Logo - Left */}
+        <Link to={path.homePage} className="flex items-center">
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-12 w-auto"
+          />
+        </Link>
 
         {/* Navigation Menu - Center */}
         <nav className="flex gap-8 text-xl">

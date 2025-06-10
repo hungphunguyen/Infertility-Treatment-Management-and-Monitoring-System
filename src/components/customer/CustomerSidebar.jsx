@@ -41,6 +41,13 @@ const CustomerSidebar = ({
       path: path.customerUpdateProfile,
     },
     {
+      key: "create-blog",
+      icon: <EditOutlined />,
+      label: "Tạo Blog",
+      title: "Tạo bài viết mới",
+      path: "/customer/create-blog",
+    },
+    {
       key: "services",
       icon: <MedicineBoxOutlined />,
       label: "Dịch Vụ",

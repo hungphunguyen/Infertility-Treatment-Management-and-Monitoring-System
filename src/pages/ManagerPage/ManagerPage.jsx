@@ -39,7 +39,7 @@ const ManagerPage = () => {
       setSelectedMenu("feedback");
     } else if (pathname.includes("/services")) {
       setSelectedMenu("services");
-    } else if (pathname.includes("/blog")) {
+    } else if (pathname.includes("/blog-management") || pathname.includes("/blog-approval")) {
       setSelectedMenu("blog");
     } else {
       // Default to report if no match
@@ -69,6 +69,8 @@ const ManagerPage = () => {
         return "Quản Lý Dịch Vụ";
       case "blog":
         return "Quản Lý Blog";
+      case "blog-approval":
+        return "Duyệt Bài Viết";
       default:
         return "Dashboard";
     }

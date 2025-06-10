@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Card, Typography } from "antd";
+import { Card, Typography, Modal } from "antd";
 import { useFormik } from "formik";
 import InputCustom from "../Input/InputCustom";
 import { blogService } from "../../service/blog.service";
 import { useNavigate, useLocation } from "react-router-dom";
 import { NotificationContext } from "../../App";
 import * as yup from "yup";
-import { FileTextOutlined } from "@ant-design/icons";
+import { FileTextOutlined, CloseOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
 
@@ -18,6 +18,7 @@ const CreateBlogPage = () => {
   const { showNotification } = useContext(NotificationContext);
   const token = useSelector((state) => state.authSlice);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isExitModalVisible, setIsExitModalVisible] = useState(false);
 
   useEffect(() => {
     const loadUserInfo = async () => {
@@ -45,13 +46,10 @@ const CreateBlogPage = () => {
   } = useFormik({
     initialValues: {
       title: "",
-      summary: "",
       content: "",
-      category: "",
-      tags: "",
-      readTime: "",
+      sourceReference: ""
     },
-    onSubmit: async (values) => {
+    onSubmit: async (values, { setSubmitting }) => {
       try {
         if (!currentUser) {
           showNotification("Vui lòng đăng nhập để tạo bài viết", "error");
@@ -62,8 +60,6 @@ const CreateBlogPage = () => {
         const data = {
           ...values,
           userId: currentUser.id,
-          author: currentUser.fullName || currentUser.username,
-          tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
           status: 'pending'
         };
 
@@ -79,27 +75,82 @@ const CreateBlogPage = () => {
         } else {
           showNotification("Tạo bài viết thất bại. Vui lòng thử lại!", "error");
         }
+      } finally {
+        setSubmitting(false);
       }
     },
     validationSchema: yup.object({
       title: yup.string().required("Vui lòng nhập tiêu đề!"),
-      summary: yup.string().required("Vui lòng nhập tóm tắt!"),
       content: yup.string().required("Vui lòng nhập nội dung!"),
-      category: yup.string().required("Vui lòng nhập danh mục!"),
-      readTime: yup.string().required("Vui lòng nhập thời gian đọc!"),
+      sourceReference: yup.string().required("Vui lòng nhập nguồn tham khảo!")
     }),
   });
+
+  const handleSaveDraft = async () => {
+    try {
+      if (!currentUser) {
+        showNotification("Vui lòng đăng nhập để tạo bài viết", "error");
+        navigate("/sign-in");
+        return;
+      }
+
+      const data = {
+        ...values,
+        userId: currentUser.id,
+        status: 'draft'
+      };
+
+      const response = await blogService.createBlog(data, token.token);
+      if (response.data) {
+        showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
+        navigate("/blog");
+      }
+    } catch (error) {
+      console.error("Blog draft error:", error);
+      if (error.response?.data?.message) {
+        showNotification(error.response.data.message, "error");
+      } else {
+        showNotification("Lưu nháp thất bại. Vui lòng thử lại!", "error");
+      }
+    }
+  };
+
+  const handleExit = () => {
+    // Kiểm tra xem form có dữ liệu không
+    if (values.title || values.content || values.sourceReference) {
+      setIsExitModalVisible(true);
+    } else {
+      navigate("/blog");
+    }
+  };
+
+  const handleExitConfirm = async (saveDraft) => {
+    if (saveDraft) {
+      await handleSaveDraft();
+    } else {
+      navigate("/blog");
+    }
+    setIsExitModalVisible(false);
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-6">
       <Card
         bordered
         title={
-          <div className="flex items-center space-x-2">
-            <FileTextOutlined className="text-blue-600 text-xl" />
-            <Title level={4} className="!mb-0">
-              Tạo Bài Viết Blog
-            </Title>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <FileTextOutlined className="text-blue-600 text-xl" />
+              <Title level={4} className="!mb-0">
+                Tạo Bài Viết Blog
+              </Title>
+            </div>
+            <button
+              onClick={handleExit}
+              className="text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <CloseOutlined className="text-xl" />
+            </button>
           </div>
         }
         className="shadow-lg border border-gray-200"
@@ -117,18 +168,6 @@ const CreateBlogPage = () => {
           />
 
           <InputCustom
-            labelContent="Tóm tắt"
-            name="summary"
-            typeInput="textarea"
-            placeholder="Nhập tóm tắt bài viết"
-            value={values.summary}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={errors.summary}
-            touched={touched.summary}
-          />
-
-          <InputCustom
             labelContent="Nội dung"
             name="content"
             typeInput="textarea"
@@ -141,46 +180,64 @@ const CreateBlogPage = () => {
           />
 
           <InputCustom
-            labelContent="Danh mục"
-            name="category"
-            placeholder="Nhập danh mục"
-            value={values.category}
+            labelContent="Nguồn tham khảo"
+            name="sourceReference"
+            placeholder="Nhập nguồn tham khảo"
+            value={values.sourceReference}
             onChange={handleChange}
             onBlur={handleBlur}
-            error={errors.category}
-            touched={touched.category}
+            error={errors.sourceReference}
+            touched={touched.sourceReference}
           />
 
-          <InputCustom
-            labelContent="Tags (phân cách bằng dấu phẩy)"
-            name="tags"
-            placeholder="VD: IVF, Thai kỳ, Sức khỏe"
-            value={values.tags}
-            onChange={handleChange}
-            onBlur={handleBlur}
-          />
-
-          <InputCustom
-            labelContent="Thời gian đọc"
-            name="readTime"
-            placeholder="VD: 5 phút đọc"
-            value={values.readTime}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={errors.readTime}
-            touched={touched.readTime}
-          />
-
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-center space-x-4 pt-4">
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className="bg-gray-500 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-600 transition"
+            >
+              Lưu nháp
+            </button>
             <button
               type="submit"
               className="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-700 transition"
             >
-              Gửi bài viết
+              Gửi duyệt
             </button>
           </div>
         </form>
       </Card>
+
+      <Modal
+        title="Xác nhận thoát"
+        open={isExitModalVisible}
+        onCancel={() => setIsExitModalVisible(false)}
+        footer={[
+          <button
+            key="cancel"
+            onClick={() => setIsExitModalVisible(false)}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            Hủy
+          </button>,
+          <button
+            key="exit"
+            onClick={() => handleExitConfirm(false)}
+            className="px-4 py-2 text-red-600 hover:text-red-800 transition-colors"
+          >
+            Thoát không lưu
+          </button>,
+          <button
+            key="save"
+            onClick={() => handleExitConfirm(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Lưu nháp và thoát
+          </button>,
+        ]}
+      >
+        <p>Bạn có muốn lưu bài viết dưới dạng nháp trước khi thoát không?</p>
+      </Modal>
     </div>
   );
 };

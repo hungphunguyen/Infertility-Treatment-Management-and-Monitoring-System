@@ -72,6 +72,12 @@ const ManagerSidebar = ({
       label: "Quản Lý Blog",
       path: "/manager/blog-management",
     },
+    {
+      key: "create-blog",
+      icon: <EditOutlined />,
+      label: "Tạo Blog",
+      path: "/manager/create-blog",
+    },
   ];
   const navigate = useNavigate();
 

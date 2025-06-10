@@ -10,6 +10,7 @@ import {
   CalendarOutlined,
   MedicineBoxOutlined,
   HomeOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -40,6 +41,13 @@ const DoctorSidebar = ({
       label: "Kết Quả XN",
       title: "Quản lý kết quả xét nghiệm",
       path: path.doctorTestResults,
+    },
+    {
+      key: "create-blog",
+      icon: <EditOutlined />,
+      label: "Tạo Blog",
+      title: "Tạo bài viết mới",
+      path: "/doctor/create-blog",
     },
     {
       key: "profile",
