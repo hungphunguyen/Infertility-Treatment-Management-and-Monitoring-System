@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Card, Tag, Space, Typography, Spin, DatePicker, Select, Button, Input } from 'antd';
 import { treatmentService } from '../../service/treatment.service';
 import dayjs from 'dayjs';
+import { http } from '../../service/config';
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -10,7 +11,6 @@ const AppointmentManagement = () => {
   const [loading, setLoading] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
-  const [dateRange, setDateRange] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [serviceFilter, setServiceFilter] = useState('all');
   const [searchText, setSearchText] = useState('');
@@ -22,10 +22,16 @@ const AppointmentManagement = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const response = await treatmentService.getTreatmentRecordsForManager();
+      const response = await http.get('/appointments/get-all');
       if (response?.data?.result) {
-        setAppointments(response.data.result);
-        setFilteredAppointments(response.data.result);
+        const mapped = response.data.result.map(item => ({
+          ...item,
+          startDate: item.appointmentDate,
+          treatmentServiceName: item.serviceName,
+          createdDate: item.createdAt,
+        }));
+        setAppointments(mapped);
+        setFilteredAppointments(mapped);
       }
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -36,14 +42,18 @@ const AppointmentManagement = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Completed':
-        return 'success';
-      case 'InProgress':
-        return 'processing';
-      case 'Pending':
-        return 'warning';
-      case 'Cancelled':
-        return 'error';
+      case 'PENDING':
+        return 'orange';
+      case 'CONFIRMED':
+        return 'blue';
+      case 'CANCELLED':
+        return 'red';
+      case 'COMPLETED':
+        return 'green';
+      case 'PENDING_CHANGE':
+        return 'gold';
+      case 'REJECTED_CHANGE':
+        return 'volcano';
       default:
         return 'default';
     }
@@ -51,14 +61,18 @@ const AppointmentManagement = () => {
 
   const getStatusText = (status) => {
     switch (status) {
-      case 'Completed':
-        return 'Hoàn thành';
-      case 'InProgress':
-        return 'Đang thực hiện';
-      case 'Pending':
-        return 'Chờ xử lý';
-      case 'Cancelled':
+      case 'PENDING':
+        return 'Chờ xác nhận';
+      case 'CONFIRMED':
+        return 'Đã xác nhận';
+      case 'CANCELLED':
         return 'Đã hủy';
+      case 'COMPLETED':
+        return 'Hoàn thành';
+      case 'PENDING_CHANGE':
+        return 'Chờ duyệt đổi lịch';
+      case 'REJECTED_CHANGE':
+        return 'Từ chối đổi lịch';
       default:
         return status;
     }
@@ -78,15 +92,6 @@ const AppointmentManagement = () => {
       );
     }
 
-    // Lọc theo ngày
-    if (dateRange && dateRange[0] && dateRange[1]) {
-      const [start, end] = dateRange;
-      filtered = filtered.filter(app => {
-        const d = dayjs(app.startDate);
-        return d.isSameOrAfter(start, 'day') && d.isSameOrBefore(end, 'day');
-      });
-    }
-
     // Lọc theo trạng thái
     if (statusFilter !== 'all') {
       filtered = filtered.filter(app => app.status === statusFilter);
@@ -98,7 +103,7 @@ const AppointmentManagement = () => {
     }
 
     setFilteredAppointments(filtered);
-  }, [appointments, searchText, dateRange, statusFilter, serviceFilter]);
+  }, [appointments, searchText, statusFilter, serviceFilter]);
 
   const columns = [
     {
@@ -172,11 +177,6 @@ const AppointmentManagement = () => {
             allowClear
             style={{ width: 300 }}
           />
-          <RangePicker
-            onChange={setDateRange}
-            value={dateRange}
-            format="DD/MM/YYYY"
-          />
           <Select
             style={{ width: 150 }}
             value={statusFilter}
@@ -201,7 +201,6 @@ const AppointmentManagement = () => {
           />
           <Button onClick={() => {
             setSearchText('');
-            setDateRange(null);
             setStatusFilter('all');
             setServiceFilter('all');
           }}>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Steps, Row, Col, Typography, Descriptions, Tag, 
-  Timeline, Space, Divider, Progress, Collapse, Spin, message
+  Timeline, Space, Divider, Progress, Collapse, Spin, message, Button
 } from 'antd';
 import {
   CheckCircleOutlined,
@@ -55,14 +55,14 @@ const TreatmentProgress = () => {
       if (response?.data?.code === 1000 && Array.isArray(response.data.result) && response.data.result.length > 0) {
         const currentTreatment = response.data.result[0];
         const totalSteps = currentTreatment.treatmentSteps.length;
-        const completedSteps = currentTreatment.treatmentSteps.filter(step => step.status === 'CONFIRMED').length;
+        const completedSteps = currentTreatment.treatmentSteps.filter(step => step.status === 'COMPLETED').length;
         const overallProgress = Math.round((completedSteps / totalSteps) * 100);
 
         setTreatmentData({
           id: currentTreatment.id,
           type: currentTreatment.treatmentServiceName,
           startDate: currentTreatment.startDate,
-          currentPhase: currentTreatment.treatmentSteps.findIndex(step => step.status === 'CONFIRMED') + 1,
+          currentPhase: currentTreatment.treatmentSteps.findIndex(step => step.status === 'COMPLETED') + 1,
           doctor: currentTreatment.doctorName,
           status: currentTreatment.status.toLowerCase(),
           estimatedCompletion: currentTreatment.endDate || dayjs(currentTreatment.startDate).add(45, 'days').format('YYYY-MM-DD'),
@@ -72,17 +72,22 @@ const TreatmentProgress = () => {
           phases: currentTreatment.treatmentSteps.map((step, index) => ({
             id: step.id,
             name: step.name,
-            status: step.status === 'CONFIRMED' ? 'completed' :
+            statusRaw: step.status,
+            status: step.status === 'COMPLETED' ? 'completed' :
                    step.status === 'IN_PROGRESS' ? 'in-progress' :
+                   step.status === 'CONFIRMED' ? 'confirmed' :
                    step.status === 'PLANNED' ? 'not-started' : 'not-started',
-            startDate: step.scheduledDate || dayjs(currentTreatment.startDate).add(index * 7, 'days').format('YYYY-MM-DD'),
-            endDate: step.actualDate || dayjs(currentTreatment.startDate).add((index + 1) * 7, 'days').format('YYYY-MM-DD'),
+            displayDate: index === 0 ? step.scheduledDate : (step.actualDate || step.scheduledDate),
+            hasDate: !!(index === 0 || step.actualDate || step.scheduledDate),
+            startDate: step.scheduledDate,
+            endDate: step.actualDate,
             activities: [
               {
                 name: step.name,
-                date: step.scheduledDate || dayjs(currentTreatment.startDate).add(index * 7, 'days').format('YYYY-MM-DD'),
-                status: step.status === 'CONFIRMED' ? 'completed' :
+                date: step.scheduledDate,
+                status: step.status === 'COMPLETED' ? 'completed' :
                        step.status === 'IN_PROGRESS' ? 'in-progress' :
+                       step.status === 'CONFIRMED' ? 'confirmed' :
                        step.status === 'PLANNED' ? 'upcoming' : 'upcoming',
                 notes: step.notes || 'Đang chờ thực hiện'
               }
@@ -133,6 +138,19 @@ const TreatmentProgress = () => {
     return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
   };
 
+  // Hàm getStepStatusTag: mapping trạng thái tiếng Việt + màu
+  const getStepStatusTag = (status) => {
+    const map = {
+      'CONFIRMED': { color: 'orange', text: 'Đang chờ khám' },
+      'IN_PROGRESS': { color: 'blue', text: 'Đang khám' },
+      'COMPLETED': { color: 'green', text: 'Hoàn thành' },
+      'PLANNED': { color: 'default', text: 'Chưa bắt đầu' },
+      'CANCELLED': { color: 'red', text: 'Đã hủy' }
+    };
+    const { color, text } = map[status] || { color: 'default', text: status };
+    return <Tag color={color}>{text}</Tag>;
+  };
+
   const renderActivities = (activities) => {
     return activities.map((activity, index) => (
       <Timeline.Item 
@@ -164,25 +182,27 @@ const TreatmentProgress = () => {
 
   // Render each phase for collapse panel
   const renderPhases = () => {
-    return treatmentData.phases.map(phase => (
+    return treatmentData && treatmentData.phases && treatmentData.phases.map((phase, idx) => (
       <Panel 
         header={
           <Space>
             <Text strong>{phase.name}</Text>
-            {getStatusTag(phase.status)}
+            {getStepStatusTag(phase.statusRaw)}
           </Space>
         } 
         key={phase.id}
       >
         <Descriptions column={2} size="small" bordered>
           <Descriptions.Item label="Trạng thái">
-            {getStatusTag(phase.status)}
+            {getStepStatusTag(phase.statusRaw)}
           </Descriptions.Item>
-          <Descriptions.Item label="Thời gian">
-            {dayjs(phase.startDate).format("DD/MM/YYYY")} - {dayjs(phase.endDate).format("DD/MM/YYYY")}
-          </Descriptions.Item>
+          {/* Chỉ hiển thị ngày cho giai đoạn đầu tiên hoặc khi có actualDate/scheduledDate */}
+          {(idx === 0 || phase.hasDate) && (
+            <Descriptions.Item label="Ngày khám">
+              {phase.displayDate ? dayjs(phase.displayDate).format("DD/MM/YYYY") : '-'}
+            </Descriptions.Item>
+          )}
         </Descriptions>
-        
         {phase.activities.length > 0 && (
           <div style={{ marginTop: 16 }}>
             <Text strong>Các hoạt động:</Text>
@@ -191,7 +211,6 @@ const TreatmentProgress = () => {
             </Timeline>
           </div>
         )}
-        
         {phase.activities.length === 0 && (
           <div style={{ marginTop: 16, color: '#666' }}>
             Chưa có hoạt động được lên lịch
@@ -200,6 +219,15 @@ const TreatmentProgress = () => {
       </Panel>
     ));
   };
+
+  const totalSteps = treatmentData && treatmentData.phases ? treatmentData.phases.length : 0;
+  const completedSteps = treatmentData && treatmentData.phases ? treatmentData.phases.filter(phase => phase.statusRaw === 'COMPLETED').length : 0;
+  const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+  const currentPhaseIdx = treatmentData && typeof treatmentData.currentPhase === 'number' ? treatmentData.currentPhase - 1 : -1;
+  const currentPhase = treatmentData && treatmentData.phases && currentPhaseIdx >= 0 && treatmentData.phases.length > currentPhaseIdx
+    ? treatmentData.phases[currentPhaseIdx]
+    : null;
 
   if (loading) {
     return (
@@ -217,7 +245,7 @@ const TreatmentProgress = () => {
     );
   }
 
-  if (!treatmentData) {
+  if (!treatmentData || !treatmentData.phases) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Text type="secondary">Không có thông tin điều trị</Text>
@@ -247,7 +275,7 @@ const TreatmentProgress = () => {
           borderRadius: '12px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
         }}
-        bodyStyle={{ padding: '24px' }}
+        styles={{ body: { padding: '24px' } }}
       >
         <Row gutter={[24, 24]}>
           <Col xs={24} md={12}>
@@ -268,27 +296,21 @@ const TreatmentProgress = () => {
                 <CalendarOutlined style={{ marginRight: 8, color: '#1890ff' }} />
                 {dayjs(treatmentData.startDate).format("DD/MM/YYYY")}
               </Descriptions.Item>
-              <Descriptions.Item label="Dự kiến hoàn thành">
-                <ClockIcon style={{ marginRight: 8, color: '#1890ff' }} />
-                {dayjs(treatmentData.estimatedCompletion).format("DD/MM/YYYY")}
-              </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                <Space>
-                  {getStatusTag(treatmentData.status)}
-                  <Text type="secondary">
-                    {treatmentData.status === 'inprogress' ? 
-                      `(Đang thực hiện bước ${treatmentData.currentPhase}: ${treatmentData.phases[treatmentData.currentPhase - 1].name})` :
-                      treatmentData.status === 'completed' ? 
-                      '(Đã hoàn thành tất cả các bước)' :
-                      treatmentData.status === 'pending' ? 
-                      '(Đang chờ bắt đầu điều trị)' :
-                      '(Đang thực hiện)'}
-                  </Text>
-                </Space>
-              </Descriptions.Item>
-              <Descriptions.Item label="Lịch hẹn tiếp theo">
-                <CalendarOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-                {dayjs(treatmentData.nextAppointment).format("DD/MM/YYYY")}
+                <span
+                  style={{
+                    color: '#fa8c16',
+                    background: '#fff7e6',
+                    border: '1px solid #fa8c16',
+                    borderRadius: 4,
+                    padding: '1px 8px',
+                    fontWeight: 500,
+                    fontSize: 13,
+                    display: 'inline-block'
+                  }}
+                >
+                  Đang chờ khám
+                </span>
               </Descriptions.Item>
             </Descriptions>
           </Col>
@@ -299,17 +321,17 @@ const TreatmentProgress = () => {
                 Tiến độ tổng thể
               </Title>
               <Progress 
-                percent={treatmentData.overallProgress} 
+                percent={progress} 
                 status="active" 
                 strokeColor={{
                   from: '#108ee9',
                   to: '#87d068',
                 }}
-                strokeWidth={12}
+                size={12}
                 style={{ marginBottom: 8 }}
               />
               <Text type="secondary" style={{ fontSize: '14px' }}>
-                {treatmentData.overallProgress}% hoàn thành
+                {progress}% hoàn thành
               </Text>
             </div>
             <div>
@@ -327,10 +349,10 @@ const TreatmentProgress = () => {
                   <HeartOutlined style={{ fontSize: 28, color: '#1890ff' }} />
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 'bold', color: '#1890ff' }}>
-                      {treatmentData.phases[treatmentData.currentPhase - 1].name}
+                      Thăm khám ban đầu
                     </div>
                     <div style={{ color: '#666', marginTop: 4 }}>
-                      {treatmentData.phases[treatmentData.currentPhase - 1].activities.find(a => a.status === 'upcoming')?.name || 'Đang xử lý'}
+                      Chuẩn bị thăm khám ban đầu
                     </div>
                   </div>
                 </Space>
@@ -355,7 +377,7 @@ const TreatmentProgress = () => {
         }}
       >
         <Steps
-          current={treatmentData.currentPhase - 1}
+          current={currentPhaseIdx >= 0 ? currentPhaseIdx : 0}
           items={treatmentData.phases.map(phase => ({
             title: phase.name,
             status: getStepStatus(phase.status),
