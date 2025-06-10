@@ -136,8 +136,11 @@ const MyServices = () => {
       key: 'progress',
       render: (_, record) => {
         const totalSteps = record.treatmentSteps?.length || 0;
-        const completedSteps = record.treatmentSteps?.filter(step => step.status === 'CONFIRMED').length || 0;
-        const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+        if (!totalSteps || record.treatmentSteps[0]?.status !== 'COMPLETED') {
+          return '0%';
+        }
+        const completedSteps = record.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+        const progress = Math.round((completedSteps / totalSteps) * 100);
         return `${progress}%`;
       }
     }
@@ -211,7 +214,7 @@ const MyServices = () => {
           rowKey="id"
           pagination={{
             pageSize: 5,
-            showSizeChanger: true,
+            showSizeChanger: false,
             showTotal: (total) => `Tổng số ${total} dịch vụ`
           }}
           onRow={(record) => ({

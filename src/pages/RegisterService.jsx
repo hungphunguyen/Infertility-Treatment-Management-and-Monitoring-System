@@ -2,12 +2,12 @@ import React, { useState, useEffect, useContext, useLayoutEffect } from "react";
 import { 
   Typography, Form, Input, Button, Select, DatePicker, Radio, 
   Divider, Space, Row, Col, Card, Checkbox, TimePicker, Spin,
-  Alert, List, Avatar
+  Alert, List, Avatar, Descriptions
 } from "antd";
 import { 
   UserOutlined, CalendarOutlined, PhoneOutlined, 
   MailOutlined, MedicineBoxOutlined, IdcardOutlined, HomeOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined, ClockCircleOutlined
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
@@ -426,7 +426,6 @@ const RegisterService = () => {
         
         // Kiểm tra xem token có tồn tại không (người dùng đã đăng nhập)
         if (!token) {
-          showNotification("Vui lòng đăng nhập để đăng ký dịch vụ", "error");
           setLoading(false);
           return;
         }
@@ -717,6 +716,8 @@ const RegisterService = () => {
     }
   }, [currentUser]);
 
+  const isLoggedIn = !!token;
+
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -745,6 +746,14 @@ const RegisterService = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="shadow-lg" style={{ backgroundColor: '#fff', borderRadius: '8px' }}>
+              {!isLoggedIn && (
+                <Alert
+                  message="Vui lòng đăng nhập để đăng ký dịch vụ"
+                  type="warning"
+                  showIcon
+                  className="mb-4"
+                />
+              )}
               {hasUnfinishedAppointment && (
                 <Alert
                   message="Bạn đã có lịch hẹn điều trị chưa hoàn thành. Vui lòng hoàn thành lịch hẹn trước khi đăng ký mới."
@@ -758,7 +767,7 @@ const RegisterService = () => {
                 layout="vertical"
                 onFinish={onFinish}
                 scrollToFirstError
-                disabled={hasUnfinishedAppointment}
+                disabled={hasUnfinishedAppointment || !isLoggedIn}
                 validateMessages={{
                   required: '${label} là trường bắt buộc!',
                   types: {
@@ -787,6 +796,7 @@ const RegisterService = () => {
                         prefix={<UserOutlined />} 
                         placeholder="Họ và Tên" 
                         size="large"
+                        disabled={isLoggedIn}
                       />
                     </Form.Item>
                   </Col>
@@ -803,6 +813,7 @@ const RegisterService = () => {
                         prefix={<MailOutlined />} 
                         placeholder="Địa chỉ Email" 
                         size="large"
+                        disabled={isLoggedIn}
                       />
                     </Form.Item>
                   </Col>
@@ -819,6 +830,7 @@ const RegisterService = () => {
                         prefix={<PhoneOutlined />} 
                         placeholder="Số điện thoại" 
                         size="large"
+                        disabled={isLoggedIn}
                       />
                     </Form.Item>
                   </Col>
@@ -832,6 +844,7 @@ const RegisterService = () => {
                         className="w-full" 
                         size="large" 
                         placeholder="Chọn ngày sinh"
+                        disabled={isLoggedIn}
                       />
                     </Form.Item>
                   </Col>
@@ -844,7 +857,7 @@ const RegisterService = () => {
                       label="Giới tính"
                       rules={[{ required: true, message: "Vui lòng chọn giới tính của bạn" }]}
                     >
-                      <Radio.Group>
+                      <Radio.Group disabled={isLoggedIn}>
                         <Radio value="female">Nữ</Radio>
                         <Radio value="male">Nam</Radio>
                         <Radio value="other">Khác</Radio>
@@ -861,6 +874,7 @@ const RegisterService = () => {
                         prefix={<HomeOutlined />} 
                         placeholder="Địa chỉ thường trú" 
                         size="large" 
+                        disabled={isLoggedIn}
                       />
                     </Form.Item>
                   </Col>
@@ -926,7 +940,6 @@ const RegisterService = () => {
                         className="w-full" 
                         size="large" 
                         placeholder="Chọn ngày đầu chu kỳ"
-                        disabledDate={(current) => current && current > dayjs().endOf('day')}
                       />
                     </Form.Item>
                     <div className="text-gray-500 text-sm mt-1">
@@ -1195,21 +1208,6 @@ const RegisterService = () => {
                     </Card>
                   </div>
                 )}
-                
-                <Divider />
-                
-                <Title level={3} className="mb-6" style={{ color: '#333' }}>🏥 Thông tin Y khoa</Title>
-                
-                <Form.Item
-                  name="medicalHistory"
-                  label="Tiền sử Y khoa (Không bắt buộc)"
-                >
-                  <TextArea 
-                    rows={4} 
-                    placeholder="Vui lòng cung cấp thông tin tiền sử y khoa liên quan hoặc các mối quan tâm cụ thể"
-                    style={{ resize: 'vertical' }}
-                  />
-                </Form.Item>
                 
                 <Divider />
                 
