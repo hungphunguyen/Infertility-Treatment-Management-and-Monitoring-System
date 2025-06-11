@@ -108,7 +108,9 @@ const ReportDashboard = () => {
   }, []);
 
   const formatCurrency = (value) => {
-    return value.toLocaleString("vi-VN") + " VNĐ";
+    if (value) {
+      return value.toLocaleString("vi-VN") + " VNĐ";
+    }
   };
 
   const serviceColumns = [
