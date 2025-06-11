@@ -4,7 +4,6 @@ export const treatmentService = {
   getTreatmentRecordsForManager: async () => {
     try {
       const response = await http.get("treatment-records/find-all/manager");
-      console.log("Treatment records response:", response.data);
       return response;
     } catch (error) {
       console.error("Error fetching treatment records:", error);
@@ -15,7 +14,6 @@ export const treatmentService = {
   getTreatmentRecordsByCustomer: async (customerId) => {
     try {
       const response = await http.get(`treatment-records/find-all/customer/${customerId}`);
-      console.log("Customer treatment records:", response.data);
       return response;
     } catch (error) {
       console.error("Error fetching customer treatment records:", error);
@@ -31,7 +29,6 @@ export const treatmentService = {
           'Accept': 'application/json'
         }
       });
-      console.log("Doctor treatment records raw response:", response);
       return response.data.result;
     } catch (error) {
       console.error("Error fetching treatment records:", error);

@@ -7,12 +7,8 @@ export const doctorService = {
     try {
       const response = await http.get("doctors");
       
-      // Log để debug
-      console.log("📦 Doctor API Response:", response.data);
-      
       return response;
     } catch (error) {
-      console.error("💥 Error getting doctors:", error);
       throw error;
     }
   },
@@ -21,10 +17,8 @@ export const doctorService = {
   getDoctorById: async (id) => {
     try {
       const response = await http.get(`doctors/${id}`);
-      console.log(`📦 Doctor ${id} details:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error getting doctor ${id}:`, error);
       throw error;
     }
   },
@@ -33,10 +27,8 @@ export const doctorService = {
   getDoctorInfo: async (doctorId) => {
     try {
       const response = await http.get(`doctors/${doctorId}`);
-      console.log(`📋 Doctor info for ID ${doctorId}:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error fetching doctor info ${doctorId}:`, error);
       throw error;
     }
   },
@@ -47,10 +39,8 @@ export const doctorService = {
       const response = await http.put("doctors", data, {
         params: { id }
       });
-      console.log(`✅ Doctor ${id} updated:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error updating doctor ${id}:`, error);
       throw error;
     }
   },
@@ -64,10 +54,8 @@ export const doctorService = {
           shift: shift
         }
       });
-      console.log(`📅 Available doctors for ${date} (${shift}):`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error getting available doctors:`, error);
       throw error;
     }
   },
@@ -76,10 +64,8 @@ export const doctorService = {
   getDoctorSchedules: async () => {
     try {
       const response = await http.get("doctors");
-      console.log("📅 Doctor schedules:", response.data);
       return response;
     } catch (error) {
-      console.error("💥 Error getting doctor schedules:", error);
       throw error;
     }
   },
@@ -88,10 +74,8 @@ export const doctorService = {
   getDoctorSchedulesByDate: async (date) => {
     try {
       const response = await http.get(`doctors/schedules/${date}`);
-      console.log(`📅 Doctor schedules for ${date}:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error getting doctor schedules for ${date}:`, error);
       throw error;
     }
   },
@@ -100,10 +84,8 @@ export const doctorService = {
   getDoctorStatistics: async (date) => {
     try {
       const response = await http.get(`doctors/statistics/${date}`);
-      console.log(`📊 Doctor statistics for ${date}:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error getting doctor statistics for ${date}:`, error);
       throw error;
     }
   }
