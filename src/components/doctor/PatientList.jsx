@@ -10,6 +10,9 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
+import { authService } from "../../service/auth.service";
+import { useNavigate } from "react-router-dom";
+import { path } from "../../common/path";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -24,109 +27,70 @@ const PatientList = () => {
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [apiResponse, setApiResponse] = useState(null);
-  const [doctorId, setDoctorId] = useState(null);
+  const [doctorId, setDoctorId] = useState("");
+  const [doctorName, setDoctorName] = useState("");
+  const [treatmentRecords, setTreatmentRecords] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    // Lấy thông tin bác sĩ từ API
+    const fetchDoctorInfo = async () => {
       try {
-        // Decode JWT token manually
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        const decoded = JSON.parse(jsonPayload);
-        console.log('Decoded token:', decoded);
-        setDoctorId(decoded.sub);
-        console.log('Doctor ID from token:', decoded.sub);
+        const res = await authService.getMyInfo();
+        const id = res?.data?.result?.id;
+        const name = res?.data?.result?.fullName;
+        setDoctorId(id);
+        setDoctorName(name);
       } catch (error) {
-        console.error('Error decoding token:', error);
-        message.error('Không thể xác thực thông tin bác sĩ');
+        message.error("Không thể lấy thông tin bác sĩ");
       }
-    }
+    };
+    fetchDoctorInfo();
   }, []);
 
   useEffect(() => {
     if (doctorId) {
       fetchPatients();
+      fetchTreatmentRecords();
     }
   }, [doctorId]);
-
-  const calculateEndDate = (treatmentSteps) => {
-    if (!treatmentSteps || treatmentSteps.length === 0) return null;
-
-    // Lấy ngày thực hiện của bước cuối cùng đã hoàn thành
-    const completedSteps = treatmentSteps.filter(step => step.status === "CONFIRMED");
-    if (completedSteps.length > 0) {
-      const lastCompletedStep = completedSteps[completedSteps.length - 1];
-      return lastCompletedStep.actualDate;
-    }
-
-    // Nếu chưa có bước nào hoàn thành, lấy ngày dự kiến của bước cuối cùng
-    const lastStep = treatmentSteps[treatmentSteps.length - 1];
-    return lastStep.scheduledDate;
-  };
-
-  const getStatusTag = (status) => {
-    const statusMap = {
-      "InProgress": { color: "blue", text: "Đang điều trị" },
-      "Completed": { color: "green", text: "Hoàn thành" },
-      "Pending": { color: "orange", text: "Chờ xử lý" },
-      "Cancelled": { color: "red", text: "Đã hủy" }
-    };
-    return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
-  };
-
-  const calculateProgress = (treatmentSteps) => {
-    if (!treatmentSteps || treatmentSteps.length === 0) return 0;
-    const completedSteps = treatmentSteps.filter(step => step.status === "CONFIRMED").length;
-    return Math.round((completedSteps / treatmentSteps.length) * 100);
-  };
-
-  const getTreatmentProgress = (treatmentSteps, status) => {
-    const progress = calculateProgress(treatmentSteps);
-    let color = "#1890ff";
-    if (status === "Completed") color = "#52c41a";
-    if (status === "Cancelled") color = "#f5222d";
-    
-    return (
-      <Progress 
-        percent={progress} 
-        size="small" 
-        strokeColor={color}
-        showInfo={false}
-      />
-    );
-  };
 
   const fetchPatients = async () => {
     if (!doctorId) {
       message.error('Không tìm thấy ID bác sĩ');
       return;
     }
-
     try {
       setLoading(true);
-      const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-      console.log('Fetch Patients Response:', response);
-      
-      if (response?.data?.code === 1000) {
-        if (response.data.result && response.data.result.length > 0) {
-          setPatients(response.data.result);
-        } else {
-          message.info('Chưa có bệnh nhân nào được gán cho bác sĩ này');
-          setPatients([]);
-        }
+      const today = dayjs().format('YYYY-MM-DD');
+      const response = await treatmentService.getDoctorAppointmentsByDate(doctorId, today);
+      if (response?.data?.result) {
+        setPatients(response.data.result);
       } else {
-        message.warning('API trả về mã không xác định: ' + response?.data?.code);
+        setPatients([]);
       }
     } catch (error) {
-      console.error('Error fetching patients:', error);
-      message.error('Có lỗi xảy ra khi lấy dữ liệu bệnh nhân: ' + (error.message || 'Lỗi không xác định'));
+      message.error('Có lỗi xảy ra khi lấy dữ liệu bệnh nhân');
+      setPatients([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTreatmentRecords = async () => {
+    try {
+      const records = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+      console.log('Fetched treatment records:', records);
+      if (Array.isArray(records)) {
+        setTreatmentRecords(records);
+      } else {
+        console.error('Treatment records is not an array:', records);
+        setTreatmentRecords([]);
+      }
+    } catch (error) {
+      console.error('Error fetching treatment records:', error);
+      message.error('Không thể lấy thông tin quy trình điều trị');
+      setTreatmentRecords([]);
     }
   };
 
@@ -138,20 +102,17 @@ const PatientList = () => {
 
     try {
       setLoading(true);
-      const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+      const today = dayjs().format('YYYY-MM-DD');
+      const response = await treatmentService.getDoctorAppointmentsByDate(doctorId, today);
       console.log('API Response:', response);
       setApiResponse(response);
       
-      if (response?.data?.code === 1000) {
-        if (response.data.result && response.data.result.length > 0) {
-          message.success('Lấy dữ liệu thành công!');
-          setPatients(response.data.result);
-        } else {
-          message.info('Chưa có bệnh nhân nào được gán cho bác sĩ này');
-          setPatients([]);
-        }
+      if (response?.data?.result && response.data.result.length > 0) {
+        message.success('Lấy dữ liệu thành công!');
+        setPatients(response.data.result);
       } else {
-        message.warning('API trả về mã không xác định: ' + response?.data?.code);
+        message.info('Chưa có bệnh nhân nào được lên lịch hôm nay');
+        setPatients([]);
       }
     } catch (error) {
       console.error('API Error:', error);
@@ -161,9 +122,64 @@ const PatientList = () => {
     }
   };
 
-  const viewPatient = (patient) => {
-    setSelectedPatient(patient);
-    setModalVisible(true);
+  const getStatusTag = (status) => {
+    const statusMap = {
+      "CONFIRMED": { color: "blue", text: "Đang điều trị" },
+      "PENDING": { color: "orange", text: "Đang chờ xử lý" },
+      "REJECTED_CHANGE": { color: "red", text: "Từ chối thay đổi" },
+      "CANCELLED": { color: "red", text: "Đã hủy" },
+      "COMPLETED": { color: "green", text: "Đã hoàn thành" },
+      "INPROGRESS": { color: "blue", text: "Đang thực hiện" }
+    };
+    return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
+  };
+
+  const handleUpdate = (record) => {
+    console.log('Selected patient record:', record);
+    console.log('Available treatment records:', treatmentRecords);
+    
+    // Tìm treatment record dựa trên customerId hoặc customerName
+    const patientTreatment = treatmentRecords.find(
+      treatment => 
+        treatment.customerId === record.customerId || 
+        treatment.customerName === record.customerName
+    );
+    
+    console.log('Found treatment record:', patientTreatment);
+
+    if (patientTreatment) {
+      try {
+        // Thử chuyển trang với dữ liệu
+        navigate(path.doctorTreatmentStages, { 
+          state: { 
+            treatmentData: patientTreatment,
+            patientInfo: record
+          } 
+        });
+        console.log('Navigation attempted to:', path.doctorTreatmentStages);
+      } catch (error) {
+        console.error('Navigation error:', error);
+        message.error('Có lỗi xảy ra khi chuyển trang');
+      }
+    } else {
+      console.log('No treatment record found for patient:', record);
+      message.warning('Chưa có thông tin quy trình điều trị cho bệnh nhân này');
+    }
+  };
+
+  const handleApprove = async (record) => {
+    try {
+      const response = await treatmentService.updateAppointmentStatus(record.id, "CONFIRMED");
+      if (response?.data?.code === 1000) {
+        message.success("Đã duyệt lịch hẹn thành công");
+        fetchPatients(); // Refresh the list
+      } else {
+        message.error("Không thể duyệt lịch hẹn");
+      }
+    } catch (error) {
+      console.error("Error approving appointment:", error);
+      message.error("Có lỗi xảy ra khi duyệt lịch hẹn");
+    }
   };
 
   const columns = [
@@ -175,8 +191,9 @@ const PatientList = () => {
     },
     {
       title: "Bệnh nhân",
-      key: "patient",
-      render: (_, record) => (
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (name, record) => (
         <div style={{ display: "flex", alignItems: "center" }}>
           <Avatar 
             size={40} 
@@ -184,20 +201,26 @@ const PatientList = () => {
             style={{ marginRight: 12, backgroundColor: "#1890ff" }}
           />
           <div>
-            <Text strong>{record.customerName}</Text>
+            <Text strong>{name}</Text>
             <br />
             <Text type="secondary" style={{ fontSize: "12px" }}>
-              {record.customerId}
+              {record.customerEmail}
             </Text>
           </div>
         </div>
       )
     },
     {
-      title: "Điều trị",
-      dataIndex: "treatmentServiceName",
-      key: "treatmentServiceName",
-      render: (treatment) => <Tag color="cyan">{treatment}</Tag>
+      title: "Ngày khám",
+      dataIndex: "appointmentDate",
+      key: "appointmentDate",
+      render: (date) => dayjs(date).format("DD/MM/YYYY")
+    },
+    {
+      title: "Ca khám",
+      dataIndex: "shift",
+      key: "shift",
+      render: (shift) => <Tag color="cyan">{shift}</Tag>
     },
     {
       title: "Trạng thái",
@@ -206,52 +229,36 @@ const PatientList = () => {
       render: getStatusTag
     },
     {
-      title: "Tiến độ",
-      key: "progress",
-      render: (_, record) => (
-        <div>
-          {getTreatmentProgress(record.treatmentSteps, record.status)}
-          <Text style={{ fontSize: "12px", color: "#666" }}>
-            {calculateProgress(record.treatmentSteps)}%
-          </Text>
-        </div>
-      )
-    },
-    {
-      title: "Ngày bắt đầu",
-      dataIndex: "startDate",
-      key: "startDate",
-      render: (date) => dayjs(date).format("DD/MM/YYYY")
-    },
-    {
-      title: "Ngày kết thúc",
-      key: "endDate",
-      render: (_, record) => {
-        const endDate = calculateEndDate(record.treatmentSteps);
-        return endDate ? dayjs(endDate).format("DD/MM/YYYY") : "-";
-      }
+      title: "Dịch vụ",
+      dataIndex: "serviceName",
+      key: "serviceName",
+      render: (service) => service ? <Tag color="purple">{service}</Tag> : <Tag color="default">Chưa có</Tag>
     },
     {
       title: "Thao tác",
       key: "action",
       render: (_, record) => (
-        <Space>
-          <Button 
-            size="small" 
-            icon={<EyeOutlined />}
-            onClick={() => viewPatient(record)}
-          >
-            Xem
-          </Button>
-          <Button 
-            size="small" 
-            type="primary"
-            icon={<EditOutlined />}
-          >
-            Cập nhật
-          </Button>
+        <Space size="middle">
+          {record.status === "PENDING" ? (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleApprove(record)}
+              style={{ backgroundColor: "#fa8c16" }}
+            >
+              Duyệt
+            </Button>
+          ) : (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleUpdate(record)}
+            >
+              Chi Tiết
+            </Button>
+          )}
         </Space>
-      )
+      ),
     }
   ];
 
@@ -263,31 +270,10 @@ const PatientList = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const timelineItems = selectedPatient?.treatmentSteps?.map((step, index) => ({
-    key: index,
-    color: step.status === "CONFIRMED" ? "green" : "blue",
-    children: (
-      <>
-        <Text strong>{step.name}</Text>
-        <br />
-        <Text type="secondary">
-          {step.scheduledDate ? `Ngày dự kiến: ${dayjs(step.scheduledDate).format("DD/MM/YYYY")}` : "Chưa lên lịch"}
-        </Text>
-        {step.actualDate && (
-          <Text type="secondary">
-            <br />
-            Ngày thực hiện: {dayjs(step.actualDate).format("DD/MM/YYYY")}
-          </Text>
-        )}
-        {step.notes && (
-          <Text type="secondary">
-            <br />
-            Ghi chú: {step.notes}
-          </Text>
-        )}
-      </>
-    )
-  })) || [];
+  const viewPatient = (patient) => {
+    setSelectedPatient(patient);
+    setModalVisible(true);
+  };
 
   return (
     <div>
@@ -304,9 +290,9 @@ const PatientList = () => {
               >
                 Test API
               </Button>
-              {doctorId && (
+              {doctorName && (
                 <Text type="secondary">
-                  Doctor ID: {doctorId}
+                  Doctor Name: {doctorName}
                 </Text>
               )}
               {apiResponse && (
@@ -337,10 +323,10 @@ const PatientList = () => {
               style={{ width: "100%" }}
             >
               <Option value="all">Tất cả trạng thái</Option>
-              <Option value="InProgress">Đang điều trị</Option>
-              <Option value="Completed">Hoàn thành</Option>
-              <Option value="Pending">Chờ xử lý</Option>
-              <Option value="Cancelled">Đã hủy</Option>
+              <Option value="CONFIRMED">Đã xác nhận</Option>
+              <Option value="PENDING">Chờ xác nhận</Option>
+              <Option value="REJECTED_CHANGE">Từ chối thay đổi</Option>
+              <Option value="CANCELLED">Đã hủy</Option>
             </Select>
           </Col>
           <Col span={10} style={{ textAlign: "right" }}>
@@ -352,7 +338,7 @@ const PatientList = () => {
       </Card>
 
       {/* Patient Table */}
-      <Card title="Danh Sách Bệnh Nhân Đang Điều Trị">
+      <Card title="Danh Sách Bệnh Nhân Hôm Nay">
         <Spin spinning={loading}>
           <Table
             columns={columns}
@@ -385,37 +371,25 @@ const PatientList = () => {
               <Descriptions column={2} bordered>
                 <Descriptions.Item label="ID">{selectedPatient.id}</Descriptions.Item>
                 <Descriptions.Item label="Họ tên">{selectedPatient.customerName}</Descriptions.Item>
-                <Descriptions.Item label="Mã bệnh nhân">{selectedPatient.customerId}</Descriptions.Item>
+                <Descriptions.Item label="Email">{selectedPatient.customerEmail}</Descriptions.Item>
                 <Descriptions.Item label="Bác sĩ">{selectedPatient.doctorName}</Descriptions.Item>
-                <Descriptions.Item label="Phương pháp điều trị">{selectedPatient.treatmentServiceName}</Descriptions.Item>
+                <Descriptions.Item label="Dịch vụ">{selectedPatient.serviceName || "Chưa có"}</Descriptions.Item>
                 <Descriptions.Item label="Trạng thái">
                   {getStatusTag(selectedPatient.status)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Tiến độ">
-                  <Progress 
-                    percent={calculateProgress(selectedPatient.treatmentSteps)} 
-                    size="small" 
-                  />
+                <Descriptions.Item label="Ngày khám">
+                  {dayjs(selectedPatient.appointmentDate).format("DD/MM/YYYY")}
                 </Descriptions.Item>
-                <Descriptions.Item label="Ngày bắt đầu">
-                  {dayjs(selectedPatient.startDate).format("DD/MM/YYYY")}
+                <Descriptions.Item label="Ca khám">
+                  {selectedPatient.shift}
                 </Descriptions.Item>
-                <Descriptions.Item label="Ngày kết thúc">
-                  {calculateEndDate(selectedPatient.treatmentSteps) 
-                    ? dayjs(calculateEndDate(selectedPatient.treatmentSteps)).format("DD/MM/YYYY") 
-                    : "-"}
+                <Descriptions.Item label="Mục đích">
+                  {selectedPatient.purpose || "Chưa có"}
                 </Descriptions.Item>
-                <Descriptions.Item label="Ngày tạo">
-                  {dayjs(selectedPatient.createdDate).format("DD/MM/YYYY")}
-                </Descriptions.Item>
-                <Descriptions.Item label="Thanh toán">
-                  {selectedPatient.paid ? "Đã thanh toán" : "Chưa thanh toán"}
+                <Descriptions.Item label="Ghi chú">
+                  {selectedPatient.notes || "Chưa có"}
                 </Descriptions.Item>
               </Descriptions>
-            </TabPane>
-            
-            <TabPane tab="Tiến trình điều trị" key="progress">
-              <Timeline items={timelineItems} />
             </TabPane>
           </Tabs>
         )}

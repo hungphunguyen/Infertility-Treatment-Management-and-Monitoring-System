@@ -126,13 +126,13 @@ const TreatmentProgress = () => {
   const getStatusTag = (status) => {
     const statusMap = {
       completed: { color: "green", text: "Hoàn thành" },
-      "in-progress": { color: "blue", text: "Đang thực hiện" },
+      "in-progress": { color: "blue", text: "Đang điều trị" },
       "not-started": { color: "default", text: "Chưa bắt đầu" },
       upcoming: { color: "orange", text: "Sắp tới" },
       // Thêm mapping cho trạng thái từ API
       "Completed": { color: "green", text: "Hoàn thành" },
-      "InProgress": { color: "blue", text: "Đang thực hiện" },
-      "Pending": { color: "orange", text: "Đang chờ" },
+      "InProgress": { color: "blue", text: "Đang điều trị" },
+      "Pending": { color: "orange", text: "Đang chờ điều trị" },
       "Cancelled": { color: "red", text: "Đã hủy" }
     };
     return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
@@ -141,10 +141,10 @@ const TreatmentProgress = () => {
   // Hàm getStepStatusTag: mapping trạng thái tiếng Việt + màu
   const getStepStatusTag = (status) => {
     const map = {
-      'CONFIRMED': { color: 'orange', text: 'Đang chờ khám' },
-      'IN_PROGRESS': { color: 'blue', text: 'Đang khám' },
+      'CONFIRMED': { color: 'blue', text: 'Đang điều trị' },
+      'IN_PROGRESS': { color: 'blue', text: 'Đang điều trị' },
       'COMPLETED': { color: 'green', text: 'Hoàn thành' },
-      'PLANNED': { color: 'default', text: 'Chưa bắt đầu' },
+      'PLANNED': { color: 'orange', text: 'Đang chờ điều trị' },
       'CANCELLED': { color: 'red', text: 'Đã hủy' }
     };
     const { color, text } = map[status] || { color: 'default', text: status };
@@ -299,9 +299,9 @@ const TreatmentProgress = () => {
               <Descriptions.Item label="Trạng thái">
                 <span
                   style={{
-                    color: '#fa8c16',
-                    background: '#fff7e6',
-                    border: '1px solid #fa8c16',
+                    color: progress === 0 ? '#fa8c16' : progress === 100 ? '#52c41a' : '#1890ff',
+                    background: progress === 0 ? '#fff7e6' : progress === 100 ? '#f6ffed' : '#e6f7ff',
+                    border: `1px solid ${progress === 0 ? '#fa8c16' : progress === 100 ? '#52c41a' : '#1890ff'}`,
                     borderRadius: 4,
                     padding: '1px 8px',
                     fontWeight: 500,
@@ -309,7 +309,9 @@ const TreatmentProgress = () => {
                     display: 'inline-block'
                   }}
                 >
-                  Đang chờ khám
+                  {progress === 0 ? 'Đang chờ điều trị' : 
+                   progress === 100 ? 'Hoàn thành' : 
+                   'Đang điều trị'}
                 </span>
               </Descriptions.Item>
             </Descriptions>

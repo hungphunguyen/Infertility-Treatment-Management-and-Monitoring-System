@@ -25,11 +25,16 @@ export const treatmentService = {
 
   getTreatmentRecordsByDoctor: async (doctorId) => {
     try {
-      const response = await http.get(`treatment-records/find-all/doctor/${doctorId}`);
-      console.log("Doctor treatment records:", response.data);
-      return response;
+      const response = await http.get(`/treatment-records/find-all/doctor/${doctorId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      console.log("Doctor treatment records raw response:", response);
+      return response.data.result;
     } catch (error) {
-      console.error("Error fetching doctor treatment records:", error);
+      console.error("Error fetching treatment records:", error);
       throw error;
     }
   },
@@ -88,10 +93,8 @@ export const treatmentService = {
       }
 
       const stats = treatmentRecords.reduce((acc, record) => {
-        // Tăng tổng số bệnh nhân
         acc.totalPatients++;
 
-        // Phân loại theo trạng thái
         switch (record.status) {
           case 'Completed':
             acc.completedPatients++;
@@ -118,7 +121,6 @@ export const treatmentService = {
         cancelledPatients: 0
       });
 
-      // Tính tỷ lệ hoàn thành
       stats.completionRate = stats.totalPatients > 0 
         ? Math.round((stats.completedPatients / stats.totalPatients) * 100) 
         : 0;
@@ -150,7 +152,6 @@ export const treatmentService = {
         };
       }
 
-      // Lọc hồ sơ theo doctorName
       const doctorRecords = treatmentRecords.filter(record => record.doctorName === doctorName);
 
       const stats = doctorRecords.reduce((acc, record) => {
@@ -182,7 +183,6 @@ export const treatmentService = {
         cancelledPatients: 0
       });
 
-      // Tính tỷ lệ hoàn thành
       stats.completionRate = stats.totalPatients > 0 
         ? Math.round((stats.completedPatients / stats.totalPatients) * 100) 
         : 0;
@@ -207,6 +207,63 @@ export const treatmentService = {
       return response;
     } catch (error) {
       console.error("Error fetching treatment records by manager:", error);
+      throw error;
+    }
+  },
+
+  getAllAppointments: async () => {
+    try {
+      const response = await http.get("appointments/get-all");
+      return response;
+    } catch (error) {
+      console.error("Error fetching all appointments:", error);
+      throw error;
+    }
+  },
+
+  getDoctorAppointmentsByDate: async (doctorId, date) => {
+    try {
+      const response = await http.get(`appointments/doctor/${doctorId}/${date}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error("Error fetching doctor appointments:", error);
+      throw error;
+    }
+  },
+
+  updateAppointmentStatus: async (appointmentId, status) => {
+    try {
+      const response = await http.put(`/appointments/update-status/${appointmentId}/${status}`, null, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error("Error updating appointment status:", error);
+      throw error;
+    }
+  },
+
+  updateTreatmentStep: async (id, data) => {
+    try {
+      const response = await http.put(`treatment-step/${id}`, null, {
+        params: {
+          scheduledDate: data.scheduledDate,
+          actualDate: data.actualDate,
+          status: data.status,
+          notes: data.notes
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating treatment step:", error);
       throw error;
     }
   }

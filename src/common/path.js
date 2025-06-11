@@ -36,6 +36,7 @@ export const path = {
   doctorTestResults: "/doctor-dashboard/test-results",
   doctorProfile: "/doctor-dashboard/profile",
   doctorWorkSchedule: "/doctor-dashboard/work-schedule",
+  doctorTreatmentStages: "/doctor-dashboard/treatment-stages",
 
   // Customer routes
   customer: "/customer-dashboard/",

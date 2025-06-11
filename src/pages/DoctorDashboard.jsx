@@ -8,6 +8,7 @@ import PatientList from "../components/doctor/PatientList";
 import TestResults from "../components/doctor/TestResults";
 import DoctorProfile from "../components/doctor/DoctorProfile";
 import DoctorWorkSchedule from "../components/doctor/DoctorWorkSchedule";
+import TreatmentStageDetails from "../components/doctor/TreatmentStageDetails";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -31,6 +32,8 @@ const DoctorDashboard = () => {
       setSelectedMenuItem("test-results");
     } else if (pathname.includes("/profile")) {
       setSelectedMenuItem("profile");
+    } else if (pathname.includes("/treatment-stages")) {
+      setSelectedMenuItem("treatment-stages");
     } else {
       setSelectedMenuItem("dashboard");
       if (pathname === "/doctor-dashboard") {
@@ -49,6 +52,10 @@ const DoctorDashboard = () => {
         return "Quản Lý Kết Quả Xét Nghiệm";
       case "profile":
         return "Hồ Sơ Bác Sĩ";
+      case "work-schedule":
+        return "Lịch Làm Việc";
+      case "treatment-stages":
+        return "Chi Tiết Giai Đoạn Điều Trị";
       default:
         return "Dashboard Bác Sĩ";
     }
@@ -99,6 +106,7 @@ const DoctorDashboard = () => {
             <Route path="test-results" element={<TestResults />} />
             <Route path="profile" element={<DoctorProfile />} />
             <Route path="work-schedule" element={<DoctorWorkSchedule />} />
+            <Route path="treatment-stages" element={<TreatmentStageDetails />} />
           </Routes>
         </Content>
       </Layout>

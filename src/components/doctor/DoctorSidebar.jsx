@@ -46,8 +46,8 @@ const DoctorSidebar = ({
     {
       key: "patients",
       icon: <TeamOutlined />,
-      label: "Bệnh Nhân",
-      title: "Danh sách bệnh nhân đang điều trị",
+      label: "Bệnh Nhân Hôm Nay",
+      title: "Danh sách bệnh điều trị hôm nay",
       path: path.doctorPatients,
     },
     {

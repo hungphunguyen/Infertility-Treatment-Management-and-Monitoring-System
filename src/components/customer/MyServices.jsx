@@ -71,11 +71,23 @@ const MyServices = () => {
     }
   };
 
-  const getStatusTag = (status) => {
+  const getStatusTag = (status, progress) => {
+    // Nếu có progress, ưu tiên hiển thị trạng thái dựa trên progress
+    if (progress !== undefined) {
+      if (progress === '0%') {
+        return <Tag color="warning">Đang chờ điều trị</Tag>;
+      } else if (progress === '100%') {
+        return <Tag color="success">Hoàn thành</Tag>;
+      } else {
+        return <Tag color="processing">Đang điều trị</Tag>;
+      }
+    }
+
+    // Nếu không có progress, sử dụng status
     const statusMap = {
       'Completed': { color: 'success', text: 'Hoàn thành' },
-      'InProgress': { color: 'processing', text: 'Đang thực hiện' },
-      'Pending': { color: 'warning', text: 'Đang chờ' },
+      'InProgress': { color: 'processing', text: 'Đang điều trị' },
+      'Pending': { color: 'warning', text: 'Đang chờ điều trị' },
       'Cancelled': { color: 'error', text: 'Đã hủy' }
     };
 
@@ -128,7 +140,15 @@ const MyServices = () => {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => getStatusTag(status)
+      render: (status, record) => {
+        const totalSteps = record.treatmentSteps?.length || 0;
+        if (!totalSteps || record.treatmentSteps[0]?.status !== 'COMPLETED') {
+          return getStatusTag(status, '0%');
+        }
+        const completedSteps = record.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+        const progress = Math.round((completedSteps / totalSteps) * 100);
+        return getStatusTag(status, `${progress}%`);
+      }
     },
     {
       title: 'Tiến độ',
@@ -242,7 +262,15 @@ const MyServices = () => {
                 {selectedService.doctorName}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                {getStatusTag(selectedService.status)}
+                {(() => {
+                  const totalSteps = selectedService.treatmentSteps?.length || 0;
+                  if (!totalSteps || selectedService.treatmentSteps[0]?.status !== 'COMPLETED') {
+                    return getStatusTag(selectedService.status, '0%');
+                  }
+                  const completedSteps = selectedService.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+                  const progress = Math.round((completedSteps / totalSteps) * 100);
+                  return getStatusTag(selectedService.status, `${progress}%`);
+                })()}
               </Descriptions.Item>
               <Descriptions.Item label="Ngày bắt đầu">
                 {selectedService.startDate ? new Date(selectedService.startDate).toLocaleDateString('vi-VN') : 'N/A'}

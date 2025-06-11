@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Card, Typography, Row, Col, Statistic, Tag, DatePicker, Button, Spin, message } from "antd";
-import { CalendarOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Tag, DatePicker, Spin, message } from "antd";
+import { CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
 
-const { Title } = Typography;
-
 const shiftMap = {
-  MORNING: { color: "blue", text: "Sáng" },
-  AFTERNOON: { color: "orange", text: "Chiều" },
+  MORNING: { color: "green", text: "Ca sáng" },
+  AFTERNOON: { color: "orange", text: "Ca chiều" },
   FULL_DAY: { color: "purple", text: "Cả ngày" },
   NONE: { color: "default", text: "Nghỉ" },
   undefined: { color: "default", text: "Nghỉ" },
@@ -17,6 +15,12 @@ const shiftMap = {
 };
 
 const weekdays = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
+
+const bgColorMap = {
+  MORNING: '#f6ffed', // xanh lá nhạt
+  AFTERNOON: '#fff7e6', // cam nhạt
+  FULL_DAY: '#f9f0ff', // tím nhạt
+};
 
 const DoctorWorkSchedule = () => {
   const [selectedMonth, setSelectedMonth] = useState(dayjs().format("YYYY-MM"));
@@ -69,20 +73,6 @@ const DoctorWorkSchedule = () => {
       .finally(() => setLoading(false));
   }, [doctorId, selectedMonth]);
 
-  const calculateStats = (map) => {
-    let morning = 0, afternoon = 0, fullDay = 0, off = 0, total = 0;
-    Object.values(map).forEach(shift => {
-      if (shift === "MORNING") morning++;
-      else if (shift === "AFTERNOON") afternoon++;
-      else if (shift === "FULL_DAY") fullDay++;
-      else off++;
-      total++;
-    });
-    return { total, morning, afternoon, fullDay, off };
-  };
-
-  const stats = calculateStats(schedule);
-
   const getCalendarGrid = (monthStr) => {
     const [year, month] = monthStr.split("-").map(Number);
     const firstDate = new Date(year, month - 1, 1);
@@ -107,86 +97,101 @@ const DoctorWorkSchedule = () => {
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <Title level={3} style={{ marginBottom: 24 }}>Lịch Làm Việc Của Tôi</Title>
+    <div style={{
+      minHeight: '100vh',
+      background: '#fff',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      padding: 0,
+    }}>
+      <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <CalendarOutlined style={{ fontSize: 28, marginRight: 8, color: '#722ed1' }} />
+        <DatePicker
+          picker="month"
+          value={dayjs(selectedMonth + "-01")}
+          onChange={d => setSelectedMonth(d.format("YYYY-MM"))}
+          allowClear={false}
+          format="MM/YYYY"
+          size="large"
+          style={{ fontWeight: 600, fontSize: 20 }}
+        />
+      </div>
       {loading ? (
         <Spin tip="Đang tải lịch làm việc...">
-          <div style={{ minHeight: 200 }} />
+          <div style={{ minHeight: 300 }} />
         </Spin>
       ) : (
-        <>
-          <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col xs={24} sm={12} md={6}>
-              <Card>
-                <Statistic title="Tổng số ngày làm" value={stats.total} prefix={<CalendarOutlined />} valueStyle={{ color: '#1890ff' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card>
-                <Statistic title="Ca sáng" value={stats.morning} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card>
-                <Statistic title="Ca chiều" value={stats.afternoon} prefix={<ClockCircleOutlined />} valueStyle={{ color: '#faad14' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Card>
-                <Statistic title="Cả ngày" value={stats.fullDay} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#722ed1' }} />
-              </Card>
-            </Col>
-          </Row>
-          <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col xs={24} sm={12} md={6}>
-              <Card>
-                <Statistic title="Ngày nghỉ" value={stats.off} prefix={<CloseCircleOutlined />} valueStyle={{ color: '#bfbfbf' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <DatePicker
-                picker="month"
-                value={dayjs(selectedMonth + "-01")}
-                onChange={d => setSelectedMonth(d.format("YYYY-MM"))}
-                allowClear={false}
-                style={{ width: "100%" }}
-                format="MM/YYYY"
-              />
-            </Col>
-            <Col xs={24} sm={12} md={6}>
-              <Button icon={<ReloadOutlined />} style={{ width: "100%" }} onClick={() => setSelectedMonth(dayjs().format("YYYY-MM"))}>Làm mới</Button>
-            </Col>
-          </Row>
-          <Card title={<span><CalendarOutlined /> Lịch làm việc tháng {dayjs(selectedMonth + "-01").format("MM/YYYY")}</span>}>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
-                <thead>
-                  <tr>
-                    {weekdays.map(day => (
-                      <th key={day} style={{ border: '1px solid #eee', padding: 8, background: '#fafafa', textAlign: 'center' }}>{day}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {getCalendarGrid(selectedMonth).map((week, i) => (
-                    <tr key={i}>
-                      {week.map((dateStr, j) => (
-                        <td key={j} style={{ border: '1px solid #eee', height: 60, textAlign: 'center', verticalAlign: 'middle', background: dateStr === dayjs().format('YYYY-MM-DD') ? '#e6f7ff' : undefined }}>
-                          {dateStr ? (
-                            <Tag color={shiftMap[schedule[dateStr]]?.color || 'default'} style={{ fontSize: 14, padding: '6px 12px' }}>
-                              {shiftMap[schedule[dateStr]]?.text || 'Nghỉ'}
-                            </Tag>
+        <div style={{
+          background: '#fff',
+          borderRadius: 24,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
+          padding: 32,
+          marginBottom: 32,
+          minWidth: 1000,
+          maxWidth: 1200,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+        }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+            <thead>
+              <tr>
+                {weekdays.map(day => (
+                  <th key={day} style={{ border: 'none', padding: 16, background: '#fafafa', textAlign: 'center', fontWeight: 700, fontSize: 20, color: '#722ed1' }}>{day}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {getCalendarGrid(selectedMonth).map((week, i) => (
+                <tr key={i}>
+                  {week.map((dateStr, j) => {
+                    const shift = schedule[dateStr];
+                    const bgColor = bgColorMap[shift] || undefined;
+                    return (
+                      <td
+                        key={j}
+                        style={{
+                          border: '2px solid #bfbfbf',
+                          height: 120,
+                          minWidth: 120,
+                          textAlign: 'center',
+                          verticalAlign: 'middle',
+                          background: bgColor || (dateStr === dayjs().format('YYYY-MM-DD') ? '#e6f7ff' : '#fff'),
+                          borderRadius: 16,
+                          transition: 'background 0.2s',
+                          position: 'relative',
+                        }}
+                      >
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                        }}>
+                          {dateStr && shift ? (
+                            <span style={{
+                              color: shiftMap[shift]?.color,
+                              fontWeight: 700,
+                              fontSize: 22,
+                              letterSpacing: 0.5,
+                            }}>
+                              {shiftMap[shift]?.text || 'Nghỉ'}
+                            </span>
                           ) : null}
-                          <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>{dateStr ? dayjs(dateStr).format('D') : ''}</div>
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </>
+                          <div style={{ fontSize: 16, color: '#aaa', marginTop: 10 }}>{dateStr ? dayjs(dateStr).format('D') : ''}</div>
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
