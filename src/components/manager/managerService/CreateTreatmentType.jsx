@@ -40,8 +40,8 @@ const CreateTreatmentType = ({ onSuccess }) => {
             name={"name"}
             onChange={handleChange}
             value={values.name}
-            placeholder={"Please enter name of treatment type"}
-            labelContent={"Name"}
+            placeholder={"Hãy nhập tên phương pháp điều trị"}
+            labelContent={"Tên phương pháp"}
             error={errors.name}
             touched={touched.name}
             onBlur={handleBlur}
@@ -51,8 +51,8 @@ const CreateTreatmentType = ({ onSuccess }) => {
             name={"description"}
             onChange={handleChange}
             value={values.description}
-            placeholder={"Please enter description"}
-            labelContent={"Description"}
+            placeholder={"Hãy viết miêu tả"}
+            labelContent={"Miêu tả"}
             error={errors.description}
             touched={touched.description}
             onBlur={handleBlur}
@@ -60,7 +60,7 @@ const CreateTreatmentType = ({ onSuccess }) => {
           <div>
             <button
               type="submit"
-              className="inline-block w-full bg-black text-white py-2 px-5 rounded-md"
+              className="inline-block w-full bg-blue-500 text-white py-2 px-5 rounded-md"
             >
               Xác nhận
             </button>

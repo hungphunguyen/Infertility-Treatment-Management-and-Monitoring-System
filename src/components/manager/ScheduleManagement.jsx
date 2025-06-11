@@ -207,7 +207,7 @@ const ScheduleManagement = () => {
           <label className="block font-semibold mb-1">🗓️ Chọn tháng:</label>
           <input
             type="month"
-            className="border rounded p-2 w-full"
+            className="border rounded px-3 py-2 h-[40px] w-full text-sm"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
           />
@@ -219,7 +219,7 @@ const ScheduleManagement = () => {
             showSearch
             placeholder="Chọn bác sĩ"
             optionFilterProp="children"
-            className="w-full"
+            className="w-full h-[40px] text-sm" // <- thêm h-[40px] và text-sm
             filterOption={(input, option) =>
               option.children.toLowerCase().includes(input.toLowerCase())
             }
