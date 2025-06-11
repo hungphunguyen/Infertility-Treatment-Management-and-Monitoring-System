@@ -27,7 +27,7 @@ const UserHeader = () => {
       .getMyInfo(token.token)
       .then((res) => {
         setInfoUser(res.data.result);
-        console.log(res);
+        console.log(res.data.result.avatarUrl);
         if (
           !res.data.result.phoneNumber &&
           res.data.result.roleName.name !== "ADMIN"
@@ -117,13 +117,10 @@ const UserHeader = () => {
         placement="bottomRight"
       >
         <div className="flex items-center gap-2 select-none cursor-pointer ">
-          <Avatar className="w-12 h-12 rounded-full  justify-center text-white font-bold   hover:border-4 hover:border-orange-400 transition-all duration-300">
-            {infoUser.fullName !== null ? (
-              infoUser.fullName.charAt(0).toUpperCase()
-            ) : (
-              <UserOutlined />
-            )}
-          </Avatar>
+          <Avatar
+            className="w-12 h-12 rounded-full justify-center text-white font-bold hover:border-4 hover:border-orange-400 transition-all duration-300"
+            src={infoUser.avatarUrl || undefined}
+          ></Avatar>
           <span className="text-sm font-medium text-gray-700">
             {infoUser.fullName}
           </span>

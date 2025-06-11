@@ -1,5 +1,5 @@
-import React from "react";
-import { Button, Layout, Menu } from "antd";
+import React, { useEffect, useState } from "react";
+import { Avatar, Button, Layout, Menu } from "antd";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import {
@@ -13,7 +13,10 @@ import {
   EditOutlined,
   DashboardOutlined,
   HomeOutlined,
+  FormOutlined,
 } from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import { authService } from "../../service/auth.service";
 
 const { Sider } = Layout;
 
@@ -72,9 +75,41 @@ const ManagerSidebar = ({
       label: "Quản Lý Blog",
       path: "/manager/blog",
     },
+    {
+      key: "update-profile",
+      icon: <FormOutlined />,
+      label: "Cập nhật thông tin cá nhân",
+      path: path.updataProfile,
+    },
   ];
-  const navigate = useNavigate();
+  const token = useSelector((state) => state.authSlice);
 
+  const navigate = useNavigate();
+  const [infoUser, setInfoUser] = useState();
+  useEffect(() => {
+    if (!token) return;
+    authService
+      .getMyInfo(token.token)
+      .then((res) => {
+        setInfoUser(res.data.result);
+      })
+      .catch((err) => {});
+  }, [token]);
+  const checkLogin = () => {
+    if (infoUser) {
+      return (
+        <div className="flex items-center gap-2 select-none cursor-pointer ">
+          <Avatar
+            className="w-12 h-12 rounded-full justify-center text-white font-bold hover:border-4 hover:border-orange-400 transition-all duration-300"
+            src={infoUser.avatarUrl || undefined}
+          ></Avatar>
+          <span className="text-sm font-medium text-white">
+            {infoUser.fullName}
+          </span>
+        </div>
+      );
+    }
+  };
   return (
     <Sider
       collapsible
@@ -91,10 +126,7 @@ const ManagerSidebar = ({
         overflow: "auto",
       }}
     >
-      <div className="p-4 text-center">
-        <DashboardOutlined className="text-white text-2xl" />
-        {!collapsed && <h3 className="text-white mt-2 mb-0">Manager Panel</h3>}
-      </div>
+      <div className="p-4 text-center">{checkLogin()}</div>
 
       <Menu
         theme="dark"

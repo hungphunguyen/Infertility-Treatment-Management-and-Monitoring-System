@@ -16,6 +16,11 @@ export const managerService = {
   getTreatmentServiceDetail: (id) => {
     return http.get(`treatment-service/${id}`);
   },
+
+  getAllFeedback: () => {
+    return http.get("feedback/get-all");
+  },
+
   createWorkScheduleBulk: (payload) => {
     return http.post("work-schedule/bulk-create", payload);
   },
@@ -66,5 +71,9 @@ export const managerService = {
 
   managerDashboardService: () => {
     return http.get("managers/dashboard/service");
+  },
+
+  confirmFeedback: (id, data) => {
+    return http.put(`feedback/${id}`, data);
   },
 };

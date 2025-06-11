@@ -7,6 +7,7 @@ import { useFormik } from "formik";
 const CreateTreatmentStage = ({ onSuccess }) => {
   const [treatmentType, setTreatmentType] = useState();
   const { showNotification } = useContext(NotificationContext);
+  const [currentOrderIndex, setCurrentOrderIndex] = useState(1);
 
   useEffect(() => {
     const getTreatmentType = async () => {
@@ -42,19 +43,26 @@ const CreateTreatmentStage = ({ onSuccess }) => {
       name: "",
       description: "",
       expectedDayRange: "",
-      orderIndex: "",
+      orderIndex: currentOrderIndex,
     },
     onSubmit: async (values, { resetForm }) => {
       if (!treatmentType) {
         showNotification("Không có danh sách treatment type", "error");
         return;
       }
+
       try {
-        const res = await managerService.createTreatStage(values);
+        const payload = {
+          ...values,
+          orderIndex: Number(values.orderIndex),
+        };
+        const res = await managerService.createTreatStage(payload);
         showNotification("tạo treatment type", "success");
         resetForm();
+        setCurrentOrderIndex((prev) => prev + 1);
       } catch (error) {
         console.log(error);
+        showNotification(error.response.data.message, "error");
       }
     },
   });
@@ -131,7 +139,7 @@ const CreateTreatmentStage = ({ onSuccess }) => {
         />
 
         <InputCustom
-          labelContent="Bước thứ mấy"
+          labelContent="Bước điều trị"
           name="orderIndex"
           placeholder="Nhập bước hiện tại"
           typeInput="number"

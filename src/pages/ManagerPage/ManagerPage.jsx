@@ -13,6 +13,7 @@ import ServiceManagement from "../../components/manager/ServiceManagement";
 import BlogManagement from "../../components/manager/BlogManagement";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
+import UpdateProfile from "../../components/customer/UpdateProfile";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -67,6 +68,8 @@ const ManagerPage = () => {
       setSelectedMenu("services");
     } else if (pathname.includes("/blog")) {
       setSelectedMenu("blog");
+    } else if (pathname.includes("/update-profile")) {
+      setSelectedMenu("update-profile");
     } else {
       // Default to report if no match
       setSelectedMenu("report");
@@ -95,6 +98,8 @@ const ManagerPage = () => {
         return "Quản Lý Dịch Vụ";
       case "blog":
         return "Quản Lý Blog";
+      case "update-profile":
+        return "Cập nhật thông tin cá nhân";
       default:
         return "Dashboard";
     }

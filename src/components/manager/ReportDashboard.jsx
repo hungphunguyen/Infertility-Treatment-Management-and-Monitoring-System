@@ -213,10 +213,41 @@ const ReportDashboard = () => {
                 />
 
                 <Tooltip
-                  formatter={(value) =>
-                    `${Number(value).toLocaleString("vi-VN")} VNĐ`
-                  }
+                  content={({ payload, label }) => {
+                    if (!payload || !payload.length) return null;
+
+                    return (
+                      <div
+                        style={{
+                          background: "white",
+                          border: "1px solid #ccc",
+                          padding: 10,
+                        }}
+                      >
+                        <p>
+                          <strong>{label}</strong>
+                        </p>
+                        {payload.map((entry, index) => {
+                          const isRevenue = entry.dataKey === "revenue";
+                          return (
+                            <p
+                              key={index}
+                              style={{ color: entry.color, margin: 0 }}
+                            >
+                              {entry.name} :{" "}
+                              {isRevenue
+                                ? `${entry.value.toLocaleString("vi-VN")} VNĐ`
+                                : `${entry.value.toLocaleString(
+                                    "vi-VN"
+                                  )} lịch hẹn`}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    );
+                  }}
                 />
+
                 <Legend />
                 <Line
                   type="monotone"
