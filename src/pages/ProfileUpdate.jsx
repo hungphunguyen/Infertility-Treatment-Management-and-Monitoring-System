@@ -6,10 +6,9 @@ import { useSelector } from "react-redux";
 import { authService } from "../service/auth.service";
 import { NotificationContext } from "../App";
 import InputCustom from "../components/Input/InputCustom";
-import UserHeader from "../components/UserHeader";
-import UserFooter from "../components/UserFooter";
 import { Layout } from "antd";
 import ManagerSidebar from "../components/manager/ManagerSidebar";
+import { doctorService } from "../service/doctor.service";
 
 const ProfileUpdate = () => {
   const navigate = useNavigate();
@@ -17,10 +16,12 @@ const ProfileUpdate = () => {
   const token = useSelector((state) => state.authSlice);
 
   const [userInfo, setUserInfo] = useState(null);
+  const [doctorInfo, setDoctorInfo] = useState(null);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [selectedMenu, setSelectedMenu] = useState("update-profile");
-
+  const role = userInfo?.roleName?.name || "";
   useEffect(() => {
     // Fetch user info when component mounts
     const fetchUserInfo = async () => {
@@ -31,8 +32,23 @@ const ProfileUpdate = () => {
         showNotification("Không thể lấy thông tin người dùng", "error");
       }
     };
+
     fetchUserInfo();
   }, [token]);
+
+  useEffect(() => {
+    if (!userInfo?.id || role !== "DOCTOR") return;
+    const fetchInfoDoctor = async () => {
+      try {
+        const res = await doctorService.getInfoDoctor(userInfo.id);
+        setDoctorInfo(res.data.result);
+      } catch (error) {
+        console.log(error);
+        showNotification("Không thể lấy thông tin người dùng", "error");
+      }
+    };
+    fetchInfoDoctor();
+  }, [userInfo?.id]);
 
   const handleSelectFile = async (e) => {
     const file = e.target.files[0];
@@ -45,16 +61,6 @@ const ProfileUpdate = () => {
     reader.onload = () => {
       setPreview(reader.result); // preview base64
     };
-  };
-
-  // ✅ Convert file to base64
-  const fileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
   };
 
   // ✅ Handle Upload Avatar
@@ -82,29 +88,55 @@ const ProfileUpdate = () => {
     }
   };
 
+  const getInitialValues = () => {
+    const base = {
+      fullName: userInfo?.fullName || "",
+      email: userInfo?.email || "",
+      phoneNumber: userInfo?.phoneNumber || "",
+      gender: userInfo?.gender || "",
+      dateOfBirth: userInfo?.dateOfBirth || "",
+      address: userInfo?.address || "",
+    };
+
+    if (role === "DOCTOR") {
+      return {
+        ...base,
+        qualifications: doctorInfo?.qualifications || "",
+        graduationYear: doctorInfo?.graduationYear || "",
+        experienceYears: doctorInfo?.experienceYears || "",
+        specialty: doctorInfo?.specialty || "",
+      };
+    }
+
+    return base;
+  };
+
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
     useFormik({
       enableReinitialize: true,
-      initialValues: {
-        fullName: userInfo?.fullName || "",
-        email: userInfo?.email || "",
-        phoneNumber: userInfo?.phoneNumber || "",
-        gender: userInfo?.gender || "",
-        dateOfBirth: userInfo?.dateOfBirth || "",
-        address: userInfo?.address || "",
-      },
+      initialValues: getInitialValues(),
       onSubmit: async (values) => {
         if (!userInfo?.id) {
           showNotification("Không thể lấy thông tin người dùng", "error");
           return;
         }
-        try {
-          const res = await authService.updateUser(userInfo.id, values);
-          console.log(res);
-          showNotification("Cập nhật thông tin thành công", "success");
-        } catch (err) {
-          console.log(err);
-          showNotification(err.response?.data?.message, "error");
+        if (userInfo?.roleName.name === "DOCTOR") {
+          try {
+            const res = await doctorService.updateDoctor(doctorInfo.id, values);
+            console.log(res);
+            showNotification("Cập nhật thông tin thành công", "success");
+          } catch (error) {
+            console.log(err);
+            showNotification(err.response?.data?.message, "error");
+          }
+        } else {
+          try {
+            const res = await authService.updateUser(userInfo.id, values);
+            showNotification("Cập nhật thông tin thành công", "success");
+          } catch (err) {
+            console.log(err);
+            showNotification(err.response?.data?.message, "error");
+          }
         }
       },
       validationSchema: yup.object({
@@ -123,12 +155,32 @@ const ProfileUpdate = () => {
   return (
     <div className="min-h-screen">
       <Layout style={{ minHeight: "100vh" }}>
-        <ManagerSidebar
-          collapsed={false} // Bạn có thể điều khiển trạng thái collapsed nếu cần
-          onCollapse={() => {}}
-          selectedMenu={selectedMenu}
-          onMenuSelect={(menuKey) => setSelectedMenu(menuKey)}
-        />
+        {role === "MANAGER" && (
+          <ManagerSidebar
+            collapsed={false}
+            onCollapse={() => {}}
+            selectedMenu={selectedMenu}
+            onMenuSelect={(menuKey) => setSelectedMenu(menuKey)}
+          />
+        )}
+
+        {role === "DOCTOR" && (
+          <DoctorSidebar
+            collapsed={false}
+            onCollapse={() => {}}
+            selectedMenu={selectedMenu}
+            onMenuSelect={(menuKey) => setSelectedMenu(menuKey)}
+          />
+        )}
+
+        {role === "CUSTOMER" && (
+          <CustomerSidebar
+            collapsed={false}
+            onCollapse={() => {}}
+            selectedMenu={selectedMenu}
+            onMenuSelect={(menuKey) => setSelectedMenu(menuKey)}
+          />
+        )}
 
         <Layout style={{ marginLeft: 250 }}>
           {/* Form Section */}
@@ -270,6 +322,49 @@ const ProfileUpdate = () => {
                       error={errors.address}
                       touched={touched.address}
                     />
+
+                    {/* { khung input riêng cho bác sĩ} */}
+
+                    {userInfo && userInfo.roleName.name === "DOCTOR" && (
+                      <>
+                        <InputCustom
+                          labelContent="Trình độ học vấn"
+                          name="qualifications"
+                          value={values.qualifications}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          error={errors.qualifications}
+                          touched={touched.qualifications}
+                        />
+                        <InputCustom
+                          labelContent="Năm tốt nghiệp"
+                          name="graduationYear"
+                          value={values.graduationYear}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          error={errors.graduationYear}
+                          touched={touched.graduationYear}
+                        />
+                        <InputCustom
+                          labelContent="Năm kinh nghiệm"
+                          name="experienceYears"
+                          value={values.experienceYears}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          error={errors.experienceYears}
+                          touched={touched.experienceYears}
+                        />
+                        <InputCustom
+                          labelContent="Chuyên ngành"
+                          name="specialty"
+                          value={values.specialty}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          error={errors.specialty}
+                          touched={touched.specialty}
+                        />
+                      </>
+                    )}
 
                     <div className="col-span-2 flex justify-end mt-4">
                       <button

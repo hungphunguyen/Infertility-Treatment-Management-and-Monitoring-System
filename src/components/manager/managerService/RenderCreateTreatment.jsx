@@ -5,7 +5,7 @@ import CreateTreatmentType from "./CreateTreatmentType";
 import { Layout } from "antd";
 import ManagerSidebar from "../ManagerSidebar";
 const RenderCreateTreatment = () => {
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
   const [stageId, setStageId] = useState(null);
   const [typeId, setTypeId] = useState(null);
   const [selectedMenu, setSelectedMenu] = useState("services");

@@ -34,7 +34,6 @@ const ManagerPage = () => {
     authService
       .getMyInfo(token.token)
       .then((res) => {
-        console.log(res);
         const user = res.data.result;
         if (user.roleName.name !== "MANAGER") {
           showNotification("Bạn không có quyền truy cập trang này", "error");

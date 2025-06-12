@@ -3,7 +3,7 @@ import { NotificationContext } from "../../../App";
 import { managerService } from "../../../service/manager.service";
 import { path } from "../../../common/path";
 import { useFormik } from "formik";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import InputCustom from "../../Input/InputCustom";
 
 const CreateTreatmentService = () => {
@@ -139,13 +139,22 @@ const CreateTreatmentService = () => {
           error={errors.duration}
           touched={touched.duration}
         />
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          Xác nhận
+        <button>
+          <Link
+            to={path.managerServices}
+            className="text-blue-500 hover:underline duration-300"
+          >
+            Trở lại trang dịch vụ
+          </Link>
         </button>
+        <div className="flex gap-4 justify-end mt-6">
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Xác nhận
+          </button>
+        </div>
       </form>
     </div>
   );

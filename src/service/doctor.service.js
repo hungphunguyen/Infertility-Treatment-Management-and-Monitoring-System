@@ -6,17 +6,17 @@ export const doctorService = {
   getAllDoctors: async () => {
     try {
       const response = await http.get("doctors");
-      
+
       // Log để debug
       console.log("📦 Doctor API Response:", response.data);
-      
+
       return response;
     } catch (error) {
       console.error("💥 Error getting doctors:", error);
       throw error;
     }
   },
-  
+
   // Lấy thông tin chi tiết một bác sĩ theo ID
   getDoctorById: async (id) => {
     try {
@@ -40,12 +40,12 @@ export const doctorService = {
       throw error;
     }
   },
-  
+
   // Cập nhật thông tin bác sĩ
   updateDoctor: async (id, data) => {
     try {
       const response = await http.put("doctors", data, {
-        params: { id }
+        params: { id },
       });
       console.log(`✅ Doctor ${id} updated:`, response.data);
       return response;
@@ -53,5 +53,9 @@ export const doctorService = {
       console.error(`💥 Error updating doctor ${id}:`, error);
       throw error;
     }
-  }
-}; 
+  },
+
+  getInfoDoctor: (id) => {
+    return http.get(`/doctor/${id}`);
+  },
+};

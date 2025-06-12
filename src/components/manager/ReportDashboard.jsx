@@ -165,7 +165,7 @@ const ReportDashboard = () => {
         <Col span={8}>
           <Card>
             <Statistic
-              title="Tổng Doanh Thu Tháng"
+              title="Tổng Doanh Thu"
               value={statistics.totalRevenue}
               prefix={<DollarOutlined />}
               valueStyle={{ color: "green" }}
@@ -186,7 +186,7 @@ const ReportDashboard = () => {
         <Col span={8}>
           <Card>
             <Statistic
-              title="Bệnh Nhân Mới"
+              title="Bệnh Nhân"
               value={statistics.totalCustomersTreated}
               prefix={<UserOutlined />}
               valueStyle={{ color: "red" }}
@@ -198,7 +198,7 @@ const ReportDashboard = () => {
       {/* Row 2: Biểu đồ */}
       <Row style={{ marginTop: 32 }}>
         <Col span={24}>
-          <Card title="Biểu Đồ Doanh Thu Theo Tháng">
+          <Card title="Biểu Đồ Doanh Thu Theo Từng Tháng">
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
                 data={chartData}
