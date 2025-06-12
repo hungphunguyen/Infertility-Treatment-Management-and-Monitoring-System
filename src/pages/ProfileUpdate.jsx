@@ -7,8 +7,13 @@ import { authService } from "../service/auth.service";
 import { NotificationContext } from "../App";
 import InputCustom from "../components/Input/InputCustom";
 import { Layout } from "antd";
+import { CheckOutlined, EditOutlined } from "@ant-design/icons";
 import ManagerSidebar from "../components/manager/ManagerSidebar";
 import { doctorService } from "../service/doctor.service";
+import DoctorSidebar from "../components/doctor/DoctorSidebar";
+import CustomerSidebar from "../components/customer/CustomerSidebar";
+import EducationTimeline from "../components/doctor/EducationTimeline";
+import SpecialtyTimeline from "../components/doctor/SpecialtyTimeline";
 
 const ProfileUpdate = () => {
   const navigate = useNavigate();
@@ -22,6 +27,7 @@ const ProfileUpdate = () => {
   const [preview, setPreview] = useState(null);
   const [selectedMenu, setSelectedMenu] = useState("update-profile");
   const role = userInfo?.roleName?.name || "";
+  const [isEditing, setIsEditing] = useState(false);
   useEffect(() => {
     // Fetch user info when component mounts
     const fetchUserInfo = async () => {
@@ -38,9 +44,10 @@ const ProfileUpdate = () => {
 
   useEffect(() => {
     if (!userInfo?.id || role !== "DOCTOR") return;
+    const doctorId = userInfo.id;
     const fetchInfoDoctor = async () => {
       try {
-        const res = await doctorService.getInfoDoctor(userInfo.id);
+        const res = await doctorService.getInfoDoctor(doctorId);
         setDoctorInfo(res.data.result);
       } catch (error) {
         console.log(error);
@@ -89,7 +96,22 @@ const ProfileUpdate = () => {
   };
 
   const getInitialValues = () => {
-    const base = {
+    if (userInfo?.roleName.name === "DOCTOR" && doctorInfo) {
+      return {
+        fullName: doctorInfo.fullName || "",
+        email: doctorInfo.email || "",
+        phoneNumber: doctorInfo.phoneNumber || "",
+        gender: doctorInfo.gender || "",
+        dateOfBirth: doctorInfo.dateOfBirth || "",
+        address: doctorInfo.address || "",
+        qualifications: doctorInfo.qualifications || "",
+        graduationYear: doctorInfo.graduationYear || "",
+        experienceYears: doctorInfo.experienceYears || "",
+        specialty: doctorInfo.specialty || "",
+      };
+    }
+
+    return {
       fullName: userInfo?.fullName || "",
       email: userInfo?.email || "",
       phoneNumber: userInfo?.phoneNumber || "",
@@ -97,18 +119,6 @@ const ProfileUpdate = () => {
       dateOfBirth: userInfo?.dateOfBirth || "",
       address: userInfo?.address || "",
     };
-
-    if (role === "DOCTOR") {
-      return {
-        ...base,
-        qualifications: doctorInfo?.qualifications || "",
-        graduationYear: doctorInfo?.graduationYear || "",
-        experienceYears: doctorInfo?.experienceYears || "",
-        specialty: doctorInfo?.specialty || "",
-      };
-    }
-
-    return base;
   };
 
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
@@ -123,6 +133,8 @@ const ProfileUpdate = () => {
         if (userInfo?.roleName.name === "DOCTOR") {
           try {
             const res = await doctorService.updateDoctor(doctorInfo.id, values);
+            setIsEditing(false);
+
             console.log(res);
             showNotification("Cập nhật thông tin thành công", "success");
           } catch (error) {
@@ -132,6 +144,8 @@ const ProfileUpdate = () => {
         } else {
           try {
             const res = await authService.updateUser(userInfo.id, values);
+            setIsEditing(false);
+
             showNotification("Cập nhật thông tin thành công", "success");
           } catch (err) {
             console.log(err);
@@ -152,8 +166,14 @@ const ProfileUpdate = () => {
       }),
     });
 
+  if (userInfo?.roleName.name === "DOCTOR" && !doctorInfo) {
+    return (
+      <p className="text-center py-10">Đang tải dữ liệu hồ sơ bác sĩ...</p>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-100">
       <Layout style={{ minHeight: "100vh" }}>
         {role === "MANAGER" && (
           <ManagerSidebar
@@ -164,14 +184,14 @@ const ProfileUpdate = () => {
           />
         )}
 
-        {role === "DOCTOR" && (
+        {/* {role === "DOCTOR" && (
           <DoctorSidebar
             collapsed={false}
             onCollapse={() => {}}
             selectedMenu={selectedMenu}
             onMenuSelect={(menuKey) => setSelectedMenu(menuKey)}
           />
-        )}
+        )} */}
 
         {role === "CUSTOMER" && (
           <CustomerSidebar
@@ -183,199 +203,295 @@ const ProfileUpdate = () => {
         )}
 
         <Layout style={{ marginLeft: 250 }}>
-          {/* Form Section */}
-          <div className="py-20">
-            <div className="container mx-auto px-4">
-              {/* 👉 Flex layout trái/phải */}
-              <div className="max-w-5xl mx-auto bg-white shadow-md rounded-lg p-8 flex flex-col md:flex-row gap-10">
-                {/* Trái: Avatar */}
-                <div className="md:w-1/3 flex flex-col items-center">
+          <div className="py-10 px-4 md:px-10">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* CỘT TRÁI: Avatar + Học vấn + Chuyên ngành */}
+              <div className="space-y-6">
+                {/* Avatar Card */}
+                <div className="bg-white shadow-md rounded-lg p-6 text-center">
                   <h3 className="text-xl font-semibold mb-4">Ảnh đại diện</h3>
                   <img
                     src={
                       preview || userInfo?.avatarUrl || "/default-avatar.png"
                     }
                     alt="Avatar Preview"
-                    className="w-32 h-32 rounded-full object-cover border mb-4"
+                    className="w-32 h-32 rounded-full object-cover border mx-auto mb-4"
                   />
+                  <label
+                    htmlFor="fileInput"
+                    className="cursor-pointer bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 transition inline-block"
+                  >
+                    Chọn ảnh
+                  </label>
                   <input
                     type="file"
-                    accept="image/*"
+                    id="fileInput"
                     onChange={handleSelectFile}
-                    className="text-sm mb-2"
+                    className="hidden"
                   />
+                  <p className="text-sm text-gray-600 mt-2">
+                    {selectedFile ? selectedFile.name : "Chưa chọn ảnh nào"}
+                  </p>
                   <button
                     onClick={handleUploadAvatar}
                     disabled={!selectedFile}
-                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mt-3 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Lưu ảnh đại diện
                   </button>
                 </div>
 
-                {/* Phải: Form cập nhật */}
-                <div className="md:w-2/3">
-                  <form
-                    onSubmit={handleSubmit}
-                    className="grid grid-cols-2 gap-6"
-                  >
+                {/* Học vấn */}
+                {userInfo?.roleName.name === "DOCTOR" && (
+                  <div className="bg-white shadow-md rounded-lg p-6">
+                    <h4 className="text-lg font-semibold mb-3">Học vấn</h4>
+                    <EducationTimeline
+                      educationList={
+                        doctorInfo?.qualifications
+                          ? Array.isArray(doctorInfo.qualifications)
+                            ? doctorInfo.qualifications
+                            : [doctorInfo.qualifications]
+                          : []
+                      }
+                    />
+                  </div>
+                )}
+
+                {/* Chuyên ngành */}
+                {userInfo?.roleName.name === "DOCTOR" && (
+                  <div className="bg-white shadow-md rounded-lg p-6">
+                    <h4 className="text-lg font-semibold mb-3">Chuyên ngành</h4>
+                    <SpecialtyTimeline
+                      specialtyList={
+                        doctorInfo?.specialty
+                          ? Array.isArray(doctorInfo.specialty)
+                            ? doctorInfo.specialty
+                            : [doctorInfo.specialty]
+                          : []
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* CỘT PHẢI: Form thông tin */}
+              <div className="md:col-span-2 bg-white shadow-md rounded-lg p-6">
+                <h2 className="text-2xl font-semibold mb-6">
+                  Thông tin cá nhân
+                </h2>
+                <form
+                  onSubmit={handleSubmit}
+                  className="grid grid-cols-2 gap-6"
+                >
+                  <InputCustom
+                    labelContent="Username"
+                    name="username"
+                    value={userInfo?.username}
+                    onChange={() => {}}
+                    classWrapper="opacity-60 pointer-events-none"
+                  />
+                  <InputCustom
+                    labelContent="Vai trò"
+                    name="role"
+                    value={userInfo?.roleName?.name}
+                    onChange={() => {}}
+                    classWrapper="opacity-60 pointer-events-none"
+                  />
+                  <InputCustom
+                    labelContent="Họ và tên"
+                    name="fullName"
+                    value={values.fullName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={errors.fullName}
+                    touched={touched.fullName}
+                    disabled={!isEditing}
+                    classWrapper={
+                      !isEditing ? "opacity-60 pointer-events-none" : ""
+                    }
+                  />
+                  {userInfo &&
+                  !userInfo.phoneNumber &&
+                  userInfo.roleName.name !== "CUSTOMER" ? (
                     <InputCustom
-                      labelContent="Username"
-                      name="username"
-                      value={userInfo?.username}
+                      labelContent="Email"
+                      name="email"
+                      value={values.email}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      error={errors.email}
+                      touched={touched.email}
+                    />
+                  ) : (
+                    <InputCustom
+                      labelContent="Email"
+                      name="email"
+                      value={values.email}
                       onChange={() => {}}
+                      error={errors.email}
+                      touched={touched.email}
                       classWrapper="opacity-60 pointer-events-none"
                     />
-                    <InputCustom
-                      labelContent="Vai trò"
-                      name="role"
-                      value={userInfo?.roleName?.name}
-                      onChange={() => {}}
-                      classWrapper="opacity-60 pointer-events-none"
-                    />
-                    <InputCustom
-                      labelContent="Họ và tên"
-                      name="fullName"
-                      value={values.fullName}
+                  )}
+                  <InputCustom
+                    labelContent="Số điện thoại"
+                    name="phoneNumber"
+                    value={values.phoneNumber}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={errors.phoneNumber}
+                    touched={touched.phoneNumber}
+                    disabled={!isEditing}
+                    classWrapper={
+                      !isEditing ? "opacity-60 pointer-events-none" : ""
+                    }
+                  />
+
+                  {/* Gender */}
+                  <div>
+                    <label
+                      htmlFor="gender"
+                      className="block mb-2 text-sm font-medium text-gray-900"
+                    >
+                      Giới tính
+                    </label>
+                    <select
+                      id="gender"
+                      name="gender"
+                      value={values.gender}
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      error={errors.fullName}
-                      touched={touched.fullName}
-                    />
-                    {userInfo &&
-                    !userInfo.phoneNumber &&
-                    userInfo.roleName.name !== "CUSTOMER" ? (
+                      disabled={!isEditing}
+                      classWrapper={
+                        !isEditing ? "opacity-60 pointer-events-none" : ""
+                      }
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">-- Chọn giới tính --</option>
+                      <option value="male">Nam</option>
+                      <option value="female">Nữ</option>
+                      <option value="other">Khác</option>
+                    </select>
+                    {errors.gender && touched.gender && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.gender}
+                      </p>
+                    )}
+                  </div>
+
+                  <InputCustom
+                    labelContent="Ngày sinh"
+                    name="dateOfBirth"
+                    typeInput="date"
+                    value={values.dateOfBirth}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={errors.dateOfBirth}
+                    touched={touched.dateOfBirth}
+                    disabled={!isEditing}
+                    classWrapper={
+                      !isEditing ? "opacity-60 pointer-events-none" : ""
+                    }
+                  />
+                  <InputCustom
+                    labelContent="Địa chỉ"
+                    name="address"
+                    value={values.address}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    error={errors.address}
+                    touched={touched.address}
+                    disabled={!isEditing}
+                    classWrapper={
+                      !isEditing ? "opacity-60 pointer-events-none" : ""
+                    }
+                  />
+
+                  {/* { khung input riêng cho bác sĩ} */}
+
+                  {userInfo && userInfo.roleName.name === "DOCTOR" && (
+                    <>
                       <InputCustom
-                        labelContent="Email"
-                        name="email"
-                        value={values.email}
+                        labelContent="Bằng cấp"
+                        name="qualifications"
+                        value={values.qualifications}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        error={errors.email}
-                        touched={touched.email}
+                        error={errors.qualifications}
+                        touched={touched.qualifications}
+                        disabled={!isEditing}
+                        classWrapper={
+                          !isEditing ? "opacity-60 pointer-events-none" : ""
+                        }
                       />
-                    ) : (
                       <InputCustom
-                        labelContent="Email"
-                        name="email"
-                        value={values.email}
-                        onChange={() => {}}
-                        error={errors.email}
-                        touched={touched.email}
-                        classWrapper="opacity-60 pointer-events-none"
-                      />
-                    )}
-                    <InputCustom
-                      labelContent="Số điện thoại"
-                      name="phoneNumber"
-                      value={values.phoneNumber}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={errors.phoneNumber}
-                      touched={touched.phoneNumber}
-                    />
-
-                    {/* Gender */}
-                    <div>
-                      <label
-                        htmlFor="gender"
-                        className="block mb-2 text-sm font-medium text-gray-900"
-                      >
-                        Giới tính
-                      </label>
-                      <select
-                        id="gender"
-                        name="gender"
-                        value={values.gender}
+                        labelContent="Năm tốt nghiệp"
+                        name="graduationYear"
+                        value={values.graduationYear}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">-- Chọn giới tính --</option>
-                        <option value="male">Nam</option>
-                        <option value="female">Nữ</option>
-                        <option value="other">Khác</option>
-                      </select>
-                      {errors.gender && touched.gender && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.gender}
-                        </p>
-                      )}
-                    </div>
+                        error={errors.graduationYear}
+                        touched={touched.graduationYear}
+                        disabled={!isEditing}
+                        classWrapper={
+                          !isEditing ? "opacity-60 pointer-events-none" : ""
+                        }
+                      />
+                      <InputCustom
+                        labelContent="Năm kinh nghiệm"
+                        name="experienceYears"
+                        value={values.experienceYears}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={errors.experienceYears}
+                        touched={touched.experienceYears}
+                        disabled={!isEditing}
+                        classWrapper={
+                          !isEditing ? "opacity-60 pointer-events-none" : ""
+                        }
+                      />
+                      <InputCustom
+                        labelContent="Chuyên ngành"
+                        name="specialty"
+                        value={values.specialty}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={errors.specialty}
+                        touched={touched.specialty}
+                        disabled={!isEditing}
+                        classWrapper={
+                          !isEditing ? "opacity-60 pointer-events-none" : ""
+                        }
+                      />
+                    </>
+                  )}
 
-                    <InputCustom
-                      labelContent="Ngày sinh"
-                      name="dateOfBirth"
-                      typeInput="date"
-                      value={values.dateOfBirth}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={errors.dateOfBirth}
-                      touched={touched.dateOfBirth}
-                    />
-                    <InputCustom
-                      labelContent="Địa chỉ"
-                      name="address"
-                      value={values.address}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      error={errors.address}
-                      touched={touched.address}
-                    />
-
-                    {/* { khung input riêng cho bác sĩ} */}
-
-                    {userInfo && userInfo.roleName.name === "DOCTOR" && (
-                      <>
-                        <InputCustom
-                          labelContent="Trình độ học vấn"
-                          name="qualifications"
-                          value={values.qualifications}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          error={errors.qualifications}
-                          touched={touched.qualifications}
-                        />
-                        <InputCustom
-                          labelContent="Năm tốt nghiệp"
-                          name="graduationYear"
-                          value={values.graduationYear}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          error={errors.graduationYear}
-                          touched={touched.graduationYear}
-                        />
-                        <InputCustom
-                          labelContent="Năm kinh nghiệm"
-                          name="experienceYears"
-                          value={values.experienceYears}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          error={errors.experienceYears}
-                          touched={touched.experienceYears}
-                        />
-                        <InputCustom
-                          labelContent="Chuyên ngành"
-                          name="specialty"
-                          value={values.specialty}
-                          onChange={handleChange}
-                          onBlur={handleBlur}
-                          error={errors.specialty}
-                          touched={touched.specialty}
-                        />
-                      </>
+                  <div className="col-span-2 flex justify-end mt-4">
+                    {isEditing && (
+                      <div className="col-span-2 flex justify-end mt-4">
+                        <button
+                          type="submit"
+                          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <CheckOutlined />
+                          <span>Cập nhật</span>
+                        </button>
+                      </div>
                     )}
-
-                    <div className="col-span-2 flex justify-end mt-4">
-                      <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Cập nhật
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                    {!isEditing && (
+                      <div className="flex justify-end mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setIsEditing(true)}
+                          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                        >
+                          <EditOutlined />
+                          <span>Chỉnh sửa</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </form>
               </div>
             </div>
           </div>

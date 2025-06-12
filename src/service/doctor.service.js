@@ -56,6 +56,6 @@ export const doctorService = {
   },
 
   getInfoDoctor: (id) => {
-    return http.get(`/doctor/${id}`);
+    return http.get(`/doctors/${id}`);
   },
 };
