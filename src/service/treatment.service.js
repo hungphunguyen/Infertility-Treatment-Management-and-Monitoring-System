@@ -1,4 +1,5 @@
 import { http } from "./config";
+import axios from "axios";
 
 export const treatmentService = {
   getTreatmentRecordsForManager: async () => {
@@ -292,5 +293,14 @@ export const treatmentService = {
 
   getAppointmentsByStepId: (stepId) => {
     return http.get(`/appointments/get-by-step-id/${stepId}`);
+  },
+
+  // Lấy danh sách lịch hẹn của khách hàng
+  getCustomerAppointments: (customerId) => {
+    return http.get(`/appointments/customer/${customerId}`);
+  },
+
+  getTreatmentRecordsByCustomerId: (customerId) => {
+    return http.get(`/treatment-records/find-all/customer/${customerId}`);
   }
 };

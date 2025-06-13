@@ -60,54 +60,39 @@ const AppointmentSchedule = () => {
       }
       setUserInfo(userResponse.data.result);
 
-      // Lấy danh sách điều trị của user
-      const treatmentResponse = await treatmentService.getTreatmentRecordsByCustomer(userResponse.data.result.id);
-      console.log('Treatment Records Response:', treatmentResponse);
+      // Lấy danh sách lịch hẹn thực tế của user
+      const appointmentsResponse = await treatmentService.getCustomerAppointments(userResponse.data.result.id);
+      console.log('Appointments Response:', appointmentsResponse);
       
-      if (treatmentResponse?.data?.result) {
-        // Chuyển đổi dữ liệu điều trị thành lịch hẹn
-        const treatmentAppointments = treatmentResponse.data.result.flatMap(treatment => {
-          // Nếu dịch vụ đã hủy, bỏ qua các bước cũ
-          if (treatment.status === 'CANCELLED') {
-            return [];
-          }
+      if (appointmentsResponse?.data?.code === 1000 && Array.isArray(appointmentsResponse.data.result)) {
+        // Chuyển đổi dữ liệu lịch hẹn
+        const mappedAppointments = appointmentsResponse.data.result.map(appointment => {
+          let status = 'pending';
+          if (appointment.status === 'COMPLETED') status = 'completed';
+          else if (appointment.status === 'IN_PROGRESS' || appointment.status === 'CONFIRMED') status = 'in-progress';
+          else if (appointment.status === 'PLANNED') status = 'not-started';
+          else if (appointment.status === 'CANCELLED') status = 'cancelled';
 
-          return treatment.treatmentSteps.map((step, stepIndex) => {
-            // Chỉ lấy ngày thực tế, không lấy ngày dự kiến
-            const appointmentDate = step.actualDate ? dayjs(step.actualDate).format("YYYY-MM-DD") : 
-                                  step.scheduledDate ? dayjs(step.scheduledDate).format("YYYY-MM-DD") : null;
-            
-            let status = 'pending';
-            if (step.status === 'COMPLETED') status = 'completed';
-            else if (step.status === 'IN_PROGRESS' || step.status === 'CONFIRMED') status = 'in-progress';
-            else if (step.status === 'PLANNED') status = 'not-started';
-            else if (step.status === 'CANCELLED') status = 'cancelled';
-
-            // Tính toán giờ từ scheduledDate
-            const scheduledDate = step.scheduledDate ? new Date(step.scheduledDate) : null;
-            const time = scheduledDate ? scheduledDate.toTimeString().slice(0, 5) : "09:00";
-
-            return {
-              id: step.id,
-              title: step.name,
-              date: appointmentDate,
-              time: time,
-              doctor: treatment.doctorName,
-              department: "Khoa IVF",
-              location: "Phòng khám IVF",
-              status: status,
-              serviceId: treatment.id,
-              serviceStatus: treatment.status, // Thêm trạng thái của dịch vụ
-              notes: step.notes || `Bước ${step.id} của quy trình điều trị ${treatment.treatmentServiceName}`,
-              contact: userResponse.data.result.phoneNumber,
-              preparationInstructions: step.preparationInstructions || "Không cần chuẩn bị đặc biệt",
-              isEstimated: false
-            };
-          });
-        }).filter(appointment => appointment.date !== null); // Chỉ lấy các lịch hẹn có ngày
+          return {
+            id: appointment.id,
+            title: appointment.scheduleStep?.name || 'Chưa có tên bước điều trị',
+            date: appointment.appointmentDate,
+            time: appointment.shift === 'MORNING' ? '08:00' : '13:00',
+            doctor: appointment.doctorName,
+            department: "Khoa IVF",
+            location: "Phòng khám IVF",
+            status: status,
+            serviceId: appointment.id,
+            serviceStatus: appointment.status,
+            notes: appointment.notes || `Lịch hẹn ${appointment.scheduleStep?.name || 'Chưa có tên bước điều trị'}`,
+            contact: userResponse.data.result.phoneNumber,
+            preparationInstructions: "Không cần chuẩn bị đặc biệt",
+            isEstimated: false
+          };
+        });
 
         // Sắp xếp lịch hẹn theo ngày
-        const sortedAppointments = treatmentAppointments.sort((a, b) => {
+        const sortedAppointments = mappedAppointments.sort((a, b) => {
           return new Date(a.date) - new Date(b.date);
         });
 

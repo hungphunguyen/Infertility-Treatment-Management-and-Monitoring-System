@@ -33,15 +33,19 @@ const PatientList = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Lấy thông tin bác sĩ từ API
     const fetchDoctorInfo = async () => {
       try {
         const res = await authService.getMyInfo();
         const id = res?.data?.result?.id;
         const name = res?.data?.result?.fullName;
-        setDoctorId(id);
-        setDoctorName(name);
+        if (id) {
+          setDoctorId(id);
+          setDoctorName(name);
+        } else {
+          message.error("Không thể lấy thông tin bác sĩ");
+        }
       } catch (error) {
+        console.error("Error fetching doctor info:", error);
         message.error("Không thể lấy thông tin bác sĩ");
       }
     };
@@ -49,10 +53,24 @@ const PatientList = () => {
   }, []);
 
   useEffect(() => {
-    if (doctorId) {
-      fetchPatients();
-      fetchTreatmentRecords();
-    }
+    if (!doctorId) return;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        await Promise.all([
+          fetchPatients(),
+          fetchTreatmentRecords()
+        ]);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        message.error('Có lỗi xảy ra khi lấy dữ liệu');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [doctorId]);
 
   const fetchPatients = async () => {
@@ -61,7 +79,6 @@ const PatientList = () => {
       return;
     }
     try {
-      setLoading(true);
       const today = dayjs().format('YYYY-MM-DD');
       const response = await treatmentService.getDoctorAppointmentsByDate(doctorId, today);
       if (response?.data?.result) {
@@ -70,10 +87,9 @@ const PatientList = () => {
         setPatients([]);
       }
     } catch (error) {
+      console.error('Error fetching patients:', error);
       message.error('Có lỗi xảy ra khi lấy dữ liệu bệnh nhân');
       setPatients([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -166,36 +182,56 @@ const PatientList = () => {
     return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
   };
 
-  const handleUpdate = (record) => {
-    console.log('Selected patient record:', record);
-    console.log('Available treatment records:', treatmentRecords);
-    
-    // Tìm treatment record dựa trên customerId hoặc customerName
-    const patientTreatment = treatmentRecords.find(
-      treatment => 
-        treatment.customerId === record.customerId || 
-        treatment.customerName === record.customerName
-    );
-    
-    console.log('Found treatment record:', patientTreatment);
+  const handleUpdate = async (record) => {
+    try {
+      console.log('Selected patient record:', record);
+      console.log('Available treatment records:', treatmentRecords);
+      
+      // Tìm treatment record dựa trên customerId hoặc customerName
+      const patientTreatment = treatmentRecords.find(
+        treatment => 
+          treatment.customerId === record.customerId || 
+          treatment.customerName === record.customerName
+      );
+      
+      console.log('Found treatment record:', patientTreatment);
 
-    if (patientTreatment) {
-      try {
-        // Thử chuyển trang với dữ liệu
-        navigate(path.doctorTreatmentStages, { 
-          state: { 
-            treatmentData: patientTreatment,
-            patientInfo: record
-          } 
+      if (patientTreatment) {
+        // Đảm bảo dữ liệu được truyền đúng định dạng
+        const stateData = {
+          treatmentData: {
+            ...patientTreatment,
+            id: patientTreatment.id || record.id,
+            customerId: patientTreatment.customerId || record.customerId,
+            customerName: patientTreatment.customerName || record.customerName
+          },
+          patientInfo: {
+            ...record,
+            id: record.id || patientTreatment.id,
+            customerId: record.customerId || patientTreatment.customerId
+          }
+        };
+
+        // Kiểm tra dữ liệu trước khi navigate
+        if (!stateData.patientInfo.customerId) {
+          message.error('Không tìm thấy thông tin bệnh nhân');
+          return;
+        }
+
+        // Navigate với dữ liệu đã được kiểm tra
+        await navigate(path.doctorTreatmentStages, { 
+          state: stateData,
+          replace: true // Sử dụng replace để tránh lặp lại history
         });
+        
         console.log('Navigation attempted to:', path.doctorTreatmentStages);
-      } catch (error) {
-        console.error('Navigation error:', error);
-        message.error('Có lỗi xảy ra khi chuyển trang');
+      } else {
+        console.log('No treatment record found for patient:', record);
+        message.warning('Chưa có thông tin quy trình điều trị cho bệnh nhân này');
       }
-    } else {
-      console.log('No treatment record found for patient:', record);
-      message.warning('Chưa có thông tin quy trình điều trị cho bệnh nhân này');
+    } catch (error) {
+      console.error('Navigation error:', error);
+      message.error('Có lỗi xảy ra khi chuyển trang');
     }
   };
 
