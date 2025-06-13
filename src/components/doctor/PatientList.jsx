@@ -122,6 +122,38 @@ const PatientList = () => {
     }
   };
 
+  // Helper: enrich patients with today's treatment step info
+  const today = dayjs().format('YYYY-MM-DD');
+  const enrichedPatients = patients.map(patient => {
+    const treatment = treatmentRecords.find(
+      t => t.customerId === patient.customerId || t.customerName === patient.customerName
+    );
+    let todayStep = null;
+    if (treatment && Array.isArray(treatment.treatmentSteps)) {
+      todayStep = treatment.treatmentSteps.find(
+        step => step.scheduledDate && dayjs(step.scheduledDate).format('YYYY-MM-DD') === today
+      );
+    }
+    return {
+      ...patient,
+      todayStepName: todayStep ? todayStep.name : null,
+      todayStepStatus: todayStep ? todayStep.status : null,
+    };
+  });
+
+  // Updated status tag for step statuses
+  const getStepStatusTag = (status) => {
+    const statusMap = {
+      CONFIRMED: { color: 'blue', text: 'Đã xác nhận' },
+      PLANNED: { color: 'orange', text: 'Chờ thực hiện' },
+      COMPLETED: { color: 'green', text: 'Hoàn thành' },
+      CANCELLED: { color: 'red', text: 'Đã hủy' },
+      IN_PROGRESS: { color: 'blue', text: 'Đang điều trị' },
+    };
+    const s = statusMap[status] || { color: 'default', text: status };
+    return <Tag color={s.color}>{s.text}</Tag>;
+  };
+
   const getStatusTag = (status) => {
     const statusMap = {
       "CONFIRMED": { color: "blue", text: "Đang điều trị" },
@@ -224,15 +256,13 @@ const PatientList = () => {
     },
     {
       title: "Trạng thái",
-      dataIndex: "status",
       key: "status",
-      render: getStatusTag
+      render: (record) => record.todayStepStatus ? getStepStatusTag(record.todayStepStatus) : getStatusTag(record.status)
     },
     {
       title: "Dịch vụ",
-      dataIndex: "serviceName",
       key: "serviceName",
-      render: (service) => service ? <Tag color="purple">{service}</Tag> : <Tag color="default">Chưa có</Tag>
+      render: (record) => record.todayStepName ? <Tag color="purple">{record.todayStepName}</Tag> : (record.serviceName ? <Tag color="purple">{record.serviceName}</Tag> : <Tag color="default">Chưa có</Tag>)
     },
     {
       title: "Thao tác",
@@ -263,7 +293,7 @@ const PatientList = () => {
   ];
 
   // Filter data
-  const filteredData = patients.filter(patient => {
+  const filteredData = enrichedPatients.filter(patient => {
     const matchesSearch = patient.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
                          patient.id.toString().includes(searchText);
     const matchesStatus = statusFilter === "all" || patient.status === statusFilter;

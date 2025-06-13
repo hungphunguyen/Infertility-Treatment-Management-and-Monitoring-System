@@ -189,12 +189,6 @@ const ProfileOverview = () => {
               <Descriptions.Item label="Địa chỉ">
                 {userInfo.address || "Chưa cập nhật"}
               </Descriptions.Item>
-              <Descriptions.Item label="Ngày tham gia">
-                {dayjs(userInfo.createdAt).format("DD/MM/YYYY")}
-              </Descriptions.Item>
-              <Descriptions.Item label="Cấp độ thành viên">
-                <Badge status="success" text="Thành viên" />
-              </Descriptions.Item>
             </Descriptions>
           </Card>
 

@@ -263,5 +263,34 @@ export const treatmentService = {
       console.error("Error updating treatment step:", error);
       throw error;
     }
+  },
+
+  createAppointment: async (data) => {
+    try {
+      const response = await http.post("appointments", data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      return response;
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      throw error;
+    }
+  },
+
+  cancelTreatmentRecord: async (recordId, customerId) => {
+    try {
+      const response = await http.delete(`treatment-service/cancel/${recordId}/${customerId}`);
+      return response;
+    } catch (error) {
+      console.error("Error cancelling treatment record:", error);
+      throw error;
+    }
+  },
+
+  getAppointmentsByStepId: (stepId) => {
+    return http.get(`/appointments/get-by-step-id/${stepId}`);
   }
 };

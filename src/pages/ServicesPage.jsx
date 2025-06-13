@@ -103,7 +103,10 @@ const ServicesPage = () => {
               <Row gutter={[32, 64]} className="justify-center">
                 {services.map((service) => (
                   <Col xs={24} md={12} key={service.id}>
-                    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    <div 
+                      className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                      onClick={() => navigate(`/service-detail/${service.id}`)}
+                    >
                       <div className="relative overflow-hidden">
                         <img
                           src={getServiceImage(service.treatmentTypeName)}
@@ -122,12 +125,9 @@ const ServicesPage = () => {
                               {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}
                             </p>
                           )}
-                          <Link
-                            to={`/service-detail/${service.id}`}
-                            className="inline-flex items-center text-[#ff8460] hover:text-[#ff6b40] font-medium"
-                          >
+                          <span className="inline-flex items-center text-[#ff8460] hover:text-[#ff6b40] font-medium">
                             <PlusOutlined className="mr-1" /> Chi tiết
-                          </Link>
+                          </span>
                         </div>
                       </div>
                     </div>

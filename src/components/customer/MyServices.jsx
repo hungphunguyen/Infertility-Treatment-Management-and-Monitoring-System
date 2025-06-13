@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Table, Tag, Typography, Row, Col, Statistic, 
-  Timeline, Modal, Descriptions, Spin, message 
+  Timeline, Modal, Descriptions, Spin, message, Button 
 } from 'antd';
 import { 
   ExperimentOutlined, 
@@ -27,9 +27,18 @@ const MyServices = () => {
     inProgressServices: 0,
     pendingServices: 0
   });
+  const [cancelLoading, setCancelLoading] = useState({});
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     fetchTreatmentRecords();
+    const fetchUser = async () => {
+      try {
+        const res = await authService.getMyInfo();
+        setUserId(res?.data?.result?.id);
+      } catch {}
+    };
+    fetchUser();
   }, []);
 
   const fetchTreatmentRecords = async () => {
@@ -75,6 +84,9 @@ const MyServices = () => {
     // Nếu có progress, ưu tiên hiển thị trạng thái dựa trên progress
     if (progress !== undefined) {
       if (progress === '0%') {
+        if (status === 'CANCELLED' || status === 'Cancelled') {
+          return <Tag color="error">Đã hủy</Tag>;
+        }
         return <Tag color="warning">Đang chờ điều trị</Tag>;
       } else if (progress === '100%') {
         return <Tag color="success">Hoàn thành</Tag>;
@@ -88,7 +100,8 @@ const MyServices = () => {
       'Completed': { color: 'success', text: 'Hoàn thành' },
       'InProgress': { color: 'processing', text: 'Đang điều trị' },
       'Pending': { color: 'warning', text: 'Đang chờ điều trị' },
-      'Cancelled': { color: 'error', text: 'Đã hủy' }
+      'Cancelled': { color: 'error', text: 'Đã hủy' },
+      'CANCELLED': { color: 'error', text: 'Đã hủy' }
     };
 
     const { color, text } = statusMap[status] || { color: 'default', text: status };
@@ -106,6 +119,20 @@ const MyServices = () => {
     // Nếu không có endDate, tính toán dựa trên ngày bắt đầu
     // Thêm 45 ngày cho toàn bộ quá trình điều trị
     return dayjs(startDate).add(45, 'days').format('YYYY-MM-DD');
+  };
+
+  const handleCancelTreatment = async (record) => {
+    if (!userId) return;
+    setCancelLoading(l => ({ ...l, [record.id]: true }));
+    try {
+      await treatmentService.cancelTreatmentRecord(record.id, userId);
+      message.success('Yêu cầu hủy hồ sơ điều trị đã được gửi.');
+      fetchTreatmentRecords();
+    } catch (err) {
+      message.error(err?.response?.data?.message || 'Không thể hủy hồ sơ điều trị này.');
+    } finally {
+      setCancelLoading(l => ({ ...l, [record.id]: false }));
+    }
   };
 
   const columns = [
@@ -127,15 +154,7 @@ const MyServices = () => {
       key: 'startDate',
       render: (text) => <span>{text ? new Date(text).toLocaleDateString('vi-VN') : 'N/A'}</span>
     },
-    {
-      title: 'Ngày kết thúc dự kiến',
-      dataIndex: 'endDate',
-      key: 'endDate',
-      render: (_, record) => {
-        const estimatedEndDate = calculateEstimatedEndDate(record.startDate, record.treatmentSteps);
-        return <span>{estimatedEndDate ? new Date(estimatedEndDate).toLocaleDateString('vi-VN') : 'N/A'}</span>;
-      }
-    },
+    
     {
       title: 'Trạng thái',
       dataIndex: 'status',
@@ -163,6 +182,20 @@ const MyServices = () => {
         const progress = Math.round((completedSteps / totalSteps) * 100);
         return `${progress}%`;
       }
+    },
+    {
+      title: 'Yêu cầu hủy',
+      key: 'cancel',
+      render: (_, record) => (
+        <Button
+          danger
+          loading={!!cancelLoading[record.id]}
+          onClick={e => { e.stopPropagation(); handleCancelTreatment(record); }}
+          disabled={!userId || record.status === 'Cancelled'}
+        >
+          Hủy tuyến trình
+        </Button>
+      )
     }
   ];
 
@@ -275,11 +308,7 @@ const MyServices = () => {
               <Descriptions.Item label="Ngày bắt đầu">
                 {selectedService.startDate ? new Date(selectedService.startDate).toLocaleDateString('vi-VN') : 'N/A'}
               </Descriptions.Item>
-              <Descriptions.Item label="Ngày kết thúc dự kiến">
-                {calculateEstimatedEndDate(selectedService.startDate, selectedService.treatmentSteps) 
-                  ? new Date(calculateEstimatedEndDate(selectedService.startDate, selectedService.treatmentSteps)).toLocaleDateString('vi-VN') 
-                  : 'N/A'}
-              </Descriptions.Item>
+              
               <Descriptions.Item label="Ngày tạo">
                 {selectedService.createdDate ? new Date(selectedService.createdDate).toLocaleDateString('vi-VN') : 'N/A'}
               </Descriptions.Item>
