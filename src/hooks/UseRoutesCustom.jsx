@@ -23,6 +23,7 @@ import DoctorDashboard from "../pages/DoctorDashboard";
 import CustomerDashboard from "../pages/CustomerDashboard";
 import ProfileUpdate from "../pages/ProfileUpdate";
 import RenderCreateTreatment from "../components/manager/managerService/RenderCreateTreatment";
+import FeedbackCustomer from "../components/customer/FeedbackCustomer";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -112,6 +113,11 @@ const UseRoutesCustom = () => {
     {
       path: path.updataProfile,
       element: <ProfileUpdate />,
+    },
+
+    {
+      path: path.customerFeedback,
+      element: <FeedbackCustomer />,
     },
     {
       path: path.pageNotFound,

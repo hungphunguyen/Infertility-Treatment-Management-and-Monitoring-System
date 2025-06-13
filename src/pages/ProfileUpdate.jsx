@@ -132,14 +132,15 @@ const ProfileUpdate = () => {
         }
         if (userInfo?.roleName.name === "DOCTOR") {
           try {
+            console.log(values);
             const res = await doctorService.updateDoctor(doctorInfo.id, values);
             setIsEditing(false);
 
             console.log(res);
             showNotification("Cập nhật thông tin thành công", "success");
           } catch (error) {
-            console.log(err);
-            showNotification(err.response?.data?.message, "error");
+            console.log(error);
+            showNotification(error.response?.data?.message, "error");
           }
         } else {
           try {

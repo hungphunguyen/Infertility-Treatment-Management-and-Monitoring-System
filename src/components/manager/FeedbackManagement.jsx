@@ -136,8 +136,41 @@ const FeedbackManagement = () => {
     return matchKeyword && matchStatus;
   });
 
+  // 🎯 Thống kê số liệu
+  const totalFeedback = feedbacks.length;
+  const pendingFeedback = feedbacks.filter((fb) => !fb.approved).length;
+  const averageRating =
+    feedbacks.length > 0
+      ? (
+          feedbacks.reduce((sum, fb) => sum + (fb.rating || 0), 0) /
+          feedbacks.length
+        ).toFixed(1)
+      : "0.0";
+
   return (
     <div>
+      {/* 🔢 Box thống kê */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-blue-50 p-6 rounded shadow text-center border border-blue-100">
+          <p className="text-blue-700 font-semibold text-sm uppercase">
+            Tổng feedback
+          </p>
+          <h2 className="text-4xl font-bold text-blue-600">{totalFeedback}</h2>
+        </div>
+        <div className="bg-orange-50 p-6 rounded shadow text-center border border-orange-100">
+          <p className="text-red-600 font-semibold text-sm uppercase">
+            Chờ duyệt
+          </p>
+          <h2 className="text-4xl font-bold text-red-500">{pendingFeedback}</h2>
+        </div>
+        <div className="bg-green-50 p-6 rounded shadow text-center border border-green-100">
+          <p className="text-green-700 font-semibold text-sm uppercase">
+            Đánh giá TB
+          </p>
+          <h2 className="text-4xl font-bold text-green-600">{averageRating}</h2>
+        </div>
+      </div>
+
       <Card title="Danh sách phản hồi khách hàng">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <Input

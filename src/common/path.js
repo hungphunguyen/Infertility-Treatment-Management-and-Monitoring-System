@@ -48,6 +48,7 @@ export const path = {
   customerMedicalRecord: "/customer-dashboard/medical-record",
   customerPayment: "/customer-dashboard/payment",
   customerUpdateProfile: "/customer-dashboard/update-profile",
+  customerFeedback: "/customer-feedback",
 
   updataProfile: "/update-profile",
   resendOtp: "/resend-otp",
