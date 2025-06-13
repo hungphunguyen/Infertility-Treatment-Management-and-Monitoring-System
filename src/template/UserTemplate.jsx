@@ -30,6 +30,7 @@ import StatisticsSection from "../components/StatisticsSection";
 import ServicesIcons from "../components/ServicesIcons";
 import RecommendationSection from "../components/RecommendationSection";
 import { doctorService } from "../service/doctor.service";
+import StarRatings from 'react-star-ratings';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -43,38 +44,8 @@ const UserTemplate = () => {
     const fetchDoctors = async () => {
       try {
         setLoading(true);
-        const response = await doctorService.getAllDoctors();
-
-        if (
-          response.data &&
-          response.data.result &&
-          Array.isArray(response.data.result)
-        ) {
-          // Map API data to component format
-          const mappedDoctors = response.data.result.map((doctor) => ({
-            id: doctor.id,
-            name: doctor.fullName,
-            role: doctor.roleName?.description || "Bác sĩ chuyên khoa",
-            specialization: doctor.qualifications || "Chuyên khoa Sản phụ khoa",
-            experience: `${doctor.experienceYears || 0} năm kinh nghiệm`,
-            image: doctor.avatarUrl || "/images/doctors/default-doctor.png",
-            email: doctor.email || "Chưa cập nhật",
-            phone: doctor.phoneNumber || "Chưa cập nhật",
-            certificates: doctor.qualifications
-              ? [doctor.qualifications]
-              : ["Bằng cấp chuyên môn"],
-            value: `dr_${doctor.id}`,
-            rating: 4.5,
-            treatmentType: "IVF",
-            graduationYear: doctor.graduationYear,
-            experienceYears: doctor.experienceYears,
-            username: doctor.username,
-          }));
-
-          setDoctors(mappedDoctors);
-        } else {
-          setDoctors([]);
-        }
+        const response = await doctorService.getDoctorForCard();
+        setDoctors(response.data.result)
       } catch (error) {
         console.error("Error fetching doctors:", error);
         setDoctors([]);
@@ -310,39 +281,39 @@ const UserTemplate = () => {
                   className="relative w-[280px] mx-auto mb-8 cursor-pointer group"
                   onClick={() => navigate(`/doctor/${doctor.id}`)}
                 >
-                  <div className="relative transition-transform duration-300 group-hover:scale-105">
+                  <div className="relative w-full max-w-sm rounded-lg overflow-hidden shadow-md group hover:scale-105 transition-transform duration-300">
                     <img
-                      src={doctor.image}
-                      alt={doctor.name}
-                      className="w-full object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
-                      style={{ height: "400px" }}
+                      src={doctor.avatarUrl}
+                      alt={doctor.fullName}
+                      className="w-full h-[350px] object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
                     />
                     <div
-                      className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 flex flex-col items-center justify-center text-center shadow-md"
-                      style={{ height: "128px" }}
+                      className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 py-3 shadow-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
                     >
-                      <h3 className="text-xl font-bold mb-1 text-gray-800">
-                        {doctor.name}
+                      <h3 className="text-lg font-semibold text-gray-800 text-center truncate">
+                        {doctor.fullName}
                       </h3>
-                      <p className="text-[#c2da5c] font-semibold mb-1">
-                        {doctor.role}
-                      </p>
-                      <p className="text-gray-600 text-sm">
-                        {doctor.specialization}
-                      </p>
-                      <p className="text-gray-600 text-sm">
-                        {doctor.experience}
-                      </p>
-                      <div className="mt-1 flex items-center justify-center">
-                        <Rate
-                          disabled
-                          defaultValue={doctor.rating}
-                          allowHalf
-                          className="text-sm"
+                      <div className="mt-1 text-center space-y-1">
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium text-gray-700">Chuyên khoa:</span> {doctor.specialty}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium text-gray-700">Bằng cấp:</span> {doctor.qualifications}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <span className="font-medium text-gray-700">Kinh nghiệm:</span> {doctor.experienceYears} năm
+                        </p>
+                      </div>
+                      <div className="mt-2 flex items-center justify-center">
+                        <StarRatings
+                          rating={doctor.rate}
+                          starRatedColor="#fadb14"
+                          numberOfStars={5}
+                          name="rating"
+                          starDimension="20px"
+                          starSpacing="2px"
                         />
-                        <span className="ml-2 text-gray-600">
-                          ({doctor.rating})
-                        </span>
+                        <span className="ml-2 text-sm text-gray-600">({doctor.rate})</span>
                       </div>
                     </div>
                   </div>
