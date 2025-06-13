@@ -50,6 +50,9 @@ const TreatmentProgress = () => {
       }
 
       const customerId = userResponse.data.result.id;
+      // Lấy danh sách lịch hẹn thực tế
+      const appointmentsResponse = await treatmentService.getCustomerAppointments(customerId);
+      const appointments = appointmentsResponse?.data?.result || [];
       // Lấy danh sách điều trị của customer
       const response = await treatmentService.getTreatmentRecordsByCustomer(customerId);
       console.log('Treatment Records Response:', response);
@@ -78,33 +81,36 @@ const TreatmentProgress = () => {
           doctor: currentTreatment.doctorName,
           status: currentTreatment.status.toLowerCase(),
           estimatedCompletion: currentTreatment.endDate || dayjs(currentTreatment.startDate).add(45, 'days').format('YYYY-MM-DD'),
-          nextAppointment: currentTreatment.treatmentSteps.find(step => step.status === 'PLANNED')?.scheduledDate || 
-                          dayjs(currentTreatment.startDate).add(7, 'days').format('YYYY-MM-DD'),
+          nextAppointment: null,
           overallProgress: overallProgress,
-          phases: currentTreatment.treatmentSteps.map((step, index) => ({
-            id: step.id,
-            name: step.name,
-            statusRaw: step.status,
-            status: step.status === 'COMPLETED' ? 'completed' :
-                   step.status === 'IN_PROGRESS' ? 'in-progress' :
-                   step.status === 'CONFIRMED' ? 'confirmed' :
-                   step.status === 'PLANNED' ? 'not-started' : 'not-started',
-            displayDate: index === 0 ? step.scheduledDate : (step.actualDate || step.scheduledDate),
-            hasDate: !!(index === 0 || step.actualDate || step.scheduledDate),
-            startDate: step.scheduledDate,
-            endDate: step.actualDate,
-            activities: [
-              {
-                name: step.name,
-                date: step.scheduledDate,
-                status: step.status === 'COMPLETED' ? 'completed' :
-                       step.status === 'IN_PROGRESS' ? 'in-progress' :
-                       step.status === 'CONFIRMED' ? 'confirmed' :
-                       step.status === 'PLANNED' ? 'upcoming' : 'upcoming',
-                notes: step.notes || 'Đang chờ thực hiện'
-              }
-            ]
-          }))
+          phases: currentTreatment.treatmentSteps.map((step, index) => {
+            // Tìm lịch hẹn thực tế cho step này dựa vào purpose
+            const appointment = appointments.find(app => app.purpose === step.name);
+            return {
+              id: step.id,
+              name: step.name,
+              statusRaw: step.status,
+              status: step.status === 'COMPLETED' ? 'completed' :
+                     step.status === 'IN_PROGRESS' ? 'in-progress' :
+                     step.status === 'CONFIRMED' ? 'confirmed' :
+                     step.status === 'PLANNED' ? 'not-started' : 'not-started',
+              displayDate: appointment?.appointmentDate || step.scheduledDate || null,
+              hasDate: !!(appointment?.appointmentDate || step.scheduledDate),
+              startDate: appointment?.appointmentDate || step.scheduledDate,
+              endDate: step.actualDate,
+              activities: [
+                {
+                  name: step.name,
+                  date: appointment?.appointmentDate || step.scheduledDate,
+                  status: step.status === 'COMPLETED' ? 'completed' :
+                         step.status === 'IN_PROGRESS' ? 'in-progress' :
+                         step.status === 'CONFIRMED' ? 'confirmed' :
+                         step.status === 'PLANNED' ? 'upcoming' : 'upcoming',
+                  notes: step.notes || 'Đang chờ thực hiện'
+                }
+              ]
+            };
+          })
         });
       } else {
         setError('Không tìm thấy thông tin điều trị');

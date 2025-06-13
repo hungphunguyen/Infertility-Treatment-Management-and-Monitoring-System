@@ -75,7 +75,7 @@ const AppointmentSchedule = () => {
 
           return {
             id: appointment.id,
-            title: appointment.scheduleStep?.name || 'Chưa có tên bước điều trị',
+            title: appointment.purpose || appointment.serviceName,
             date: appointment.appointmentDate,
             time: appointment.shift === 'MORNING' ? '08:00' : '13:00',
             doctor: appointment.doctorName,
@@ -84,7 +84,7 @@ const AppointmentSchedule = () => {
             status: status,
             serviceId: appointment.id,
             serviceStatus: appointment.status,
-            notes: appointment.notes || `Lịch hẹn ${appointment.scheduleStep?.name || 'Chưa có tên bước điều trị'}`,
+            notes: appointment.notes || `Lịch hẹn ${appointment.purpose || appointment.serviceName}`,
             contact: userResponse.data.result.phoneNumber,
             preparationInstructions: "Không cần chuẩn bị đặc biệt",
             isEstimated: false

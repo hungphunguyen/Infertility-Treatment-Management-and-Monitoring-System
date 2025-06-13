@@ -223,13 +223,14 @@ const TreatmentStageDetails = () => {
     const treatmentStepId = values.treatmentStepId || scheduleStep?.id;
     const customerId = treatmentData?.customerId;
     const doctorIdValue = doctorId;
+    const stepName = treatmentData?.treatmentSteps?.find(step => step.id === treatmentStepId)?.name || '';
     const payload = {
       treatmentStepId: Number(treatmentStepId),
       shift: values.shift,
       customerId: customerId,
       doctorId: doctorIdValue,
       appointmentDate: values.appointmentDate.format('YYYY-MM-DD'),
-      purpose: values.purpose,
+      purpose: stepName,
       notes: values.notes
     };
     if (!payload.treatmentStepId || !payload.customerId || !payload.doctorId) {
