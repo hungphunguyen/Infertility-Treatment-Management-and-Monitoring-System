@@ -88,5 +88,9 @@ export const doctorService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  getDashboardStatics: (doctorId) => {
+    return http.get(`/doctors/dashboard/statics/${doctorId}`);
   }
 }; 

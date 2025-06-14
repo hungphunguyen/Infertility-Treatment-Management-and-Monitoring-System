@@ -9,12 +9,14 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   MedicineBoxOutlined,
-  PhoneOutlined
+  PhoneOutlined,
+  StarFilled
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
+import { doctorService } from "../../service/doctor.service";
 
 const { Title, Text } = Typography;
 const shiftMap = {
@@ -43,6 +45,9 @@ const DashboardOverview = () => {
   // Lịch khám hôm nay
   const [loadingToday, setLoadingToday] = useState(true);
   const [todayAppointments, setTodayAppointments] = useState([]);
+
+  // Dashboard stats
+  const [dashboardStats, setDashboardStats] = useState({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 });
 
   // Lấy doctorId từ token
   useEffect(() => {
@@ -103,6 +108,18 @@ const DashboardOverview = () => {
       })
       .catch(() => setTodayAppointments([]))
       .finally(() => setLoadingToday(false));
+  }, [doctorId]);
+
+  // Lấy dashboard statics
+  useEffect(() => {
+    if (!doctorId) return;
+    doctorService.getDashboardStatics(doctorId)
+      .then(res => {
+        if (res?.data?.result) {
+          setDashboardStats(res.data.result);
+        }
+      })
+      .catch(() => setDashboardStats({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 }));
   }, [doctorId]);
 
   // Bảng lịch làm việc tháng (thu nhỏ)
@@ -178,55 +195,38 @@ const DashboardOverview = () => {
     }
   ];
 
-  // Statistics
-  const todayStats = {
-    total: todayAppointments.length,
-    completed: todayAppointments.filter(a => a.status === "completed").length,
-    inProgress: todayAppointments.filter(a => a.status === "in-progress").length,
-    waiting: todayAppointments.filter(a => a.status === "waiting").length
-  };
-
   return (
     <div>
       {/* Statistics Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <Card>
             <Statistic
-              title="Tổng lịch hẹn hôm nay"
-              value={todayStats.total}
+              title="Tổng ca làm việc tháng này"
+              value={dashboardStats.workShiftsThisMonth}
               prefix={<CalendarOutlined />}
               valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} lg={8}>
           <Card>
             <Statistic
-              title="Đã hoàn thành"
-              value={todayStats.completed}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Đang khám"
-              value={todayStats.inProgress}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
-            <Statistic
-              title="Đang chờ"
-              value={todayStats.waiting}
+              title="Tổng số bệnh nhân"
+              value={dashboardStats.patients}
               prefix={<UserOutlined />}
               valueStyle={{ color: '#faad14' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <Card>
+            <Statistic
+              title="Đánh giá"
+              value={dashboardStats.avgRating}
+              prefix={<StarFilled style={{ color: '#faad14' }} />}
+              valueStyle={{ color: '#faad14' }}
+              precision={1}
             />
           </Card>
         </Col>

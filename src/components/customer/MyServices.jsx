@@ -29,6 +29,7 @@ const MyServices = () => {
   });
   const [cancelLoading, setCancelLoading] = useState({});
   const [userId, setUserId] = useState(null);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     fetchTreatmentRecords();
@@ -199,9 +200,24 @@ const MyServices = () => {
     }
   ];
 
-  const handleViewDetails = (record) => {
+  const handleViewDetails = async (record) => {
     setSelectedService(record);
     setModalVisible(true);
+    // Lấy lịch hẹn thực tế cho customerId
+    if (record.customerId) {
+      try {
+        const res = await treatmentService.getCustomerAppointments(record.customerId);
+        if (res?.data?.result) {
+          setAppointments(res.data.result);
+        } else {
+          setAppointments([]);
+        }
+      } catch {
+        setAppointments([]);
+      }
+    } else {
+      setAppointments([]);
+    }
   };
 
   if (loading) {
@@ -321,27 +337,41 @@ const MyServices = () => {
             <div style={{ marginTop: 16 }}>
               <Title level={5}>Tiến trình điều trị:</Title>
               <Timeline>
-                {selectedService.treatmentSteps?.map((step, index) => (
-                  <Timeline.Item 
-                    key={index}
-                    color={step.status === 'CONFIRMED' ? 'green' : step.status === 'PLANNED' ? 'blue' : 'gray'}
-                  >
-                    <Text strong>
-                      {step.scheduledDate ? new Date(step.scheduledDate).toLocaleDateString('vi-VN') : 'Chưa lên lịch'} - {step.name}
-                    </Text>
-                    <br />
-                    <Text type="secondary">
-                      {step.status === 'CONFIRMED' ? 'Đã hoàn thành' : 
-                       step.status === 'PLANNED' ? 'Đang chờ thực hiện' : 
-                       'Chưa bắt đầu'}
-                    </Text>
-                    {step.notes && (
-                      <div style={{ marginTop: 4 }}>
-                        <Text type="secondary">Ghi chú: {step.notes}</Text>
-                      </div>
-                    )}
-                  </Timeline.Item>
-                ))}
+                {selectedService.treatmentSteps?.map((step, index) => {
+                  // Tìm appointment thực tế cho step này
+                  const appointment = appointments.find(app => app.purpose === step.name);
+                  // Lấy ngày và trạng thái thực tế nếu có
+                  const displayDate = appointment?.appointmentDate || step.scheduledDate;
+                  const displayStatus = appointment?.status || step.status;
+                  const statusMap = {
+                    CONFIRMED: { color: 'blue', text: 'Đã xác nhận' },
+                    PLANNED: { color: 'orange', text: 'Chờ thực hiện' },
+                    COMPLETED: { color: 'green', text: 'Hoàn thành' },
+                    CANCELLED: { color: 'red', text: 'Đã hủy' },
+                    INPROGRESS: { color: 'blue', text: 'Đang thực hiện' },
+                    IN_PROGRESS: { color: 'blue', text: 'Đang thực hiện' },
+                  };
+                  const s = statusMap[displayStatus] || { color: 'default', text: displayStatus };
+                  return (
+                    <Timeline.Item 
+                      key={index}
+                      color={s.color}
+                    >
+                      <Text strong>
+                        {displayDate ? new Date(displayDate).toLocaleDateString('vi-VN') : 'Chưa lên lịch'} - {step.name}
+                      </Text>
+                      <br />
+                      <Text type="secondary">
+                        {s.text}
+                      </Text>
+                      {step.notes && (
+                        <div style={{ marginTop: 4 }}>
+                          <Text type="secondary">Ghi chú: {step.notes}</Text>
+                        </div>
+                      )}
+                    </Timeline.Item>
+                  );
+                })}
               </Timeline>
             </div>
           </div>
