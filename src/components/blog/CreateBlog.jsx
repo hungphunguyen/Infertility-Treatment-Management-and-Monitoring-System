@@ -20,6 +20,19 @@ const CreateBlogPage = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isExitModalVisible, setIsExitModalVisible] = useState(false);
 
+  const getDashboardPath = (role) => {
+    switch (role) {
+      case "manager":
+        return "/manager/dashboard";
+      case "doctor":
+        return "/doctor-dashboard";
+      case "customer":
+        return "/customer-dashboard";
+      default:
+        return "/"; // Hoặc trang lỗi/đăng nhập nếu vai trò không xác định
+    }
+  };
+
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
@@ -66,7 +79,7 @@ const CreateBlogPage = () => {
         const response = await blogService.createBlog(data, token.token);
         if (response.data) {
           showNotification("Bài viết đã được gửi, chờ quản lý duyệt!", "success");
-          navigate("/blog");
+          navigate(getDashboardPath(currentUser.role));
         }
       } catch (error) {
         console.error("Blog create error:", error);
@@ -103,7 +116,7 @@ const CreateBlogPage = () => {
       const response = await blogService.createBlog(data, token.token);
       if (response.data) {
         showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
-        navigate("/blog");
+        navigate(getDashboardPath(currentUser.role));
       }
     } catch (error) {
       console.error("Blog draft error:", error);
@@ -120,7 +133,7 @@ const CreateBlogPage = () => {
     if (values.title || values.content || values.sourceReference) {
       setIsExitModalVisible(true);
     } else {
-      navigate("/blog");
+      navigate(getDashboardPath(currentUser?.role));
     }
   };
 
@@ -128,7 +141,7 @@ const CreateBlogPage = () => {
     if (saveDraft) {
       await handleSaveDraft();
     } else {
-      navigate("/blog");
+      navigate(getDashboardPath(currentUser?.role));
     }
     setIsExitModalVisible(false);
   };

@@ -35,14 +35,23 @@ export const blogService = {
     return http.put(`blogs/${blogId}/${userId}`, data);
   },
 
+  // Xóa blog
+  // deleteBlog: (blogId, token) => {
+  //   return http.delete(`blogs/${blogId}`, {
+  //     headers: {
+  //       Authorization: `Bearer ${token}`
+  //     }
+  //   });
+  // },
+
   // Submit blog
   submitBlog: (blogId, userId) => {
     return http.post(`blogs/submit/${blogId}/${userId}`);
   },
 
   // Duyệt blog (approve)
-  approveBlog: (blogId, token) => {
-    return http.post(`blogs/approve/${blogId}`, {}, {
+  approveBlog: (blogId, managerId, token) => {
+    return http.post(`blogs/${blogId}/${managerId}/approve`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }
