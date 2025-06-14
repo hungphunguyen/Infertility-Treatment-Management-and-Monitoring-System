@@ -75,11 +75,10 @@ const blogPosts = [
 
 const BlogPage = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#f7f8fa]">
       <UserHeader />
-
       {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden">
+      <div className="relative h-[400px] w-full overflow-hidden mb-0">
         <img
           src="/images/features/pc8.jpg"
           alt="Băng rôn Blog"
@@ -88,45 +87,44 @@ const BlogPage = () => {
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Blogs</h1>
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">Blogs</h1>
           </div>
         </div>
       </div>
-
       {/* Blog Content */}
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Title level={1} className="text-3xl">Bài viết nổi bật</Title>
+            <Paragraph className="text-lg mt-4">
+              Khám phá các bài viết, chia sẻ và kiến thức mới nhất về sức khỏe sinh sản, IVF, IUI và các chủ đề liên quan.
+            </Paragraph>
+          </div>
           <Row gutter={[32, 60]}>
             {blogPosts.slice(0, 3).map((post) => (
               <Col xs={24} md={8} key={post.id}>
                 <Card
                   hoverable
-                  className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                  className="h-full flex flex-col border-0 shadow-lg rounded-xl hover:shadow-2xl transition-shadow bg-white"
                   cover={
                     <div className="overflow-hidden">
                       <img
                         src={post.image}
                         alt={post.title}
-                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
+                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300 rounded-t-xl"
                       />
                     </div>
                   }
                 >
                   <div className="text-center flex-grow">
-                    <div className="text-gray-500 text-sm mb-2">
-                      {post.date}
-                    </div>
-                    <Title level={4} className="mb-4">
-                      {post.title}
-                    </Title>
+                    <div className="text-gray-500 text-sm mb-2">{post.date}</div>
+                    <Title level={4} className="mb-4">{post.title}</Title>
                   </div>
                   <div className="text-center mt-auto">
                     <Link to={`/blog/${post.slug}`}>
                       <Button
                         type="text"
-                        icon={
-                          <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
-                        }
+                        icon={<RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />}
                         className="text-[#ff8460] hover:text-[#ff6b40]"
                       >
                         Thông Tin Thêm
@@ -137,40 +135,32 @@ const BlogPage = () => {
               </Col>
             ))}
           </Row>
-
           <Divider className="my-12" />
-
           <Row gutter={[32, 60]}>
             {blogPosts.slice(3, 6).map((post) => (
               <Col xs={24} md={8} key={post.id}>
                 <Card
                   hoverable
-                  className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                  className="h-full flex flex-col border-0 shadow-lg rounded-xl hover:shadow-2xl transition-shadow bg-white"
                   cover={
                     <div className="overflow-hidden">
                       <img
                         src={post.image}
                         alt={post.title}
-                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
+                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300 rounded-t-xl"
                       />
                     </div>
                   }
                 >
                   <div className="text-center flex-grow">
-                    <div className="text-gray-500 text-sm mb-2">
-                      {post.date}
-                    </div>
-                    <Title level={4} className="mb-4">
-                      {post.title}
-                    </Title>
+                    <div className="text-gray-500 text-sm mb-2">{post.date}</div>
+                    <Title level={4} className="mb-4">{post.title}</Title>
                   </div>
                   <div className="text-center mt-auto">
                     <Link to={`/blog/${post.slug}`}>
                       <Button
                         type="text"
-                        icon={
-                          <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
-                        }
+                        icon={<RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />}
                         className="text-[#ff8460] hover:text-[#ff6b40]"
                       >
                         Thông Tin Thêm
@@ -181,40 +171,32 @@ const BlogPage = () => {
               </Col>
             ))}
           </Row>
-
           <Divider className="my-12" />
-
           <Row gutter={[32, 60]}>
             {blogPosts.slice(6, 9).map((post) => (
               <Col xs={24} md={8} key={post.id}>
                 <Card
                   hoverable
-                  className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                  className="h-full flex flex-col border-0 shadow-lg rounded-xl hover:shadow-2xl transition-shadow bg-white"
                   cover={
                     <div className="overflow-hidden">
                       <img
                         src={post.image}
                         alt={post.title}
-                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
+                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300 rounded-t-xl"
                       />
                     </div>
                   }
                 >
                   <div className="text-center flex-grow">
-                    <div className="text-gray-500 text-sm mb-2">
-                      {post.date}
-                    </div>
-                    <Title level={4} className="mb-4">
-                      {post.title}
-                    </Title>
+                    <div className="text-gray-500 text-sm mb-2">{post.date}</div>
+                    <Title level={4} className="mb-4">{post.title}</Title>
                   </div>
                   <div className="text-center mt-auto">
                     <Link to={`/blog/${post.slug}`}>
                       <Button
                         type="text"
-                        icon={
-                          <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
-                        }
+                        icon={<RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />}
                         className="text-[#ff8460] hover:text-[#ff6b40]"
                       >
                         Thông Tin Thêm
@@ -227,7 +209,6 @@ const BlogPage = () => {
           </Row>
         </div>
       </div>
-
       <UserFooter />
     </div>
   );

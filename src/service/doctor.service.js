@@ -92,5 +92,24 @@ export const doctorService = {
 
   getDashboardStatics: (doctorId) => {
     return http.get(`/doctors/dashboard/statics/${doctorId}`);
-  }
+  },
+
+  getDoctorFeedback: async (doctorId, isApproval) => {
+    try {
+      const response = await http.get(`feedback/for-doctor/${isApproval}/${doctorId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy danh sách rating của bác sĩ
+  getDoctorRatings: async () => {
+    try {
+      const response = await http.get("doctors/rating");
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
 }; 

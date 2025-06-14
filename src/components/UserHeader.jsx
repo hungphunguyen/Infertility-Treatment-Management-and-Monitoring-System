@@ -103,6 +103,12 @@ const UserHeader = () => {
   );
 
   const isActive = (pathname) => {
+    if (pathname === path.ourStaff && location.pathname.startsWith('/doctor/')) {
+      return true;
+    }
+    if (pathname === path.services && location.pathname.startsWith('/service-detail/')) {
+      return true;
+    }
     return (
       location.pathname === pathname ||
       location.pathname.startsWith(`${pathname}/`)
@@ -190,6 +196,7 @@ const UserHeader = () => {
         <nav className="flex gap-8 text-xl">
           <Link
             to={path.homePage}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.homePage) && location.pathname === "/"
                 ? "text-orange-400 font-bold text-2xl"
@@ -200,6 +207,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.services}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.services)
                 ? "text-orange-400 font-bold text-2xl"
@@ -210,6 +218,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.ourStaff}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.ourStaff)
                 ? "text-orange-400 font-bold text-2xl"
@@ -220,6 +229,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.blog}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.blog)
                 ? "text-orange-400 font-bold text-2xl"
@@ -230,6 +240,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.contacts}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.contacts)
                 ? "text-orange-400 font-bold text-2xl"
