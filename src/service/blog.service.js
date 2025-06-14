@@ -22,8 +22,8 @@ export const blogService = {
   },
 
   // Tạo blog mới
-  createBlog: (data, token) => {
-    return http.post(`blogs?userId=${data.userId}`, {
+  createBlog: (userId, data) => {
+    return http.post(`blogs/${userId}`, {
       title: data.title,
       content: data.content,
       sourceReference: data.sourceReference
@@ -35,14 +35,15 @@ export const blogService = {
     return http.put(`blogs/${blogId}/${userId}`, data);
   },
 
-  // Xóa blog
-  // deleteBlog: (blogId, token) => {
-  //   return http.delete(`blogs/${blogId}`, {
-  //     headers: {
-  //       Authorization: `Bearer ${token}`
-  //     }
-  //   });
-  // },
+  // Tải ảnh blog
+  uploadBlogImage: (data, blogId, token) => {
+    return http.put(`blogs/update/img?blogId=${blogId}`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`
+      }
+    });
+  },
 
   // Submit blog
   submitBlog: (blogId, userId) => {
@@ -51,15 +52,7 @@ export const blogService = {
 
   // Duyệt blog (approve)
   approveBlog: (blogId, managerId, token) => {
-    return http.post(`blogs/${blogId}/${managerId}/approve`, {}, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  },
-  // Từ chối blog (reject)
-  rejectBlog: (blogId, token) => {
-    return http.post(`blogs/reject/${blogId}`, {}, {
+    return http.post(`blogs/${blogId}/${managerId}`, {}, {
       headers: {
         Authorization: `Bearer ${token}`
       }

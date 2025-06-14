@@ -278,40 +278,64 @@ const BlogManagement = () => {
       title: "Hành động",
       key: "action",
       render: (_, record) => (
-        <Space size="middle">
-          {record.status === "approved" ? (
+        <Space size="small">
+          <Button
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => viewBlog(record)}
+          >
+            Xem
+          </Button>
+          {record.status === "draft" && (
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => editBlog(record)}
+            >
+              Sửa
+            </Button>
+          )}
+          {record.status === "pending" && (
+            <Button
+              size="small"
+              type="primary"
+              icon={<CheckOutlined />}
+              onClick={() => handleApprove(record.id)}
+            >
+              Duyệt
+            </Button>
+          )}
+          {record.status === "pending" && (
+            <Popconfirm
+              title="Bạn có chắc chắn muốn từ chối bài viết này?"
+              onConfirm={() => handleReject(record.id)}
+              okText="Đồng ý"
+              cancelText="Hủy"
+            >
+              <Button
+                size="small"
+                danger
+                icon={<CloseOutlined />}
+              >
+                Từ chối
+              </Button>
+            </Popconfirm>
+          )}
+          {record.status === "approved" && (
             <Popconfirm
               title="Bạn có chắc chắn muốn gỡ bài viết này?"
               onConfirm={() => handleUnpublish(record.id)}
-              okText="Có"
-              cancelText="Không"
+              okText="Đồng ý"
+              cancelText="Hủy"
             >
-              <Button danger icon={<CloseOutlined />}>Gỡ</Button>
+              <Button
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                Gỡ bài
+              </Button>
             </Popconfirm>
-          ) : (
-            <>
-              <Button type="default" icon={<EyeOutlined />} onClick={() => viewBlog(record)}>Xem</Button>
-              {record.status === "pending" && (
-                <>
-                  <Popconfirm
-                    title="Bạn có chắc chắn muốn duyệt bài viết này?"
-                    onConfirm={() => handleApprove(record.id)}
-                    okText="Có"
-                    cancelText="Không"
-                  >
-                    <Button type="primary" icon={<CheckOutlined />}>Duyệt</Button>
-                  </Popconfirm>
-                  <Popconfirm
-                    title="Bạn có chắc chắn muốn từ chối bài viết này?"
-                    onConfirm={() => handleReject(record.id)}
-                    okText="Có"
-                    cancelText="Không"
-                  >
-                    <Button danger icon={<CloseOutlined />}>Từ chối</Button>
-                  </Popconfirm>
-                </>
-              )}
-            </>
           )}
         </Space>
       ),
