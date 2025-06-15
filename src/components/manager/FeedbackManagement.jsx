@@ -2,39 +2,19 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   Card,
   Typography,
-  Table,
   Button,
   Space,
   Tag,
   Select,
   Input,
-  Modal,
-  Form,
-  message,
-  Row,
-  Col,
   Rate,
-  Avatar,
-  Descriptions,
-  Divider,
-  List,
 } from "antd";
-import {
-  CheckOutlined,
-  EyeInvisibleOutlined,
-  EyeOutlined,
-  MessageOutlined,
-  UserOutlined,
-  StarOutlined,
-  ExclamationCircleOutlined,
-} from "@ant-design/icons";
+import { CheckOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
 import { authService } from "../../service/auth.service";
 import { NotificationContext } from "../../App";
 import { doctorService } from "../../service/doctor.service";
-
-const { Title, Text } = Typography;
 
 const FeedbackManagement = () => {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -193,6 +173,7 @@ const FeedbackManagement = () => {
               setFilters((prev) => ({ ...prev, status: value }))
             }
           >
+            <Select.Option value="">Tất cả trạng thái</Select.Option>
             <Select.Option value="approved">Đã duyệt</Select.Option>
             <Select.Option value="pending">Chưa duyệt</Select.Option>
           </Select>
@@ -245,18 +226,20 @@ const FeedbackManagement = () => {
                           Duyệt
                         </Button>
                       )}
-                      <Button
-                        type="default"
-                        danger
-                        size="small"
-                        icon={<ExclamationCircleOutlined />}
-                        loading={loadingIds.includes(item.id)}
-                        onClick={() =>
-                          handleUpdateApprovalStatus(item.id, false)
-                        }
-                      >
-                        Từ chối
-                      </Button>
+                      {item.approved && (
+                        <Button
+                          type="default"
+                          danger
+                          size="small"
+                          icon={<ExclamationCircleOutlined />}
+                          loading={loadingIds.includes(item.id)}
+                          onClick={() =>
+                            handleUpdateApprovalStatus(item.id, false)
+                          }
+                        >
+                          Từ chối
+                        </Button>
+                      )}
                     </Space>
                   </td>
                 </tr>

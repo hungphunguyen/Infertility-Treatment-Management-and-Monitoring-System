@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Typography, Row, Col, Button, Spin, Empty, Card } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { serviceService } from "../service/service.service";
+import RecommendationSection from "../components/RecommendationSection";
 
 const { Title, Text } = Typography;
 
@@ -50,11 +51,11 @@ const ServicesPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#f7f8fa]">
       <UserHeader />
 
       {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden">
+      <div className="relative h-[400px] w-full overflow-hidden mb-0">
         <img
           src="/images/features/pc4.jpg"
           alt="Băng rôn Dịch vụ"
@@ -63,7 +64,7 @@ const ServicesPage = () => {
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Dịch Vụ</h1>
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">Dịch Vụ</h1>
           </div>
         </div>
       </div>
@@ -103,9 +104,10 @@ const ServicesPage = () => {
               <Row gutter={[32, 64]} className="justify-center">
                 {services.map((service) => (
                   <Col xs={24} md={12} key={service.id}>
-                    <div 
-                      className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                    <Card
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 cursor-pointer border-0 hover:scale-105"
                       onClick={() => navigate(`/service-detail/${service.id}`)}
+                      bodyStyle={{ padding: 0 }}
                     >
                       <div className="relative overflow-hidden">
                         <img
@@ -130,7 +132,7 @@ const ServicesPage = () => {
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   </Col>
                 ))}
               </Row>
@@ -140,47 +142,7 @@ const ServicesPage = () => {
       </div>
 
       {/* Recommendation Section */}
-      <div
-        className="py-20 bg-cover bg-center relative"
-        style={{ backgroundImage: "url('/images/features/pc9.jpg')" }}
-      >
-        <div className="absolute inset-0 bg-black opacity-50" />
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-8 md:mb-0">
-              <div className="flex justify-center">
-                <div className="w-64 h-64 rounded-full border-4 border-white flex flex-col items-center justify-center text-white">
-                  <div className="text-sm uppercase">HƠN</div>
-                  <div className="text-6xl font-bold">1250</div>
-                  <div className="text-sm uppercase text-[#ff8460]">
-                    Gia Đình Hạnh Phúc
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="md:w-1/2 text-white">
-              <h2 className="text-4xl font-bold mb-4">
-                Mọi Người Đề Xuất Chúng Tôi
-              </h2>
-              <div className="text-[#ff8460] font-medium mb-4">
-                TẠI SAO CHỌN CHÚNG TÔI
-              </div>
-              <p className="mb-8">
-                Chúng tôi cung cấp sự chăm sóc và quan tâm cá nhân hóa cho mỗi
-                khách hàng trong hành trình làm cha mẹ của họ. Chúng tôi cung
-                cấp xét nghiệm toàn diện để xác định nguyên nhân vô sinh ở nam
-                và nữ, và chúng tôi chuyên về IUI và IVF.
-              </p>
-              <Button
-                onClick={() => navigate("/contacts")}
-                className="bg-[#ff8460] hover:bg-[#ff6b40] text-white border-none rounded py-3 px-8"
-              >
-                Liên Hệ Với Chúng Tôi
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <RecommendationSection />
 
       <UserFooter />
     </div>

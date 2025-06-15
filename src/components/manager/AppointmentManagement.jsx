@@ -27,7 +27,7 @@ const AppointmentManagement = () => {
         const mapped = response.data.result.map(item => ({
           ...item,
           startDate: item.appointmentDate,
-          treatmentServiceName: item.serviceName,
+          treatmentServiceName: item.purpose || item.serviceName,
           createdDate: item.createdAt,
         }));
         setAppointments(mapped);
@@ -97,9 +97,9 @@ const AppointmentManagement = () => {
       filtered = filtered.filter(app => app.status === statusFilter);
     }
 
-    // Lọc theo dịch vụ
+    // Lọc theo dịch vụ/bước điều trị
     if (serviceFilter !== 'all') {
-      filtered = filtered.filter(app => app.treatmentServiceName.includes(serviceFilter));
+      filtered = filtered.filter(app => (app.treatmentServiceName || '').includes(serviceFilter));
     }
 
     setFilteredAppointments(filtered);
@@ -125,7 +125,7 @@ const AppointmentManagement = () => {
       width: 200,
     },
     {
-      title: 'Dịch vụ',
+      title: 'Dịch vụ điều trị',
       dataIndex: 'treatmentServiceName',
       key: 'treatmentServiceName',
       width: 300,

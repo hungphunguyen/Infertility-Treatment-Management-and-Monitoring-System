@@ -76,4 +76,8 @@ export const managerService = {
   confirmFeedback: (id, data) => {
     return http.put(`feedback/${id}`, data);
   },
+
+  getWorkScheduleStatics: () => {
+    return http.get("managers/dashboard/work-schedules/statics/");
+  },
 };

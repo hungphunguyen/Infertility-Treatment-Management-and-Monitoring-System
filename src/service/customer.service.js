@@ -8,4 +8,8 @@ export const customerService = {
   getFeedbackCustomer: (customerId) => {
     return http.get(`/feedback/for-customer/${customerId}`);
   },
+
+  checkIsValid: (recordId) => {
+    return http.get(`/feedback/isValidToFeedback/${recordId}`);
+  },
 };

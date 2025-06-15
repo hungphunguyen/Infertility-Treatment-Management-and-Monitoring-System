@@ -1,21 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, Table, Tag, Typography, Row, Col, Statistic, 
-  Timeline, Modal, Descriptions, Spin, message, Button 
-} from 'antd';
-import { 
-  ExperimentOutlined, 
-  CheckCircleOutlined, 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Table,
+  Tag,
+  Typography,
+  Row,
+  Col,
+  Statistic,
+  Timeline,
+  Modal,
+  Descriptions,
+  Spin,
+  message,
+  Button,
+} from "antd";
+import {
+  ExperimentOutlined,
+  CheckCircleOutlined,
   ClockCircleOutlined,
   UserOutlined,
-  CalendarOutlined
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { treatmentService } from '../../service/treatment.service';
-import { authService } from '../../service/auth.service';
+  CalendarOutlined,
+  CloseCircleOutlined,
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import { treatmentService } from "../../service/treatment.service";
+import { authService } from "../../service/auth.service";
+import { useNavigate } from "react-router-dom";
+import { customerService } from "../../service/customer.service";
+import { path } from "../../common/path";
 
 const { Title, Text } = Typography;
-
 const MyServices = () => {
   const [loading, setLoading] = useState(true);
   const [treatmentRecords, setTreatmentRecords] = useState([]);
@@ -23,13 +37,13 @@ const MyServices = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [statistics, setStatistics] = useState({
     totalServices: 0,
-    completedServices: 0,
+    cancelledServices: 0,
     inProgressServices: 0,
-    pendingServices: 0
   });
   const [cancelLoading, setCancelLoading] = useState({});
   const [userId, setUserId] = useState(null);
   const [appointments, setAppointments] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTreatmentRecords();
@@ -46,36 +60,58 @@ const MyServices = () => {
     try {
       setLoading(true);
       const userResponse = await authService.getMyInfo();
-      console.log('User Info Response:', userResponse);
-      
+      console.log("User Info Response:", userResponse);
+
       if (!userResponse?.data?.result?.id) {
-        message.error('Không tìm thấy thông tin người dùng');
+        message.error("Không tìm thấy thông tin người dùng");
         return;
       }
 
       const customerId = userResponse.data.result.id;
-      const response = await treatmentService.getTreatmentRecordsByCustomer(customerId);
-      console.log('Treatment Records Response:', response);
-      console.log('Treatment Records Data:', response?.data?.result);
-      
+      const response = await treatmentService.getTreatmentRecordsByCustomer(
+        customerId
+      );
+      console.log("Treatment Records Response:", response);
+      console.log("Treatment Records Data:", response?.data?.result);
+
       if (response?.data?.result) {
         const records = response.data.result;
-        console.log('First Record Full Structure:', JSON.stringify(records[0], null, 2));
-        
-        setTreatmentRecords(records);
+        console.log(
+          "First Record Full Structure:",
+          JSON.stringify(records[0], null, 2)
+        );
+
+        // Gọi API check cho từng record
+        const enrichedRecords = await Promise.all(
+          records.map(async (record) => {
+            console.log("👉 Before enrich:", record);
+            try {
+              const res = await customerService.checkIsValid(record.id);
+              console.log("checkIsValid", record.id, res.data.result);
+              return { ...record, canFeedback: res.data.result === true };
+            } catch (err) {
+              return { ...record, canFeedback: false }; // fallback nếu lỗi
+            }
+          })
+        );
+
+        setTreatmentRecords(enrichedRecords);
 
         // Tính toán thống kê
         const stats = {
           totalServices: records.length,
-          completedServices: records.filter(r => r.status === 'Completed').length,
-          inProgressServices: records.filter(r => r.status === 'InProgress').length,
-          pendingServices: records.filter(r => r.status === 'Pending').length
+          cancelledServices: records.filter(
+            (r) => r.status === "Cancelled" || r.status === "CANCELLED"
+          ).length,
+          inProgressServices: records.filter(
+            (r) => r.status === "InProgress" || r.status === "INPROGRESS"
+          ).length,
         };
         setStatistics(stats);
       }
     } catch (error) {
-      console.error('Error fetching treatment records:', error);
-      message.error('Có lỗi xảy ra khi tải dữ liệu');
+      console.error("Error fetching treatment records:", error);
+      message.error("Có lỗi xảy ra khi tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -84,120 +120,166 @@ const MyServices = () => {
   const getStatusTag = (status, progress) => {
     // Nếu có progress, ưu tiên hiển thị trạng thái dựa trên progress
     if (progress !== undefined) {
-      if (progress === '0%') {
-        if (status === 'CANCELLED' || status === 'Cancelled') {
+      if (progress === "0%") {
+        if (status === "CANCELLED" || status === "Cancelled") {
           return <Tag color="error">Đã hủy</Tag>;
         }
         return <Tag color="warning">Đang chờ điều trị</Tag>;
-      } else if (progress === '100%') {
+      } else if (progress === "100%") {
         return <Tag color="success">Hoàn thành</Tag>;
       } else {
-        return <Tag color="processing">Đang điều trị</Tag>;
+        return <Tag color="#1890ff">Đang điều trị</Tag>;
       }
     }
 
     // Nếu không có progress, sử dụng status
     const statusMap = {
-      'Completed': { color: 'success', text: 'Hoàn thành' },
-      'InProgress': { color: 'processing', text: 'Đang điều trị' },
-      'Pending': { color: 'warning', text: 'Đang chờ điều trị' },
-      'Cancelled': { color: 'error', text: 'Đã hủy' },
-      'CANCELLED': { color: 'error', text: 'Đã hủy' }
+      Completed: { color: "success", text: "Hoàn thành" },
+      COMPLETED: { color: "success", text: "Hoàn thành" },
+      InProgress: { color: "#1890ff", text: "Đang điều trị" },
+      INPROGRESS: { color: "#1890ff", text: "Đang điều trị" },
+      Pending: { color: "warning", text: "Đang chờ điều trị" },
+      PENDING: { color: "warning", text: "Đang chờ điều trị" },
+      Cancelled: { color: "error", text: "Đã hủy" },
+      CANCELLED: { color: "error", text: "Đã hủy" },
     };
 
-    const { color, text } = statusMap[status] || { color: 'default', text: status };
+    const { color, text } = statusMap[status] || {
+      color: "default",
+      text: status,
+    };
     return <Tag color={color}>{text}</Tag>;
   };
 
   const calculateEstimatedEndDate = (startDate, treatmentSteps) => {
     if (!startDate) return null;
-    
+
     // Nếu có endDate từ API thì sử dụng
     if (selectedService?.endDate) {
       return selectedService.endDate;
     }
-    
+
     // Nếu không có endDate, tính toán dựa trên ngày bắt đầu
     // Thêm 45 ngày cho toàn bộ quá trình điều trị
-    return dayjs(startDate).add(45, 'days').format('YYYY-MM-DD');
+    return dayjs(startDate).add(45, "days").format("YYYY-MM-DD");
   };
 
   const handleCancelTreatment = async (record) => {
     if (!userId) return;
-    setCancelLoading(l => ({ ...l, [record.id]: true }));
+    setCancelLoading((l) => ({ ...l, [record.id]: true }));
     try {
       await treatmentService.cancelTreatmentRecord(record.id, userId);
-      message.success('Yêu cầu hủy hồ sơ điều trị đã được gửi.');
+      message.success("Yêu cầu hủy hồ sơ điều trị đã được gửi.");
       fetchTreatmentRecords();
     } catch (err) {
-      message.error(err?.response?.data?.message || 'Không thể hủy hồ sơ điều trị này.');
+      message.error(
+        err?.response?.data?.message || "Không thể hủy hồ sơ điều trị này."
+      );
     } finally {
-      setCancelLoading(l => ({ ...l, [record.id]: false }));
+      setCancelLoading((l) => ({ ...l, [record.id]: false }));
     }
+  };
+
+  const handleOpenFeedbackForm = (record) => {
+    console.log(record);
+    if (!record.canFeedback) return;
+    navigate(path.customerFeedback, {
+      state: {
+        recordId: record.id,
+        customerId: userId,
+        doctorName: record.doctorName,
+        treatmentServiceName: record.treatmentServiceName,
+      },
+    });
   };
 
   const columns = [
     {
-      title: 'Gói điều trị',
-      dataIndex: 'treatmentServiceName',
-      key: 'treatmentServiceName',
-      render: (text) => <span>{text || 'N/A'}</span>
+      title: "Gói điều trị",
+      dataIndex: "treatmentServiceName",
+      key: "treatmentServiceName",
+      render: (text) => <span>{text || "N/A"}</span>,
     },
     {
-      title: 'Bác sĩ phụ trách',
-      dataIndex: 'doctorName',
-      key: 'doctorName',
-      render: (text) => <span>{text || 'N/A'}</span>
+      title: "Bác sĩ phụ trách",
+      dataIndex: "doctorName",
+      key: "doctorName",
+      render: (text) => <span>{text || "N/A"}</span>,
     },
     {
-      title: 'Ngày bắt đầu',
-      dataIndex: 'startDate',
-      key: 'startDate',
-      render: (text) => <span>{text ? new Date(text).toLocaleDateString('vi-VN') : 'N/A'}</span>
+      title: "Ngày bắt đầu",
+      dataIndex: "startDate",
+      key: "startDate",
+      render: (text) => (
+        <span>{text ? new Date(text).toLocaleDateString("vi-VN") : "N/A"}</span>
+      ),
     },
-    
+
     {
-      title: 'Trạng thái',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
       render: (status, record) => {
         const totalSteps = record.treatmentSteps?.length || 0;
-        if (!totalSteps || record.treatmentSteps[0]?.status !== 'COMPLETED') {
-          return getStatusTag(status, '0%');
+        if (!totalSteps || record.treatmentSteps[0]?.status !== "COMPLETED") {
+          return getStatusTag(status, "0%");
         }
-        const completedSteps = record.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+        const completedSteps =
+          record.treatmentSteps?.filter((step) => step.status === "COMPLETED")
+            .length || 0;
         const progress = Math.round((completedSteps / totalSteps) * 100);
         return getStatusTag(status, `${progress}%`);
-      }
+      },
     },
     {
-      title: 'Tiến độ',
-      dataIndex: 'progress',
-      key: 'progress',
+      title: "Tiến độ",
+      dataIndex: "progress",
+      key: "progress",
       render: (_, record) => {
         const totalSteps = record.treatmentSteps?.length || 0;
-        if (!totalSteps || record.treatmentSteps[0]?.status !== 'COMPLETED') {
-          return '0%';
+        if (!totalSteps || record.treatmentSteps[0]?.status !== "COMPLETED") {
+          return "0%";
         }
-        const completedSteps = record.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+        const completedSteps =
+          record.treatmentSteps?.filter((step) => step.status === "COMPLETED")
+            .length || 0;
         const progress = Math.round((completedSteps / totalSteps) * 100);
         return `${progress}%`;
-      }
+      },
     },
     {
-      title: 'Yêu cầu hủy',
-      key: 'cancel',
+      title: "Yêu cầu hủy",
+      key: "cancel",
       render: (_, record) => (
         <Button
           danger
           loading={!!cancelLoading[record.id]}
-          onClick={e => { e.stopPropagation(); handleCancelTreatment(record); }}
-          disabled={!userId || record.status === 'Cancelled'}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCancelTreatment(record);
+          }}
+          disabled={!userId || record.status === "Cancelled"}
         >
           Hủy tuyến trình
         </Button>
-      )
-    }
+      ),
+    },
+    {
+      title: "Tạo feedback",
+      key: "feedback",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpenFeedbackForm(record);
+          }}
+          disabled={!record.canFeedback}
+        >
+          Feedback
+        </Button>
+      ),
+    },
   ];
 
   const handleViewDetails = async (record) => {
@@ -206,7 +288,9 @@ const MyServices = () => {
     // Lấy lịch hẹn thực tế cho customerId
     if (record.customerId) {
       try {
-        const res = await treatmentService.getCustomerAppointments(record.customerId);
+        const res = await treatmentService.getCustomerAppointments(
+          record.customerId
+        );
         if (res?.data?.result) {
           setAppointments(res.data.result);
         } else {
@@ -222,61 +306,101 @@ const MyServices = () => {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
+      <div style={{ textAlign: "center", padding: "50px" }}>
         <Spin size="large" />
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-      <Title level={4} style={{ marginBottom: 24 }}>Dịch vụ của tôi</Title>
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
+      <Title
+        level={4}
+        style={{
+          marginBottom: 24,
+          color: "#1890ff",
+          fontWeight: 700,
+          letterSpacing: 1,
+        }}
+      >
+        Dịch vụ của tôi
+      </Title>
 
       {/* Thống kê */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
+      <Row gutter={32} style={{ marginBottom: 32, justifyContent: "center" }}>
+        <Col xs={24} sm={8}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 16,
+              boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
+              background: "#fff",
+            }}
+          >
             <Statistic
-              title="Tổng số dịch vụ"
+              title={
+                <span style={{ color: "#1890ff", fontWeight: 600 }}>
+                  Tổng số dịch vụ
+                </span>
+              }
               value={statistics.totalServices}
-              prefix={<ExperimentOutlined />}
+              prefix={<ExperimentOutlined style={{ color: "#1890ff" }} />}
+              valueStyle={{ fontSize: 32, color: "#1890ff", fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
+        <Col xs={24} sm={8}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 16,
+              boxShadow: "0 4px 16px rgba(255,77,79,0.08)",
+              background: "#fff",
+            }}
+          >
             <Statistic
-              title="Đã hoàn thành"
-              value={statistics.completedServices}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              title={
+                <span style={{ color: "#ff4d4f", fontWeight: 600 }}>
+                  Đã hủy
+                </span>
+              }
+              value={statistics.cancelledServices}
+              prefix={<CloseCircleOutlined style={{ color: "#ff4d4f" }} />}
+              valueStyle={{ fontSize: 32, color: "#ff4d4f", fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
+        <Col xs={24} sm={8}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 16,
+              boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
+              background: "#fff",
+            }}
+          >
             <Statistic
-              title="Đang thực hiện"
+              title={
+                <span style={{ color: "#1890ff", fontWeight: 600 }}>
+                  Đang thực hiện
+                </span>
+              }
               value={statistics.inProgressServices}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Đang chờ"
-              value={statistics.pendingServices}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#faad14' }}
+              prefix={<CheckCircleOutlined style={{ color: "#1890ff" }} />}
+              valueStyle={{ fontSize: 32, color: "#1890ff", fontWeight: 700 }}
             />
           </Card>
         </Col>
       </Row>
 
       {/* Bảng dịch vụ */}
-      <Card>
+      <Card
+        style={{
+          borderRadius: 16,
+          boxShadow: "0 2px 8px rgba(24,144,255,0.06)",
+          background: "#fff",
+        }}
+      >
         <Table
           columns={columns}
           dataSource={treatmentRecords}
@@ -284,12 +408,14 @@ const MyServices = () => {
           pagination={{
             pageSize: 5,
             showSizeChanger: false,
-            showTotal: (total) => `Tổng số ${total} dịch vụ`
+            showTotal: (total) => `Tổng số ${total} dịch vụ`,
           }}
           onRow={(record) => ({
             onClick: () => handleViewDetails(record),
-            style: { cursor: 'pointer' }
+            style: { cursor: "pointer" },
           })}
+          bordered
+          style={{ borderRadius: 12, overflow: "hidden" }}
         />
       </Card>
 
@@ -312,24 +438,41 @@ const MyServices = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
                 {(() => {
-                  const totalSteps = selectedService.treatmentSteps?.length || 0;
-                  if (!totalSteps || selectedService.treatmentSteps[0]?.status !== 'COMPLETED') {
-                    return getStatusTag(selectedService.status, '0%');
+                  const totalSteps =
+                    selectedService.treatmentSteps?.length || 0;
+                  if (
+                    !totalSteps ||
+                    selectedService.treatmentSteps[0]?.status !== "COMPLETED"
+                  ) {
+                    return getStatusTag(selectedService.status, "0%");
                   }
-                  const completedSteps = selectedService.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
-                  const progress = Math.round((completedSteps / totalSteps) * 100);
+                  const completedSteps =
+                    selectedService.treatmentSteps?.filter(
+                      (step) => step.status === "COMPLETED"
+                    ).length || 0;
+                  const progress = Math.round(
+                    (completedSteps / totalSteps) * 100
+                  );
                   return getStatusTag(selectedService.status, `${progress}%`);
                 })()}
               </Descriptions.Item>
               <Descriptions.Item label="Ngày bắt đầu">
-                {selectedService.startDate ? new Date(selectedService.startDate).toLocaleDateString('vi-VN') : 'N/A'}
+                {selectedService.startDate
+                  ? new Date(selectedService.startDate).toLocaleDateString(
+                      "vi-VN"
+                    )
+                  : "N/A"}
               </Descriptions.Item>
-              
+
               <Descriptions.Item label="Ngày tạo">
-                {selectedService.createdDate ? new Date(selectedService.createdDate).toLocaleDateString('vi-VN') : 'N/A'}
+                {selectedService.createdDate
+                  ? new Date(selectedService.createdDate).toLocaleDateString(
+                      "vi-VN"
+                    )
+                  : "N/A"}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái thanh toán">
-                {selectedService.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                {selectedService.paid ? "Đã thanh toán" : "Chưa thanh toán"}
               </Descriptions.Item>
             </Descriptions>
 
@@ -339,31 +482,35 @@ const MyServices = () => {
               <Timeline>
                 {selectedService.treatmentSteps?.map((step, index) => {
                   // Tìm appointment thực tế cho step này
-                  const appointment = appointments.find(app => app.purpose === step.name);
+                  const appointment = appointments.find(
+                    (app) => app.purpose === step.name
+                  );
                   // Lấy ngày và trạng thái thực tế nếu có
-                  const displayDate = appointment?.appointmentDate || step.scheduledDate;
+                  const displayDate =
+                    appointment?.appointmentDate || step.scheduledDate;
                   const displayStatus = appointment?.status || step.status;
                   const statusMap = {
-                    CONFIRMED: { color: 'blue', text: 'Đã xác nhận' },
-                    PLANNED: { color: 'orange', text: 'Chờ thực hiện' },
-                    COMPLETED: { color: 'green', text: 'Hoàn thành' },
-                    CANCELLED: { color: 'red', text: 'Đã hủy' },
-                    INPROGRESS: { color: 'blue', text: 'Đang thực hiện' },
-                    IN_PROGRESS: { color: 'blue', text: 'Đang thực hiện' },
+                    CONFIRMED: { color: "blue", text: "Đã xác nhận" },
+                    PLANNED: { color: "orange", text: "Chờ thực hiện" },
+                    COMPLETED: { color: "green", text: "Hoàn thành" },
+                    CANCELLED: { color: "red", text: "Đã hủy" },
+                    INPROGRESS: { color: "blue", text: "Đang thực hiện" },
+                    IN_PROGRESS: { color: "blue", text: "Đang thực hiện" },
                   };
-                  const s = statusMap[displayStatus] || { color: 'default', text: displayStatus };
+                  const s = statusMap[displayStatus] || {
+                    color: "default",
+                    text: displayStatus,
+                  };
                   return (
-                    <Timeline.Item 
-                      key={index}
-                      color={s.color}
-                    >
+                    <Timeline.Item key={index} color={s.color}>
                       <Text strong>
-                        {displayDate ? new Date(displayDate).toLocaleDateString('vi-VN') : 'Chưa lên lịch'} - {step.name}
+                        {displayDate
+                          ? new Date(displayDate).toLocaleDateString("vi-VN")
+                          : "Chưa lên lịch"}{" "}
+                        - {step.name}
                       </Text>
                       <br />
-                      <Text type="secondary">
-                        {s.text}
-                      </Text>
+                      <Text type="secondary">{s.text}</Text>
                       {step.notes && (
                         <div style={{ marginTop: 4 }}>
                           <Text type="secondary">Ghi chú: {step.notes}</Text>
@@ -381,4 +528,4 @@ const MyServices = () => {
   );
 };
 
-export default MyServices; 
+export default MyServices;
