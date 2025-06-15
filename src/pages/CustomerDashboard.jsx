@@ -13,6 +13,7 @@ import Feedback from "../components/customer/Feedback";
 import MedicalRecord from "../components/customer/MedicalRecord";
 import Payment from "../components/customer/Payment";
 import UpdateProfile from "../components/customer/UpdateProfile";
+import CustomerBlogManagement from "../components/blog/CustomerBlogManagement";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -28,29 +29,33 @@ const CustomerDashboard = () => {
     const pathname = location.pathname;
     if (pathname.includes("/profile")) {
       setSelectedMenuItem("profile");
+    } else if (pathname.includes("/update-profile")) {
+      setSelectedMenuItem("update-profile");
+    } else if (pathname.includes("/create-blog")) {
+      setSelectedMenuItem("create-blog");
+    } else if (pathname.includes("/my-blogs")) {
+      setSelectedMenuItem("my-blogs");
     } else if (pathname.includes("/services")) {
       setSelectedMenuItem("services");
     } else if (pathname.includes("/appointments")) {
       setSelectedMenuItem("appointments");
     } else if (pathname.includes("/treatment")) {
       setSelectedMenuItem("treatment");
-    } else if (pathname.includes("/reviews")) {
-      setSelectedMenuItem("reviews");
-    } else if (pathname.includes("/notifications")) {
-      setSelectedMenuItem("notifications");
-    } else if (pathname.includes("/feedback")) {
-      setSelectedMenuItem("feedback");
     } else if (pathname.includes("/medical-record")) {
       setSelectedMenuItem("medical-record");
+    } else if (pathname.includes("/notifications")) {
+      setSelectedMenuItem("notifications");
+    } else if (pathname.includes("/reviews")) {
+      setSelectedMenuItem("reviews");
+    } else if (pathname.includes("/feedback")) {
+      setSelectedMenuItem("feedback");
     } else if (pathname.includes("/payment")) {
       setSelectedMenuItem("payment");
-    } else if (pathname.includes("/update-profile")) {
-      setSelectedMenuItem("update-profile");
     } else {
       // Default to profile if no match
       setSelectedMenuItem("profile");
       // Redirect to profile if at the root customer dashboard
-      if (pathname === "/customer-dashboard") {
+      if (pathname === "/customer") {
         navigate(path.customerProfile);
       }
     }
@@ -60,24 +65,28 @@ const CustomerDashboard = () => {
     switch (selectedMenuItem) {
       case "profile":
         return "Hồ Sơ Cá Nhân";
+      case "update-profile":
+        return "Cập Nhật Thông Tin";
+      case "create-blog":
+        return "Tạo Bài Viết Mới";
+      case "my-blogs":
+        return "Bài Viết Của Tôi";
       case "services":
-        return "Dịch Vụ Đã Đăng Ký";
+        return "Dịch Vụ Của Tôi";
       case "appointments":
-        return "Lịch Hẹn";
+        return "Lịch Hẹn Của Tôi";
       case "treatment":
         return "Lịch Trình Điều Trị";
-      case "reviews":
-        return "Đánh Giá Dịch Vụ";
+      case "medical-record":
+        return "Hồ Sơ Y Tế";
       case "notifications":
         return "Thông Báo";
+      case "reviews":
+        return "Đánh Giá Của Tôi";
       case "feedback":
-        return "Phản Hồi";
-      case "medical-record":
-        return "Hồ Sơ Bệnh Án";
+        return "Phản Hồi Của Tôi";
       case "payment":
         return "Thanh Toán";
-      case "update-profile":
-        return "Cập Nhật Thông Tin Cá Nhân";
       default:
         return "Dashboard Khách Hàng";
     }
@@ -133,6 +142,7 @@ const CustomerDashboard = () => {
             <Route path="medical-record" element={<MedicalRecord />} />
             <Route path="payment" element={<Payment />} />
             <Route path="update-profile" element={<UpdateProfile />} />
+            <Route path="my-blogs" element={<CustomerBlogManagement />} />
           </Routes>
         </Content>
       </Layout>

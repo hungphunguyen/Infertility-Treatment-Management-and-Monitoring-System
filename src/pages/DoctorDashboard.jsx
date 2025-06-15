@@ -7,6 +7,7 @@ import DashboardOverview from "../components/doctor/DashboardOverview";
 import PatientList from "../components/doctor/PatientList";
 import TestResults from "../components/doctor/TestResults";
 import DoctorProfile from "../components/doctor/DoctorProfile";
+import DoctorBlogManagement from "../components/blog/DoctorBlogManagement";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -26,6 +27,10 @@ const DoctorDashboard = () => {
       setSelectedMenuItem("patients");
     } else if (pathname.includes("/test-results")) {
       setSelectedMenuItem("test-results");
+    } else if (pathname.includes("/create-blog")) {
+      setSelectedMenuItem("create-blog");
+    } else if (pathname.includes("/my-blogs")) {
+      setSelectedMenuItem("my-blogs");
     } else if (pathname.includes("/profile")) {
       setSelectedMenuItem("profile");
     } else {
@@ -46,6 +51,10 @@ const DoctorDashboard = () => {
         return "Danh Sách Bệnh Nhân";
       case "test-results":
         return "Quản Lý Kết Quả Xét Nghiệm";
+      case "create-blog":
+        return "Tạo Bài Viết Mới";
+      case "my-blogs":
+        return "Bài Viết Của Tôi";
       case "profile":
         return "Hồ Sơ Bác Sĩ";
       default:
@@ -97,6 +106,7 @@ const DoctorDashboard = () => {
             <Route path="patients" element={<PatientList />} />
             <Route path="test-results" element={<TestResults />} />
             <Route path="profile" element={<DoctorProfile />} />
+            <Route path="my-blogs" element={<DoctorBlogManagement />} />
           </Routes>
         </Content>
       </Layout>

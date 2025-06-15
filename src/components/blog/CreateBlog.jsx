@@ -70,13 +70,12 @@ const CreateBlogPage = () => {
           return;
         }
 
-        const data = {
-          ...values,
-          userId: currentUser.id,
+        const response = await blogService.createBlog(currentUser.id, {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
           status: 'pending'
-        };
-
-        const response = await blogService.createBlog(data, token.token);
+        });
         if (response.data) {
           showNotification("Bài viết đã được gửi, chờ quản lý duyệt!", "success");
           navigate(getDashboardPath(currentUser.role));
@@ -107,13 +106,12 @@ const CreateBlogPage = () => {
         return;
       }
 
-      const data = {
-        ...values,
-        userId: currentUser.id,
+      const response = await blogService.createBlog(currentUser.id, {
+        title: values.title,
+        content: values.content,
+        sourceReference: values.sourceReference,
         status: 'draft'
-      };
-
-      const response = await blogService.createBlog(data, token.token);
+      });
       if (response.data) {
         showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
         navigate(getDashboardPath(currentUser.role));

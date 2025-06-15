@@ -150,15 +150,25 @@ const BlogManagement = () => {
           message.error("Không thể lấy thông tin người dùng để tạo bài viết.");
           return;
         }
-        await blogService.createBlog({ ...values, userId: currentUser.id }, token.token);
-        message.success("Tạo bài viết mới thành công!");
+        const response = await blogService.createBlog(currentUser.id, {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+          status: 'pending'
+        });
+        if (response.data) {
+          message.success("Tạo bài viết mới thành công!");
+          setIsModalVisible(false);
+          form.resetFields();
+          fetchBlogs();
+        }
       } else if (modalType === "edit") {
         await blogService.updateBlog(selectedBlog.id, selectedBlog.userId, values, token.token);
         message.success("Bài viết đã được cập nhật!");
+        setIsModalVisible(false);
+        form.resetFields();
+        fetchBlogs();
       }
-      setIsModalVisible(false);
-      form.resetFields();
-      fetchBlogs();
     } catch (error) {
       console.error("Lỗi khi xử lý bài viết:", error);
       message.error("Xử lý bài viết thất bại");

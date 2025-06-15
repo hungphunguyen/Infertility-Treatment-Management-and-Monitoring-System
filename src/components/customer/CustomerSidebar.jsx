@@ -16,6 +16,7 @@ import {
   SettingOutlined,
   EditOutlined,
   HomeOutlined,
+  ReadOutlined,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -41,11 +42,11 @@ const CustomerSidebar = ({
       path: path.customerUpdateProfile,
     },
     {
-      key: "create-blog",
-      icon: <EditOutlined />,
-      label: "Tạo Blog",
-      title: "Tạo bài viết mới",
-      path: "/customer/create-blog",
+      key: "my-blogs",
+      icon: <ReadOutlined />,
+      label: "Bài viết của tôi",
+      title: "Xem và quản lý bài viết của bạn",
+      path: "/customer-dashboard/my-blogs",
     },
     {
       key: "services",

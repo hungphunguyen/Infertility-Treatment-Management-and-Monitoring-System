@@ -11,6 +11,7 @@ import {
   MedicineBoxOutlined,
   HomeOutlined,
   EditOutlined,
+  ReadOutlined,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -43,11 +44,11 @@ const DoctorSidebar = ({
       path: path.doctorTestResults,
     },
     {
-      key: "create-blog",
-      icon: <EditOutlined />,
-      label: "Tạo Blog",
-      title: "Tạo bài viết mới",
-      path: "/doctor/create-blog",
+      key: "my-blogs",
+      icon: <ReadOutlined />,
+      label: "Bài viết của tôi",
+      title: "Xem và quản lý bài viết của bạn",
+      path: "/doctor/my-blogs",
     },
     {
       key: "profile",
