@@ -34,10 +34,10 @@ const { Search } = Input;
 const { TextArea } = Input;
 
 const statusMap = {
-  pending: { color: "orange", text: "Chờ duyệt" },
-  approved: { color: "green", text: "Đã duyệt" },
-  rejected: { color: "red", text: "Đã từ chối" },
-  draft: { color: "blue", text: "Bản nháp" },
+  PENDING_REVIEW: { color: "orange", text: "Chờ duyệt" },
+  APPROVED: { color: "green", text: "Đã duyệt" },
+  REJECTED: { color: "red", text: "Đã từ chối" },
+  DRAFT: { color: "blue", text: "Bản nháp" },
   all: { color: "default", text: "Tất cả" },
 };
 
@@ -102,17 +102,74 @@ const CustomerBlogManagement = () => {
   }, [myBlogs, statusFilter, searchText]);
 
   const getStatusTag = (status) => {
-    return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
+    const statusInfo = statusMap[status];
+    if (statusInfo) {
+      return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+    } else {
+      return <Tag>Không xác định</Tag>;
+    }
   };
 
   const handleCreateBlog = () => {
     navigate("/customer/create-blog");
   };
 
+  const editBlog = (blog) => {
+    setSelectedBlog(blog);
+    setModalType("edit");
+    form.setFieldsValue({
+      title: blog.title,
+      content: blog.content,
+      sourceReference: blog.sourceReference,
+      featured: blog.featured || false,
+    });
+    setIsModalVisible(true);
+  };
+
   const viewBlog = (blog) => {
     setSelectedBlog(blog);
     setModalType("view");
     setIsModalVisible(true);
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      if (modalType === "create") {
+        if (!currentUser || !currentUser.id) {
+          showNotification("Không thể lấy thông tin người dùng để tạo bài viết.", "error");
+          return;
+        }
+        const response = await blogService.createBlog(currentUser.id, {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+          status: 'DRAFT'
+        });
+        if (response.data) {
+          showNotification("Tạo bài viết mới thành công!", "success");
+          setIsModalVisible(false);
+          form.resetFields();
+          fetchMyBlogs(currentUser.id);
+        }
+      } else if (modalType === "edit") {
+        if (!selectedBlog || !currentUser || !currentUser.id) {
+          showNotification("Không thể cập nhật bài viết. Thông tin không đầy đủ.", "error");
+          return;
+        }
+        const updatedBlogData = {
+          ...selectedBlog,
+          ...values,
+        };
+        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
+        showNotification("Bài viết đã được cập nhật!", "success");
+        setIsModalVisible(false);
+        form.resetFields();
+        fetchMyBlogs(currentUser.id);
+      }
+    } catch (error) {
+      console.error("Lỗi khi xử lý bài viết:", error);
+      showNotification("Xử lý bài viết thất bại", "error");
+    }
   };
 
   const handleSearch = (value) => {
@@ -142,7 +199,6 @@ const CustomerBlogManagement = () => {
         <div>
           <div className="font-semibold">{title}</div>
           <div className="text-sm text-gray-500">ID: {record.id}</div>
-          {record.status === "draft" && <Tag color="blue" size="small">Bản nháp</Tag>}
           {record.featured && <Tag color="gold" size="small">Nổi bật</Tag>}
         </div>
       )
@@ -151,7 +207,9 @@ const CustomerBlogManagement = () => {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: getStatusTag
+      render: getStatusTag,
+      filters: Object.keys(statusMap).map(key => ({ text: statusMap[key].text, value: key })),
+      onFilter: (value, record) => record.status === value,
     },
     {
       title: "Ngày tạo",
@@ -171,6 +229,15 @@ const CustomerBlogManagement = () => {
           >
             Xem
           </Button>
+          {record.status === "DRAFT" && (
+            <Button
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => editBlog(record)}
+            >
+              Sửa
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -214,28 +281,64 @@ const CustomerBlogManagement = () => {
       />
 
       <Modal
-        title="Xem bài viết"
+        title={modalType === "create" ? "Tạo bài viết mới" : modalType === "edit" ? "Chỉnh sửa bài viết" : "Xem bài viết"}
         open={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
+          form.resetFields();
         }}
-        footer={[
+        footer={modalType === "view" ? [
           <Button key="close" onClick={() => setIsModalVisible(false)}>
             Đóng
+          </Button>
+        ] : [
+          <Button key="back" onClick={() => {
+            setIsModalVisible(false);
+            form.resetFields();
+          }}>
+            Hủy
+          </Button>,
+          <Button key="submit" type="primary" onClick={() => form.submit()}>
+            Lưu
           </Button>
         ]}
         width={800}
       >
-        {selectedBlog && (
-          <div>
-            <h2 className="text-xl font-bold mb-4">{selectedBlog.title}</h2>
-            <div className="mb-4">
-              <p className="text-gray-600">Tác giả: {selectedBlog.authorName}</p>
-              <p className="text-gray-600">Ngày tạo: {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY HH:mm")}</p>
-              <p className="text-gray-600">Trạng thái: {getStatusTag(selectedBlog.status)}</p>
+        {modalType === "view" ? (
+          selectedBlog && (
+            <div>
+              <h2 className="text-xl font-bold mb-4">{selectedBlog.title}</h2>
+              <div className="mb-4">
+                <p className="text-gray-600">Tác giả: {selectedBlog.authorName}</p>
+                <p className="text-gray-600">Ngày tạo: {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY HH:mm")}</p>
+                <p className="text-gray-600">Trạng thái: {getStatusTag(selectedBlog.status)}</p>
+              </div>
+              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: selectedBlog.content }}></div>
             </div>
-            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: selectedBlog.content }}></div>
-          </div>
+          )
+        ) : (
+          <Form form={form} layout="vertical" name="blog_form" onFinish={handleSubmit}>
+            <Form.Item
+              name="title"
+              label="Tiêu đề"
+              rules={[{ required: true, message: "Vui lòng nhập tiêu đề!" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              name="content"
+              label="Nội dung"
+              rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
+            >
+              <TextArea rows={10} />
+            </Form.Item>
+            <Form.Item
+              name="sourceReference"
+              label="Tham chiếu nguồn"
+            >
+              <Input />
+            </Form.Item>
+          </Form>
         )}
       </Modal>
     </Card>

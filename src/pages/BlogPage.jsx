@@ -1,79 +1,58 @@
-import React, { useState } from "react";
-import { Typography, Row, Col, Divider, Space, Button, Card } from "antd";
+import React, { useState, useEffect } from "react";
+import { Typography, Row, Col, Divider, Space, Button, Card, message } from "antd";
 import { RightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
+import { blogService } from "../service/blog.service";
+import dayjs from "dayjs";
 
 const { Title, Paragraph } = Typography;
 
-const blogPosts = [
-  {
-    id: 1,
-    title: "Những Bà Mẹ Hiện Đại: 8 Sự Thật Bất Ngờ",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc5.jpg",
-    slug: "modern-mothers-8-surprising-facts",
-  },
-  {
-    id: 2,
-    title: "7 Nguyên Nhân Hàng Đầu Gây Vô Sinh Ở Phụ Nữ",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc4.jpg",
-    slug: "top-7-causes-of-infertility-in-women",
-  },
-  {
-    id: 3,
-    title: "IVF hay IVM: Lựa Chọn Nào Phù Hợp Với Bạn?",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc6.jpg",
-    slug: "ivf-or-ivm-which-is-right-for-you",
-  },
-  {
-    id: 4,
-    title: "Cách Thực Hiện Xét Nghiệm Thai, Từng Bước",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc3.jpg",
-    slug: "pregnancy-test-step-by-step",
-  },
-  {
-    id: 5,
-    title: "Bảo Quản Khả Năng Sinh Sản Cho Phụ Nữ Được Chẩn Đoán Ung Thư",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc9.jpg",
-    slug: "fertility-preservation-for-cancer-patients",
-  },
-  {
-    id: 6,
-    title: "Vô Sinh Nam: Sự Thật và Huyền Thoại",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc10.jpg",
-    slug: "male-infertility-facts",
-  },
-  {
-    id: 7,
-    title: "Lạc Nội Mạc Tử Cung và Sức Khỏe Sinh Sản",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc11.jpg",
-    slug: "endo-and-fertility-health",
-  },
-  {
-    id: 8,
-    title: "Nguy Cơ Đối Với Bệnh Nhân Tiếp Xúc Với Virus Zika",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/pc12.jpg",
-    slug: "zika-virus-risks-for-patients",
-  },
-  {
-    id: 9,
-    title: "Lạc Nội Mạc Tử Cung và Thai Kỳ",
-    date: "NGÀY 10 THÁNG 11, 2016",
-    image: "/images/features/Pc1.jpg",
-    slug: "endometriosis-and-pregnancy",
-  },
-];
-
 const BlogPage = () => {
+  const [blogPosts, setBlogPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchApprovedBlogs = async () => {
+      try {
+        setLoading(true);
+        const response = await blogService.getBlogsByStatus("APPROVED"); // Fetch approved blogs
+        if (response.data && response.data.result) {
+          setBlogPosts(response.data.result);
+        } else {
+          setBlogPosts([]);
+          message.warning("Không có bài viết nào được duyệt.");
+        }
+      } catch (err) {
+        console.error("Error fetching approved blogs:", err);
+        setError("Không thể tải bài viết. Vui lòng thử lại sau.");
+        message.error("Không thể tải bài viết.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApprovedBlogs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Đang tải bài viết...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -96,135 +75,147 @@ const BlogPage = () => {
       {/* Blog Content */}
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <Row gutter={[32, 60]}>
-            {blogPosts.slice(0, 3).map((post) => (
-              <Col xs={24} md={8} key={post.id}>
-                <Card
-                  hoverable
-                  className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                  cover={
-                    <div className="overflow-hidden">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  }
-                >
-                  <div className="text-center flex-grow">
-                    <div className="text-gray-500 text-sm mb-2">
-                      {post.date}
-                    </div>
-                    <Title level={4} className="mb-4">
-                      {post.title}
-                    </Title>
-                  </div>
-                  <div className="text-center mt-auto">
-                    <Link to={`/blog/${post.slug}`}>
-                      <Button
-                        type="text"
-                        icon={
-                          <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
+          {blogPosts.length > 0 ? (
+            <>
+              <Row gutter={[32, 60]}>
+                {blogPosts.slice(0, 3).map((post) => (
+                  <Col xs={24} md={8} key={post.id}>
+                    <Card
+                      hoverable
+                      className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                      cover={
+                        <div className="overflow-hidden">
+                          <img
+                            src={post.coverImageUrl || "/images/default-blog.jpg"}
+                            alt={post.title}
+                            className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      }
+                    >
+                      <div className="text-center flex-grow">
+                        <div className="text-gray-500 text-sm mb-2">
+                          {dayjs(post.createdAt).format("DD THÁNG MM, YYYY")}
+                        </div>
+                        <Title level={4} className="mb-4">
+                          {post.title}
+                        </Title>
+                      </div>
+                      <div className="text-center mt-auto">
+                        <Link to={`/blog/${post.id}`}> {/* Changed to post.id for dynamic routing */}
+                          <Button
+                            type="text"
+                            icon={
+                              <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
+                            }
+                            className="text-[#ff8460] hover:text-[#ff6b40]"
+                          >
+                            Thông Tin Thêm
+                          </Button>
+                        </Link>
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+
+              {blogPosts.length > 3 && <Divider className="my-12" />}
+
+              {blogPosts.length > 3 && (
+                <Row gutter={[32, 60]}>
+                  {blogPosts.slice(3, 6).map((post) => (
+                    <Col xs={24} md={8} key={post.id}>
+                      <Card
+                        hoverable
+                        className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                        cover={
+                          <div className="overflow-hidden">
+                            <img
+                              src={post.coverImageUrl || "/images/default-blog.jpg"}
+                              alt={post.title}
+                              className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
                         }
-                        className="text-[#ff8460] hover:text-[#ff6b40]"
                       >
-                        Thông Tin Thêm
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                        <div className="text-center flex-grow">
+                          <div className="text-gray-500 text-sm mb-2">
+                            {dayjs(post.createdAt).format("DD THÁNG MM, YYYY")}
+                          </div>
+                          <Title level={4} className="mb-4">
+                            {post.title}
+                          </Title>
+                        </div>
+                        <div className="text-center mt-auto">
+                          <Link to={`/blog/${post.id}`}>
+                            <Button
+                              type="text"
+                              icon={
+                                <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
+                              }
+                              className="text-[#ff8460] hover:text-[#ff6b40]"
+                            >
+                              Thông Tin Thêm
+                            </Button>
+                          </Link>
+                        </div>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
 
-          <Divider className="my-12" />
+              {blogPosts.length > 6 && <Divider className="my-12" />}
 
-          <Row gutter={[32, 60]}>
-            {blogPosts.slice(3, 6).map((post) => (
-              <Col xs={24} md={8} key={post.id}>
-                <Card
-                  hoverable
-                  className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                  cover={
-                    <div className="overflow-hidden">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  }
-                >
-                  <div className="text-center flex-grow">
-                    <div className="text-gray-500 text-sm mb-2">
-                      {post.date}
-                    </div>
-                    <Title level={4} className="mb-4">
-                      {post.title}
-                    </Title>
-                  </div>
-                  <div className="text-center mt-auto">
-                    <Link to={`/blog/${post.slug}`}>
-                      <Button
-                        type="text"
-                        icon={
-                          <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
+              {blogPosts.length > 6 && (
+                <Row gutter={[32, 60]}>
+                  {blogPosts.slice(6, 9).map((post) => (
+                    <Col xs={24} md={8} key={post.id}>
+                      <Card
+                        hoverable
+                        className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                        cover={
+                          <div className="overflow-hidden">
+                            <img
+                              src={post.coverImageUrl || "/images/default-blog.jpg"}
+                              alt={post.title}
+                              className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
                         }
-                        className="text-[#ff8460] hover:text-[#ff6b40]"
                       >
-                        Thông Tin Thêm
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-
-          <Divider className="my-12" />
-
-          <Row gutter={[32, 60]}>
-            {blogPosts.slice(6, 9).map((post) => (
-              <Col xs={24} md={8} key={post.id}>
-                <Card
-                  hoverable
-                  className="h-full flex flex-col border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                  cover={
-                    <div className="overflow-hidden">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                  }
-                >
-                  <div className="text-center flex-grow">
-                    <div className="text-gray-500 text-sm mb-2">
-                      {post.date}
-                    </div>
-                    <Title level={4} className="mb-4">
-                      {post.title}
-                    </Title>
-                  </div>
-                  <div className="text-center mt-auto">
-                    <Link to={`/blog/${post.slug}`}>
-                      <Button
-                        type="text"
-                        icon={
-                          <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
-                        }
-                        className="text-[#ff8460] hover:text-[#ff6b40]"
-                      >
-                        Thông Tin Thêm
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                        <div className="text-center flex-grow">
+                          <div className="text-gray-500 text-sm mb-2">
+                            {dayjs(post.createdAt).format("DD THÁNG MM, YYYY")}
+                          </div>
+                          <Title level={4} className="mb-4">
+                            {post.title}
+                          </Title>
+                        </div>
+                        <div className="text-center mt-auto">
+                          <Link to={`/blog/${post.id}`}>
+                            <Button
+                              type="text"
+                              icon={
+                                <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
+                              }
+                              className="text-[#ff8460] hover:text-[#ff6b40]"
+                            >
+                              Thông Tin Thêm
+                            </Button>
+                          </Link>
+                        </div>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </>
+          ) : (
+            <div className="text-center text-gray-500">
+              Không có bài viết nào để hiển thị.
+            </div>
+          )}
         </div>
       </div>
 
