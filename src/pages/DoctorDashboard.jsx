@@ -26,14 +26,12 @@ const DoctorDashboard = () => {
       setSelectedMenuItem("work-schedule");
     } else if (pathname.includes("/dashboard")) {
       setSelectedMenuItem("dashboard");
-    } else if (pathname.includes("/patients")) {
+    } else if (pathname.includes("/patients") || pathname.includes("/treatment-stages")) {
       setSelectedMenuItem("patients");
     } else if (pathname.includes("/test-results")) {
       setSelectedMenuItem("test-results");
     } else if (pathname.includes("/profile")) {
       setSelectedMenuItem("profile");
-    } else if (pathname.includes("/treatment-stages")) {
-      setSelectedMenuItem("treatment-stages");
     } else {
       setSelectedMenuItem("dashboard");
       if (pathname === "/doctor-dashboard") {

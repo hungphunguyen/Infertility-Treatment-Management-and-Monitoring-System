@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Card, Table, Tag, Typography, Row, Col, Statistic, 
-  Timeline, Modal, Descriptions, Spin, message 
+  Timeline, Modal, Descriptions, Spin, message, Button 
 } from 'antd';
 import { 
   ExperimentOutlined, 
@@ -27,9 +27,19 @@ const MyServices = () => {
     inProgressServices: 0,
     pendingServices: 0
   });
+  const [cancelLoading, setCancelLoading] = useState({});
+  const [userId, setUserId] = useState(null);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
     fetchTreatmentRecords();
+    const fetchUser = async () => {
+      try {
+        const res = await authService.getMyInfo();
+        setUserId(res?.data?.result?.id);
+      } catch {}
+    };
+    fetchUser();
   }, []);
 
   const fetchTreatmentRecords = async () => {
@@ -75,6 +85,9 @@ const MyServices = () => {
     // Nếu có progress, ưu tiên hiển thị trạng thái dựa trên progress
     if (progress !== undefined) {
       if (progress === '0%') {
+        if (status === 'CANCELLED' || status === 'Cancelled') {
+          return <Tag color="error">Đã hủy</Tag>;
+        }
         return <Tag color="warning">Đang chờ điều trị</Tag>;
       } else if (progress === '100%') {
         return <Tag color="success">Hoàn thành</Tag>;
@@ -88,7 +101,8 @@ const MyServices = () => {
       'Completed': { color: 'success', text: 'Hoàn thành' },
       'InProgress': { color: 'processing', text: 'Đang điều trị' },
       'Pending': { color: 'warning', text: 'Đang chờ điều trị' },
-      'Cancelled': { color: 'error', text: 'Đã hủy' }
+      'Cancelled': { color: 'error', text: 'Đã hủy' },
+      'CANCELLED': { color: 'error', text: 'Đã hủy' }
     };
 
     const { color, text } = statusMap[status] || { color: 'default', text: status };
@@ -106,6 +120,20 @@ const MyServices = () => {
     // Nếu không có endDate, tính toán dựa trên ngày bắt đầu
     // Thêm 45 ngày cho toàn bộ quá trình điều trị
     return dayjs(startDate).add(45, 'days').format('YYYY-MM-DD');
+  };
+
+  const handleCancelTreatment = async (record) => {
+    if (!userId) return;
+    setCancelLoading(l => ({ ...l, [record.id]: true }));
+    try {
+      await treatmentService.cancelTreatmentRecord(record.id, userId);
+      message.success('Yêu cầu hủy hồ sơ điều trị đã được gửi.');
+      fetchTreatmentRecords();
+    } catch (err) {
+      message.error(err?.response?.data?.message || 'Không thể hủy hồ sơ điều trị này.');
+    } finally {
+      setCancelLoading(l => ({ ...l, [record.id]: false }));
+    }
   };
 
   const columns = [
@@ -127,15 +155,7 @@ const MyServices = () => {
       key: 'startDate',
       render: (text) => <span>{text ? new Date(text).toLocaleDateString('vi-VN') : 'N/A'}</span>
     },
-    {
-      title: 'Ngày kết thúc dự kiến',
-      dataIndex: 'endDate',
-      key: 'endDate',
-      render: (_, record) => {
-        const estimatedEndDate = calculateEstimatedEndDate(record.startDate, record.treatmentSteps);
-        return <span>{estimatedEndDate ? new Date(estimatedEndDate).toLocaleDateString('vi-VN') : 'N/A'}</span>;
-      }
-    },
+    
     {
       title: 'Trạng thái',
       dataIndex: 'status',
@@ -163,12 +183,41 @@ const MyServices = () => {
         const progress = Math.round((completedSteps / totalSteps) * 100);
         return `${progress}%`;
       }
+    },
+    {
+      title: 'Yêu cầu hủy',
+      key: 'cancel',
+      render: (_, record) => (
+        <Button
+          danger
+          loading={!!cancelLoading[record.id]}
+          onClick={e => { e.stopPropagation(); handleCancelTreatment(record); }}
+          disabled={!userId || record.status === 'Cancelled'}
+        >
+          Hủy tuyến trình
+        </Button>
+      )
     }
   ];
 
-  const handleViewDetails = (record) => {
+  const handleViewDetails = async (record) => {
     setSelectedService(record);
     setModalVisible(true);
+    // Lấy lịch hẹn thực tế cho customerId
+    if (record.customerId) {
+      try {
+        const res = await treatmentService.getCustomerAppointments(record.customerId);
+        if (res?.data?.result) {
+          setAppointments(res.data.result);
+        } else {
+          setAppointments([]);
+        }
+      } catch {
+        setAppointments([]);
+      }
+    } else {
+      setAppointments([]);
+    }
   };
 
   if (loading) {
@@ -275,11 +324,7 @@ const MyServices = () => {
               <Descriptions.Item label="Ngày bắt đầu">
                 {selectedService.startDate ? new Date(selectedService.startDate).toLocaleDateString('vi-VN') : 'N/A'}
               </Descriptions.Item>
-              <Descriptions.Item label="Ngày kết thúc dự kiến">
-                {calculateEstimatedEndDate(selectedService.startDate, selectedService.treatmentSteps) 
-                  ? new Date(calculateEstimatedEndDate(selectedService.startDate, selectedService.treatmentSteps)).toLocaleDateString('vi-VN') 
-                  : 'N/A'}
-              </Descriptions.Item>
+              
               <Descriptions.Item label="Ngày tạo">
                 {selectedService.createdDate ? new Date(selectedService.createdDate).toLocaleDateString('vi-VN') : 'N/A'}
               </Descriptions.Item>
@@ -292,27 +337,41 @@ const MyServices = () => {
             <div style={{ marginTop: 16 }}>
               <Title level={5}>Tiến trình điều trị:</Title>
               <Timeline>
-                {selectedService.treatmentSteps?.map((step, index) => (
-                  <Timeline.Item 
-                    key={index}
-                    color={step.status === 'CONFIRMED' ? 'green' : step.status === 'PLANNED' ? 'blue' : 'gray'}
-                  >
-                    <Text strong>
-                      {step.scheduledDate ? new Date(step.scheduledDate).toLocaleDateString('vi-VN') : 'Chưa lên lịch'} - {step.name}
-                    </Text>
-                    <br />
-                    <Text type="secondary">
-                      {step.status === 'CONFIRMED' ? 'Đã hoàn thành' : 
-                       step.status === 'PLANNED' ? 'Đang chờ thực hiện' : 
-                       'Chưa bắt đầu'}
-                    </Text>
-                    {step.notes && (
-                      <div style={{ marginTop: 4 }}>
-                        <Text type="secondary">Ghi chú: {step.notes}</Text>
-                      </div>
-                    )}
-                  </Timeline.Item>
-                ))}
+                {selectedService.treatmentSteps?.map((step, index) => {
+                  // Tìm appointment thực tế cho step này
+                  const appointment = appointments.find(app => app.purpose === step.name);
+                  // Lấy ngày và trạng thái thực tế nếu có
+                  const displayDate = appointment?.appointmentDate || step.scheduledDate;
+                  const displayStatus = appointment?.status || step.status;
+                  const statusMap = {
+                    CONFIRMED: { color: 'blue', text: 'Đã xác nhận' },
+                    PLANNED: { color: 'orange', text: 'Chờ thực hiện' },
+                    COMPLETED: { color: 'green', text: 'Hoàn thành' },
+                    CANCELLED: { color: 'red', text: 'Đã hủy' },
+                    INPROGRESS: { color: 'blue', text: 'Đang thực hiện' },
+                    IN_PROGRESS: { color: 'blue', text: 'Đang thực hiện' },
+                  };
+                  const s = statusMap[displayStatus] || { color: 'default', text: displayStatus };
+                  return (
+                    <Timeline.Item 
+                      key={index}
+                      color={s.color}
+                    >
+                      <Text strong>
+                        {displayDate ? new Date(displayDate).toLocaleDateString('vi-VN') : 'Chưa lên lịch'} - {step.name}
+                      </Text>
+                      <br />
+                      <Text type="secondary">
+                        {s.text}
+                      </Text>
+                      {step.notes && (
+                        <div style={{ marginTop: 4 }}>
+                          <Text type="secondary">Ghi chú: {step.notes}</Text>
+                        </div>
+                      )}
+                    </Timeline.Item>
+                  );
+                })}
               </Timeline>
             </div>
           </div>

@@ -66,6 +66,7 @@ const ServiceDetailPage = () => {
   const [stages, setStages] = useState([]);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [benefits, setBenefits] = useState([]);
+  const [typeDescription, setTypeDescription] = useState("");
   
   // Lấy thông tin dịch vụ và giai đoạn điều trị
   useEffect(() => {
@@ -131,6 +132,25 @@ const ServiceDetailPage = () => {
 
     fetchServiceDetails();
   }, [serviceId, navigate]);
+
+  // Lấy thông tin loại điều trị từ API dựa vào id của service
+  useEffect(() => {
+    if (!service || !service.treatmentTypeId) return;
+    const fetchType = async () => {
+      try {
+        const res = await serviceService.getAllTreatmentTypes();
+        if (res?.data?.result) {
+          const found = res.data.result.find(
+            (item) => item.id === service.treatmentTypeId
+          );
+          setTypeDescription(found?.description || "");
+        }
+      } catch (error) {
+        setTypeDescription("");
+      }
+    };
+    fetchType();
+  }, [service]);
 
   // Lấy danh sách bác sĩ từ API
   const fetchDoctors = async () => {
@@ -289,23 +309,8 @@ const ServiceDetailPage = () => {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <Title level={3} className="mb-6">Giới thiệu về {service.name}</Title>
                 <Paragraph className="text-gray-700 mb-4">
-                  {service.description || "Không có mô tả chi tiết cho dịch vụ này."}
+                  {typeDescription || service.description || "Không có mô tả chi tiết cho dịch vụ này."}
                 </Paragraph>
-
-                {/* Lợi ích của dịch vụ */}
-                <Divider />
-                <Title level={4} className="mb-4">Lợi ích</Title>
-                <List
-                  dataSource={benefits}
-                  renderItem={item => (
-                    <List.Item>
-                      <Space>
-                        <CheckCircleOutlined className="text-[#ff8460]" />
-                        <Text>{item}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
 
                 {treatmentProcess.length > 0 && (
                   <>
@@ -337,6 +342,26 @@ const ServiceDetailPage = () => {
             </Col>
 
             <Col xs={24} lg={8}>
+              {/* Lợi ích */}
+              <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
+                <Title level={4} className="mb-4 flex items-center">
+                  <CheckCircleOutlined className="mr-2 text-[#ff8460]" />
+                  Lợi ích
+                </Title>
+                <List
+                  dataSource={benefits}
+                  renderItem={item => (
+                    <List.Item>
+                      <Space>
+                        <CheckCircleOutlined className="text-[#ff8460]" />
+                        <Text>{item}</Text>
+                      </Space>
+                    </List.Item>
+                  )}
+                />
+              </div>
+
+              {/* Đăng ký dịch vụ */}
               <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
                 <Title level={4} className="mb-6 flex items-center">
                   <CalendarOutlined className="mr-2 text-[#ff8460]" />
@@ -368,6 +393,7 @@ const ServiceDetailPage = () => {
                 </Button>
               </div>
 
+              {/* Tại sao chọn chúng tôi */}
               <div className="bg-gray-50 p-6 rounded-lg shadow-md">
                 <Title level={4} className="mb-4 flex items-center">
                   <TeamOutlined className="mr-2 text-[#ff8460]" />
@@ -393,109 +419,6 @@ const ServiceDetailPage = () => {
               </div>
             </Col>
           </Row>
-        </div>
-      </div>
-
-      {/* Specialists Section */}
-      {specialists.length > 0 && (
-        <div className="py-16 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <Title level={2}>Các Chuyên Gia Của Chúng Tôi</Title>
-              <Text className="text-lg">Gặp gỡ các chuyên gia về {service.name.toLowerCase()}</Text>
-            </div>
-
-            {loadingDoctors ? (
-              <div className="text-center py-8">
-                <Spin size="large" />
-                <p className="mt-4">Đang tải thông tin bác sĩ...</p>
-              </div>
-            ) : (
-              <Row gutter={[24, 24]} className="justify-center">
-                {specialists.map(doctor => (
-                  <Col xs={24} md={12} lg={8} key={doctor.id}>
-                    <Card 
-                      hoverable 
-                      className="text-center h-full flex flex-col"
-                      cover={
-                        <div className="h-64 bg-gray-200 flex items-center justify-center">
-                          {doctor.image ? (
-                            <img 
-                              alt={doctor.name} 
-                              src={doctor.image}
-                              className="h-full w-full object-cover"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src = "/images/features/pc10.jpg";
-                              }}
-                            />
-                          ) : (
-                            <UserOutlined style={{ fontSize: '64px', color: '#d9d9d9' }} />
-                          )}
-                        </div>
-                      }
-                    >
-                      <div className="flex-grow">
-                        <Title level={4}>{doctor.name}</Title>
-                        <Text type="secondary" className="block mb-2">{doctor.title}</Text>
-                        <Text className="block mb-4">{doctor.experience}</Text>
-                        <div className="mb-4">
-                          {doctor.specialties.map(specialty => (
-                            <Tag color="blue" key={specialty} className="m-1">
-                              {specialty}
-                            </Tag>
-                          ))}
-                        </div>
-                        <Paragraph ellipsis={{ rows: 3 }}>
-                          {doctor.description}
-                        </Paragraph>
-                      </div>
-                      <Button 
-                        type="primary" 
-                        className="mt-4 bg-[#ff8460] hover:bg-[#ff6b40] border-none"
-                        onClick={() => navigate('/register-service', { 
-                          state: { 
-                            selectedService: service.id,
-                            selectedDoctor: doctor.value
-                          } 
-                        })}
-                      >
-                        Đặt Lịch Với {doctor.name.split(' ').pop()}
-                      </Button>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* CTA Section */}
-      <div className="py-16 bg-white">
-        <div className="container mx-auto px-4 text-center">
-          <Title level={2} className="mb-4">Sẵn Sàng Thực Hiện Bước Tiếp Theo?</Title>
-          <Paragraph className="text-lg mb-8 max-w-2xl mx-auto">
-            Đội ngũ của chúng tôi sẵn sàng giúp bạn trên hành trình sinh sản. 
-            Liên hệ với chúng tôi ngay hôm nay để tìm hiểu thêm về {service.name.toLowerCase()} 
-            và cách chúng tôi có thể hỗ trợ bạn đạt được giấc mơ làm cha mẹ.
-          </Paragraph>
-          <Space size="large">
-            <Button 
-              type="primary" 
-              size="large"
-              onClick={handleBookAppointment}
-              className="bg-[#ff8460] hover:bg-[#ff6b40] border-none"
-            >
-              Đặt Lịch Tư Vấn
-            </Button>
-            <Button 
-              size="large"
-              onClick={() => navigate('/contacts')}
-            >
-              Liên Hệ Với Chúng Tôi
-            </Button>
-          </Space>
         </div>
       </div>
 

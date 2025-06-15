@@ -14,7 +14,14 @@ const TreatmentStageDetails = () => {
   const [treatmentData, setTreatmentData] = useState(null);
   const [doctorId, setDoctorId] = useState(null);
   const [editingStep, setEditingStep] = useState(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [nextStep, setNextStep] = useState(null);
   const [form] = Form.useForm();
+  const [scheduleForm] = Form.useForm();
+  const [scheduleStep, setScheduleStep] = useState(null);
+  const [stepAppointments, setStepAppointments] = useState([]);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -43,30 +50,68 @@ const TreatmentStageDetails = () => {
       if (!doctorId) return;
 
       try {
-        const { patientInfo } = location.state || {};
+        const { patientInfo, treatmentData: passedTreatmentData } = location.state || {};
         if (!patientInfo) {
           message.error("Không tìm thấy thông tin bệnh nhân");
           navigate(-1);
           return;
         }
 
-        const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        
-        if (Array.isArray(response)) {
-          const treatmentRecord = response.find(
-            treatment => {
-              const matches = treatment.id === patientInfo.id;
-              const hasTreatmentSteps = treatment.treatmentSteps && treatment.treatmentSteps.length > 0;
-              return matches && hasTreatmentSteps;
-            }
-          );
+        console.log('Patient info:', patientInfo);
+        console.log('Passed treatment data:', passedTreatmentData);
 
-          if (!treatmentRecord) {
-            message.warning("Chưa có thông tin quy trình điều trị cho bệnh nhân này");
+        // Nếu có treatment data được truyền qua, kiểm tra và sử dụng
+        if (passedTreatmentData) {
+          if (passedTreatmentData.status === 'CANCELLED') {
+            // Nếu treatment bị CANCELLED, fetch lại từ API để tìm treatment mới
+            const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+            if (Array.isArray(response)) {
+              // Lọc ra các treatment không bị hủy và sắp xếp theo ngày tạo mới nhất
+              const activeTreatments = response
+                .filter(treatment => 
+                  treatment.customerId === patientInfo.customerId && 
+                  treatment.status !== 'CANCELLED'
+                )
+                .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+
+              if (activeTreatments.length === 0) {
+                message.warning("Không tìm thấy thông tin quy trình điều trị đang hoạt động");
+                setLoading(false);
+                return;
+              }
+
+              // Lấy treatment mới nhất
+              const latestTreatment = activeTreatments[0];
+              setTreatmentData(latestTreatment);
+            }
+          } else {
+            // Nếu treatment không bị CANCELLED, sử dụng nó
+            setTreatmentData(passedTreatmentData);
+          }
+          setLoading(false);
+          return;
+        }
+
+        // Nếu không có treatment data, fetch từ API
+        const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+        if (Array.isArray(response)) {
+          // Lọc ra các treatment không bị hủy và sắp xếp theo ngày tạo mới nhất
+          const activeTreatments = response
+            .filter(treatment => 
+              treatment.customerId === patientInfo.customerId && 
+              treatment.status !== 'CANCELLED'
+            )
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+
+          if (activeTreatments.length === 0) {
+            message.warning("Không tìm thấy thông tin quy trình điều trị đang hoạt động");
+            setLoading(false);
             return;
           }
 
-          setTreatmentData(treatmentRecord);
+          // Lấy treatment mới nhất
+          const latestTreatment = activeTreatments[0];
+          setTreatmentData(latestTreatment);
         }
       } catch (error) {
         console.error("Error fetching treatment data:", error);
@@ -78,6 +123,16 @@ const TreatmentStageDetails = () => {
 
     fetchData();
   }, [doctorId, location.state, navigate]);
+
+  useEffect(() => {
+    if (showScheduleModal && (!treatmentData?.customerId || !doctorId || !nextStep?.id)) {
+      console.warn('Missing data for appointment:', {
+        customerId: treatmentData?.customerId,
+        doctorId,
+        nextStepId: nextStep?.id
+      });
+    }
+  }, [showScheduleModal, treatmentData, doctorId, nextStep]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -126,6 +181,13 @@ const TreatmentStageDetails = () => {
           const updatedRecord = updatedResponse.find(record => record.id === treatmentData.id);
           if (updatedRecord) {
             setTreatmentData(updatedRecord);
+            if (values.status === 'COMPLETED') {
+              const currentStepIndex = updatedRecord.treatmentSteps.findIndex(step => step.id === editingStep.id);
+              if (currentStepIndex < updatedRecord.treatmentSteps.length - 1) {
+                setNextStep(updatedRecord.treatmentSteps[currentStepIndex + 1]);
+                setShowScheduleModal(true);
+              }
+            }
           }
         }
         setEditingStep(null);
@@ -134,6 +196,59 @@ const TreatmentStageDetails = () => {
     } catch (error) {
       console.error('Error updating treatment step:', error);
       message.error('Có lỗi xảy ra khi cập nhật');
+    }
+  };
+
+  const showScheduleModalForStep = async (step) => {
+    setScheduleStep(step);
+    setShowCreateForm(false);
+    scheduleForm.resetFields();
+    setShowScheduleModal(true);
+    setLoadingAppointments(true);
+    try {
+      const res = await treatmentService.getAppointmentsByStepId(step.id);
+      if (res?.data?.code === 1000 && Array.isArray(res.data.result)) {
+        setStepAppointments(res.data.result);
+      } else {
+        setStepAppointments([]);
+      }
+    } catch (err) {
+      setStepAppointments([]);
+    } finally {
+      setLoadingAppointments(false);
+    }
+  };
+
+  const handleScheduleAppointment = async (values) => {
+    const treatmentStepId = values.treatmentStepId || scheduleStep?.id;
+    const customerId = treatmentData?.customerId;
+    const doctorIdValue = doctorId;
+    const stepName = treatmentData?.treatmentSteps?.find(step => step.id === treatmentStepId)?.name || '';
+    const payload = {
+      treatmentStepId: Number(treatmentStepId),
+      shift: values.shift,
+      customerId: customerId,
+      doctorId: doctorIdValue,
+      appointmentDate: values.appointmentDate.format('YYYY-MM-DD'),
+      purpose: stepName,
+      notes: values.notes
+    };
+    if (!payload.treatmentStepId || !payload.customerId || !payload.doctorId) {
+      message.error('Thiếu thông tin bắt buộc: treatmentStepId, customerId hoặc doctorId');
+      return;
+    }
+    try {
+      const response = await treatmentService.createAppointment(payload);
+      if (response?.data?.code === 1000) {
+        message.success('Đã tạo lịch hẹn thành công');
+        setShowScheduleModal(false);
+        setScheduleStep(null);
+        scheduleForm.resetFields();
+      } else {
+        message.error(response?.data?.message || 'Không thể tạo lịch hẹn');
+      }
+    } catch (error) {
+      message.error(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo lịch hẹn');
     }
   };
 
@@ -196,6 +311,14 @@ const TreatmentStageDetails = () => {
               onClick={() => showEditModal(step)}
             >
               Cập nhật
+            </Button>
+            <Button
+              type="default"
+              size="small"
+              style={{ marginLeft: 8 }}
+              onClick={() => showScheduleModalForStep(step)}
+            >
+              Tạo lịch hẹn
             </Button>
           </Space>
           <Tag color={getStatusColor(step.status)}>
@@ -351,6 +474,159 @@ const TreatmentStageDetails = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Lịch hẹn của bước điều trị"
+        open={showScheduleModal}
+        onCancel={() => {
+          setShowScheduleModal(false);
+          setScheduleStep(null);
+          setShowCreateForm(false);
+          scheduleForm.resetFields();
+          setStepAppointments([]);
+        }}
+        footer={null}
+        width={800}
+      >
+        <div style={{ marginTop: 0, borderTop: 'none', paddingTop: 0 }}>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>Các lần hẹn đã đăng ký cho bước này:</div>
+          {loadingAppointments ? (
+            <Spin size="small" />
+          ) : stepAppointments.length === 0 ? (
+            <div style={{ color: '#888' }}>Chưa có lịch hẹn nào cho bước này.</div>
+          ) : (
+            <div style={{ maxHeight: 180, overflowY: 'auto', marginBottom: 8 }}>
+              {stepAppointments.map((app, idx) => (
+                <Card key={app.id} size="small" style={{ marginBottom: 8, background: '#f6faff', border: '1px solid #e6f7ff', position: 'relative' }}>
+                  <Row gutter={[16, 8]}>
+                    <Col span={16}>
+                      <Row gutter={[16, 8]}>
+                        <Col span={12}>
+                          <div><b>Trạng thái:</b> <Tag color={app.status === 'CONFIRMED' ? 'blue' : app.status === 'COMPLETED' ? 'green' : app.status === 'CANCELLED' ? 'red' : 'orange'}>{app.status === 'CONFIRMED' ? 'Đã xác nhận' : app.status === 'COMPLETED' ? 'Hoàn thành' : app.status === 'INPROGRESS' ? 'Đang thực hiện' : app.status === 'PLANNED' ? 'Chờ thực hiện' : app.status}</Tag></div>
+                          <div><b>Ngày hẹn:</b> {app.appointmentDate}</div>
+                          <div><b>Ca khám:</b> {app.shift === 'MORNING' ? 'Sáng' : app.shift === 'AFTERNOON' ? 'Chiều' : app.shift}</div>
+                        </Col>
+                        <Col span={12}>
+                          <div><b>Ghi chú:</b> {app.notes}</div>
+                          <div><b>Bệnh nhân:</b> {app.customerName}</div>
+                          <div><b>Bước điều trị:</b> {scheduleStep?.name}</div>
+                        </Col>
+                      </Row>
+                    </Col>
+                    <Col span={8} style={{ textAlign: 'right' }}>
+                      {app.status !== 'COMPLETED' && app.status !== 'CANCELLED' && (
+                        <Space direction="vertical" align="end">
+                          <Select
+                            style={{ width: 140 }}
+                            value={app.status === 'INPROGRESS' ? 'INPROGRESS' : app.status === 'CONFIRMED' ? 'CONFIRMED' : 'PLANNED'}
+                            onChange={async (value) => {
+                              try {
+                                const res = await treatmentService.updateAppointmentStatus(app.id, value);
+                                if (res?.data?.code === 1000) {
+                                  message.success('Cập nhật trạng thái thành công');
+                                  const refreshed = await treatmentService.getAppointmentsByStepId(scheduleStep.id);
+                                  setStepAppointments(refreshed?.data?.result || []);
+                                } else {
+                                  message.error(res?.data?.message || 'Cập nhật thất bại');
+                                }
+                              } catch (err) {
+                                message.error('Có lỗi khi cập nhật trạng thái');
+                              }
+                            }}
+                            options={[
+                              { value: 'INPROGRESS', label: 'Đang thực hiện' },
+                              { value: 'COMPLETED', label: 'Hoàn thành' },
+                            ]}
+                          />
+                          <Button
+                            type="primary"
+                            style={{ background: '#fa8c16', borderColor: '#fa8c16', color: '#fff' }}
+                            onClick={async () => {
+                              let newStatus = 'INPROGRESS';
+                              if (app.status === 'INPROGRESS') newStatus = 'COMPLETED';
+                              try {
+                                const res = await treatmentService.updateAppointmentStatus(app.id, newStatus);
+                                if (res?.data?.code === 1000) {
+                                  message.success('Cập nhật trạng thái thành công');
+                                  const refreshed = await treatmentService.getAppointmentsByStepId(scheduleStep.id);
+                                  setStepAppointments(refreshed?.data?.result || []);
+                                } else {
+                                  message.error(res?.data?.message || 'Cập nhật thất bại');
+                                }
+                              } catch (err) {
+                                message.error('Có lỗi khi cập nhật trạng thái');
+                              }
+                            }}
+                          >
+                            {app.status === 'INPROGRESS' ? 'Đánh dấu hoàn thành' : 'Bắt đầu thực hiện'}
+                          </Button>
+                        </Space>
+                      )}
+                    </Col>
+                  </Row>
+                </Card>
+              ))}
+            </div>
+          )}
+          <div style={{ textAlign: 'right' }}>
+            {!showCreateForm && (
+              <Button type="primary" onClick={() => setShowCreateForm(true)}>
+                Tạo lịch hẹn mới
+              </Button>
+            )}
+          </div>
+        </div>
+        {showCreateForm && (
+          <Form
+            form={scheduleForm}
+            layout="vertical"
+            onFinish={handleScheduleAppointment}
+            initialValues={{
+              shift: 'MORNING',
+              treatmentStepId: scheduleStep?.id
+            }}
+            style={{ marginTop: 24, borderTop: '1px solid #eee', paddingTop: 16, minWidth: 500, maxWidth: 700, width: '100%' }}
+          >
+            <Form.Item name="treatmentStepId" label="Bước điều trị" rules={[{ required: true, message: 'Bắt buộc' }]}> 
+              <Select
+                showSearch
+                placeholder="Chọn bước điều trị"
+                optionFilterProp="children"
+                filterOption={(input, option) => (option?.children ?? '').toLowerCase().includes(input.toLowerCase())}
+              >
+                {treatmentData?.treatmentSteps?.map(step => (
+                  <Select.Option key={step.id} value={step.id}>{step.name}</Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item name="appointmentDate" label="Ngày hẹn" rules={[{ required: true, message: 'Vui lòng chọn ngày hẹn' }]}> 
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="shift" label="Ca khám" rules={[{ required: true, message: 'Vui lòng chọn ca khám' }]}> 
+              <Select>
+                <Select.Option value="MORNING">Sáng</Select.Option>
+                <Select.Option value="AFTERNOON">Chiều</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="notes" label="Ghi chú">
+              <TextArea rows={4} />
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit">
+                  Tạo lịch hẹn
+                </Button>
+                <Button onClick={() => {
+                  setShowCreateForm(false);
+                  scheduleForm.resetFields();
+                }}>
+                  Hủy
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        )}
       </Modal>
     </div>
   );

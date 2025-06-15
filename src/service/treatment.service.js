@@ -1,10 +1,10 @@
 import { http } from "./config";
+import axios from "axios";
 
 export const treatmentService = {
   getTreatmentRecordsForManager: async () => {
     try {
       const response = await http.get("treatment-records/find-all/manager");
-      console.log("Treatment records response:", response.data);
       return response;
     } catch (error) {
       console.error("Error fetching treatment records:", error);
@@ -286,5 +286,45 @@ export const treatmentService = {
       console.error("Error updating treatment step:", error);
       throw error;
     }
+  },
+
+  createAppointment: async (data) => {
+    try {
+      const response = await http.post("appointments", data, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+      return response;
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      throw error;
+    }
+  },
+
+  cancelTreatmentRecord: async (recordId, customerId) => {
+    try {
+      const response = await http.delete(
+        `treatment-service/cancel/${recordId}/${customerId}`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error cancelling treatment record:", error);
+      throw error;
+    }
+  },
+
+  getAppointmentsByStepId: (stepId) => {
+    return http.get(`/appointments/get-by-step-id/${stepId}`);
+  },
+
+  // Lấy danh sách lịch hẹn của khách hàng
+  getCustomerAppointments: (customerId) => {
+    return http.get(`/appointments/customer/${customerId}`);
+  },
+
+  getTreatmentRecordsByCustomerId: (customerId) => {
+    return http.get(`/treatment-records/find-all/customer/${customerId}`);
   },
 };

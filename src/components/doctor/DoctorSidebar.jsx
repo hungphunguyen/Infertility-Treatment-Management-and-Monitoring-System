@@ -54,7 +54,7 @@ const DoctorSidebar = ({
     {
       key: "test-results",
       icon: <FileTextOutlined />,
-      label: "Kết Quả XN",
+      label: "Hồ Sơ Bệnh Nhân",
       title: "Quản lý kết quả xét nghiệm",
       path: path.doctorTestResults,
     },
@@ -180,3 +180,6 @@ const DoctorSidebar = ({
 };
 
 export default DoctorSidebar;
+
+
+
