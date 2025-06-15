@@ -127,7 +127,6 @@ const CreateBlogPage = () => {
   };
 
   const handleExit = () => {
-    // Kiểm tra xem form có dữ liệu không
     if (values.title || values.content || values.sourceReference) {
       setIsExitModalVisible(true);
     } else {
@@ -204,10 +203,17 @@ const CreateBlogPage = () => {
           <div className="flex justify-center space-x-4 pt-4">
             <button
               type="button"
+              onClick={handleExit}
+              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md font-semibold hover:bg-gray-300 transition"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
               onClick={handleSaveDraft}
               className="bg-gray-500 text-white px-6 py-2 rounded-md font-semibold hover:bg-gray-600 transition"
             >
-              Lưu nháp
+              Lưu
             </button>
             <button
               type="submit"

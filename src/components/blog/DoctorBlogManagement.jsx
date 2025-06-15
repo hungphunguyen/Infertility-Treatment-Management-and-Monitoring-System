@@ -143,10 +143,10 @@ const DoctorBlogManagement = () => {
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: 'DRAFT'
+          status: 'DRAFT' // Default status when saving via form.submit() or 'Lưu'
         });
         if (response.data) {
-          showNotification("Tạo bài viết mới thành công!", "success");
+          showNotification("Bài viết đã được lưu dưới dạng nháp!", "success"); // Changed message
           setIsModalVisible(false);
           form.resetFields();
           fetchMyBlogs(currentUser.id);
@@ -159,6 +159,7 @@ const DoctorBlogManagement = () => {
         const updatedBlogData = {
           ...selectedBlog,
           ...values,
+          // Do not explicitly set status here, as status changes will be handled by separate buttons/functions
         };
         await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
         showNotification("Bài viết đã được cập nhật!", "success");
@@ -169,6 +170,52 @@ const DoctorBlogManagement = () => {
     } catch (error) {
       console.error("Lỗi khi xử lý bài viết:", error);
       showNotification("Xử lý bài viết thất bại", "error");
+    }
+  };
+
+  const handleSendForReview = async (values, isNewBlog) => {
+    try {
+      if (!currentUser || !currentUser.id) {
+        showNotification("Vui lòng đăng nhập để tạo hoặc gửi bài viết đi duyệt", "error");
+        return;
+      }
+
+      if (isNewBlog) {
+        const response = await blogService.createBlog(currentUser.id, {
+            title: values.title,
+            content: values.content,
+            sourceReference: values.sourceReference,
+            status: 'PENDING_REVIEW'
+        });
+        if (response.data) {
+            showNotification("Bài viết đã được gửi, chờ quản lý duyệt!", "success");
+            setIsModalVisible(false);
+            form.resetFields();
+            fetchMyBlogs(currentUser.id);
+        }
+      } else { // Existing blog (modalType === "edit" and selectedBlog?.status === "DRAFT")
+        if (!selectedBlog) {
+            showNotification("Không tìm thấy bài viết để gửi duyệt.", "error");
+            return;
+        }
+        // First, update content (if any changes were made)
+        const updatedBlogData = {
+          ...selectedBlog,
+          ...values, // Apply any changes from the form before submitting
+        };
+        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token); // Update content first
+        
+        // Then, submit the blog for review
+        console.log("Submitting blog for review:", selectedBlog.id, currentUser.id);
+        await blogService.submitBlog(selectedBlog.id, currentUser.id, token.token);
+        showNotification("Bài viết đã được gửi duyệt thành công!", "success");
+        setIsModalVisible(false);
+        form.resetFields();
+        fetchMyBlogs(currentUser.id);
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi bài viết đi duyệt:", error);
+      showNotification("Gửi duyệt bài viết thất bại", "error");
     }
   };
 
@@ -298,9 +345,14 @@ const DoctorBlogManagement = () => {
           }}>
             Hủy
           </Button>,
-          <Button key="submit" type="primary" onClick={() => form.submit()}>
+          <Button key="saveDraft" onClick={() => form.submit()}>
             Lưu
-          </Button>
+          </Button>,
+          (modalType === "create" || (modalType === "edit" && selectedBlog?.status === "DRAFT")) && (
+            <Button key="submitReview" type="primary" onClick={() => handleSendForReview(form.getFieldsValue(), modalType === "create")}>
+              Gửi duyệt
+            </Button>
+          )
         ]}
         width={800}
       >

@@ -45,9 +45,18 @@ export const blogService = {
     });
   },
 
-  // Submit blog
-  submitBlog: (blogId, userId) => {
-    return http.post(`blogs/submit/${blogId}/${userId}`);
+  // Gửi duyệt blog
+  submitBlog: (blogId, userId, token, data) => {
+    return http.post(`blogs/submit/${blogId}/${userId}`, {
+      title: data.title,
+      content: data.content,
+      sourceReference: data.sourceReference
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
   },
 
   // Duyệt blog (approve)
@@ -56,6 +65,22 @@ export const blogService = {
       headers: {
         Authorization: `Bearer ${token}`
       }
+    });
+  },
+
+  updateBlogStatus: (blogId, status, token) => {
+    return http.put(`blogs/${blogId}/status`, { status }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  deleteBlog: (blogId, token) => {
+    return http.delete(`blogs/${blogId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
   },
 }; 

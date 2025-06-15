@@ -13,6 +13,7 @@ import {
   Popconfirm,
   Image,
   Avatar,
+  Switch,
 } from "antd";
 import { 
   EditOutlined,
@@ -136,28 +137,6 @@ const BlogManagement = () => {
     setIsModalVisible(true);
   };
 
-  const toggleFeatured = async (blogId, currentFeatured) => {
-    try {
-      // Assuming an updateBlog API for updating featured status
-      // Note: selectedBlog might be null here if not explicitly selected from table
-      const blogToUpdate = blogs.find(b => b.id === blogId);
-      if (!blogToUpdate) {
-        showNotification("Không tìm thấy bài viết để cập nhật trạng thái nổi bật.", "error");
-        return;
-      }
-      const updatedBlogData = {
-        ...blogToUpdate,
-        featured: !currentFeatured
-      };
-      await blogService.updateBlog(blogId, currentUser.id, updatedBlogData, token.token); 
-      showNotification("Trạng thái nổi bật đã được cập nhật!", "success");
-      fetchBlogs();
-    } catch (error) {
-      console.error("Error updating featured status:", error);
-      showNotification("Cập nhật trạng thái nổi bật thất bại", "error");
-    }
-  };
-
   const handleSubmit = async (values) => {
     try {
       if (modalType === "create") {
@@ -169,10 +148,10 @@ const BlogManagement = () => {
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: 'DRAFT'
+          status: 'DRAFT' // Default status when saving via form.submit() or 'Lưu'
         });
         if (response.data) {
-          showNotification("Tạo bài viết mới thành công!", "success");
+          showNotification("Bài viết đã được lưu dưới dạng nháp!", "success"); // Changed message
           setIsModalVisible(false);
           form.resetFields();
           fetchBlogs();
@@ -184,9 +163,10 @@ const BlogManagement = () => {
         }
         const updatedBlogData = {
           ...selectedBlog,
-          ...values, // values already contain title, content, sourceReference
+          ...values,
+          // Do not explicitly set status here, as status changes will be handled by separate buttons/functions
         };
-        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
+        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData);
         showNotification("Bài viết đã được cập nhật!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -198,76 +178,71 @@ const BlogManagement = () => {
     }
   };
 
-  const handleUnpublish = async (blog) => {
+  const handleSendForReview = async (values, isNewBlog) => {
     try {
       if (!currentUser || !currentUser.id) {
-        showNotification("Không thể lấy thông tin người dùng để gỡ bài viết.", "error");
+        showNotification("Vui lòng đăng nhập để tạo hoặc gửi bài viết đi duyệt", "error");
         return;
       }
-      const updatedBlogData = {
-        ...blog,
-        title: blog.title || "",
-        content: blog.content || "",
-        sourceReference: blog.sourceReference || "",
-        status: "DRAFT" // Or "UNPUBLISHED" depending on your backend
-      };
 
-      await blogService.updateBlog(blog.id, currentUser.id, updatedBlogData, token.token);
-      showNotification("Đã hủy xuất bản bài viết!", "success");
-      fetchBlogs();
+      if (isNewBlog) {
+        const response = await blogService.createBlog(currentUser.id, {
+            title: values.title,
+            content: values.content,
+            sourceReference: values.sourceReference,
+            status: 'PENDING_REVIEW'
+        });
+        if (response.data) {
+            showNotification("Bài viết đã được gửi, chờ quản lý duyệt!", "success");
+            setIsModalVisible(false);
+            form.resetFields();
+            fetchBlogs();
+        }
+      } else { // Existing blog (modalType === "edit" and selectedBlog?.status === "DRAFT")
+        if (!selectedBlog) {
+            showNotification("Không tìm thấy bài viết để gửi duyệt.", "error");
+            return;
+        }
+        // First, update content (if any changes were made)
+        const updatedBlogData = {
+          ...selectedBlog,
+          ...values, // Apply any changes from the form before submitting
+        };
+        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData);
+        
+        // Then, submit the blog for review
+        console.log("Submitting blog for review:", selectedBlog.id, currentUser.id);
+        await blogService.submitBlog(selectedBlog.id, currentUser.id, token.token, updatedBlogData);
+        showNotification("Bài viết đã được gửi duyệt thành công!", "success");
+        setIsModalVisible(false);
+        form.resetFields();
+        fetchBlogs();
+      }
     } catch (error) {
-      console.error("Error unpublishing blog:", error);
-      showNotification("Không thể gỡ bài viết", "error");
+      console.error("Lỗi khi gửi bài viết đi duyệt:", error);
+      showNotification("Gửi duyệt bài viết thất bại", "error");
     }
   };
 
-  const handleApprove = async (blog) => {
-    console.log("handleApprove called with blog:", blog);
+  const handleStatusChange = async (blogId, status) => {
     try {
-      if (!currentUser || !currentUser.id) {
-        showNotification("Không thể lấy thông tin người dùng để duyệt bài viết.", "error");
-        return;
-      }
-      const updatedBlogData = {
-        ...blog,
-        title: blog.title || "",
-        content: blog.content || "",
-        sourceReference: blog.sourceReference || "",
-        status: "APPROVED"
-      };
-
-      console.log("Calling updateBlog with:", blog.id, currentUser.id, updatedBlogData);
-      const response = await blogService.updateBlog(blog.id, currentUser.id, updatedBlogData, token.token); // Store response
-      console.log("updateBlog response:", response); // Log the full response
-      console.log("updateBlog successful!");
-      showNotification("Đã duyệt bài viết!", "success");
+      await blogService.updateBlogStatus(blogId, status, token.token);
+      showNotification(`Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'}!`, "success");
       fetchBlogs();
     } catch (error) {
-      console.error("Error approving blog:", error);
-      showNotification("Không thể duyệt bài viết", "error");
+      console.error("Lỗi cập nhật trạng thái bài viết:", error);
+      showNotification("Cập nhật trạng thái thất bại", "error");
     }
   };
 
-  const handleReject = async (blog) => {
+  const handleDeleteBlog = async (blogId) => {
     try {
-      if (!currentUser || !currentUser.id) {
-        showNotification("Không thể lấy thông tin người dùng để từ chối bài viết.", "error");
-        return;
-      }
-      const updatedBlogData = {
-        ...blog,
-        title: blog.title || "",
-        content: blog.content || "",
-        sourceReference: blog.sourceReference || "",
-        status: "REJECTED"
-      };
-
-      await blogService.updateBlog(blog.id, currentUser.id, updatedBlogData, token.token);
-      showNotification("Đã từ chối bài viết!", "success");
+      await blogService.deleteBlog(blogId, token.token);
+      showNotification("Bài viết đã được xóa!", "success");
       fetchBlogs();
     } catch (error) {
-      console.error("Error rejecting blog:", error);
-      showNotification("Không thể từ chối bài viết", "error");
+      console.error("Lỗi xóa bài viết:", error);
+      showNotification("Xóa bài viết thất bại", "error");
     }
   };
 
@@ -351,7 +326,7 @@ const BlogManagement = () => {
           )}
           <Popconfirm
             title="Bạn có chắc chắn muốn duyệt bài viết này không?"
-            onConfirm={() => handleApprove(record)}
+            onConfirm={() => handleStatusChange(record.id, "APPROVED")}
             okText="Có"
             cancelText="Không"
           >
@@ -368,7 +343,7 @@ const BlogManagement = () => {
           </Popconfirm>
           <Popconfirm
             title="Bạn có chắc chắn muốn từ chối bài viết này không?"
-            onConfirm={() => handleReject(record)}
+            onConfirm={() => handleStatusChange(record.id, "REJECTED")}
             okText="Có"
             cancelText="Không"
           >
@@ -383,7 +358,7 @@ const BlogManagement = () => {
           </Popconfirm>
           <Popconfirm
             title="Bạn có chắc chắn muốn gỡ bài viết này không?"
-            onConfirm={() => handleUnpublish(record)}
+            onConfirm={() => handleStatusChange(record.id, "hidden")}
             okText="Có"
             cancelText="Không"
           >
@@ -394,6 +369,21 @@ const BlogManagement = () => {
               style={{ display: record.status === "APPROVED" ? "inline-block" : "none" }}
             >
               Gỡ bài
+            </Button>
+          </Popconfirm>
+          <Popconfirm
+            title="Bạn có chắc chắn muốn xóa bài viết này không?"
+            onConfirm={() => handleDeleteBlog(record.id)}
+            okText="Có"
+            cancelText="Không"
+          >
+            <Button
+              size="small"
+              type="danger"
+              icon={<DeleteOutlined />}
+              style={{ display: record.status === "APPROVED" ? "inline-block" : "none" }}
+            >
+              Xóa
             </Button>
           </Popconfirm>
         </Space>
@@ -456,9 +446,14 @@ const BlogManagement = () => {
           }}>
             Hủy
           </Button>,
-          <Button key="submit" type="primary" onClick={() => form.submit()}>
+          <Button key="saveDraft" onClick={() => form.submit()}>
             Lưu
-          </Button>
+          </Button>,
+          (modalType === "create" || (modalType === "edit" && selectedBlog?.status === "DRAFT")) && (
+            <Button key="submitReview" type="primary" onClick={() => handleSendForReview(form.getFieldsValue(), modalType === "create")}>
+              Gửi duyệt
+            </Button>
+          )
         ]}
         width={800}
       >
