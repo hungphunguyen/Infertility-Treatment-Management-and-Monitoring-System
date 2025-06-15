@@ -34,6 +34,7 @@ import dayjs from "dayjs";
 import { doctorService } from "../../service/doctor.service";
 import { treatmentService } from "../../service/treatment.service";
 import { http } from '../../service/config';
+import { managerService } from "../../service/manager.service";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -50,11 +51,13 @@ const DoctorScheduleView = () => {
   const [doctorDetails, setDoctorDetails] = useState(null);
   const [loadingDoctorDetails, setLoadingDoctorDetails] = useState(false);
   const [todayAppointments, setTodayAppointments] = useState([]);
+  const [workStats, setWorkStats] = useState(null);
 
   // Fetch doctor schedules and today's appointments when component mounts
   useEffect(() => {
     fetchData();
     fetchTodayAppointments();
+    fetchWorkStats();
   }, []);
 
   const fetchTodayAppointments = async () => {
@@ -65,6 +68,17 @@ const DoctorScheduleView = () => {
       setTodayAppointments(filtered);
     } catch (error) {
       setTodayAppointments([]);
+    }
+  };
+
+  const fetchWorkStats = async () => {
+    try {
+      const res = await managerService.getWorkScheduleStatics();
+      if (res?.data?.result) {
+        setWorkStats(res.data.result);
+      }
+    } catch (error) {
+      setWorkStats(null);
     }
   };
 
@@ -277,38 +291,36 @@ const DoctorScheduleView = () => {
 
   return (
     <div>
-      {/* Statistics Cards */}
-      <Row gutter={16} className="mb-6">
+      {/* Statistics Section */}
+      <Row gutter={24} style={{ marginBottom: 24 }}>
         <Col span={8}>
-          <Card>
+          <Card bordered style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(24,144,255,0.08)' }}>
             <Statistic
-              title="Tổng bác sĩ"
-              value={stats.totalDoctors}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              title={<span style={{ color: '#1890ff', fontWeight: 600 }}>Tổng bác sĩ hôm nay</span>}
+              value={workStats ? workStats.totalDoctorsToday : 0}
+              prefix={<TeamOutlined style={{ color: '#1890ff' }} />}
+              valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
         <Col span={8}>
-          <Card>
+          <Card bordered style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(24,144,255,0.08)' }}>
             <Statistic
-              title="Bệnh nhân đã khám/Tổng"
-              value={`${stats.completedPatients}/${stats.totalPatients}`}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              title={<span style={{ color: '#52c41a', fontWeight: 600 }}>Bệnh nhân đã khám</span>}
+              value={workStats ? workStats.completedPatientsToday : 0}
+              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+              valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
         <Col span={8}>
-          <Card>
+          <Card bordered style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(24,144,255,0.08)' }}>
             <Statistic
-              title="Tỷ lệ khám"
-              value={stats.totalPatients > 0 
-                ? Math.round((stats.completedPatients / stats.totalPatients) * 100) 
-                : 0}
+              title={<span style={{ color: '#faad14', fontWeight: 600 }}>Tỷ lệ khám</span>}
+              value={workStats && workStats.totalPatientsToday > 0 ? Math.round((workStats.completedPatientsToday / workStats.totalPatientsToday) * 100) : 0}
               suffix="%"
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#faad14' }}
+              prefix={<CalendarOutlined style={{ color: '#faad14' }} />}
+              valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>

@@ -8,7 +8,8 @@ import {
   CheckCircleOutlined, 
   ClockCircleOutlined,
   UserOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { treatmentService } from '../../service/treatment.service';
@@ -23,9 +24,8 @@ const MyServices = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [statistics, setStatistics] = useState({
     totalServices: 0,
-    completedServices: 0,
-    inProgressServices: 0,
-    pendingServices: 0
+    cancelledServices: 0,
+    inProgressServices: 0
   });
   const [cancelLoading, setCancelLoading] = useState({});
   const [userId, setUserId] = useState(null);
@@ -67,9 +67,8 @@ const MyServices = () => {
         // Tính toán thống kê
         const stats = {
           totalServices: records.length,
-          completedServices: records.filter(r => r.status === 'Completed').length,
-          inProgressServices: records.filter(r => r.status === 'InProgress').length,
-          pendingServices: records.filter(r => r.status === 'Pending').length
+          cancelledServices: records.filter(r => r.status === 'Cancelled' || r.status === 'CANCELLED').length,
+          inProgressServices: records.filter(r => r.status === 'InProgress' || r.status === 'INPROGRESS').length
         };
         setStatistics(stats);
       }
@@ -92,15 +91,18 @@ const MyServices = () => {
       } else if (progress === '100%') {
         return <Tag color="success">Hoàn thành</Tag>;
       } else {
-        return <Tag color="processing">Đang điều trị</Tag>;
+        return <Tag color="#1890ff">Đang điều trị</Tag>;
       }
     }
 
     // Nếu không có progress, sử dụng status
     const statusMap = {
       'Completed': { color: 'success', text: 'Hoàn thành' },
-      'InProgress': { color: 'processing', text: 'Đang điều trị' },
+      'COMPLETED': { color: 'success', text: 'Hoàn thành' },
+      'InProgress': { color: '#1890ff', text: 'Đang điều trị' },
+      'INPROGRESS': { color: '#1890ff', text: 'Đang điều trị' },
       'Pending': { color: 'warning', text: 'Đang chờ điều trị' },
+      'PENDING': { color: 'warning', text: 'Đang chờ điều trị' },
       'Cancelled': { color: 'error', text: 'Đã hủy' },
       'CANCELLED': { color: 'error', text: 'Đã hủy' }
     };
@@ -230,53 +232,44 @@ const MyServices = () => {
 
   return (
     <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-      <Title level={4} style={{ marginBottom: 24 }}>Dịch vụ của tôi</Title>
+      <Title level={4} style={{ marginBottom: 24, color: '#1890ff', fontWeight: 700, letterSpacing: 1 }}>Dịch vụ của tôi</Title>
 
       {/* Thống kê */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
+      <Row gutter={32} style={{ marginBottom: 32, justifyContent: 'center' }}>
+        <Col xs={24} sm={8}>
+          <Card bordered style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(24,144,255,0.08)', background: '#fff' }}>
             <Statistic
-              title="Tổng số dịch vụ"
+              title={<span style={{ color: '#1890ff', fontWeight: 600 }}>Tổng số dịch vụ</span>}
               value={statistics.totalServices}
-              prefix={<ExperimentOutlined />}
+              prefix={<ExperimentOutlined style={{ color: '#1890ff' }} />}
+              valueStyle={{ fontSize: 32, color: '#1890ff', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
+        <Col xs={24} sm={8}>
+          <Card bordered style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(255,77,79,0.08)', background: '#fff' }}>
             <Statistic
-              title="Đã hoàn thành"
-              value={statistics.completedServices}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              title={<span style={{ color: '#ff4d4f', fontWeight: 600 }}>Đã hủy</span>}
+              value={statistics.cancelledServices}
+              prefix={<CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
+              valueStyle={{ fontSize: 32, color: '#ff4d4f', fontWeight: 700 }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
+        <Col xs={24} sm={8}>
+          <Card bordered style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(24,144,255,0.08)', background: '#fff' }}>
             <Statistic
-              title="Đang thực hiện"
+              title={<span style={{ color: '#1890ff', fontWeight: 600 }}>Đang thực hiện</span>}
               value={statistics.inProgressServices}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic
-              title="Đang chờ"
-              value={statistics.pendingServices}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#faad14' }}
+              prefix={<CheckCircleOutlined style={{ color: '#1890ff' }} />}
+              valueStyle={{ fontSize: 32, color: '#1890ff', fontWeight: 700 }}
             />
           </Card>
         </Col>
       </Row>
 
       {/* Bảng dịch vụ */}
-      <Card>
+      <Card style={{ borderRadius: 16, boxShadow: '0 2px 8px rgba(24,144,255,0.06)', background: '#fff' }}>
         <Table
           columns={columns}
           dataSource={treatmentRecords}
@@ -290,6 +283,8 @@ const MyServices = () => {
             onClick: () => handleViewDetails(record),
             style: { cursor: 'pointer' }
           })}
+          bordered
+          style={{ borderRadius: 12, overflow: 'hidden' }}
         />
       </Card>
 

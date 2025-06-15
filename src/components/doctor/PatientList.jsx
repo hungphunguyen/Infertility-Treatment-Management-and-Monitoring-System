@@ -142,7 +142,7 @@ const PatientList = () => {
   const today = dayjs().format('YYYY-MM-DD');
   const enrichedPatients = patients.map(patient => {
     const treatment = treatmentRecords.find(
-      t => t.customerId === patient.customerId || t.customerName === patient.customerName
+      t => (t.customerId === patient.customerId || t.customerName === patient.customerName) && t.status === 'INPROGRESS'
     );
     let todayStep = null;
     if (treatment && Array.isArray(treatment.treatmentSteps)) {
@@ -154,8 +154,12 @@ const PatientList = () => {
       ...patient,
       todayStepName: todayStep ? todayStep.name : null,
       todayStepStatus: todayStep ? todayStep.status : null,
+      treatmentStatus: treatment ? treatment.status : null,
+      treatmentRecordId: treatment ? treatment.id : null,
+      hasTodayStep: !!todayStep
     };
-  });
+  })
+  .filter(patient => patient.treatmentStatus === 'INPROGRESS' && patient.hasTodayStep);
 
   // Updated status tag for step statuses
   const getStepStatusTag = (status) => {
@@ -293,36 +297,25 @@ const PatientList = () => {
     {
       title: "Trạng thái",
       key: "status",
-      render: (record) => record.todayStepStatus ? getStepStatusTag(record.todayStepStatus) : getStatusTag(record.status)
+      render: (record) => getStatusTag(record.status)
     },
     {
       title: "Dịch vụ",
       key: "serviceName",
-      render: (record) => record.todayStepName ? <Tag color="purple">{record.todayStepName}</Tag> : (record.serviceName ? <Tag color="purple">{record.serviceName}</Tag> : <Tag color="default">Chưa có</Tag>)
+      render: (record) => <Tag color="purple">{record.purpose || record.serviceName || 'Chưa có'}</Tag>
     },
     {
       title: "Thao tác",
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          {record.status === "PENDING" ? (
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => handleApprove(record)}
-              style={{ backgroundColor: "#fa8c16" }}
-            >
-              Duyệt
-            </Button>
-          ) : (
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => handleUpdate(record)}
-            >
-              Chi Tiết
-            </Button>
-          )}
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleUpdate(record)}
+          >
+            Chi Tiết
+          </Button>
         </Space>
       ),
     }
@@ -343,50 +336,23 @@ const PatientList = () => {
 
   return (
     <div>
-      {/* Test API Button */}
-      <Card className="mb-6">
-        <Row gutter={16} align="middle">
-          <Col span={24}>
-            <Space>
-              <Button 
-                type="primary" 
-                icon={<ReloadOutlined />}
-                onClick={testApi}
-                loading={loading}
-              >
-                Test API
-              </Button>
-              {doctorName && (
-                <Text type="secondary">
-                  Doctor Name: {doctorName}
-                </Text>
-              )}
-              {apiResponse && (
-                <Text type="secondary">
-                  Last API Response: {JSON.stringify(apiResponse)}
-                </Text>
-              )}
-            </Space>
-          </Col>
-        </Row>
-      </Card>
-
       {/* Filters */}
-      <Card className="mb-6">
+      <Card className="mb-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)', borderRadius: 12, border: 'none' }}>
         <Row gutter={16} align="middle">
           <Col span={8}>
             <Search
               placeholder="Tìm kiếm tên hoặc ID bệnh nhân..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: "100%" }}
+              style={{ width: "100%", borderRadius: 8 }}
+              allowClear
             />
           </Col>
           <Col span={6}>
             <Select
               value={statusFilter}
               onChange={setStatusFilter}
-              style={{ width: "100%" }}
+              style={{ width: "100%", borderRadius: 8 }}
             >
               <Option value="all">Tất cả trạng thái</Option>
               <Option value="CONFIRMED">Đã xác nhận</Option>
@@ -404,15 +370,24 @@ const PatientList = () => {
       </Card>
 
       {/* Patient Table */}
-      <Card title="Danh Sách Bệnh Nhân Hôm Nay">
+      <Card title={<span style={{ fontWeight: 600, fontSize: 20, color: '#1890ff' }}>Danh Sách Bệnh Nhân Hôm Nay</span>}
+            style={{ boxShadow: '0 4px 16px rgba(24,144,255,0.08)', borderRadius: 16, border: 'none', marginBottom: 24 }}>
         <Spin spinning={loading}>
-          <Table
-            columns={columns}
-            dataSource={filteredData}
-            rowKey="id"
-            pagination={{ pageSize: 10 }}
-            scroll={{ x: 1000 }}
-          />
+          {enrichedPatients.length === 0 ? (
+            <div style={{ padding: 32, textAlign: 'center', color: '#888', fontSize: 16 }}>
+              <p>Không có bệnh nhân nào cần điều trị hôm nay.</p>
+            </div>
+          ) : (
+            <Table
+              columns={columns}
+              dataSource={enrichedPatients}
+              rowKey="id"
+              pagination={{ pageSize: 10 }}
+              scroll={{ x: 1000 }}
+              bordered
+              style={{ borderRadius: 12, overflow: 'hidden' }}
+            />
+          )}
         </Spin>
       </Card>
 

@@ -302,5 +302,15 @@ export const treatmentService = {
 
   getTreatmentRecordsByCustomerId: (customerId) => {
     return http.get(`/treatment-records/find-all/customer/${customerId}`);
+  },
+
+  updateTreatmentRecordStatus: async (recordId, status) => {
+    try {
+      const response = await http.put(`/treatment-records/update-status/${recordId}/${status}`);
+      return response;
+    } catch (error) {
+      console.error("Error updating treatment record status:", error);
+      throw error;
+    }
   }
 };
