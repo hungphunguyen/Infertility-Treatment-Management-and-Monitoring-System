@@ -1,5 +1,13 @@
-import React from "react";
-import { Menu, Avatar, Typography, Divider, Button } from "antd";
+import React, { useEffect, useState } from "react";
+import {
+  Menu,
+  Avatar,
+  Typography,
+  Divider,
+  Button,
+  Spin,
+  Dropdown,
+} from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import {
@@ -11,6 +19,8 @@ import {
   MedicineBoxOutlined,
   HomeOutlined,
 } from "@ant-design/icons";
+import { authService } from "../../service/auth.service";
+import { useSelector } from "react-redux";
 
 const { Text } = Typography;
 
@@ -28,10 +38,17 @@ const DoctorSidebar = ({
       path: path.doctorDashboard,
     },
     {
+      key: "work-schedule",
+      icon: <CalendarOutlined />,
+      label: "Lịch Làm Việc",
+      title: "Xem lịch làm việc của tôi",
+      path: path.doctorWorkSchedule,
+    },
+    {
       key: "patients",
       icon: <TeamOutlined />,
-      label: "Bệnh Nhân",
-      title: "Danh sách bệnh nhân đang điều trị",
+      label: "Bệnh Nhân Hôm Nay",
+      title: "Danh sách bệnh điều trị hôm nay",
       path: path.doctorPatients,
     },
     {
@@ -41,6 +58,7 @@ const DoctorSidebar = ({
       title: "Quản lý kết quả xét nghiệm",
       path: path.doctorTestResults,
     },
+    ,
     {
       key: "profile",
       icon: <UserOutlined />,
@@ -49,55 +67,73 @@ const DoctorSidebar = ({
       path: path.doctorProfile,
     },
   ];
+  const token = useSelector((state) => state.authSlice);
+
   const navigate = useNavigate();
+  const [infoUser, setInfoUser] = useState();
+  useEffect(() => {
+    if (!token) return;
+    authService
+      .getMyInfo(token.token)
+      .then((res) => {
+        setInfoUser(res.data.result);
+      })
+      .catch((err) => {});
+  }, [token]);
+  const checkLogin = () => {
+    if (infoUser) {
+      return (
+        <div className="flex items-center gap-2 select-none cursor-pointer ">
+          <Avatar
+            className="w-12 h-12 rounded-full justify-center text-white font-bold hover:border-4 hover:border-orange-400 transition-all duration-300"
+            src={infoUser.avatarUrl || undefined}
+          ></Avatar>
+          <span className="text-sm font-medium text-white">
+            {infoUser.fullName}
+          </span>
+        </div>
+      );
+    }
+  };
 
   return (
-    <div style={{ height: "100%" }}>
+    <div
+      style={{
+        background: "#001529",
+        color: "#fff",
+        height: "100vh",
+        position: "fixed",
+        left: 0,
+        top: 0,
+        zIndex: 1000,
+        width: collapsed ? 80 : 250,
+        overflow: "auto",
+        transition: "width 0.2s",
+      }}
+    >
       {/* Doctor Info */}
-      <div
-        style={{
-          padding: collapsed ? "16px 8px" : "24px",
-          textAlign: "center",
-          background: "#fafafa",
-          borderBottom: "1px solid #f0f0f0",
-        }}
-      >
-        <Avatar
-          size={collapsed ? 40 : 64}
-          icon={<UserOutlined />}
-          style={{
-            backgroundColor: "#1890ff",
-            marginBottom: collapsed ? 0 : 12,
-          }}
-        />
-        {!collapsed && (
-          <>
-            <div style={{ marginTop: 8 }}>
-              <Text strong style={{ fontSize: "16px", color: "#1890ff" }}>
-                BS. Nguyễn Văn A
-              </Text>
-            </div>
-            <Text type="secondary" style={{ fontSize: "12px" }}>
-              Chuyên gia IVF
-            </Text>
-          </>
-        )}
-      </div>
+      <div className="p-4 text-center">{checkLogin()}</div>
 
       {/* Menu */}
       <Menu
         mode="inline"
         selectedKeys={[selectedMenuItem]}
+        theme="dark"
         style={{
           border: "none",
           background: "transparent",
-          height: "calc(100% - 140px)",
+          color: "#fff",
+          height: "auto",
         }}
         items={menuItems.map((item) => ({
           key: item.key,
           icon: item.icon,
           label: (
-            <Link to={item.path} title={collapsed ? item.title : ""}>
+            <Link
+              to={item.path}
+              title={collapsed ? item.title : ""}
+              style={{ color: "#fff" }}
+            >
               {item.label}
             </Link>
           ),
@@ -111,9 +147,9 @@ const DoctorSidebar = ({
           icon={<HomeOutlined />}
           style={{
             width: "100%",
-            display: "flex",
-            justifyContent: collapsed ? "center" : "flex-start",
-            alignItems: "center",
+            color: "#001529",
+            background: "#fff",
+            border: "none",
           }}
           onClick={() => navigate("/")}
         >
@@ -130,11 +166,12 @@ const DoctorSidebar = ({
             left: 24,
             right: 24,
             textAlign: "center",
+            color: "#bfbfbf",
           }}
         >
-          <Divider style={{ margin: "8px 0" }} />
-          <Text type="secondary" style={{ fontSize: "11px" }}>
-            Hệ thống quản lý bác sĩ v1.0
+          <Divider style={{ margin: "8px 0", borderColor: "#222" }} />
+          <Text type="secondary" style={{ fontSize: "11px", color: "#bfbfbf" }}>
+            Hệ thống quản lý bác sĩ
           </Text>
         </div>
       )}

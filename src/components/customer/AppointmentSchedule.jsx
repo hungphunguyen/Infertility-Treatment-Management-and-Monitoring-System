@@ -1,95 +1,99 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, Calendar, Badge, Modal, Button, Descriptions, 
-  Typography, Tag, Row, Col, List, Timeline, Space, Empty
+  Typography, Tag, Row, Col, List, Timeline, Space, Empty,
+  Spin, message
 } from "antd";
 import {
   CalendarOutlined, ClockCircleOutlined, UserOutlined,
-  EnvironmentOutlined, PhoneOutlined, InfoCircleOutlined
+  EnvironmentOutlined, PhoneOutlined, InfoCircleOutlined,
+  UpOutlined, DownOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { treatmentService } from "../../service/treatment.service";
+import { authService } from "../../service/auth.service";
+import { doctorService } from "../../service/doctor.service";
 
 const { Title, Text, Paragraph } = Typography;
 
 const AppointmentSchedule = () => {
+  const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [appointmentDetails, setAppointmentDetails] = useState(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [userInfo, setUserInfo] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  // Mock data for appointments
-  const appointments = [
-    {
-      id: 1,
-      title: "Tư vấn ban đầu",
-      date: "2024-01-15",
-      time: "09:00",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng 103, Tầng 1",
-      status: "completed",
-      serviceId: "SV001",
-      notes: "Đã hoàn thành tư vấn, lập kế hoạch điều trị IVF",
-      contact: "0901234567",
-      preparationInstructions: "Không cần chuẩn bị trước"
-    },
-    {
-      id: 2,
-      title: "Kích thích buồng trứng",
-      date: "2024-01-20",
-      time: "10:30",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng 105, Tầng 1",
-      status: "completed",
-      serviceId: "SV002",
-      notes: "Siêu âm theo dõi, điều chỉnh liều hormone",
-      contact: "0901234567",
-      preparationInstructions: "Mang theo hồ sơ y tế"
-    },
-    {
-      id: 3,
-      title: "Siêu âm theo dõi",
-      date: "2024-01-22",
-      time: "09:30",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng 105, Tầng 1",
-      status: "upcoming",
-      serviceId: "SV002",
-      notes: "Theo dõi phát triển nang trứng",
-      contact: "0901234567",
-      preparationInstructions: "Mang theo hồ sơ y tế và kết quả xét nghiệm trước đó"
-    },
-    {
-      id: 4,
-      title: "Xét nghiệm Di truyền",
-      date: "2024-01-25",
-      time: "08:00",
-      doctor: "BS. Trần Thị B",
-      department: "Khoa Xét nghiệm",
-      location: "Phòng 201, Tầng 2",
-      status: "upcoming",
-      serviceId: "SV003",
-      notes: "Lấy mẫu xét nghiệm di truyền tiền làm tổ",
-      contact: "0901234568",
-      preparationInstructions: "Nhịn ăn 8 tiếng trước khi xét nghiệm"
-    },
-    {
-      id: 5,
-      title: "Lấy trứng",
-      date: "2024-01-30",
-      time: "07:30",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng phẫu thuật 3, Tầng 3",
-      status: "upcoming",
-      serviceId: "SV002",
-      notes: "Thủ thuật lấy trứng",
-      contact: "0901234567",
-      preparationInstructions: "Nhịn ăn từ 22:00 tối hôm trước, mang theo người thân hỗ trợ"
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      // Lấy thông tin user
+      const userResponse = await authService.getMyInfo();
+      if (!userResponse?.data?.result?.id) {
+        message.error('Không tìm thấy thông tin người dùng');
+        return;
+      }
+      setUserInfo(userResponse.data.result);
+
+      // Lấy danh sách điều trị của user
+      const treatmentResponse = await treatmentService.getTreatmentRecordsByCustomer(userResponse.data.result.id);
+      console.log('Treatment Records Response:', treatmentResponse);
+      
+      if (treatmentResponse?.data?.result) {
+        // Chuyển đổi dữ liệu điều trị thành lịch hẹn
+        const treatmentAppointments = treatmentResponse.data.result.flatMap(treatment => {
+          return treatment.treatmentSteps.map(step => {
+            // Tính toán ngày và giờ từ scheduledDate
+            const scheduledDate = step.scheduledDate ? new Date(step.scheduledDate) : null;
+            const date = scheduledDate ? scheduledDate.toISOString().split('T')[0] : null;
+            const time = scheduledDate ? scheduledDate.toTimeString().slice(0, 5) : "09:00";
+
+            // Nếu là bước đã xác nhận (CONFIRMED) thì hiển thị ngày thực tế
+            // Nếu là bước đã lên kế hoạch (PLANNED) thì ước tính ngày dựa trên ngày bắt đầu
+            let appointmentDate = date;
+            if (!appointmentDate && step.status === 'PLANNED') {
+              // Ước tính ngày dựa trên vị trí của bước trong chuỗi điều trị
+              const stepIndex = treatment.treatmentSteps.findIndex(s => s.id === step.id);
+              const startDate = new Date(treatment.startDate);
+              startDate.setDate(startDate.getDate() + (stepIndex * 7)); // Mỗi bước cách nhau 1 tuần
+              appointmentDate = startDate.toISOString().split('T')[0];
+            }
+
+            return {
+              id: step.id,
+              title: step.name,
+              date: appointmentDate,
+              time: time,
+              doctor: treatment.doctorName,
+              department: "Khoa IVF",
+              location: "Phòng khám IVF",
+              status: step.status === 'CONFIRMED' ? 'completed' : 
+                     step.status === 'PLANNED' ? 'upcoming' : 'pending',
+              serviceId: treatment.id,
+              notes: step.notes || `Bước ${step.id} của quy trình điều trị ${treatment.treatmentServiceName}`,
+              contact: userResponse.data.result.phoneNumber,
+              preparationInstructions: step.preparationInstructions || "Không cần chuẩn bị đặc biệt",
+              isEstimated: !date && step.status === 'PLANNED' // Đánh dấu ngày ước tính
+            };
+          });
+        }).filter(appointment => appointment.date !== null); // Chỉ lấy các lịch hẹn có ngày
+
+        console.log('Mapped Appointments:', treatmentAppointments);
+        setAppointments(treatmentAppointments);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      message.error('Có lỗi xảy ra khi tải dữ liệu');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date) => {
@@ -130,6 +134,7 @@ const AppointmentSchedule = () => {
                 text={
                   <span style={{ fontSize: '12px' }}>
                     {appointment.time} - {appointment.title}
+                    {appointment.isEstimated && " (Dự kiến)"}
                   </span>
                 }
               />
@@ -141,29 +146,55 @@ const AppointmentSchedule = () => {
   };
 
   // Function to get badge status for appointment
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, isEstimated) => {
     const statusMap = {
-      upcoming: { color: "blue", text: "Sắp tới" },
+      upcoming: { color: "blue", text: isEstimated ? "Dự kiến" : "Sắp tới" },
       completed: { color: "green", text: "Đã hoàn thành" },
+      pending: { color: "orange", text: "Đang chờ" },
       cancelled: { color: "red", text: "Đã hủy" }
     };
     return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
   };
 
   // Upcoming appointments list
-  const upcomingAppointments = appointments.filter(a => a.status === "upcoming")
+  const upcomingAppointments = appointments
+    .filter(a => a.status === "upcoming" || a.status === "pending")
     .sort((a, b) => new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time));
+
+  const displayedAppointments = isExpanded ? upcomingAppointments : upcomingAppointments.slice(0, 3);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div>
       <Row gutter={[16, 16]}>
         {/* Upcoming Appointments */}
         <Col xs={24} lg={8}>
-          <Card title="Lịch hẹn sắp tới" style={{ marginBottom: 16 }}>
+          <Card 
+            title="Lịch hẹn sắp tới" 
+            style={{ marginBottom: 16 }}
+            extra={
+              upcomingAppointments.length > 3 && (
+                <Button
+                  type="text"
+                  icon={isExpanded ? <UpOutlined /> : <DownOutlined />}
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  {isExpanded ? "Thu gọn" : "Xem thêm"}
+                </Button>
+              )
+            }
+          >
             {upcomingAppointments.length > 0 ? (
               <List
                 itemLayout="horizontal"
-                dataSource={upcomingAppointments}
+                dataSource={displayedAppointments}
                 renderItem={appointment => (
                   <List.Item
                     actions={[
@@ -181,7 +212,7 @@ const AppointmentSchedule = () => {
                         <div>
                           <Text strong>{appointment.title}</Text>
                           <div style={{ marginTop: 4 }}>
-                            {getStatusBadge(appointment.status)}
+                            {getStatusBadge(appointment.status, appointment.isEstimated)}
                           </div>
                         </div>
                       }
@@ -286,7 +317,7 @@ const AppointmentSchedule = () => {
                     <Space>
                       <Text strong>{appointment.time}</Text>
                       <Text>{appointment.title}</Text>
-                      {getStatusBadge(appointment.status)}
+                      {getStatusBadge(appointment.status, appointment.isEstimated)}
                     </Space>
                   }
                   description={
@@ -342,7 +373,7 @@ const AppointmentSchedule = () => {
                 {appointmentDetails.location}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
-                {getStatusBadge(appointmentDetails.status)}
+                {getStatusBadge(appointmentDetails.status, appointmentDetails.isEstimated)}
               </Descriptions.Item>
               <Descriptions.Item label="Mã dịch vụ">
                 <Tag color="blue">{appointmentDetails.serviceId}</Tag>
@@ -364,17 +395,6 @@ const AppointmentSchedule = () => {
                 <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
                 {appointmentDetails.preparationInstructions}
               </Paragraph>
-            </div>
-            
-            <div style={{ marginTop: 16 }}>
-              <Space>
-                <Button type="primary">
-                  Xác nhận tham dự
-                </Button>
-                <Button danger>
-                  Yêu cầu đổi lịch
-                </Button>
-              </Space>
             </div>
           </div>
         )}

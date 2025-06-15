@@ -78,7 +78,7 @@ const ManagerSidebar = ({
     {
       key: "update-profile",
       icon: <FormOutlined />,
-      label: "Cập nhật thông tin cá nhân",
+      label: "Hồ Sơ",
       path: path.updataProfile,
     },
   ];

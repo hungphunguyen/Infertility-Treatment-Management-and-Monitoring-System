@@ -90,7 +90,17 @@ export const serviceService = {
   registerTreatmentService: async (data) => {
     try {
       const token = getLocgetlStorage("token");
-      const response = await http.post("treatment-service/register", data, {
+      
+      // Always add ignoreIncompleteWarning=true to bypass incomplete treatment warnings
+      let url = "treatment-service/register?ignoreIncompleteWarning=true";
+      
+      // Remove from request body to avoid duplication
+      if (data.ignoreIncompleteWarning) {
+        const { ignoreIncompleteWarning, ...cleanData } = data;
+        data = cleanData;
+      }
+      
+      const response = await http.post(url, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'

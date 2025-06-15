@@ -1,293 +1,318 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { 
-  Card, Table, Tag, Button, Space, Progress, Typography, 
-  Row, Col, Statistic, Modal, Descriptions, Timeline
-} from "antd";
-import {
-  MedicineBoxOutlined, CalendarOutlined, CheckCircleOutlined,
-  ClockCircleOutlined, EyeOutlined, UserOutlined, FileTextOutlined
-} from "@ant-design/icons";
-import dayjs from "dayjs";
+  Card, Table, Tag, Typography, Row, Col, Statistic, 
+  Timeline, Modal, Descriptions, Spin, message 
+} from 'antd';
+import { 
+  ExperimentOutlined, 
+  CheckCircleOutlined, 
+  ClockCircleOutlined,
+  UserOutlined,
+  CalendarOutlined
+} from '@ant-design/icons';
+import dayjs from 'dayjs';
+import { treatmentService } from '../../service/treatment.service';
+import { authService } from '../../service/auth.service';
 
 const { Title, Text } = Typography;
 
 const MyServices = () => {
+  const [loading, setLoading] = useState(true);
+  const [treatmentRecords, setTreatmentRecords] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [statistics, setStatistics] = useState({
+    totalServices: 0,
+    completedServices: 0,
+    inProgressServices: 0,
+    pendingServices: 0
+  });
 
-  // Mock services data
-  const services = [
-    {
-      key: 1,
-      serviceId: "SV001",
-      serviceName: "Tư vấn Ban đầu",
-      price: 500000,
-      registeredDate: "2024-01-10",
-      status: "completed",
-      progress: 100,
-      doctor: "BS. Nguyễn Văn A",
-      appointmentDate: "2024-01-15",
-      notes: "Đã hoàn thành tư vấn ban đầu và lập kế hoạch điều trị",
-      nextStep: "Đăng ký gói IVF"
-    },
-    {
-      key: 2,
-      serviceId: "SV002", 
-      serviceName: "IVF Tiêu chuẩn",
-      price: 70000000,
-      registeredDate: "2024-01-12",
-      status: "in-progress",
-      progress: 35,
-      doctor: "BS. Nguyễn Văn A",
-      appointmentDate: "2024-01-20",
-      notes: "Đang trong giai đoạn kích thích buồng trứng",
-      nextStep: "Siêu âm theo dõi ngày 22/01"
-    },
-    {
-      key: 3,
-      serviceId: "SV003",
-      serviceName: "Xét nghiệm Di truyền",
-      price: 8000000,
-      registeredDate: "2024-01-18",
-      status: "scheduled",
-      progress: 0,
-      doctor: "BS. Trần Thị B",
-      appointmentDate: "2024-01-25",
-      notes: "Đã đặt lịch, chờ ngày khám",
-      nextStep: "Lấy mẫu xét nghiệm ngày 25/01"
+  useEffect(() => {
+    fetchTreatmentRecords();
+  }, []);
+
+  const fetchTreatmentRecords = async () => {
+    try {
+      setLoading(true);
+      const userResponse = await authService.getMyInfo();
+      console.log('User Info Response:', userResponse);
+      
+      if (!userResponse?.data?.result?.id) {
+        message.error('Không tìm thấy thông tin người dùng');
+        return;
+      }
+
+      const customerId = userResponse.data.result.id;
+      const response = await treatmentService.getTreatmentRecordsByCustomer(customerId);
+      console.log('Treatment Records Response:', response);
+      console.log('Treatment Records Data:', response?.data?.result);
+      
+      if (response?.data?.result) {
+        const records = response.data.result;
+        console.log('First Record Full Structure:', JSON.stringify(records[0], null, 2));
+        
+        setTreatmentRecords(records);
+
+        // Tính toán thống kê
+        const stats = {
+          totalServices: records.length,
+          completedServices: records.filter(r => r.status === 'Completed').length,
+          inProgressServices: records.filter(r => r.status === 'InProgress').length,
+          pendingServices: records.filter(r => r.status === 'Pending').length
+        };
+        setStatistics(stats);
+      }
+    } catch (error) {
+      console.error('Error fetching treatment records:', error);
+      message.error('Có lỗi xảy ra khi tải dữ liệu');
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const getStatusTag = (status) => {
-    const statusMap = {
-      completed: { color: "green", text: "Hoàn thành" },
-      "in-progress": { color: "blue", text: "Đang thực hiện" },
-      scheduled: { color: "orange", text: "Đã đặt lịch" },
-      cancelled: { color: "red", text: "Đã hủy" }
-    };
-    return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
   };
 
-  const viewService = (service) => {
-    setSelectedService(service);
-    setModalVisible(true);
+  const getStatusTag = (status, progress) => {
+    // Nếu có progress, ưu tiên hiển thị trạng thái dựa trên progress
+    if (progress !== undefined) {
+      if (progress === '0%') {
+        return <Tag color="warning">Đang chờ điều trị</Tag>;
+      } else if (progress === '100%') {
+        return <Tag color="success">Hoàn thành</Tag>;
+      } else {
+        return <Tag color="processing">Đang điều trị</Tag>;
+      }
+    }
+
+    // Nếu không có progress, sử dụng status
+    const statusMap = {
+      'Completed': { color: 'success', text: 'Hoàn thành' },
+      'InProgress': { color: 'processing', text: 'Đang điều trị' },
+      'Pending': { color: 'warning', text: 'Đang chờ điều trị' },
+      'Cancelled': { color: 'error', text: 'Đã hủy' }
+    };
+
+    const { color, text } = statusMap[status] || { color: 'default', text: status };
+    return <Tag color={color}>{text}</Tag>;
+  };
+
+  const calculateEstimatedEndDate = (startDate, treatmentSteps) => {
+    if (!startDate) return null;
+    
+    // Nếu có endDate từ API thì sử dụng
+    if (selectedService?.endDate) {
+      return selectedService.endDate;
+    }
+    
+    // Nếu không có endDate, tính toán dựa trên ngày bắt đầu
+    // Thêm 45 ngày cho toàn bộ quá trình điều trị
+    return dayjs(startDate).add(45, 'days').format('YYYY-MM-DD');
   };
 
   const columns = [
     {
-      title: "Mã dịch vụ",
-      dataIndex: "serviceId",
-      key: "serviceId",
-      render: (id) => <Tag color="blue">{id}</Tag>
+      title: 'Gói điều trị',
+      dataIndex: 'treatmentServiceName',
+      key: 'treatmentServiceName',
+      render: (text) => <span>{text || 'N/A'}</span>
     },
     {
-      title: "Tên dịch vụ",
-      dataIndex: "serviceName",
-      key: "serviceName",
-      render: (name) => <Text strong>{name}</Text>
+      title: 'Bác sĩ phụ trách',
+      dataIndex: 'doctorName',
+      key: 'doctorName',
+      render: (text) => <span>{text || 'N/A'}</span>
     },
     {
-      title: "Bác sĩ",
-      dataIndex: "doctor",
-      key: "doctor",
-      render: (doctor) => (
-        <div>
-          <UserOutlined style={{ marginRight: 8 }} />
-          {doctor}
-        </div>
-      )
+      title: 'Ngày bắt đầu',
+      dataIndex: 'startDate',
+      key: 'startDate',
+      render: (text) => <span>{text ? new Date(text).toLocaleDateString('vi-VN') : 'N/A'}</span>
     },
     {
-      title: "Ngày đăng ký",
-      dataIndex: "registeredDate",
-      key: "registeredDate",
-      render: (date) => dayjs(date).format("DD/MM/YYYY")
+      title: 'Ngày kết thúc dự kiến',
+      dataIndex: 'endDate',
+      key: 'endDate',
+      render: (_, record) => {
+        const estimatedEndDate = calculateEstimatedEndDate(record.startDate, record.treatmentSteps);
+        return <span>{estimatedEndDate ? new Date(estimatedEndDate).toLocaleDateString('vi-VN') : 'N/A'}</span>;
+      }
     },
     {
-      title: "Giá dịch vụ",
-      dataIndex: "price",
-      key: "price",
-      render: (price) => (
-        <Text strong style={{ color: "#52c41a" }}>
-          {price.toLocaleString('vi-VN')} VNĐ
-        </Text>
-      )
+      title: 'Trạng thái',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status, record) => {
+        const totalSteps = record.treatmentSteps?.length || 0;
+        if (!totalSteps || record.treatmentSteps[0]?.status !== 'COMPLETED') {
+          return getStatusTag(status, '0%');
+        }
+        const completedSteps = record.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+        const progress = Math.round((completedSteps / totalSteps) * 100);
+        return getStatusTag(status, `${progress}%`);
+      }
     },
     {
-      title: "Tiến độ",
-      key: "progress",
-      render: (_, record) => (
-        <div>
-          <Progress percent={record.progress} size="small" />
-          <Text style={{ fontSize: "12px", color: "#666" }}>
-            {record.progress}%
-          </Text>
-        </div>
-      )
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: getStatusTag
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      render: (_, record) => (
-        <Button 
-          size="small" 
-          icon={<EyeOutlined />}
-          onClick={() => viewService(record)}
-        >
-          Chi tiết
-        </Button>
-      )
+      title: 'Tiến độ',
+      dataIndex: 'progress',
+      key: 'progress',
+      render: (_, record) => {
+        const totalSteps = record.treatmentSteps?.length || 0;
+        if (!totalSteps || record.treatmentSteps[0]?.status !== 'COMPLETED') {
+          return '0%';
+        }
+        const completedSteps = record.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+        const progress = Math.round((completedSteps / totalSteps) * 100);
+        return `${progress}%`;
+      }
     }
   ];
 
-  // Statistics
-  const stats = {
-    total: services.length,
-    completed: services.filter(s => s.status === "completed").length,
-    inProgress: services.filter(s => s.status === "in-progress").length,
-    scheduled: services.filter(s => s.status === "scheduled").length,
-    totalSpent: services.reduce((sum, s) => sum + s.price, 0)
+  const handleViewDetails = (record) => {
+    setSelectedService(record);
+    setModalVisible(true);
   };
 
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {/* Statistics Cards */}
+    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+      <Title level={4} style={{ marginBottom: 24 }}>Dịch vụ của tôi</Title>
+
+      {/* Thống kê */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
-              title="Tổng dịch vụ"
-              value={stats.total}
-              prefix={<MedicineBoxOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              title="Tổng số dịch vụ"
+              value={statistics.totalServices}
+              prefix={<ExperimentOutlined />}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
-              title="Hoàn thành"
-              value={stats.completed}
+              title="Đã hoàn thành"
+              value={statistics.completedServices}
               prefix={<CheckCircleOutlined />}
               valueStyle={{ color: '#52c41a' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
               title="Đang thực hiện"
-              value={stats.inProgress}
+              value={statistics.inProgressServices}
               prefix={<ClockCircleOutlined />}
               valueStyle={{ color: '#1890ff' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
-              title="Tổng chi phí"
-              value={stats.totalSpent}
-              formatter={(value) => `${value.toLocaleString('vi-VN')} VNĐ`}
-              valueStyle={{ color: '#fa8c16', fontSize: '16px' }}
+              title="Đang chờ"
+              value={statistics.pendingServices}
+              prefix={<ClockCircleOutlined />}
+              valueStyle={{ color: '#faad14' }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Services Table */}
-      <Card title="Danh Sách Dịch Vụ Đã Đăng Ký">
+      {/* Bảng dịch vụ */}
+      <Card>
         <Table
           columns={columns}
-          dataSource={services}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 1000 }}
+          dataSource={treatmentRecords}
+          rowKey="id"
+          pagination={{
+            pageSize: 5,
+            showSizeChanger: false,
+            showTotal: (total) => `Tổng số ${total} dịch vụ`
+          }}
+          onRow={(record) => ({
+            onClick: () => handleViewDetails(record),
+            style: { cursor: 'pointer' }
+          })}
         />
       </Card>
 
-      {/* Service Detail Modal */}
+      {/* Modal chi tiết */}
       <Modal
-        title="Chi Tiết Dịch Vụ"
+        title="Chi tiết dịch vụ"
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setModalVisible(false)}>
-            Đóng
-          </Button>
-        ]}
-        width={700}
+        footer={null}
+        width={800}
       >
         {selectedService && (
           <div>
-            <Descriptions column={2} bordered style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="Mã dịch vụ">
-                {selectedService.serviceId}
-              </Descriptions.Item>
-              <Descriptions.Item label="Tên dịch vụ">
-                {selectedService.serviceName}
+            <Descriptions bordered column={2}>
+              <Descriptions.Item label="Gói điều trị" span={2}>
+                {selectedService.treatmentServiceName}
               </Descriptions.Item>
               <Descriptions.Item label="Bác sĩ phụ trách">
-                {selectedService.doctor}
+                {selectedService.doctorName}
               </Descriptions.Item>
-              <Descriptions.Item label="Ngày đăng ký">
-                {dayjs(selectedService.registeredDate).format("DD/MM/YYYY")}
+              <Descriptions.Item label="Trạng thái">
+                {(() => {
+                  const totalSteps = selectedService.treatmentSteps?.length || 0;
+                  if (!totalSteps || selectedService.treatmentSteps[0]?.status !== 'COMPLETED') {
+                    return getStatusTag(selectedService.status, '0%');
+                  }
+                  const completedSteps = selectedService.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+                  const progress = Math.round((completedSteps / totalSteps) * 100);
+                  return getStatusTag(selectedService.status, `${progress}%`);
+                })()}
               </Descriptions.Item>
-              <Descriptions.Item label="Lịch hẹn tiếp theo">
-                {selectedService.appointmentDate ? dayjs(selectedService.appointmentDate).format("DD/MM/YYYY") : "Chưa có"}
+              <Descriptions.Item label="Ngày bắt đầu">
+                {selectedService.startDate ? new Date(selectedService.startDate).toLocaleDateString('vi-VN') : 'N/A'}
               </Descriptions.Item>
-              <Descriptions.Item label="Giá dịch vụ">
-                <Text strong style={{ color: "#52c41a" }}>
-                  {selectedService.price.toLocaleString('vi-VN')} VNĐ
-                </Text>
+              <Descriptions.Item label="Ngày kết thúc dự kiến">
+                {calculateEstimatedEndDate(selectedService.startDate, selectedService.treatmentSteps) 
+                  ? new Date(calculateEstimatedEndDate(selectedService.startDate, selectedService.treatmentSteps)).toLocaleDateString('vi-VN') 
+                  : 'N/A'}
               </Descriptions.Item>
-              <Descriptions.Item label="Trạng thái" span={2}>
-                <Space>
-                  {getStatusTag(selectedService.status)}
-                  <Progress percent={selectedService.progress} size="small" style={{ width: 100 }} />
-                </Space>
+              <Descriptions.Item label="Ngày tạo">
+                {selectedService.createdDate ? new Date(selectedService.createdDate).toLocaleDateString('vi-VN') : 'N/A'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Trạng thái thanh toán">
+                {selectedService.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}
               </Descriptions.Item>
             </Descriptions>
-
-            <div style={{ marginTop: 16 }}>
-              <Title level={5}>Ghi chú hiện tại:</Title>
-              <Text>{selectedService.notes}</Text>
-            </div>
-
-            <div style={{ marginTop: 16 }}>
-              <Title level={5}>Bước tiếp theo:</Title>
-              <Text strong style={{ color: "#1890ff" }}>{selectedService.nextStep}</Text>
-            </div>
 
             {/* Treatment Timeline */}
             <div style={{ marginTop: 16 }}>
               <Title level={5}>Tiến trình điều trị:</Title>
               <Timeline>
-                <Timeline.Item color="green">
-                  <Text strong>15/01/2024 - Tư vấn ban đầu</Text>
-                  <br />
-                  <Text type="secondary">Đã hoàn thành khám tư vấn và lập kế hoạch</Text>
-                </Timeline.Item>
-                <Timeline.Item color="blue">
-                  <Text strong>20/01/2024 - Bắt đầu IVF</Text>
-                  <br />
-                  <Text type="secondary">Kích thích buồng trứng, theo dõi định kỳ</Text>
-                </Timeline.Item>
-                <Timeline.Item>
-                  <Text strong>22/01/2024 - Siêu âm theo dõi</Text>
-                  <br />
-                  <Text type="secondary">Dự kiến siêu âm đánh giá phản ứng</Text>
-                </Timeline.Item>
-                <Timeline.Item>
-                  <Text strong>25/01/2024 - Lấy trứng</Text>
-                  <br />
-                  <Text type="secondary">Dự kiến thủ thuật lấy trứng</Text>
-                </Timeline.Item>
+                {selectedService.treatmentSteps?.map((step, index) => (
+                  <Timeline.Item 
+                    key={index}
+                    color={step.status === 'CONFIRMED' ? 'green' : step.status === 'PLANNED' ? 'blue' : 'gray'}
+                  >
+                    <Text strong>
+                      {step.scheduledDate ? new Date(step.scheduledDate).toLocaleDateString('vi-VN') : 'Chưa lên lịch'} - {step.name}
+                    </Text>
+                    <br />
+                    <Text type="secondary">
+                      {step.status === 'CONFIRMED' ? 'Đã hoàn thành' : 
+                       step.status === 'PLANNED' ? 'Đang chờ thực hiện' : 
+                       'Chưa bắt đầu'}
+                    </Text>
+                    {step.notes && (
+                      <div style={{ marginTop: 4 }}>
+                        <Text type="secondary">Ghi chú: {step.notes}</Text>
+                      </div>
+                    )}
+                  </Timeline.Item>
+                ))}
               </Timeline>
             </div>
           </div>

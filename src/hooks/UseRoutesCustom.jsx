@@ -116,10 +116,6 @@ const UseRoutesCustom = () => {
     },
 
     {
-      path: path.customerFeedback,
-      element: <FeedbackCustomer />,
-    },
-    {
       path: path.pageNotFound,
       element: <PageNotFound />,
     },

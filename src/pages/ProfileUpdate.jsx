@@ -86,7 +86,7 @@ const ProfileUpdate = () => {
         ...prev,
         avatarUrl: res.data.result.avatarUrl,
       }));
-
+      window.location.reload();
       // Reset trạng thái
       setSelectedFile(null);
       setPreview(null);
@@ -194,16 +194,20 @@ const ProfileUpdate = () => {
           />
         )} */}
 
-        {role === "CUSTOMER" && (
+        {/* {role === "CUSTOMER" && (
           <CustomerSidebar
             collapsed={false}
             onCollapse={() => {}}
             selectedMenu={selectedMenu}
             onMenuSelect={(menuKey) => setSelectedMenu(menuKey)}
           />
-        )}
+        )} */}
 
-        <Layout style={{ marginLeft: 250 }}>
+        <Layout
+          style={
+            role !== "DOCTOR" && role !== "CUSTOMER" ? { marginLeft: 250 } : {}
+          }
+        >
           <div className="py-10 px-4 md:px-10">
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* CỘT TRÁI: Avatar + Học vấn + Chuyên ngành */}
