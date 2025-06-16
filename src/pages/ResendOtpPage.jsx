@@ -21,11 +21,11 @@ const ResendOtpPage = () => {
         try {
           if (step == "email") {
             await authService.resendOtp(values);
-            showNotification("OTP code sent, check email!", "success");
+            showNotification("Đã gửi mã OTP đến email", "success");
             setStep("otp");
           } else {
             await authService.verify(values);
-            showNotification("OTP check successful", "success");
+            showNotification("OTP Kiểm tra thành công", "success");
             setTimeout(() => {
               navigate("/sign-in");
               window.location.reload();
@@ -40,11 +40,11 @@ const ResendOtpPage = () => {
           ? yup.object({
               email: yup
                 .string()
-                .email("Invalid email")
-                .required("Email is required"),
+                .email("Sai định dạng email")
+                .required("Email là bắt buộc"),
             })
           : yup.object({
-              otp: yup.string().required("Please do not leave blank"),
+              otp: yup.string().required("Vui lòng không để trống"),
             }),
     });
 
@@ -61,7 +61,7 @@ const ResendOtpPage = () => {
                 labelContent="Email"
                 id="email"
                 name="email"
-                placeholder="Enter email"
+                placeholder="Nhập email"
                 value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -72,10 +72,10 @@ const ResendOtpPage = () => {
             {step === "otp" && (
               <>
                 <InputCustom
-                  labelContent="Your code verify"
+                  labelContent="Code OTP của bạn"
                   id="otp"
                   name="otp"
-                  placeholder="Enter OTP"
+                  placeholder="Nhập OTP"
                   typeInput="text"
                   value={values.otp}
                   onChange={handleChange}

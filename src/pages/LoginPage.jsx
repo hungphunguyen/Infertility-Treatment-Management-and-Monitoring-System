@@ -43,7 +43,7 @@ const LoginPage = () => {
             dispatch(setToken(res.data.result.token));
 
             // thực hiên thông báo chuyển hướng người dùng
-            showNotification("Login successful", "success");
+            showNotification("Đăng nhập thành công", "success");
             setTimeout(() => {
               navigate("/");
             }, 1000);
@@ -52,7 +52,7 @@ const LoginPage = () => {
             if (error.response.data.code == 1014) {
               setIsResend(true);
               showNotification(
-                "If you want to verify please click resend otp!",
+                "Nếu bạn muốn xác nhận otp lại, hãy nhấn vào đây",
                 "warning"
               );
             }
@@ -62,12 +62,12 @@ const LoginPage = () => {
       validationSchema: yup.object({
         username: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please do not leave blank"),
+          .trim("Vui lòng không để trống tài khoản")
+          .required("Vui lòng không để trống tài khoản"),
         password: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please do not leave blank"),
+          .trim("Vui lòng không để trống mật khẩu")
+          .required("Vui lòng không để trống mật khẩu"),
       }),
     });
 
@@ -82,7 +82,7 @@ const LoginPage = () => {
           <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center mb-2 shadow-md">
             <span className="text-orange-500 font-bold text-2xl">⬢</span>
           </div>
-          <h1 className="text-2xl font-semibold text-white">Account Login</h1>
+          <h1 className="text-2xl font-semibold text-white">Đăng nhập</h1>
         </div>
 
         {/* Form */}
@@ -96,7 +96,7 @@ const LoginPage = () => {
               name="username"
               onChange={handleChange}
               value={values.username}
-              placeholder="Username or Email address"
+              placeholder="Vui lòng nhập tài khoản"
               labelContent={null}
               error={errors.username}
               touched={touched.username}
@@ -114,7 +114,7 @@ const LoginPage = () => {
               name="password"
               onChange={handleChange}
               value={values.password}
-              placeholder="Password"
+              placeholder="Vui lòng nhập mật khẩu"
               labelContent={null}
               typeInput="password"
               error={errors.password}
@@ -127,7 +127,7 @@ const LoginPage = () => {
           {/* Remember + Forgot */}
           <div className="flex justify-between text-sm text-white">
             <Link to={path.forgotPassword} className="hover:underline">
-              Forgot password?
+              Quên mật khẩu?
             </Link>
           </div>
 
@@ -136,14 +136,14 @@ const LoginPage = () => {
             type="submit"
             className="w-full py-2 rounded bg-[#7c2d12] hover:bg-[#5a1f0e] text-white font-semibold transition duration-300"
           >
-            Login
+            Đăng nhập
           </button>
         </form>
 
         {/* Divider */}
         <div className="my-6 w-full border-t border-orange-300 text-center text-sm text-white relative">
           <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-white/10 px-2 backdrop-blur">
-            Or login with
+            Hoặc đăng nhập với
           </span>
         </div>
 
@@ -154,9 +154,9 @@ const LoginPage = () => {
 
         {/* Sign up */}
         <div className="mt-6 text-sm text-white">
-          Don't have an account?{" "}
+          Không có tài khoản?{" "}
           <Link to={path.signUp} className="underline hover:text-orange-100">
-            Sign Up
+            Đăng kí
           </Link>
         </div>
       </div>

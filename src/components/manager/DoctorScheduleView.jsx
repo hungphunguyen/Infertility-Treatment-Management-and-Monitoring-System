@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Card, 
-  Typography, 
-  Table, 
-  Tag, 
+import {
+  Card,
+  Typography,
+  Table,
+  Tag,
   Select,
   Input,
   Row,
@@ -16,9 +16,9 @@ import {
   Tooltip,
   Spin,
   Modal,
-  Progress
+  Progress,
 } from "antd";
-import { 
+import {
   UserOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
@@ -28,12 +28,12 @@ import {
   PhoneOutlined,
   MailOutlined,
   EnvironmentOutlined,
-  CalendarOutlined as CalendarIcon
+  CalendarOutlined as CalendarIcon,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { doctorService } from "../../service/doctor.service";
 import { treatmentService } from "../../service/treatment.service";
-import { http } from '../../service/config';
+import { http } from "../../service/config";
 import { managerService } from "../../service/manager.service";
 
 const { Title } = Typography;
@@ -62,9 +62,11 @@ const DoctorScheduleView = () => {
 
   const fetchTodayAppointments = async () => {
     try {
-      const response = await http.get('/appointments/get-all');
-      const today = dayjs().format('YYYY-MM-DD');
-      const filtered = response.data.result.filter(item => item.appointmentDate === today);
+      const response = await http.get("/appointments/get-all");
+      const today = dayjs().format("YYYY-MM-DD");
+      const filtered = response.data.result.filter(
+        (item) => item.appointmentDate === today
+      );
       setTodayAppointments(filtered);
     } catch (error) {
       setTodayAppointments([]);
@@ -84,46 +86,74 @@ const DoctorScheduleView = () => {
 
   const fetchDoctorsByShift = async (date, shift) => {
     const response = await doctorService.getAvailableDoctors(date, shift);
-    return (response?.data?.result || []).map(doctor => ({
+    return (response?.data?.result || []).map((doctor) => ({
       ...doctor,
-      shift: shift === 'MORNING' ? 'Sáng' : shift === 'AFTERNOON' ? 'Chiều' : 'Cả ngày',
-      startTime: shift === 'MORNING' ? '08:00' : shift === 'AFTERNOON' ? '13:00' : '08:00',
-      endTime: shift === 'MORNING' ? '12:00' : shift === 'AFTERNOON' ? '17:00' : '17:00',
+      shift:
+        shift === "MORNING"
+          ? "Sáng"
+          : shift === "AFTERNOON"
+          ? "Chiều"
+          : "Cả ngày",
+      startTime:
+        shift === "MORNING"
+          ? "08:00"
+          : shift === "AFTERNOON"
+          ? "13:00"
+          : "08:00",
+      endTime:
+        shift === "MORNING"
+          ? "12:00"
+          : shift === "AFTERNOON"
+          ? "17:00"
+          : "17:00",
       key: doctor.id,
       doctorId: doctor.id,
       doctorName: doctor.fullName,
-      specialty: doctor.specialty || doctor.qualifications || doctor.roleName?.description || "Bác sĩ điều trị",
-      phone: doctor.phoneNumber
+      specialty:
+        doctor.specialty ||
+        doctor.qualifications ||
+        doctor.roleName?.description ||
+        "Bác sĩ điều trị",
+      phone: doctor.phoneNumber,
     }));
   };
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const today = dayjs().format('YYYY-MM-DD');
+      const today = dayjs().format("YYYY-MM-DD");
       let doctors = [];
-      if (shiftFilter === 'all') {
+      if (shiftFilter === "all") {
         // Gọi cả 3 ca, merge lại, loại trùng
         const [morning, afternoon, fullDay] = await Promise.all([
-          fetchDoctorsByShift(today, 'MORNING'),
-          fetchDoctorsByShift(today, 'AFTERNOON'),
-          fetchDoctorsByShift(today, 'FULL_DAY')
+          fetchDoctorsByShift(today, "MORNING"),
+          fetchDoctorsByShift(today, "AFTERNOON"),
+          fetchDoctorsByShift(today, "FULL_DAY"),
         ]);
         // Merge, ưu tiên Cả ngày > Sáng/Chiều
         const doctorMap = new Map();
-        fullDay.forEach(d => doctorMap.set(d.doctorId, d));
-        morning.forEach(d => { if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d); });
-        afternoon.forEach(d => { if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d); });
+        fullDay.forEach((d) => doctorMap.set(d.doctorId, d));
+        morning.forEach((d) => {
+          if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d);
+        });
+        afternoon.forEach((d) => {
+          if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d);
+        });
         doctors = Array.from(doctorMap.values());
       } else {
         // Chỉ gọi đúng ca
-        const apiShift = shiftFilter === 'Sáng' ? 'MORNING' : shiftFilter === 'Chiều' ? 'AFTERNOON' : 'FULL_DAY';
+        const apiShift =
+          shiftFilter === "Sáng"
+            ? "MORNING"
+            : shiftFilter === "Chiều"
+            ? "AFTERNOON"
+            : "FULL_DAY";
         doctors = await fetchDoctorsByShift(today, apiShift);
       }
       setDoctorSchedules(doctors);
       setFilteredData(doctors);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.log("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
@@ -152,34 +182,37 @@ const DoctorScheduleView = () => {
   // Filter schedules
   useEffect(() => {
     let filtered = doctorSchedules;
-    
+
     if (shiftFilter !== "all") {
-      filtered = filtered.filter(item => item.shift === shiftFilter);
+      filtered = filtered.filter((item) => item.shift === shiftFilter);
     }
-    
+
     if (searchText) {
-      filtered = filtered.filter(item => 
-        item.doctorName.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.specialty.toLowerCase().includes(searchText.toLowerCase())
+      filtered = filtered.filter(
+        (item) =>
+          item.doctorName.toLowerCase().includes(searchText.toLowerCase()) ||
+          item.specialty.toLowerCase().includes(searchText.toLowerCase())
       );
     }
-    
+
     setFilteredData(filtered);
   }, [shiftFilter, searchText, doctorSchedules]);
 
   const getShiftTag = (shift) => {
     const shiftMap = {
-      "Sáng": { color: "blue" },
-      "Chiều": { color: "orange" },
-      "Cả ngày": { color: "purple" }
+      Sáng: { color: "blue" },
+      Chiều: { color: "orange" },
+      "Cả ngày": { color: "purple" },
     };
     return <Tag color={shiftMap[shift]?.color}>{shift}</Tag>;
   };
 
   const getDoctorStats = (doctorName) => {
-    const patients = todayAppointments.filter(a => a.doctorName === doctorName);
+    const patients = todayAppointments.filter(
+      (a) => a.doctorName === doctorName
+    );
     const total = patients.length;
-    const completed = patients.filter(a => a.status === "COMPLETED").length;
+    const completed = patients.filter((a) => a.status === "COMPLETED").length;
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { total, completed, progress };
   };
@@ -189,22 +222,22 @@ const DoctorScheduleView = () => {
       title: "Bác sĩ",
       key: "doctor",
       render: (_, record) => (
-        <div 
+        <div
           className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
           onClick={() => showDoctorDetails(record.doctorId)}
         >
-          <Avatar 
-            size={40} 
-            icon={<UserOutlined />} 
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
             className="mr-3"
-            style={{ backgroundColor: '#1890ff' }}
+            style={{ backgroundColor: "#1890ff" }}
           />
           <div>
             <div className="font-semibold">{record.doctorName}</div>
             <div className="text-sm text-gray-500">{record.specialty}</div>
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Ca làm việc",
@@ -218,14 +251,16 @@ const DoctorScheduleView = () => {
           <div>
             <div className="flex items-center space-x-2">
               <Tag color={color}>{record.shift}</Tag>
-              <span className="text-sm text-gray-500">{record.startTime} - {record.endTime}</span>
+              <span className="text-sm text-gray-500">
+                {record.startTime} - {record.endTime}
+              </span>
             </div>
             <div className="text-sm text-gray-500 mt-1">
               {stats.total} bệnh nhân hôm nay
             </div>
           </div>
         );
-      }
+      },
     },
     {
       title: "Bệnh nhân",
@@ -237,12 +272,10 @@ const DoctorScheduleView = () => {
             <div className="font-semibold">
               {stats.completed}/{stats.total}
             </div>
-            <div className="text-sm text-gray-500">
-              Đã khám/Tổng
-            </div>
+            <div className="text-sm text-gray-500">Đã khám/Tổng</div>
           </div>
         );
-      }
+      },
     },
     {
       title: "Tiến độ",
@@ -255,14 +288,14 @@ const DoctorScheduleView = () => {
               <span>Tiến độ</span>
               <span>{stats.progress}%</span>
             </div>
-            <Progress 
-              percent={stats.progress} 
+            <Progress
+              percent={stats.progress}
               size="small"
               status={stats.progress === 100 ? "success" : "active"}
             />
           </div>
         );
-      }
+      },
     },
     {
       title: "Liên hệ",
@@ -270,23 +303,20 @@ const DoctorScheduleView = () => {
       key: "phone",
       render: (phone) => (
         <Tooltip title="Gọi điện">
-          <Button 
-            type="link" 
-            icon={<PhoneOutlined />}
-            size="small"
-          >
+          <Button type="link" icon={<PhoneOutlined />} size="small">
             {phone}
           </Button>
         </Tooltip>
-      )
-    }
+      ),
+    },
   ];
 
   // Calculate statistics
   const stats = {
     totalDoctors: doctorSchedules.length,
     totalPatients: todayAppointments.length,
-    completedPatients: todayAppointments.filter(a => a.status === "COMPLETED").length
+    completedPatients: todayAppointments.filter((a) => a.status === "COMPLETED")
+      .length,
   };
 
   return (
@@ -294,32 +324,70 @@ const DoctorScheduleView = () => {
       {/* Statistics Section */}
       <Row gutter={24} style={{ marginBottom: 24 }}>
         <Col span={8}>
-          <Card bordered style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(24,144,255,0.08)' }}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
             <Statistic
-              title={<span style={{ color: '#1890ff', fontWeight: 600 }}>Tổng bác sĩ hôm nay</span>}
+              title={
+                <span style={{ color: "#1890ff", fontWeight: 600 }}>
+                  Tổng bác sĩ hôm nay
+                </span>
+              }
               value={workStats ? workStats.totalDoctorsToday : 0}
-              prefix={<TeamOutlined style={{ color: '#1890ff' }} />}
+              prefix={<TeamOutlined style={{ color: "#1890ff" }} />}
               valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
         <Col span={8}>
-          <Card bordered style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(24,144,255,0.08)' }}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
             <Statistic
-              title={<span style={{ color: '#52c41a', fontWeight: 600 }}>Bệnh nhân đã khám</span>}
+              title={
+                <span style={{ color: "#52c41a", fontWeight: 600 }}>
+                  Bệnh nhân đã khám
+                </span>
+              }
               value={workStats ? workStats.completedPatientsToday : 0}
-              prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+              prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
               valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
         <Col span={8}>
-          <Card bordered style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(24,144,255,0.08)' }}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
             <Statistic
-              title={<span style={{ color: '#faad14', fontWeight: 600 }}>Tỷ lệ khám</span>}
-              value={workStats && workStats.totalPatientsToday > 0 ? Math.round((workStats.completedPatientsToday / workStats.totalPatientsToday) * 100) : 0}
+              title={
+                <span style={{ color: "#faad14", fontWeight: 600 }}>
+                  Tỷ lệ khám
+                </span>
+              }
+              value={
+                workStats && workStats.totalPatientsToday > 0
+                  ? Math.round(
+                      (workStats.completedPatientsToday /
+                        workStats.totalPatientsToday) *
+                        100
+                    )
+                  : 0
+              }
               suffix="%"
-              prefix={<CalendarOutlined style={{ color: '#faad14' }} />}
+              prefix={<CalendarOutlined style={{ color: "#faad14" }} />}
               valueStyle={{ fontSize: 28 }}
             />
           </Card>
@@ -365,8 +433,8 @@ const DoctorScheduleView = () => {
             />
           </Col>
           <Col span={4} className="text-right">
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               onClick={fetchData}
               icon={<CalendarOutlined />}
             >
@@ -402,17 +470,19 @@ const DoctorScheduleView = () => {
         ) : doctorDetails ? (
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
-              <Avatar 
-                size={64} 
+              <Avatar
+                size={64}
                 icon={<UserOutlined />}
-                style={{ backgroundColor: '#1890ff' }}
+                style={{ backgroundColor: "#1890ff" }}
               />
               <div>
                 <h3 className="text-xl font-bold">{doctorDetails.fullName}</h3>
-                <p className="text-gray-500">{doctorDetails.roleName?.description}</p>
+                <p className="text-gray-500">
+                  {doctorDetails.roleName?.description}
+                </p>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center text-gray-600">
@@ -429,10 +499,13 @@ const DoctorScheduleView = () => {
                 </div>
                 <div className="flex items-center text-gray-600">
                   <CalendarIcon className="mr-2" />
-                  <span>Ngày sinh: {dayjs(doctorDetails.dateOfBirth).format("DD/MM/YYYY")}</span>
+                  <span>
+                    Ngày sinh:{" "}
+                    {dayjs(doctorDetails.dateOfBirth).format("DD/MM/YYYY")}
+                  </span>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex items-center text-gray-600">
                   <span className="font-semibold mr-2">Giới tính:</span>
@@ -475,4 +548,4 @@ const DoctorScheduleView = () => {
   );
 };
 
-export default DoctorScheduleView; 
+export default DoctorScheduleView;
