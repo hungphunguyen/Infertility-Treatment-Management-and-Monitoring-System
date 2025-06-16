@@ -10,6 +10,7 @@ import {
   CalendarOutlined,
   MedicineBoxOutlined,
   HomeOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import { authService } from "../../service/auth.service";
 
@@ -57,7 +58,13 @@ const DoctorSidebar = ({
       title: "Quản lý kết quả xét nghiệm",
       path: path.doctorTestResults,
     },
-    
+    {
+      key: 'change-requests',
+      icon: <ClockCircleOutlined />,
+      label: "Yêu cầu đổi lịch hẹn",
+      title: "Quản lý yêu cầu đổi lịch",
+      path: "/doctor-dashboard/change-requests",
+    },
   ];
   const navigate = useNavigate();
 
@@ -134,9 +141,16 @@ const DoctorSidebar = ({
           key: item.key,
           icon: item.icon,
           label: (
-            <Link to={item.path} title={collapsed ? item.title : ""} style={{ color: "#fff" }}>
+            <span
+              onClick={() => {
+                if (item.path) navigate(item.path);
+                setSelectedMenuItem(item.key);
+              }}
+              title={collapsed ? item.title : ""}
+              style={{ color: "#fff", cursor: "pointer" }}
+            >
               {item.label}
-            </Link>
+            </span>
           ),
         }))}
       />

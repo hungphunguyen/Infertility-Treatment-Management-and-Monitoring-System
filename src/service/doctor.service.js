@@ -1,6 +1,9 @@
 import { http } from "./config";
 import { getLocgetlStorage } from "../utils/util";
 
+// Đặt biến API_URL dùng cho fetch
+const API_URL = import.meta.env.VITE_API_URL || 'http://18.183.187.237/infertility-system-api';
+
 export const doctorService = {
   // Lấy danh sách tất cả bác sĩ
   getAllDoctors: async () => {
@@ -107,6 +110,37 @@ export const doctorService = {
   getDoctorRatings: async () => {
     try {
       const response = await http.get("doctors/rating");
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy danh sách các appointment có yêu cầu đổi lịch (pending change) cho bác sĩ
+  getAppointmentsWithPendingChange: async (doctorId) => {
+    try {
+      const response = await http.get(`appointments/with-status-pending-change/${doctorId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Duyệt hoặc hủy yêu cầu đổi lịch (PUT)
+  confirmAppointmentChange: async (appointmentId, data) => {
+    try {
+      const response = await fetch(
+        `${API_URL}/appointments/confirm-appointment/${appointmentId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'accept': '*/*',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(data)
+        }
+      );
       return response;
     } catch (error) {
       throw error;

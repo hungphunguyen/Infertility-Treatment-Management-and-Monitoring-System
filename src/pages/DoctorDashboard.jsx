@@ -9,6 +9,7 @@ import TestResults from "../components/doctor/TestResults";
 import DoctorProfile from "../components/doctor/DoctorProfile";
 import DoctorWorkSchedule from "../components/doctor/DoctorWorkSchedule";
 import TreatmentStageDetails from "../components/doctor/TreatmentStageDetails";
+import ChangeRequests from "../components/doctor/ChangeRequests";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -22,7 +23,9 @@ const DoctorDashboard = () => {
   // Update selected menu item based on current path
   useEffect(() => {
     const pathname = location.pathname;
-    if (pathname.includes("/work-schedule")) {
+    if (pathname.includes("/change-requests")) {
+      setSelectedMenuItem("change-requests");
+    } else if (pathname.includes("/work-schedule")) {
       setSelectedMenuItem("work-schedule");
     } else if (pathname.includes("/dashboard")) {
       setSelectedMenuItem("dashboard");
@@ -54,6 +57,8 @@ const DoctorDashboard = () => {
         return "Lịch Làm Việc";
       case "treatment-stages":
         return "Chi Tiết Giai Đoạn Điều Trị";
+      case "change-requests":
+        return "Quản Lý Yêu Cầu Thay Đổi";
       default:
         return "Dashboard Bác Sĩ";
     }
@@ -105,6 +110,7 @@ const DoctorDashboard = () => {
             <Route path="profile" element={<DoctorProfile />} />
             <Route path="work-schedule" element={<DoctorWorkSchedule />} />
             <Route path="treatment-stages" element={<TreatmentStageDetails />} />
+            <Route path="change-requests" element={<ChangeRequests />} />
           </Routes>
         </Content>
       </Layout>
