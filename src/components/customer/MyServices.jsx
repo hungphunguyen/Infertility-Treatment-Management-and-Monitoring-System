@@ -237,7 +237,7 @@ const MyServices = () => {
       {/* Thống kê */}
       <Row gutter={32} style={{ marginBottom: 32, justifyContent: 'center' }}>
         <Col xs={24} sm={8}>
-          <Card bordered style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(24,144,255,0.08)', background: '#fff' }}>
+          <Card variant="outlined" style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(24,144,255,0.08)', background: '#fff' }}>
             <Statistic
               title={<span style={{ color: '#1890ff', fontWeight: 600 }}>Tổng số dịch vụ</span>}
               value={statistics.totalServices}
@@ -247,7 +247,7 @@ const MyServices = () => {
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card bordered style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(255,77,79,0.08)', background: '#fff' }}>
+          <Card variant="outlined" style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(255,77,79,0.08)', background: '#fff' }}>
             <Statistic
               title={<span style={{ color: '#ff4d4f', fontWeight: 600 }}>Đã hủy</span>}
               value={statistics.cancelledServices}
@@ -257,7 +257,7 @@ const MyServices = () => {
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card bordered style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(24,144,255,0.08)', background: '#fff' }}>
+          <Card variant="outlined" style={{ borderRadius: 16, boxShadow: '0 4px 16px rgba(24,144,255,0.08)', background: '#fff' }}>
             <Statistic
               title={<span style={{ color: '#1890ff', fontWeight: 600 }}>Đang thực hiện</span>}
               value={statistics.inProgressServices}
@@ -269,7 +269,7 @@ const MyServices = () => {
       </Row>
 
       {/* Bảng dịch vụ */}
-      <Card style={{ borderRadius: 16, boxShadow: '0 2px 8px rgba(24,144,255,0.06)', background: '#fff' }}>
+      <Card variant="outlined" style={{ borderRadius: 16, boxShadow: '0 2px 8px rgba(24,144,255,0.06)', background: '#fff' }}>
         <Table
           columns={columns}
           dataSource={treatmentRecords}

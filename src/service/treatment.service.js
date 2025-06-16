@@ -312,5 +312,9 @@ export const treatmentService = {
       console.error("Error updating treatment record status:", error);
       throw error;
     }
+  },
+
+  updateTreatmentStatus: async (recordId, status) => {
+    return await http.put(`/treatment-records/update-status/${recordId}/${status}`);
   }
 };

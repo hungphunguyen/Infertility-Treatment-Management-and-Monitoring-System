@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, Timeline, Typography, Spin, message, Button, Tag, Space, Modal, Form, DatePicker, Input, Select, Row, Col, Avatar } from 'antd';
-import { ArrowLeftOutlined, EditOutlined, CheckCircleOutlined, UserOutlined, CalendarOutlined, MedicineBoxOutlined } from '@ant-design/icons';
+import { Card, Timeline, Typography, Spin, Button, Tag, Space, Modal, Form, DatePicker, Input, Select, Row, Col, Avatar } from 'antd';
+import { ArrowLeftOutlined, EditOutlined, CheckCircleOutlined, UserOutlined, CalendarOutlined, MedicineBoxOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { treatmentService } from '../../service/treatment.service';
 import { authService } from '../../service/auth.service';
 import dayjs from 'dayjs';
+import { NotificationContext } from "../../App";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -24,6 +25,13 @@ const TreatmentStageDetails = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { showNotification } = useContext(NotificationContext);
+
+  const statusOptions = [
+    { value: 'INPROGRESS', label: 'Đang thực hiện' },
+    { value: 'COMPLETED', label: 'Hoàn thành' },
+    { value: 'CANCELLED', label: 'Đã hủy' },
+  ];
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
@@ -33,17 +41,17 @@ const TreatmentStageDetails = () => {
         if (id) {
           setDoctorId(id);
         } else {
-          message.error("Không thể lấy thông tin bác sĩ");
+          showNotification("Không thể lấy thông tin bác sĩ", "error");
           navigate(-1);
         }
       } catch (error) {
         console.error("Error fetching doctor info:", error);
-        message.error("Không thể lấy thông tin bác sĩ");
+        showNotification("Không thể lấy thông tin bác sĩ", "error");
         navigate(-1);
       }
     };
     fetchDoctorInfo();
-  }, [navigate]);
+  }, [navigate, showNotification]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,7 +60,7 @@ const TreatmentStageDetails = () => {
       try {
         const { patientInfo, treatmentData: passedTreatmentData } = location.state || {};
         if (!patientInfo) {
-          message.error("Không tìm thấy thông tin bệnh nhân");
+          showNotification("Không tìm thấy thông tin bệnh nhân", "warning");
           navigate(-1);
           return;
         }
@@ -62,32 +70,8 @@ const TreatmentStageDetails = () => {
 
         // Nếu có treatment data được truyền qua, kiểm tra và sử dụng
         if (passedTreatmentData) {
-          if (passedTreatmentData.status === 'CANCELLED') {
-            // Nếu treatment bị CANCELLED, fetch lại từ API để tìm treatment mới
-            const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-            if (Array.isArray(response)) {
-              // Lọc ra các treatment không bị hủy và sắp xếp theo ngày tạo mới nhất
-              const activeTreatments = response
-                .filter(treatment => 
-                  treatment.customerId === patientInfo.customerId && 
-                  treatment.status !== 'CANCELLED'
-                )
-                .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
-
-              if (activeTreatments.length === 0) {
-                message.warning("Không tìm thấy thông tin quy trình điều trị đang hoạt động");
-                setLoading(false);
-                return;
-              }
-
-              // Lấy treatment mới nhất
-              const latestTreatment = activeTreatments[0];
-              setTreatmentData(latestTreatment);
-            }
-          } else {
-            // Nếu treatment không bị CANCELLED, sử dụng nó
-            setTreatmentData(passedTreatmentData);
-          }
+          // Luôn hiển thị đúng treatmentData được truyền vào, kể cả COMPLETED hoặc CANCELLED
+          setTreatmentData(passedTreatmentData);
           setLoading(false);
           return;
         }
@@ -104,7 +88,7 @@ const TreatmentStageDetails = () => {
             .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
 
           if (activeTreatments.length === 0) {
-            message.warning("Không tìm thấy thông tin quy trình điều trị đang hoạt động");
+            showNotification("Không tìm thấy thông tin quy trình điều trị đang hoạt động", "warning");
             setLoading(false);
             return;
           }
@@ -115,14 +99,14 @@ const TreatmentStageDetails = () => {
         }
       } catch (error) {
         console.error("Error fetching treatment data:", error);
-        message.error("Không thể lấy thông tin điều trị");
+        showNotification("Không thể lấy thông tin điều trị", "error");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [doctorId, location.state, navigate]);
+  }, [doctorId, location.state, navigate, showNotification]);
 
   useEffect(() => {
     if (showScheduleModal && (!treatmentData?.customerId || !doctorId || !nextStep?.id)) {
@@ -195,7 +179,7 @@ const TreatmentStageDetails = () => {
       }
     } catch (error) {
       console.error('Error updating treatment step:', error);
-      message.error('Có lỗi xảy ra khi cập nhật');
+      showNotification('Có lỗi xảy ra khi cập nhật', 'error');
     }
   };
 
@@ -234,21 +218,21 @@ const TreatmentStageDetails = () => {
       notes: values.notes
     };
     if (!payload.treatmentStepId || !payload.customerId || !payload.doctorId) {
-      message.error('Thiếu thông tin bắt buộc: treatmentStepId, customerId hoặc doctorId');
+      showNotification('Thiếu thông tin bắt buộc: treatmentStepId, customerId hoặc doctorId', 'error');
       return;
     }
     try {
       const response = await treatmentService.createAppointment(payload);
       if (response?.data?.code === 1000) {
-        message.success('Đã tạo lịch hẹn thành công');
+        showNotification('Đã tạo lịch hẹn thành công', 'success');
         setShowScheduleModal(false);
         setScheduleStep(null);
         scheduleForm.resetFields();
       } else {
-        message.error(response?.data?.message || 'Không thể tạo lịch hẹn');
+        showNotification(response?.data?.message || 'Không thể tạo lịch hẹn', 'error');
       }
     } catch (error) {
-      message.error(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo lịch hẹn');
+      showNotification(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo lịch hẹn', 'error');
     }
   };
 
@@ -264,21 +248,26 @@ const TreatmentStageDetails = () => {
 
   const handleCompleteTreatment = async () => {
     try {
-      const response = await treatmentService.updateAppointmentStatus(treatmentData.id, 'COMPLETED');
-      
+      const response = await treatmentService.updateTreatmentStatus(treatmentData.id, 'COMPLETED');
+      if (!response) {
+        showNotification('Không nhận được phản hồi từ API', 'error');
+        return;
+      }
       if (response?.data?.code === 1000) {
-        if (response?.data?.result) {
-          const updatedTreatmentData = {
-            ...treatmentData,
-            ...response.data.result,
-            status: 'COMPLETED'
-          };
-          setTreatmentData(updatedTreatmentData);
+        showNotification('Đã hoàn thành điều trị thành công!', 'success');
+        // Cập nhật lại dữ liệu
+        const updatedResponse = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+        if (Array.isArray(updatedResponse)) {
+          const updatedRecord = updatedResponse.find(record => record.id === treatmentData.id);
+          if (updatedRecord) {
+            setTreatmentData(updatedRecord);
+          }
         }
+      } else {
+        showNotification(response?.data?.message || 'Không thể cập nhật trạng thái điều trị', 'error');
       }
     } catch (error) {
-      console.error("Error completing treatment:", error);
-      message.error(`Lỗi: ${error.message || 'Không thể hoàn thành điều trị'}`);
+      showNotification('Có lỗi xảy ra khi hoàn thành điều trị', 'error');
     }
   };
 
@@ -345,13 +334,14 @@ const TreatmentStageDetails = () => {
   }));
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <Card style={{ marginBottom: '24px' }}>
+    <div style={{ padding: '32px 0', maxWidth: '900px', margin: '0 auto' }}>
+      <Card style={{ marginBottom: '24px', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
         <Row gutter={[16, 16]} align="middle">
           <Col>
             <Button 
               icon={<ArrowLeftOutlined />} 
               onClick={() => navigate(-1)}
+              style={{ borderRadius: 8 }}
             >
               Quay lại
             </Button>
@@ -364,7 +354,7 @@ const TreatmentStageDetails = () => {
 
       {treatmentData ? (
         <>
-          <Card style={{ marginBottom: '24px' }}>
+          <Card style={{ marginBottom: '24px', borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <Row gutter={[24, 24]}>
               <Col span={24}>
                 <Space align="start">
@@ -385,18 +375,22 @@ const TreatmentStageDetails = () => {
             </Row>
           </Card>
 
-          <Card>
-            <Timeline items={timelineItems} />
+          <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <Timeline
+              items={timelineItems}
+              style={{ marginBottom: 32 }}
+            />
 
             {isAllStepsCompleted() && treatmentData.status !== 'COMPLETED' && (
-              <Card style={{ marginTop: '24px', backgroundColor: '#f6ffed' }}>
+              <Card style={{ marginTop: '24px', backgroundColor: '#f6ffed', borderRadius: 10, border: '1px solid #b7eb8f', textAlign: 'center' }}>
                 <Space direction="vertical" align="center" style={{ width: '100%' }}>
-                  <Text strong>Tất cả các bước đã hoàn thành</Text>
-                  <Button 
-                    type="primary" 
+                  <Text strong style={{ color: '#389e0d', fontSize: 18 }}>Tất cả các bước đã hoàn thành</Text>
+                  <Button
+                    type="primary"
                     icon={<CheckCircleOutlined />}
                     onClick={handleCompleteTreatment}
                     size="large"
+                    style={{ background: '#52c41a', borderColor: '#52c41a', borderRadius: 8, minWidth: 220, fontWeight: 600, fontSize: 16 }}
                   >
                     Hoàn thành điều trị
                   </Button>
@@ -406,7 +400,7 @@ const TreatmentStageDetails = () => {
           </Card>
         </>
       ) : (
-        <Card>
+        <Card style={{ borderRadius: 12, textAlign: 'center' }}>
           <Title level={4}>Không tìm thấy thông tin điều trị</Title>
           <Text>Vui lòng kiểm tra lại thông tin bệnh nhân hoặc thử lại sau.</Text>
         </Card>
@@ -515,54 +509,37 @@ const TreatmentStageDetails = () => {
                       </Row>
                     </Col>
                     <Col span={8} style={{ textAlign: 'right' }}>
-                      {app.status !== 'COMPLETED' && app.status !== 'CANCELLED' && (
-                        <Space direction="vertical" align="end">
+                      <Space direction="vertical" align="end">
+                        <Button
+                          type="primary"
+                          style={{ background: '#fa8c16', borderColor: '#fa8c16', color: '#fff' }}
+                          onClick={() => setStepAppointments(prev => prev.map((a, i) => i === idx ? { ...a, showStatusSelect: !a.showStatusSelect } : a))}
+                        >
+                          Cập nhật trạng thái
+                        </Button>
+                        {app.showStatusSelect && (
                           <Select
-                            style={{ width: 140 }}
-                            value={app.status === 'INPROGRESS' ? 'INPROGRESS' : app.status === 'CONFIRMED' ? 'CONFIRMED' : 'PLANNED'}
+                            style={{ width: 160 }}
+                            value={app.status}
                             onChange={async (value) => {
                               try {
                                 const res = await treatmentService.updateAppointmentStatus(app.id, value);
                                 if (res?.data?.code === 1000) {
-                                  message.success('Cập nhật trạng thái thành công');
+                                  showNotification('Cập nhật trạng thái thành công', 'success');
                                   const refreshed = await treatmentService.getAppointmentsByStepId(scheduleStep.id);
                                   setStepAppointments(refreshed?.data?.result || []);
                                 } else {
-                                  message.error(res?.data?.message || 'Cập nhật thất bại');
+                                  showNotification(res?.data?.message || 'Cập nhật thất bại', 'error');
                                 }
                               } catch (err) {
-                                message.error('Có lỗi khi cập nhật trạng thái');
+                                showNotification('Có lỗi khi cập nhật trạng thái', 'error');
                               }
                             }}
-                            options={[
-                              { value: 'INPROGRESS', label: 'Đang thực hiện' },
-                              { value: 'COMPLETED', label: 'Hoàn thành' },
-                            ]}
+                            options={statusOptions}
+                            dropdownStyle={{ zIndex: 2000 }}
                           />
-                          <Button
-                            type="primary"
-                            style={{ background: '#fa8c16', borderColor: '#fa8c16', color: '#fff' }}
-                            onClick={async () => {
-                              let newStatus = 'INPROGRESS';
-                              if (app.status === 'INPROGRESS') newStatus = 'COMPLETED';
-                              try {
-                                const res = await treatmentService.updateAppointmentStatus(app.id, newStatus);
-                                if (res?.data?.code === 1000) {
-                                  message.success('Cập nhật trạng thái thành công');
-                                  const refreshed = await treatmentService.getAppointmentsByStepId(scheduleStep.id);
-                                  setStepAppointments(refreshed?.data?.result || []);
-                                } else {
-                                  message.error(res?.data?.message || 'Cập nhật thất bại');
-                                }
-                              } catch (err) {
-                                message.error('Có lỗi khi cập nhật trạng thái');
-                              }
-                            }}
-                          >
-                            {app.status === 'INPROGRESS' ? 'Đánh dấu hoàn thành' : 'Bắt đầu thực hiện'}
-                          </Button>
-                        </Space>
-                      )}
+                        )}
+                      </Space>
                     </Col>
                   </Row>
                 </Card>
