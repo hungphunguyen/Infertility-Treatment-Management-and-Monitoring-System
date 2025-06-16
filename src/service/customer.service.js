@@ -12,4 +12,8 @@ export const customerService = {
   checkIsValid: (recordId) => {
     return http.get(`/feedback/isValidToFeedback/${recordId}`);
   },
+
+  updateFeedback: (id, data) => {
+    return http.put(`/feedback/update-feedback/${id}`, data);
+  },
 };

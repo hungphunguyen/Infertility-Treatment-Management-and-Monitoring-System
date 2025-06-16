@@ -50,24 +50,6 @@ const CustomerSidebar = ({
       title: "Theo dõi lịch trình điều trị",
       path: path.customerTreatment,
     },
-    {
-      key: "medical-record",
-      icon: <FileTextOutlined />,
-      label: "Hồ Sơ Y Tế",
-      title: "Xem hồ sơ bệnh án",
-      path: path.customerMedicalRecord,
-    },
-    {
-      key: "notifications",
-      icon: (
-        <Badge count={3} size="small">
-          <BellOutlined />
-        </Badge>
-      ),
-      label: "Thông Báo",
-      title: "Thông báo lịch khám và nhắc nhở",
-      path: path.customerNotifications,
-    },
 
     {
       key: "feedback",

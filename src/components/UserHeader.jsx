@@ -93,9 +93,6 @@ const UserHeader = () => {
           </Link>
         </Menu.Item>
       )}
-      <Menu.Item key="update" icon={<SettingOutlined />}>
-        Cập nhật thông tin
-      </Menu.Item>
       <Menu.Item key="logout" icon={<LogoutOutlined />} danger>
         Đăng xuất
       </Menu.Item>
@@ -103,10 +100,16 @@ const UserHeader = () => {
   );
 
   const isActive = (pathname) => {
-    if (pathname === path.ourStaff && location.pathname.startsWith('/doctor/')) {
+    if (
+      pathname === path.ourStaff &&
+      location.pathname.startsWith("/doctor/")
+    ) {
       return true;
     }
-    if (pathname === path.services && location.pathname.startsWith('/service-detail/')) {
+    if (
+      pathname === path.services &&
+      location.pathname.startsWith("/service-detail/")
+    ) {
       return true;
     }
     return (

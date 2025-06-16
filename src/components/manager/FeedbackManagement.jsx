@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Card,
   Typography,
@@ -8,6 +8,7 @@ import {
   Select,
   Input,
   Rate,
+  Modal,
 } from "antd";
 import { CheckOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -26,7 +27,11 @@ const FeedbackManagement = () => {
     status: "",
   });
   const [loadingIds, setLoadingIds] = useState([]);
+  const noteRef = useRef("");
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentId, setCurrentId] = useState(null);
+  const [currentStatus, setCurrentStatus] = useState("");
   useEffect(() => {
     authService
       .getMyInfo()
@@ -71,31 +76,10 @@ const FeedbackManagement = () => {
   }, []);
 
   // nút từ chối và update
-  const handleUpdateApprovalStatus = async (id, approved) => {
-    if (!infoUser?.fullName) {
-      showNotification("Không lấy được thông tin người duyệt", "error");
-      return;
-    }
-
-    setLoadingIds((prev) => [...prev, id]);
-
-    try {
-      await managerService.confirmFeedback(id, {
-        approveBy: infoUser.id,
-        approved, // true hoặc false
-      });
-      showNotification(
-        approved ? "Duyệt feedback thành công" : "Từ chối feedback thành công",
-        "success"
-      );
-      await getAllFeedBack();
-    } catch (error) {
-      console.error(error);
-      showNotification("Có lỗi xảy ra khi cập nhật trạng thái", "error");
-      console.log(approveBy);
-    } finally {
-      setLoadingIds((prev) => prev.filter((itemId) => itemId !== id));
-    }
+  const openApprovalModal = (id, status) => {
+    setCurrentId(id);
+    setCurrentStatus(status);
+    setModalVisible(true);
   };
 
   // search
@@ -108,17 +92,16 @@ const FeedbackManagement = () => {
       customerName.includes(filters.keyword) ||
       doctorName.includes(filters.keyword);
 
-    const matchStatus =
-      filters.status === "" ||
-      (filters.status === "approved" && item.approved) ||
-      (filters.status === "pending" && !item.approved);
+    const matchStatus = filters.status === "" || item.status === filters.status;
 
     return matchKeyword && matchStatus;
   });
 
   // 🎯 Thống kê số liệu
   const totalFeedback = feedbacks.length;
-  const pendingFeedback = feedbacks.filter((fb) => !fb.approved).length;
+  const pendingFeedback = feedbacks.filter(
+    (fb) => fb.status === "PENDING"
+  ).length;
   const averageRating =
     feedbacks.length > 0
       ? (
@@ -174,8 +157,9 @@ const FeedbackManagement = () => {
             }
           >
             <Select.Option value="">Tất cả trạng thái</Select.Option>
-            <Select.Option value="approved">Đã duyệt</Select.Option>
-            <Select.Option value="pending">Chưa duyệt</Select.Option>
+            <Select.Option value="APPROVED">Đã duyệt</Select.Option>
+            <Select.Option value="PENDING">Chờ duyệt</Select.Option>
+            <Select.Option value="REJECTED">Đã từ chối</Select.Option>
           </Select>
         </div>
 
@@ -204,42 +188,51 @@ const FeedbackManagement = () => {
                   </td>
                   <td className="px-4 py-3">{item.comment}</td>
                   <td className="px-4 py-3">
-                    <Tag color={item.approved ? "green" : "red"}>
-                      {item.approved ? "Đã duyệt" : "Chưa duyệt"}
+                    <Tag
+                      color={
+                        item.status === "APPROVED"
+                          ? "green"
+                          : item.status === "REJECTED"
+                          ? "red"
+                          : "orange"
+                      }
+                    >
+                      {item.status === "APPROVED"
+                        ? "Đã chấp nhận"
+                        : item.status === "REJECTED"
+                        ? "Đã từ chối"
+                        : "Chờ duyệt"}
                     </Tag>
                   </td>
+
                   <td className="px-4 py-3">
                     {dayjs(item.submitDate).format("DD/MM/YYYY")}
                   </td>
                   <td className="px-4 py-3">
                     <Space>
-                      {!item.approved && (
-                        <Button
-                          type="primary"
-                          size="small"
-                          icon={<CheckOutlined />}
-                          loading={loadingIds.includes(item.id)}
-                          onClick={() =>
-                            handleUpdateApprovalStatus(item.id, true)
-                          } // ✅ Duyệt thật
-                        >
-                          Duyệt
-                        </Button>
-                      )}
-                      {item.approved && (
-                        <Button
-                          type="default"
-                          danger
-                          size="small"
-                          icon={<ExclamationCircleOutlined />}
-                          loading={loadingIds.includes(item.id)}
-                          onClick={() =>
-                            handleUpdateApprovalStatus(item.id, false)
-                          }
-                        >
-                          Từ chối
-                        </Button>
-                      )}
+                      {/* {!item.approved && ( */}
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<CheckOutlined />}
+                        loading={loadingIds.includes(item.id)}
+                        onClick={() => openApprovalModal(item.id, "APPROVED")}
+                      >
+                        Duyệt
+                      </Button>
+                      {/* )} */}
+                      {/* {item.approved && ( */}
+                      <Button
+                        type="default"
+                        danger
+                        size="small"
+                        icon={<ExclamationCircleOutlined />}
+                        loading={loadingIds.includes(item.id)}
+                        onClick={() => openApprovalModal(item.id, "REJECTED")}
+                      >
+                        Từ chối
+                      </Button>
+                      {/* )} */}
                     </Space>
                   </td>
                 </tr>
@@ -247,6 +240,47 @@ const FeedbackManagement = () => {
             </tbody>
           </table>
         </div>
+        <Modal
+          title={
+            currentStatus === "APPROVED"
+              ? "Duyệt phản hồi?"
+              : "Từ chối phản hồi?"
+          }
+          open={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          onOk={async () => {
+            if (!infoUser?.id || !currentId) return;
+
+            setLoadingIds((prev) => [...prev, currentId]);
+
+            try {
+              await managerService.confirmFeedback(currentId, {
+                approveBy: infoUser.id,
+                note: noteRef.current || "",
+                status: currentStatus,
+                approved: true,
+              });
+
+              showNotification("Cập nhật phản hồi thành công", "success");
+              await getAllFeedBack();
+            } catch (err) {
+              console.error(err);
+              showNotification("Có lỗi xảy ra khi cập nhật phản hồi", "error");
+            } finally {
+              setModalVisible(false);
+              setLoadingIds((prev) => prev.filter((id) => id !== currentId));
+              noteRef.current = "";
+            }
+          }}
+          okText="Xác nhận"
+          cancelText="Huỷ"
+        >
+          <Input.TextArea
+            rows={4}
+            placeholder="Nhập ghi chú"
+            onChange={(e) => (noteRef.current = e.target.value)}
+          />
+        </Modal>
       </Card>
     </div>
   );

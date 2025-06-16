@@ -4,9 +4,9 @@ const UserFooter = () => {
   return (
     <footer className="bg-[#F5F5F5] pt-12 pb-8 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 items-start">
           {/* Logo & Description */}
-          <div className="col-span-1">
+          <div className="flex flex-col">
             <div className="flex items-center gap-3 mb-4">
               <div
                 className="rounded-full flex items-center justify-center w-16 h-16 overflow-hidden border-2"
@@ -36,7 +36,7 @@ const UserFooter = () => {
           </div>
 
           {/* Location */}
-          <div className="col-span-1">
+          <div className="flex flex-col">
             <h3 className="font-bold text-gray-700 mb-4">
               Vị trí của chúng tôi
             </h3>
@@ -50,48 +50,20 @@ const UserFooter = () => {
           </div>
 
           {/* Contact */}
-          <div className="col-span-1">
-            <h3 className="font-bold text-gray-700 mb-4">Gọi miễn phí</h3>
-            <p className="text-[#ff8460] text-lg font-semibold mb-4">
-              123-456-7890
-            </p>
-
-            <h3 className="font-bold text-gray-700 mb-2">
-              Gửi email cho chúng tôi
-            </h3>
-            <p className="text-gray-500 text-sm">info@yoursite.com</p>
+          <div className="flex flex-col">
+            <div>
+              <h3 className="font-bold text-gray-700 mb-4">Gọi miễn phí</h3>
+              <p className="text-[#ff8460] text-lg font-semibold mb-4">
+                123-456-7890
+              </p>
+              <h3 className="font-bold text-gray-700 mb-2">
+                Gửi email cho chúng tôi
+              </h3>
+              <p className="text-gray-500 text-sm">info@yoursite.com</p>
+            </div>
           </div>
 
           {/* Opening Hours */}
-          <div className="col-span-1">
-            <h3 className="font-bold text-gray-700 mb-4">Giờ mở cửa</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-gray-500 text-sm">Thứ Hai</div>
-              <div className="text-lime-500 text-sm font-semibold text-right">
-                09:00-17:00
-              </div>
-
-              <div className="text-gray-500 text-sm">Thứ Ba</div>
-              <div className="text-lime-500 text-sm font-semibold text-right">
-                09:00-17:00
-              </div>
-
-              <div className="text-gray-500 text-sm">Thứ Tư</div>
-              <div className="text-lime-500 text-sm font-semibold text-right">
-                09:00-17:00
-              </div>
-
-              <div className="text-gray-500 text-sm">Thứ Năm</div>
-              <div className="text-lime-500 text-sm font-semibold text-right">
-                09:00-17:00
-              </div>
-
-              <div className="text-gray-500 text-sm">Thứ Sáu</div>
-              <div className="text-lime-500 text-sm font-semibold text-right">
-                09:00-17:00
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Bottom section */}

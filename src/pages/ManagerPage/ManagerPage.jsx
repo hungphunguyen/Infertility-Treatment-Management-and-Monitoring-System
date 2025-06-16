@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Layout, Spin, Typography } from "antd";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { path } from "../../common/path";
@@ -14,6 +14,7 @@ import BlogManagement from "../../components/manager/BlogManagement";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
 import UpdateProfile from "../../components/customer/UpdateProfile";
+import { NotificationContext } from "../../App";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -25,6 +26,13 @@ const ManagerPage = () => {
   const token = useSelector((state) => state.authSlice);
   const location = useLocation();
   const [infoUser, setInfoUser] = useState();
+  const { showNotification } = useContext(NotificationContext);
+
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!token) {
@@ -102,6 +110,21 @@ const ManagerPage = () => {
       default:
         return "Dashboard";
     }
+  };
+
+  // check hiệu lực token
+  const checkIntrospect = async () => {
+    await authService
+      .checkIntrospect(token.token)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        if (err.response.data.code == 1006) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      });
   };
 
   if (!infoUser) {

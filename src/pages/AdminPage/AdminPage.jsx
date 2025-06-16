@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Layout, Typography, Button, Space, Spin } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 
@@ -10,6 +10,7 @@ import CreateAccount from "../../components/admin/CreateAccount";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
+import { NotificationContext } from "../../App";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -20,6 +21,13 @@ const AdminPage = () => {
   const token = useSelector((state) => state.authSlice);
   const [infoUser, setInfoUser] = useState();
   const navigate = useNavigate();
+  const { showNotification } = useContext(NotificationContext);
+
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!token) {
@@ -68,6 +76,21 @@ const AdminPage = () => {
       default:
         return <AdminDashboard />;
     }
+  };
+
+  // check hiệu lực token
+  const checkIntrospect = async () => {
+    await authService
+      .checkIntrospect(token.token)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        if (err.response.data.code == 1006) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      });
   };
 
   if (!infoUser) {

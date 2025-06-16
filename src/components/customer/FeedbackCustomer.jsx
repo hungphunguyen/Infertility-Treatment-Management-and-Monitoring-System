@@ -3,7 +3,7 @@ import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
 import { doctorService } from "../../service/doctor.service";
 import { customerService } from "../../service/customer.service";
-import { Card, Rate } from "antd";
+import { Card, Modal, Rate } from "antd";
 import Title from "antd/es/skeleton/Title";
 import { UserAddOutlined } from "@ant-design/icons";
 import { serviceService } from "../../service/service.service";
@@ -22,6 +22,8 @@ const FeedbackCustomer = () => {
   const [treatment, setTreatment] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const { state } = useLocation();
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   useEffect(() => {
     authService
       .getMyInfo()
@@ -41,6 +43,7 @@ const FeedbackCustomer = () => {
     serviceService
       .getAllNonRemovedServices()
       .then((res) => {
+        console.log(res.data.result);
         setService(res.data.result);
       })
       .catch((err) => {});
@@ -108,6 +111,7 @@ const FeedbackCustomer = () => {
         console.log(res);
         showNotification("Gửi phản hồi thành công!", "success");
       } catch (err) {
+        console.log(err);
         showNotification(err.response.data.message, "error");
       }
     },
@@ -124,12 +128,24 @@ const FeedbackCustomer = () => {
   } = formik;
 
   useEffect(() => {
-    if (state && doctors.length && service.length) {
+    const isReady =
+      state &&
+      state.recordId &&
+      state.customerId &&
+      state.doctorName &&
+      state.treatmentServiceName &&
+      doctors.length &&
+      service.length;
+
+    if (isReady) {
+      const normalize = (str) => (str || "").trim().toLowerCase();
+
       const matchedDoctor = doctors.find(
-        (doc) => doc.fullName === state.doctorName
+        (doc) => normalize(doc.fullName) === normalize(state.doctorName)
       );
+
       const matchedService = service.find(
-        (sv) => sv.name === state.treatmentServiceName
+        (sv) => normalize(sv.name) === normalize(state.treatmentServiceName)
       );
 
       setFieldValue("recordId", state.recordId);
@@ -137,12 +153,15 @@ const FeedbackCustomer = () => {
       setFieldValue("doctorId", matchedDoctor?.id || "");
       setFieldValue("serviceId", matchedService?.id || "");
 
-      // Debug nếu không map được
+      console.log("🧾 Trying to map service name:", state.treatmentServiceName);
+      console.log("🎯 Found matchedService:", matchedService);
+
       if (!matchedDoctor || !matchedService) {
         console.warn("⚠️ Không map được doctor/service từ state:", {
           state,
           matchedDoctor,
           matchedService,
+          allServiceNames: service.map((s) => s.name),
         });
       }
     }
@@ -256,6 +275,7 @@ const FeedbackCustomer = () => {
                 <th className="py-2 px-3 font-semibold">Bình luận</th>
                 <th className="py-2 px-3 font-semibold">Ngày duyệt</th>
                 <th className="py-2 px-3 font-semibold">Trạng thái</th>
+                <th className="py-2 px-3 font-semibold">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -272,11 +292,30 @@ const FeedbackCustomer = () => {
                   <td className="py-2 px-3">
                     <span
                       className={`text-sm font-medium ${
-                        fb.approved ? "text-green-600" : "text-gray-500"
+                        fb.status === "APPROVED"
+                          ? "text-green-600"
+                          : fb.status === "REJECTED"
+                          ? "text-red-500"
+                          : "text-yellow-500"
                       }`}
                     >
-                      {fb.approved ? "Đã duyệt" : "Chưa duyệt"}
+                      {fb.status === "APPROVED"
+                        ? "Đã chấp nhận"
+                        : fb.status === "REJECTED"
+                        ? "Đã từ chối"
+                        : "Chờ duyệt"}
                     </span>
+                  </td>
+                  <td className="py-2 px-3">
+                    <button
+                      onClick={() => {
+                        setSelectedFeedback(fb);
+                        setViewModalOpen(true);
+                      }}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Xem
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -284,6 +323,89 @@ const FeedbackCustomer = () => {
           </table>
         </div>
       </div>
+      <Modal
+        open={viewModalOpen}
+        title="Chi tiết phản hồi"
+        onCancel={() => setViewModalOpen(false)}
+        footer={null}
+      >
+        {selectedFeedback && (
+          <div className="space-y-4">
+            <div>
+              <strong>Rating:</strong>{" "}
+              <Rate disabled defaultValue={selectedFeedback.rating} />
+            </div>
+
+            <div>
+              <strong>Comment:</strong> <span>{selectedFeedback.comment}</span>
+            </div>
+
+            <div>
+              <strong>Note:</strong> <span>{selectedFeedback.note}</span>
+            </div>
+
+            <div>
+              <strong>Status:</strong> <span>{selectedFeedback.status}</span>
+            </div>
+
+            <div>
+              <strong>Ngày duyệt:</strong>{" "}
+              <span>{selectedFeedback.submitDate}</span>
+            </div>
+
+            <hr />
+
+            <label className="block font-semibold mt-4">
+              Cập nhật đánh giá
+            </label>
+            <Rate
+              value={selectedFeedback.rating}
+              onChange={(value) =>
+                setSelectedFeedback((prev) => ({ ...prev, rating: value }))
+              }
+            />
+            <textarea
+              value={selectedFeedback.comment}
+              onChange={(e) =>
+                setSelectedFeedback((prev) => ({
+                  ...prev,
+                  comment: e.target.value,
+                }))
+              }
+              rows={4}
+              className="w-full border rounded p-2"
+            />
+
+            <button
+              onClick={async () => {
+                try {
+                  const res = await customerService.updateFeedback(
+                    selectedFeedback.id,
+                    {
+                      rating: selectedFeedback.rating,
+                      comment: selectedFeedback.comment,
+                      recordId: selectedFeedback.recordId,
+                    }
+                  );
+
+                  showNotification("Cập nhật thành công", "success");
+                  await getAllFeedBack(); // refresh list
+                  setViewModalOpen(false);
+                } catch (err) {
+                  console.error(err);
+                  console.log(selectedFeedback.rating);
+                  console.log(selectedFeedback.comment);
+                  console.log(selectedFeedback.recordId);
+                  showNotification("Cập nhật thất bại", "error");
+                }
+              }}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Cập nhật
+            </button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

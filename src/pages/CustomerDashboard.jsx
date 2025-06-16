@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Layout, Typography } from "antd";
+import React, { useState, useEffect, useContext } from "react";
+import { Layout, Spin, Typography } from "antd";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { path } from "../common/path";
 import CustomerSidebar from "../components/customer/CustomerSidebar";
@@ -14,6 +14,8 @@ import MedicalRecord from "../components/customer/MedicalRecord";
 import Payment from "../components/customer/Payment";
 import UpdateProfile from "../components/customer/UpdateProfile";
 import { authService } from "../service/auth.service";
+import { NotificationContext } from "../App";
+import { useSelector } from "react-redux";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -23,21 +25,52 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
-  const [userInfo, setUserInfo] = useState(null);
+  const token = useSelector((state) => state.authSlice);
+  const { showNotification } = useContext(NotificationContext);
+  const [infoUser, setInfoUser] = useState();
+
+  // check hiệu lực token
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, [token]);
+
+  const checkIntrospect = async () => {
+    await authService
+      .checkIntrospect(token.token)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        if (err.response.data.code == 1006) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      });
+  };
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await authService.getMyInfo();
-        if (response?.data?.result) {
-          setUserInfo(response.data.result);
+    if (!token) {
+      navigate("/");
+      return;
+    }
+    authService
+      .getMyInfo(token.token)
+      .then((res) => {
+        const user = res.data.result;
+        if (user.roleName.name !== "CUSTOMER") {
+          showNotification("Bạn không có quyền truy cập trang này", "error");
+          navigate("/");
+          return;
         }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-      }
-    };
-    fetchUserInfo();
-  }, []);
+        setInfoUser(res.data.result);
+      })
+      .catch((err) => {
+        navigate("/");
+        console.log(err);
+      });
+  }, [token]);
 
   // Update selected menu item based on current path
   useEffect(() => {
@@ -96,6 +129,13 @@ const CustomerDashboard = () => {
     }
   };
 
+  if (!infoUser) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
@@ -127,7 +167,7 @@ const CustomerDashboard = () => {
             {getPageTitle()}
           </Title>
           <div style={{ color: "#666" }}>
-            Chào mừng, {userInfo?.fullName || "Khách hàng"}
+            Chào mừng, {infoUser?.fullName || "Khách hàng"}
           </div>
         </Header>
 
