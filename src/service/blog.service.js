@@ -60,18 +60,20 @@ export const blogService = {
   },
 
   // Duyệt blog (approve)
-  approveBlog: (blogId, managerId, token) => {
-    return http.post(`blogs/${blogId}/${managerId}`, {}, {
+  approveBlog: (blogId, managerId, token, requestData) => {
+    return http.post(`blogs/${blogId}/${managerId}`, requestData, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       }
     });
   },
 
-  updateBlogStatus: (blogId, status, token) => {
-    return http.put(`blogs/${blogId}/status`, { status }, {
+  updateBlogStatus: (blogId, status, token, managerId) => {
+    return http.put(`blogs/${blogId}/status`, { status, managerId }, {
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
     });
   },

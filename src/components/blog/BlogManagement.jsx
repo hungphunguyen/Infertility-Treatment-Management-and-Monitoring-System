@@ -23,18 +23,19 @@ import {
   CheckOutlined,
   CloseOutlined,
   SearchOutlined,
-  PlusOutlined
+  PlusOutlined,
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { blogService } from "../../service/blog.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option = Select.Option } = Select;
 const { Search } = Input;
-const { TextArea } = Input;
 
 const statusMap = {
   PENDING_REVIEW: { color: "orange", text: "Chờ duyệt" },
@@ -58,6 +59,10 @@ const BlogManagement = () => {
   const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isCommentModalVisible, setIsCommentModalVisible] = useState(false);
+  const [currentAction, setCurrentAction] = useState({ blogId: null, status: null });
+  const [commentText, setCommentText] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBlogs();
@@ -224,10 +229,27 @@ const BlogManagement = () => {
     }
   };
 
-  const handleStatusChange = async (blogId, status) => {
+  const handleStatusChange = async (blogId, currentStatus) => {
     try {
-      await blogService.updateBlogStatus(blogId, status, token.token);
-      showNotification(`Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'}!`, "success");
+      if (!currentUser || !currentUser.id) {
+        showNotification("Không có thông tin người dùng để cập nhật trạng thái bài viết.", "error");
+        return;
+      }
+      let newStatus;
+      let successMessage;
+
+      if (currentStatus === 'APPROVED') {
+        newStatus = 'hidden';
+        successMessage = "Bài viết đã được ẩn!";
+      } else if (currentStatus === 'hidden') {
+        newStatus = 'APPROVED';
+        successMessage = "Bài viết đã được hiện lại!";
+      } else {
+        showNotification("Không thể thay đổi trạng thái này.", "warning");
+        return;
+      }
+      await blogService.updateBlogStatus(blogId, newStatus, token.token, currentUser.id);
+      showNotification(successMessage, "success");
       fetchBlogs();
     } catch (error) {
       console.error("Lỗi cập nhật trạng thái bài viết:", error);
@@ -244,6 +266,58 @@ const BlogManagement = () => {
       console.error("Lỗi xóa bài viết:", error);
       showNotification("Xóa bài viết thất bại", "error");
     }
+  };
+
+  const handleApprove = async (blogId) => {
+    setCurrentAction({ blogId, status: "APPROVED" });
+    setIsCommentModalVisible(true);
+  };
+
+  const handleReject = async (blogId) => {
+    setCurrentAction({ blogId, status: "REJECTED" });
+    setIsCommentModalVisible(true);
+  };
+
+  const handleCommentSubmit = async () => {
+    try {
+      if (!token?.token || !currentUser?.id) {
+        showNotification("Không có thông tin người dùng quản lý.", "error");
+        return;
+      }
+
+      const { blogId, status } = currentAction;
+      if (!blogId || !status) {
+        showNotification("Thông tin bài viết hoặc trạng thái không hợp lệ.", "error");
+        return;
+      }
+
+      const response = await blogService.approveBlog(
+        blogId,
+        currentUser.id,
+        token.token,
+        { action: status, comment: commentText }
+      );
+
+      if (response.data) {
+        showNotification(
+          `Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} thành công!`, "success"
+        );
+        setIsCommentModalVisible(false);
+        setCommentText(""); // Clear comment
+        fetchBlogs(); // Refresh danh sách
+      } else {
+        showNotification("Thao tác thất bại.", "error");
+      }
+    } catch (error) {
+      console.error("Error processing blog action:", error);
+      showNotification("Không thể thực hiện thao tác", "error");
+    }
+  };
+
+  const handleCommentModalCancel = () => {
+    setIsCommentModalVisible(false);
+    setCommentText("");
+    setCurrentAction({ blogId: null, status: null });
   };
 
   const handleSearch = (value) => {
@@ -269,13 +343,14 @@ const BlogManagement = () => {
       title: "Tiêu đề",
       dataIndex: "title",
       key: "title",
-      render: (title, record) => (
-        <div>
-          <div className="font-semibold">{title}</div>
-          <div className="text-sm text-gray-500">ID: {record.id}</div>
-          {record.featured && <Tag color="gold" size="small">Nổi bật</Tag>}
-        </div>
-      )
+      render: (text, record) => (
+        <span 
+          className="font-medium cursor-pointer text-blue-600 hover:underline"
+          onClick={() => navigate(`/blog-detail/${record.id}`)}
+        >
+          {text}
+        </span>
+      ),
     },
     {
       title: "Tác giả",
@@ -307,15 +382,15 @@ const BlogManagement = () => {
       title: "Hành động",
       key: "action",
       render: (_, record) => (
-        <Space size="small">
-          <Button
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => viewBlog(record)}
-          >
-            Xem
-          </Button>
-          {record.status === "DRAFT" && (
+        <Space direction="vertical" size="small">
+          <Space>
+            <Button 
+              size="small" 
+              icon={<EyeOutlined />}
+              onClick={() => viewBlog(record)}
+            >
+              Xem
+            </Button>
             <Button
               size="small"
               icon={<EditOutlined />}
@@ -323,69 +398,63 @@ const BlogManagement = () => {
             >
               Sửa
             </Button>
-          )}
-          <Popconfirm
-            title="Bạn có chắc chắn muốn duyệt bài viết này không?"
-            onConfirm={() => handleStatusChange(record.id, "APPROVED")}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button
-              size="small"
-              type="primary"
-              icon={<CheckOutlined />}
-              style={{
-                display: record.status === "DRAFT" || record.status === "PENDING_REVIEW" ? "inline-block" : "none",
-              }}
+            <Popconfirm
+              title="Bạn có chắc chắn muốn xóa bài viết này?"
+              onConfirm={() => handleDeleteBlog(record.id)}
+              okText="Có"
+              cancelText="Không"
             >
-              Duyệt
-            </Button>
-          </Popconfirm>
-          <Popconfirm
-            title="Bạn có chắc chắn muốn từ chối bài viết này không?"
-            onConfirm={() => handleStatusChange(record.id, "REJECTED")}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button
-              size="small"
-              type="danger"
-              icon={<CloseOutlined />}
-              style={{ display: record.status === "DRAFT" || record.status === "PENDING_REVIEW" ? "inline-block" : "none" }}
-            >
-              Từ chối
-            </Button>
-          </Popconfirm>
-          <Popconfirm
-            title="Bạn có chắc chắn muốn gỡ bài viết này không?"
-            onConfirm={() => handleStatusChange(record.id, "hidden")}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button
-              size="small"
-              type="default"
-              icon={<CloseOutlined />}
-              style={{ display: record.status === "APPROVED" ? "inline-block" : "none" }}
-            >
-              Gỡ bài
-            </Button>
-          </Popconfirm>
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa bài viết này không?"
-            onConfirm={() => handleDeleteBlog(record.id)}
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button
-              size="small"
-              type="danger"
-              icon={<DeleteOutlined />}
-              style={{ display: record.status === "APPROVED" ? "inline-block" : "none" }}
-            >
-              Xóa
-            </Button>
-          </Popconfirm>
+              <Button
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              >
+                Xóa
+              </Button>
+            </Popconfirm>
+          </Space>
+          <Space>
+            {record.status === "PENDING_REVIEW" && (
+              <Button 
+                size="small" 
+                type="primary"
+                icon={<CheckOutlined />}
+                onClick={() => handleApprove(record.id)}
+              >
+                Duyệt
+              </Button>
+            )}
+            {record.status === "PENDING_REVIEW" && (
+              <Button 
+                size="small" 
+                danger
+                icon={<CloseOutlined />}
+                onClick={() => handleReject(record.id)}
+              >
+                Từ chối
+              </Button>
+            )}
+            {record.status !== "hidden" && (
+              <Button 
+                size="small" 
+                danger
+                icon={<EyeInvisibleOutlined />}
+                onClick={() => handleStatusChange(record.id, "hidden")}
+              >
+                Ẩn
+              </Button>
+            )}
+            {record.status === "hidden" && (
+              <Button 
+                size="small" 
+                type="primary"
+                icon={<EyeOutlined />}
+                onClick={() => handleStatusChange(record.id, "DRAFT")}
+              >
+                Bỏ ẩn
+              </Button>
+            )}
+          </Space>
         </Space>
       ),
     },
@@ -483,7 +552,7 @@ const BlogManagement = () => {
               label="Nội dung"
               rules={[{ required: true, message: "Vui lòng nhập nội dung!" }]}
             >
-              <TextArea rows={10} />
+              <Input.TextArea rows={10} />
             </Form.Item>
             <Form.Item
               name="sourceReference"
@@ -493,6 +562,22 @@ const BlogManagement = () => {
             </Form.Item>
           </Form>
         )}
+      </Modal>
+
+      <Modal
+        title={`Thêm bình luận cho bài viết ${currentAction.status === 'APPROVED' ? 'duyệt' : 'từ chối'}`}
+        open={isCommentModalVisible}
+        onOk={handleCommentSubmit}
+        onCancel={handleCommentModalCancel}
+        okText="Gửi"
+        cancelText="Hủy"
+      >
+        <Input.TextArea
+          rows={4}
+          placeholder="Nhập bình luận của bạn (ví dụ: Bài viết đạt yêu cầu; Nội dung cần sửa đổi)..."
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+        />
       </Modal>
     </Card>
   );

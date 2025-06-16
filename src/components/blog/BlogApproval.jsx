@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Card, Table, Button, Space, Tag, Typography, Modal, message } from "antd";
+import { Card, Table, Button, Space, Tag, Typography, Modal, message, Input } from "antd";
 import { blogService } from "../../service/blog.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
@@ -14,6 +14,9 @@ const BlogApproval = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
+  const [isCommentModalVisible, setIsCommentModalVisible] = useState(false);
+  const [currentAction, setCurrentAction] = useState({ blogId: null, status: null });
+  const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
     fetchPendingBlogs();
@@ -40,26 +43,59 @@ const BlogApproval = () => {
   };
 
   const handleApprove = async (blogId) => {
-    try {
-      const response = await blogService.approveBlog(blogId, token.token);
-      if (response.data) {
-        showNotification("Bài viết đã được duyệt thành công!", "success");
-        fetchPendingBlogs(); // Refresh danh sách
-      }
-    } catch (error) {
-      console.error("Error approving blog:", error);
-      showNotification("Không thể duyệt bài viết", "error");
-    }
+    setCurrentAction({ blogId, status: "APPROVED" });
+    setIsCommentModalVisible(true);
   };
 
   const handleReject = async (blogId) => {
+    setCurrentAction({ blogId, status: "REJECTED" });
+    setIsCommentModalVisible(true);
+  };
+
+  const handleCommentSubmit = async () => {
     try {
-      // TODO: Implement reject functionality
-      showNotification("Tính năng từ chối bài viết đang được phát triển", "info");
+      if (!token?.token || !token?.infoUser?.id) {
+        showNotification("Không có thông tin người dùng quản lý.", "error");
+        return;
+      }
+
+      const { blogId, status } = currentAction;
+      if (!blogId || !status) {
+        showNotification("Thông tin bài viết hoặc trạng thái không hợp lệ.", "error");
+        return;
+      }
+      console.log("Blog ID from currentAction:", blogId);
+      console.log("Manager ID from token:", token.infoUser.id);
+      console.log("Token:", token.token);
+      console.log("Request Body:", { action: status, comment: commentText });
+
+      const response = await blogService.approveBlog(
+        blogId,
+        token.infoUser.id,
+        token.token,
+        { action: status, comment: commentText }
+      );
+
+      if (response.data) {
+        showNotification(
+          `Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} thành công!`, "success"
+        );
+        setIsCommentModalVisible(false);
+        setCommentText(""); // Clear comment
+        fetchPendingBlogs(); // Refresh danh sách
+      } else {
+        showNotification("Thao tác thất bại.", "error");
+      }
     } catch (error) {
-      console.error("Error rejecting blog:", error);
-      showNotification("Không thể từ chối bài viết", "error");
+      console.error("Error processing blog action:", error);
+      showNotification("Không thể thực hiện thao tác", "error");
     }
+  };
+
+  const handleCommentModalCancel = () => {
+    setIsCommentModalVisible(false);
+    setCommentText("");
+    setCurrentAction({ blogId: null, status: null });
   };
 
   const columns = [
@@ -92,7 +128,6 @@ const BlogApproval = () => {
       render: (_, record) => (
         <Space size="middle">
           <Button
-            type="primary"
             icon={<EyeOutlined />}
             onClick={() => handleViewBlog(record)}
           >
@@ -101,16 +136,20 @@ const BlogApproval = () => {
           <Button
             type="primary"
             icon={<CheckOutlined />}
-            onClick={() => handleApprove(record.id)}
-            style={{ backgroundColor: "#52c41a" }}
+            onClick={() => {
+              setCurrentAction({ blogId: record.id, status: "APPROVED" });
+              setIsCommentModalVisible(true);
+            }}
           >
             Duyệt
           </Button>
           <Button
-            type="primary"
             danger
             icon={<CloseOutlined />}
-            onClick={() => handleReject(record.id)}
+            onClick={() => {
+              setCurrentAction({ blogId: record.id, status: "REJECTED" });
+              setIsCommentModalVisible(true);
+            }}
           >
             Từ chối
           </Button>
@@ -193,6 +232,22 @@ const BlogApproval = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        title={`Thêm bình luận cho bài viết ${currentAction.status === 'APPROVED' ? 'duyệt' : 'từ chối'}`}
+        open={isCommentModalVisible}
+        onOk={handleCommentSubmit}
+        onCancel={handleCommentModalCancel}
+        okText="Gửi"
+        cancelText="Hủy"
+      >
+        <Input.TextArea
+          rows={4}
+          placeholder="Nhập bình luận của bạn (ví dụ: Bài viết đạt yêu cầu; Nội dung cần sửa đổi)..."
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+        />
       </Modal>
     </div>
   );

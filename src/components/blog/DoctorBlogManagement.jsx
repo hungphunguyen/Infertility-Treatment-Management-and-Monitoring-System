@@ -12,14 +12,17 @@ import {
   Form,
   Image,
   Avatar,
-  message
+  message,
+  Popconfirm
 } from "antd";
 import { 
   EditOutlined,
   EyeOutlined,
   UserOutlined,
   PlusOutlined,
-  SearchOutlined
+  SearchOutlined,
+  DeleteOutlined,
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { blogService } from "../../service/blog.service";
@@ -207,7 +210,7 @@ const DoctorBlogManagement = () => {
         
         // Then, submit the blog for review
         console.log("Submitting blog for review:", selectedBlog.id, currentUser.id);
-        await blogService.submitBlog(selectedBlog.id, currentUser.id, token.token);
+        await blogService.submitBlog(selectedBlog.id, currentUser.id, token.token, updatedBlogData);
         showNotification("Bài viết đã được gửi duyệt thành công!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -268,23 +271,73 @@ const DoctorBlogManagement = () => {
       title: "Thao tác",
       key: "action",
       render: (_, record) => (
-        <Space size="small">
-          <Button
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => viewBlog(record)}
-          >
-            Xem
-          </Button>
-          {record.status === "DRAFT" && (
-            <Button
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => editBlog(record)}
+        <Space direction="vertical" size="small">
+          <Space>
+            <Button 
+              size="small" 
+              icon={<EyeOutlined />}
+              onClick={() => viewBlog(record)}
             >
-              Sửa
+              Xem
             </Button>
-          )}
+            {record.status === "DRAFT" && (
+              <Button
+                size="small"
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => editBlog(record)}
+              >
+                Sửa
+              </Button>
+            )}
+            {record.status === "DRAFT" && (
+              <Popconfirm
+                title="Bạn có chắc chắn muốn xóa bài viết này?"
+                onConfirm={() => handleDeleteBlog(record.id)}
+                okText="Có"
+                cancelText="Không"
+              >
+                <Button
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                >
+                  Xóa
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+          <Space>
+            {record.status === "DRAFT" && (
+              <Button 
+                size="small" 
+                type="primary"
+                onClick={() => {
+                  setSelectedBlog(record);
+                  setModalType("edit");
+                  form.setFieldsValue({
+                    title: record.title,
+                    content: record.content,
+                    sourceReference: record.sourceReference,
+                    featured: record.featured || false,
+                  });
+                  handleSendForReview(form.getFieldsValue(), false); // Gửi bài viết đi duyệt
+                }}
+              >
+                Gửi duyệt
+              </Button>
+            )}
+            {record.status !== "hidden" && (
+              <Button 
+                size="small" 
+                danger
+                icon={<EyeInvisibleOutlined />}
+                onClick={() => handleStatusChange(record.id, "hidden")}
+              >
+                Ẩn
+              </Button>
+            )}
+          </Space>
         </Space>
       ),
     },
