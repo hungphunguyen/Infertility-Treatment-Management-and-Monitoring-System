@@ -30,7 +30,7 @@ import StatisticsSection from "../components/StatisticsSection";
 import ServicesIcons from "../components/ServicesIcons";
 import RecommendationSection from "../components/RecommendationSection";
 import { doctorService } from "../service/doctor.service";
-import StarRatings from 'react-star-ratings';
+import StarRatings from "react-star-ratings";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -45,7 +45,7 @@ const UserTemplate = () => {
       try {
         setLoading(true);
         const response = await doctorService.getDoctorForCard();
-        setDoctors(response.data.result)
+        setDoctors(response.data.result);
       } catch (error) {
         console.error("Error fetching doctors:", error);
         setDoctors([]);
@@ -58,87 +58,88 @@ const UserTemplate = () => {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#f7f8fa]">
       <UserHeader />
 
       {/* Hero Slider */}
-      <Carousel autoplay effect="fade" dots={true} autoplaySpeed={5000}>
+      <Carousel
+        autoplay
+        effect="fade"
+        dots={true}
+        autoplaySpeed={5000}
+        className="mb-0"
+      >
         <div>
           <div className="relative h-[600px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: "url('/images/features/pc9.jpg')" }}
             />
-            <div className="absolute inset-0 bg-black opacity-40" />
-            <div className="absolute inset-0 flex items-center">
-              <div className="container mx-auto px-4">
-                <div className="max-w-xl">
-                  <h1 className="text-5xl font-bold text-white mb-6">
-                    Điều Kỳ Diệu Của Bạn.
-                    <br />
-                    Sứ Mệnh Của Chúng Tôi.
-                  </h1>
-                  <button
-                    onClick={() => navigate("/register-service")}
-                    className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg"
-                  >
-                    Đặt Lịch Hẹn
-                  </button>
-                </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="max-w-2xl mx-auto text-center">
+                <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
+                  Điều Kỳ Diệu Của Bạn.
+                  <br />
+                  Sứ Mệnh Của Chúng Tôi.
+                </h1>
+                <Button
+                  onClick={() => navigate("/register-service")}
+                  className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
+                  size="large"
+                >
+                  Đặt Lịch Hẹn
+                </Button>
               </div>
             </div>
           </div>
         </div>
-
         <div>
           <div className="relative h-[600px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: "url('/images/features/Pc1.jpg')" }}
             />
-            <div className="absolute inset-0 bg-black opacity-40" />
-            <div className="absolute inset-0 flex items-center">
-              <div className="container mx-auto px-4">
-                <div className="max-w-xl">
-                  <h1 className="text-5xl font-bold text-white mb-6">
-                    Chăm Sóc Chuyên Nghiệp.
-                    <br />
-                    Gia Đình Hạnh Phúc.
-                  </h1>
-                  <button
-                    onClick={() => navigate("/services")}
-                    className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg"
-                  >
-                    Tìm Hiểu Về Dịch Vụ Của Chúng Tôi
-                  </button>
-                </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="max-w-2xl mx-auto text-center">
+                <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
+                  Chăm Sóc Chuyên Nghiệp.
+                  <br />
+                  Gia Đình Hạnh Phúc.
+                </h1>
+                <Button
+                  onClick={() => navigate("/services")}
+                  className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
+                  size="large"
+                >
+                  Tìm Hiểu Về Dịch Vụ Của Chúng Tôi
+                </Button>
               </div>
             </div>
           </div>
         </div>
-
         <div>
           <div className="relative h-[600px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: "url('/images/features/pc7.jpg')" }}
             />
-            <div className="absolute inset-0 bg-black opacity-40" />
-            <div className="absolute inset-0 flex items-center">
-              <div className="container mx-auto px-4">
-                <div className="max-w-xl">
-                  <h1 className="text-5xl font-bold text-white mb-6">
-                    Công Nghệ Tiên Tiến.
-                    <br />
-                    Chăm Sóc Tận Tâm.
-                  </h1>
-                  <button
-                    onClick={() => navigate("/our-staff")}
-                    className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-8 rounded transition duration-300 ease-in-out text-lg"
-                  >
-                    Gặp Gỡ Các Chuyên Gia Của Chúng Tôi
-                  </button>
-                </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="max-w-2xl mx-auto text-center">
+                <h1 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
+                  Công Nghệ Tiên Tiến.
+                  <br />
+                  Chăm Sóc Tận Tâm.
+                </h1>
+                <Button
+                  onClick={() => navigate("/our-staff")}
+                  className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
+                  size="large"
+                >
+                  Gặp Gỡ Các Chuyên Gia Của Chúng Tôi
+                </Button>
               </div>
             </div>
           </div>
@@ -152,8 +153,10 @@ const UserTemplate = () => {
       <div className="py-20">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row gap-12 items-center">
-            <div className="md:w-1/2">
-              <span className="text-[#ff8460] font-medium">CHÀO MỪNG BẠN!</span>
+            <div className="md:w-1/2 text-center md:text-left">
+              <span className="text-[#ff8460] font-medium text-lg">
+                CHÀO MỪNG BẠN!
+              </span>
               <h2 className="text-4xl font-bold mt-2 mb-6">
                 Chào Mừng Đến Với
                 <br />
@@ -169,7 +172,7 @@ const UserTemplate = () => {
             </div>
             <div className="md:w-1/2 flex justify-center">
               <div className="relative">
-                <div className="rounded-full border-4 border-[#ff8460] p-2 w-64 h-64 flex flex-col items-center justify-center">
+                <div className="rounded-full border-4 border-[#ff8460] p-2 w-64 h-64 flex flex-col items-center justify-center shadow-lg bg-white">
                   <span className="text-gray-400 text-sm">HƠN</span>
                   <div className="text-6xl text-[#ff8460] font-bold">
                     87<span className="text-2xl">%</span>
@@ -196,8 +199,10 @@ const UserTemplate = () => {
         <div className="container mx-auto px-4">
           <Row gutter={[48, 48]} className="items-center">
             <Col xs={24} md={12}>
-              <div>
-                <span className="text-[#ff8460] font-medium">GIỚI THIỆU</span>
+              <div className="text-center md:text-left">
+                <span className="text-[#ff8460] font-medium text-lg">
+                  GIỚI THIỆU
+                </span>
                 <h2 className="text-4xl font-bold mt-2 mb-6">
                   Trung tâm
                   <br />
@@ -211,46 +216,48 @@ const UserTemplate = () => {
                   cha mẹ thông qua việc áp dụng các kỹ thuật điều trị sinh sản
                   tiên tiến nhất.
                 </p>
-
                 <div className="space-y-4 mb-8">
                   <div
-                    className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300"
-                    onClick={() => navigate("/service-detail/ivf")}
+                    className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300 group"
+                    onClick={() => navigate("/service-detail/2")}
                   >
-                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 hover:bg-[#ff6b40] transition duration-300">
+                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 group-hover:bg-[#ff6b40] transition duration-300">
                       <ArrowRightOutlined />
                     </div>
-                    <span className="hover:text-[#ff8460] transition duration-300">
+                    <span className="hover:text-[#ff8460] transition duration-300 font-medium">
                       Thụ tinh trong ống nghiệm (IVF)
                     </span>
                   </div>
                   <div
-                    className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300"
-                    onClick={() => navigate("/service-detail/iui")}
+                    className="flex items-center cursor-pointer hover:bg-gray-100 p-2 rounded transition duration-300 group"
+                    onClick={() => navigate("/service-detail/1")}
                   >
-                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 hover:bg-[#ff6b40] transition duration-300">
+                    <div className="bg-[#ff8460] rounded-full w-8 h-8 flex items-center justify-center text-white mr-4 group-hover:bg-[#ff6b40] transition duration-300">
                       <ArrowRightOutlined />
                     </div>
-                    <span className="hover:text-[#ff8460] transition duration-300">
+                    <span className="hover:text-[#ff8460] transition duration-300 font-medium">
                       Thụ tinh nhân tạo (IUI)
                     </span>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => navigate("/services")}
-                  className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-6 rounded transition duration-300 ease-in-out"
+                <Button
+                  onClick={() => {
+                    window.scrollTo(0, 0);
+                    navigate("/services");
+                  }}
+                  className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-3 px-8 rounded-full shadow-lg text-lg border-none"
+                  size="large"
                 >
                   Tìm hiểu Thêm
-                </button>
+                </Button>
               </div>
             </Col>
             <Col xs={24} md={12}>
-              <div className="relative">
+              <div className="relative flex justify-center">
                 <img
                   src="/images/features/pc5.jpg"
                   alt="Mẹ và bé"
-                  className="w-full rounded-lg shadow-xl"
+                  className="w-full max-w-md rounded-lg shadow-xl"
                 />
               </div>
             </Col>
@@ -262,24 +269,26 @@ const UserTemplate = () => {
       <div className="py-20 bg-[#c2da5c]">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-white mb-2">
+            <h2 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
               Đội ngũ Chuyên gia
             </h2>
-            <span className="text-white font-medium">BÁC SĨ CỦA CHÚNG TÔI</span>
+            <span className="text-white font-medium text-lg">
+              BÁC SĨ CỦA CHÚNG TÔI
+            </span>
           </div>
-
           {loading ? (
             <div className="text-center py-12">
               <Spin size="large" />
               <p className="text-white mt-4">Đang tải thông tin bác sĩ...</p>
             </div>
           ) : doctors.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {doctors.slice(0, 3).map((doctor) => (
-                <div
+                <Card
                   key={doctor.id}
-                  className="relative w-[280px] mx-auto mb-8 cursor-pointer group"
+                  className="relative w-[280px] mx-auto mb-8 cursor-pointer group shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white"
                   onClick={() => navigate(`/doctor/${doctor.id}`)}
+                  bodyStyle={{ padding: 0 }}
                 >
                   <div className="relative w-full max-w-sm rounded-lg overflow-hidden shadow-md group hover:scale-105 transition-transform duration-300">
                     <img
@@ -287,21 +296,28 @@ const UserTemplate = () => {
                       alt={doctor.fullName}
                       className="w-full h-[350px] object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
                     />
-                    <div
-                      className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 py-3 shadow-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300"
-                    >
+                    <div className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 py-3 shadow-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                       <h3 className="text-lg font-semibold text-gray-800 text-center truncate">
                         {doctor.fullName}
                       </h3>
                       <div className="mt-1 text-center space-y-1">
                         <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Chuyên khoa:</span> {doctor.specialty}
+                          <span className="font-medium text-gray-700">
+                            Chuyên khoa:
+                          </span>{" "}
+                          {doctor.specialty}
                         </p>
                         <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Bằng cấp:</span> {doctor.qualifications}
+                          <span className="font-medium text-gray-700">
+                            Bằng cấp:
+                          </span>{" "}
+                          {doctor.qualifications}
                         </p>
                         <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">Kinh nghiệm:</span> {doctor.experienceYears} năm
+                          <span className="font-medium text-gray-700">
+                            Kinh nghiệm:
+                          </span>{" "}
+                          {doctor.experienceYears} năm
                         </p>
                       </div>
                       <div className="mt-2 flex items-center justify-center">
@@ -313,11 +329,13 @@ const UserTemplate = () => {
                           starDimension="20px"
                           starSpacing="2px"
                         />
-                        <span className="ml-2 text-sm text-gray-600">({doctor.rate})</span>
+                        <span className="ml-2 text-sm text-gray-600">
+                          ({doctor.rate})
+                        </span>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           ) : (
@@ -330,14 +348,14 @@ const UserTemplate = () => {
               </p>
             </div>
           )}
-
           <div className="text-center mt-10">
-            <button
+            <Button
               onClick={() => navigate("/our-staff")}
-              className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded transition duration-300 ease-in-out"
+              className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-lg text-lg border-none"
+              size="large"
             >
               Xem Toàn Bộ Đội Ngũ ({doctors.length} bác sĩ)
-            </button>
+            </Button>
           </div>
         </div>
       </div>

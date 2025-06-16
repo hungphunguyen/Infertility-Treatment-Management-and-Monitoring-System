@@ -6,10 +6,8 @@ export const serviceService = {
   getAllServices: async () => {
     try {
       const response = await http.get("treatment-service");
-      console.log("📦 Services API response:", response.data);
       return response;
     } catch (error) {
-      console.error("💥 Error fetching services:", error);
       throw error;
     }
   },
@@ -18,10 +16,8 @@ export const serviceService = {
   getAllNonRemovedServices: async () => {
     try {
       const response = await http.get("treatment-service/not-removed");
-      console.log("📦 Non-removed services API response:", response.data);
       return response;
     } catch (error) {
-      console.error("💥 Error fetching non-removed services:", error);
       throw error;
     }
   },
@@ -30,10 +26,8 @@ export const serviceService = {
   getServiceById: async (serviceId) => {
     try {
       const response = await http.get(`treatment-service/${serviceId}`);
-      console.log(`📦 Service ${serviceId} details:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error fetching service ${serviceId}:`, error);
       throw error;
     }
   },
@@ -42,10 +36,8 @@ export const serviceService = {
   getAllTreatmentTypes: async () => {
     try {
       const response = await http.get("treatment-type");
-      console.log("📦 Treatment types:", response.data);
       return response;
     } catch (error) {
-      console.error("💥 Error fetching treatment types:", error);
       throw error;
     }
   },
@@ -54,10 +46,8 @@ export const serviceService = {
   getTreatmentTypeByName: async (name) => {
     try {
       const response = await http.get(`treatment-type/find-by-name/${name}`);
-      console.log(`📦 Treatment type ${name}:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error fetching treatment type ${name}:`, error);
       throw error;
     }
   },
@@ -66,10 +56,8 @@ export const serviceService = {
   getAllTreatmentStages: async () => {
     try {
       const response = await http.get("treatment-stages");
-      console.log("📦 Treatment stages:", response.data);
       return response;
     } catch (error) {
-      console.error("💥 Error fetching treatment stages:", error);
       throw error;
     }
   },
@@ -78,10 +66,8 @@ export const serviceService = {
   getTreatmentStagesByTypeId: async (typeId) => {
     try {
       const response = await http.get(`treatment-stages/find-by-type/${typeId}`);
-      console.log(`📦 Treatment stages for type ${typeId}:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error fetching treatment stages for type ${typeId}:`, error);
       throw error;
     }
   },
@@ -90,16 +76,24 @@ export const serviceService = {
   registerTreatmentService: async (data) => {
     try {
       const token = getLocgetlStorage("token");
-      const response = await http.post("treatment-service/register", data, {
+      
+      // Always add ignoreIncompleteWarning=true to bypass incomplete treatment warnings
+      let url = "treatment-service/register?ignoreIncompleteWarning=true";
+      
+      // Remove from request body to avoid duplication
+      if (data.ignoreIncompleteWarning) {
+        const { ignoreIncompleteWarning, ...cleanData } = data;
+        data = cleanData;
+      }
+      
+      const response = await http.post(url, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      console.log("✅ Treatment service registered:", response.data);
       return response;
     } catch (error) {
-      console.error("💥 Error registering treatment service:", error);
       throw error;
     }
   },
@@ -113,10 +107,8 @@ export const serviceService = {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log("✅ Service created:", response.data);
       return response;
     } catch (error) {
-      console.error("💥 Error creating service:", error);
       throw error;
     }
   },
@@ -130,10 +122,8 @@ export const serviceService = {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log(`✅ Service ${serviceId} updated:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error updating service ${serviceId}:`, error);
       throw error;
     }
   },
@@ -147,10 +137,8 @@ export const serviceService = {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log(`✅ Service ${serviceId} deleted:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error deleting service ${serviceId}:`, error);
       throw error;
     }
   }

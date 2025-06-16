@@ -22,9 +22,26 @@ import {
   SearchOutlined,
   CalendarOutlined
 } from "@ant-design/icons";
+import { http } from "../../service/config";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 const { Search } = Input;
+
+const shiftVN = {
+  MORNING: 'Sáng',
+  AFTERNOON: 'Chiều',
+  FULL_DAY: 'Cả ngày'
+};
+
+const statusMap = {
+  PENDING: { color: 'orange', text: 'Chờ xác nhận', icon: <ClockCircleOutlined /> },
+  CONFIRMED: { color: 'blue', text: 'Đã xác nhận', icon: <ExclamationCircleOutlined /> },
+  CANCELLED: { color: 'red', text: 'Đã hủy', icon: <ClockCircleOutlined /> },
+  COMPLETED: { color: 'green', text: 'Hoàn thành', icon: <CheckCircleOutlined /> },
+  PENDING_CHANGE: { color: 'gold', text: 'Chờ duyệt đổi lịch', icon: <ExclamationCircleOutlined /> },
+  REJECTED_CHANGE: { color: 'volcano', text: 'Từ chối đổi lịch', icon: <ExclamationCircleOutlined /> }
+};
 
 const TodayExaminations = () => {
   const [examinations, setExaminations] = useState([]);
@@ -32,104 +49,43 @@ const TodayExaminations = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
 
-  // Mock data - thay thế bằng API
-  const todayExaminations = [
-    {
-      key: 1,
-      time: "08:00",
-      patientName: "Nguyễn Thị Lan",
-      patientId: "BN001",
-      doctorName: "BS. Trần Văn Nam",
-      service: "Khám tư vấn IVF",
-      status: "waiting",
-      phone: "0912345678",
-      notes: "Lần khám đầu tiên",
-      room: "P101"
-    },
-    {
-      key: 2,
-      time: "08:30",
-      patientName: "Lê Minh Hạnh",
-      patientId: "BN002", 
-      doctorName: "BS. Nguyễn Thị Mai",
-      service: "Theo dõi phôi",
-      status: "in-progress",
-      phone: "0987654321",
-      notes: "Tuần thứ 2 sau chuyển phôi",
-      room: "P102"
-    },
-    {
-      key: 3,
-      time: "09:00",
-      patientName: "Phạm Văn Đức",
-      patientId: "BN003",
-      doctorName: "BS. Trần Văn Nam", 
-      service: "IUI lần 2",
-      status: "completed",
-      phone: "0901234567",
-      notes: "Hoàn thành thủ thuật",
-      room: "P103"
-    },
-    {
-      key: 4,
-      time: "09:30",
-      patientName: "Hoàng Thị Nga",
-      patientId: "BN004",
-      doctorName: "BS. Lê Văn Hùng",
-      service: "Xét nghiệm hormone",
-      status: "cancelled",
-      phone: "0934567890",
-      notes: "Bệnh nhân hủy phút chót",
-      room: "P104"
-    },
-    {
-      key: 5,
-      time: "10:00",
-      patientName: "Trần Thị Hoa",
-      patientId: "BN005",
-      doctorName: "BS. Nguyễn Thị Mai",
-      service: "Siêu âm thai",
-      status: "waiting",
-      phone: "0945678901",
-      notes: "Siêu âm 8 tuần",
-      room: "P105"
-    }
-  ];
-
   useEffect(() => {
-    setExaminations(todayExaminations);
-    setFilteredData(todayExaminations);
+    const fetchData = async () => {
+      const response = await http.get('/appointments/get-all');
+      const today = dayjs().format('YYYY-MM-DD');
+      const todayAppointments = response.data.result
+        .filter(item => item.appointmentDate === today)
+        .map((item, idx) => ({
+          key: item.id || idx,
+          patientName: item.customerName,
+          doctorName: item.doctorName,
+          service: item.serviceName,
+          shift: item.shift,
+          status: item.status,
+          phone: item.customerEmail,
+        }));
+      setExaminations(todayAppointments);
+      setFilteredData(todayAppointments);
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
     let filtered = examinations;
-    
-    // Filter by status
     if (statusFilter !== "all") {
       filtered = filtered.filter(item => item.status === statusFilter);
     }
-    
-    // Filter by search text
     if (searchText) {
-      filtered = filtered.filter(item => 
-        item.patientName.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.patientId.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.doctorName.toLowerCase().includes(searchText.toLowerCase())
+      filtered = filtered.filter(item =>
+        (item.patientName && item.patientName.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.doctorName && item.doctorName.toLowerCase().includes(searchText.toLowerCase()))
       );
     }
-    
     setFilteredData(filtered);
   }, [statusFilter, searchText, examinations]);
 
   const getStatusTag = (status) => {
-    const statusMap = {
-      waiting: { color: "blue", text: "Đang chờ", icon: <ClockCircleOutlined /> },
-      "in-progress": { color: "orange", text: "Đang khám", icon: <ExclamationCircleOutlined /> },
-      completed: { color: "green", text: "Hoàn thành", icon: <CheckCircleOutlined /> },
-      cancelled: { color: "red", text: "Đã hủy", icon: <ClockCircleOutlined /> }
-    };
-    
-    const config = statusMap[status];
+    const config = statusMap[status] || { color: 'default', text: status };
     return (
       <Tag color={config.color} icon={config.icon}>
         {config.text}
@@ -139,14 +95,12 @@ const TodayExaminations = () => {
 
   const columns = [
     {
-      title: "Thời gian",
-      dataIndex: "time",
-      key: "time",
-      width: 80,
-      render: (time) => (
-        <Tag color="cyan" icon={<ClockCircleOutlined />}>
-          {time}
-        </Tag>
+      title: "Ca khám",
+      dataIndex: "shift",
+      key: "shift",
+      width: 100,
+      render: (shift) => (
+        <Tag color="cyan" icon={<ClockCircleOutlined />}>{shiftVN[shift] || shift}</Tag>
       )
     },
     {
@@ -156,7 +110,6 @@ const TodayExaminations = () => {
       render: (_, record) => (
         <div>
           <div className="font-semibold">{record.patientName}</div>
-          <div className="text-sm text-gray-500">ID: {record.patientId}</div>
           <div className="text-sm text-gray-500">{record.phone}</div>
         </div>
       )
@@ -178,44 +131,20 @@ const TodayExaminations = () => {
       key: "service",
     },
     {
-      title: "Phòng",
-      dataIndex: "room",
-      key: "room",
-      render: (room) => <Tag color="purple">{room}</Tag>
-    },
-    {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       render: getStatusTag
-    },
-    {
-      title: "Ghi chú",
-      dataIndex: "notes",
-      key: "notes",
-      ellipsis: true
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      render: (_, record) => (
-        <Space size="middle">
-          <Button size="small" type="primary">Chi tiết</Button>
-          {record.status === "waiting" && (
-            <Button size="small" type="default">Bắt đầu</Button>
-          )}
-        </Space>
-      )
     }
   ];
 
   // Statistics
   const stats = {
     total: examinations.length,
-    waiting: examinations.filter(e => e.status === "waiting").length,
-    inProgress: examinations.filter(e => e.status === "in-progress").length,
-    completed: examinations.filter(e => e.status === "completed").length,
-    cancelled: examinations.filter(e => e.status === "cancelled").length
+    waiting: examinations.filter(e => e.status === "PENDING").length,
+    inProgress: examinations.filter(e => e.status === "CONFIRMED").length,
+    completed: examinations.filter(e => e.status === "COMPLETED").length,
+    cancelled: examinations.filter(e => e.status === "CANCELLED").length
   };
 
   return (
@@ -235,7 +164,7 @@ const TodayExaminations = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Đang chờ"
+              title="Chờ xác nhận"
               value={stats.waiting}
               prefix={<ClockCircleOutlined />}
               valueStyle={{ color: '#faad14' }}
@@ -245,7 +174,7 @@ const TodayExaminations = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Đang khám"
+              title="Đã xác nhận"
               value={stats.inProgress}
               prefix={<ExclamationCircleOutlined />}
               valueStyle={{ color: '#fa8c16' }}
@@ -275,15 +204,15 @@ const TodayExaminations = () => {
               placeholder="Lọc theo trạng thái"
             >
               <Option value="all">Tất cả trạng thái</Option>
-              <Option value="waiting">Đang chờ</Option>
-              <Option value="in-progress">Đang khám</Option>
-              <Option value="completed">Hoàn thành</Option>
-              <Option value="cancelled">Đã hủy</Option>
+              <Option value="PENDING">Chờ xác nhận</Option>
+              <Option value="CONFIRMED">Đã xác nhận</Option>
+              <Option value="COMPLETED">Hoàn thành</Option>
+              <Option value="CANCELLED">Đã hủy</Option>
             </Select>
           </Col>
           <Col span={8}>
             <Search
-              placeholder="Tìm kiếm bệnh nhân, ID, bác sĩ..."
+              placeholder="Tìm kiếm bệnh nhân, bác sĩ..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               style={{ width: "100%" }}

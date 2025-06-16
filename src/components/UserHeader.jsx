@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Button, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
@@ -11,12 +11,15 @@ import {
   UserOutlined,
   DashboardOutlined,
 } from "@ant-design/icons";
+import { clearAuth } from "../redux/authSlice";
 
 const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
   const location = useLocation();
   const [infoUser, setInfoUser] = useState();
-
+  const navigate = useNavigate();
+  const { showNotification } = useContext(NotificationContext);
+  const dispatch = useDispatch();
   useEffect(() => {
     if (!token) return;
 
@@ -24,6 +27,19 @@ const UserHeader = () => {
       .getMyInfo(token.token)
       .then((res) => {
         setInfoUser(res.data.result);
+        console.log(res.data.result.avatarUrl);
+        if (
+          !res.data.result.phoneNumber &&
+          res.data.result.roleName.name !== "ADMIN"
+        ) {
+          setTimeout(() => {
+            navigate(path.updataProfile);
+            showNotification(
+              "You must complete your personal profile.",
+              "warning"
+            );
+          }, 1000);
+        }
       })
       .catch((err) => {});
   }, [token]);
@@ -32,16 +48,17 @@ const UserHeader = () => {
     if (token?.token) {
       checkIntrospect();
     }
-  }, []);
+  }, [token]);
 
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
       // Chuyển hướng sang trang cập nhật thông tin (bạn có thể thay đổi đường dẫn)
-      window.location.href = "/update-profile";
+      navigate(path.updataProfile);
     } else if (key === "logout") {
       // Xử lý logout
+      dispatch(clearAuth());
       localStorage.removeItem("token");
-      window.location.href = "/";
+      window.location.reload();
     }
   };
 
@@ -86,6 +103,12 @@ const UserHeader = () => {
   );
 
   const isActive = (pathname) => {
+    if (pathname === path.ourStaff && location.pathname.startsWith('/doctor/')) {
+      return true;
+    }
+    if (pathname === path.services && location.pathname.startsWith('/service-detail/')) {
+      return true;
+    }
     return (
       location.pathname === pathname ||
       location.pathname.startsWith(`${pathname}/`)
@@ -100,13 +123,10 @@ const UserHeader = () => {
         placement="bottomRight"
       >
         <div className="flex items-center gap-2 select-none cursor-pointer ">
-          <Avatar className="w-12 h-12 rounded-full  justify-center text-white font-bold   hover:border-4 hover:border-orange-400 transition-all duration-300">
-            {infoUser.fullName !== null ? (
-              infoUser.fullName.charAt(0).toUpperCase()
-            ) : (
-              <UserOutlined />
-            )}
-          </Avatar>
+          <Avatar
+            className="w-12 h-12 rounded-full justify-center text-white font-bold hover:border-4 hover:border-orange-400 transition-all duration-300"
+            src={infoUser.avatarUrl || undefined}
+          ></Avatar>
           <span className="text-sm font-medium text-gray-700">
             {infoUser.fullName}
           </span>
@@ -176,6 +196,7 @@ const UserHeader = () => {
         <nav className="flex gap-8 text-xl">
           <Link
             to={path.homePage}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.homePage) && location.pathname === "/"
                 ? "text-orange-400 font-bold text-2xl"
@@ -186,6 +207,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.services}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.services)
                 ? "text-orange-400 font-bold text-2xl"
@@ -196,6 +218,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.ourStaff}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.ourStaff)
                 ? "text-orange-400 font-bold text-2xl"
@@ -206,6 +229,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.blog}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.blog)
                 ? "text-orange-400 font-bold text-2xl"
@@ -216,6 +240,7 @@ const UserHeader = () => {
           </Link>
           <Link
             to={path.contacts}
+            onClick={() => window.scrollTo(0, 0)}
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.contacts)
                 ? "text-orange-400 font-bold text-2xl"

@@ -13,6 +13,7 @@ import Feedback from "../components/customer/Feedback";
 import MedicalRecord from "../components/customer/MedicalRecord";
 import Payment from "../components/customer/Payment";
 import UpdateProfile from "../components/customer/UpdateProfile";
+import { authService } from "../service/auth.service";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -22,6 +23,21 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await authService.getMyInfo();
+        if (response?.data?.result) {
+          setUserInfo(response.data.result);
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   // Update selected menu item based on current path
   useEffect(() => {
@@ -44,8 +60,6 @@ const CustomerDashboard = () => {
       setSelectedMenuItem("medical-record");
     } else if (pathname.includes("/payment")) {
       setSelectedMenuItem("payment");
-    } else if (pathname.includes("/update-profile")) {
-      setSelectedMenuItem("update-profile");
     } else {
       // Default to profile if no match
       setSelectedMenuItem("profile");
@@ -76,8 +90,7 @@ const CustomerDashboard = () => {
         return "Hồ Sơ Bệnh Án";
       case "payment":
         return "Thanh Toán";
-      case "update-profile":
-        return "Cập Nhật Thông Tin Cá Nhân";
+
       default:
         return "Dashboard Khách Hàng";
     }
@@ -85,42 +98,46 @@ const CustomerDashboard = () => {
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        collapsible
+        collapsed={collapsed}
         onCollapse={setCollapsed}
         theme="light"
         width={280}
       >
-        <CustomerSidebar 
+        <CustomerSidebar
           selectedMenuItem={selectedMenuItem}
           setSelectedMenuItem={setSelectedMenuItem}
           collapsed={collapsed}
         />
       </Sider>
-      
+
       <Layout>
-        <Header style={{ 
-          background: "#fff", 
-          padding: "0 24px", 
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}>
+        <Header
+          style={{
+            background: "#fff",
+            padding: "0 24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <Title level={3} style={{ margin: 0, color: "#1890ff" }}>
             {getPageTitle()}
           </Title>
           <div style={{ color: "#666" }}>
-            Chào mừng, Phú Lâm Nguyên
+            Chào mừng, {userInfo?.fullName || "Khách hàng"}
           </div>
         </Header>
-        
-        <Content style={{ 
-          margin: "24px", 
-          background: "#f0f2f5",
-          minHeight: "calc(100vh - 112px)"
-        }}>
+
+        <Content
+          style={{
+            margin: "24px",
+            background: "#f0f2f5",
+            minHeight: "calc(100vh - 112px)",
+          }}
+        >
           <Routes>
             <Route index element={<ProfileOverview />} />
             <Route path="profile" element={<ProfileOverview />} />
@@ -132,7 +149,6 @@ const CustomerDashboard = () => {
             <Route path="feedback" element={<Feedback />} />
             <Route path="medical-record" element={<MedicalRecord />} />
             <Route path="payment" element={<Payment />} />
-            <Route path="update-profile" element={<UpdateProfile />} />
           </Routes>
         </Content>
       </Layout>

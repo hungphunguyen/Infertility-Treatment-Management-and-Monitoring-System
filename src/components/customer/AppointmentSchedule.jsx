@@ -1,95 +1,111 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, Calendar, Badge, Modal, Button, Descriptions, 
-  Typography, Tag, Row, Col, List, Timeline, Space, Empty
+  Typography, Tag, Row, Col, List, Timeline, Space, Empty,
+  Spin, message, DatePicker
 } from "antd";
 import {
   CalendarOutlined, ClockCircleOutlined, UserOutlined,
-  EnvironmentOutlined, PhoneOutlined, InfoCircleOutlined
+  EnvironmentOutlined, PhoneOutlined, InfoCircleOutlined,
+  UpOutlined, DownOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { treatmentService } from "../../service/treatment.service";
+import { authService } from "../../service/auth.service";
+import { doctorService } from "../../service/doctor.service";
 
 const { Title, Text, Paragraph } = Typography;
 
+const shiftMap = {
+  MORNING: { color: "green", text: "Ca sáng" },
+  AFTERNOON: { color: "orange", text: "Ca chiều" },
+  FULL_DAY: { color: "purple", text: "Cả ngày" },
+  NONE: { color: "default", text: "Nghỉ" },
+  undefined: { color: "default", text: "Nghỉ" },
+  null: { color: "default", text: "Nghỉ" },
+  "": { color: "default", text: "Nghỉ" }
+};
+const weekdays = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
+const bgColorMap = {
+  completed: '#d9f7be',    // xanh lá
+  'in-progress': '#bae7ff',// xanh biển
+  'not-started': '#fff1b8',// cam nhạt
+  cancelled: '#ffa39e',    // đỏ nhạt
+  pending: '#fff1b8',      // fallback cam nhạt
+};
+
 const AppointmentSchedule = () => {
+  const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [appointmentDetails, setAppointmentDetails] = useState(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [userInfo, setUserInfo] = useState(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().format("YYYY-MM"));
 
-  // Mock data for appointments
-  const appointments = [
-    {
-      id: 1,
-      title: "Tư vấn ban đầu",
-      date: "2024-01-15",
-      time: "09:00",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng 103, Tầng 1",
-      status: "completed",
-      serviceId: "SV001",
-      notes: "Đã hoàn thành tư vấn, lập kế hoạch điều trị IVF",
-      contact: "0901234567",
-      preparationInstructions: "Không cần chuẩn bị trước"
-    },
-    {
-      id: 2,
-      title: "Kích thích buồng trứng",
-      date: "2024-01-20",
-      time: "10:30",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng 105, Tầng 1",
-      status: "completed",
-      serviceId: "SV002",
-      notes: "Siêu âm theo dõi, điều chỉnh liều hormone",
-      contact: "0901234567",
-      preparationInstructions: "Mang theo hồ sơ y tế"
-    },
-    {
-      id: 3,
-      title: "Siêu âm theo dõi",
-      date: "2024-01-22",
-      time: "09:30",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng 105, Tầng 1",
-      status: "upcoming",
-      serviceId: "SV002",
-      notes: "Theo dõi phát triển nang trứng",
-      contact: "0901234567",
-      preparationInstructions: "Mang theo hồ sơ y tế và kết quả xét nghiệm trước đó"
-    },
-    {
-      id: 4,
-      title: "Xét nghiệm Di truyền",
-      date: "2024-01-25",
-      time: "08:00",
-      doctor: "BS. Trần Thị B",
-      department: "Khoa Xét nghiệm",
-      location: "Phòng 201, Tầng 2",
-      status: "upcoming",
-      serviceId: "SV003",
-      notes: "Lấy mẫu xét nghiệm di truyền tiền làm tổ",
-      contact: "0901234568",
-      preparationInstructions: "Nhịn ăn 8 tiếng trước khi xét nghiệm"
-    },
-    {
-      id: 5,
-      title: "Lấy trứng",
-      date: "2024-01-30",
-      time: "07:30",
-      doctor: "BS. Nguyễn Văn A",
-      department: "Khoa IVF",
-      location: "Phòng phẫu thuật 3, Tầng 3",
-      status: "upcoming",
-      serviceId: "SV002",
-      notes: "Thủ thuật lấy trứng",
-      contact: "0901234567",
-      preparationInstructions: "Nhịn ăn từ 22:00 tối hôm trước, mang theo người thân hỗ trợ"
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      // Lấy thông tin user
+      const userResponse = await authService.getMyInfo();
+      if (!userResponse?.data?.result?.id) {
+        message.error('Không tìm thấy thông tin người dùng');
+        return;
+      }
+      setUserInfo(userResponse.data.result);
+
+      // Lấy danh sách lịch hẹn thực tế của user
+      const appointmentsResponse = await treatmentService.getCustomerAppointments(userResponse.data.result.id);
+      console.log('Appointments Response:', appointmentsResponse);
+      
+      if (appointmentsResponse?.data?.code === 1000 && Array.isArray(appointmentsResponse.data.result)) {
+        // Chuyển đổi dữ liệu lịch hẹn
+        const mappedAppointments = appointmentsResponse.data.result.map(appointment => {
+          let status = 'pending';
+          if (appointment.status === 'COMPLETED') status = 'completed';
+          else if (appointment.status === 'IN_PROGRESS' || appointment.status === 'CONFIRMED') status = 'in-progress';
+          else if (appointment.status === 'PLANNED') status = 'not-started';
+          else if (appointment.status === 'CANCELLED') status = 'cancelled';
+
+          return {
+            id: appointment.id,
+            title: appointment.purpose || appointment.serviceName,
+            date: appointment.appointmentDate,
+            time: appointment.shift === 'MORNING' ? '08:00' : '13:00',
+            doctor: appointment.doctorName,
+            department: "Khoa IVF",
+            location: "Phòng khám IVF",
+            status: status,
+            serviceId: appointment.id,
+            serviceStatus: appointment.status,
+            notes: appointment.notes || `Lịch hẹn ${appointment.purpose || appointment.serviceName}`,
+            contact: userResponse.data.result.phoneNumber,
+            preparationInstructions: "Không cần chuẩn bị đặc biệt",
+            isEstimated: false
+          };
+        });
+
+        // Sắp xếp lịch hẹn theo ngày
+        const sortedAppointments = mappedAppointments.sort((a, b) => {
+          return new Date(a.date) - new Date(b.date);
+        });
+
+        console.log('Mapped Appointments:', sortedAppointments);
+        setAppointments(sortedAppointments);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      message.error('Có lỗi xảy ra khi tải dữ liệu');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   // Get appointments for a specific date
   const getAppointmentsForDate = (date) => {
@@ -141,244 +157,143 @@ const AppointmentSchedule = () => {
   };
 
   // Function to get badge status for appointment
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, isEstimated) => {
     const statusMap = {
-      upcoming: { color: "blue", text: "Sắp tới" },
+      upcoming: { color: "blue", text: isEstimated ? "Dự kiến" : "Sắp tới" },
       completed: { color: "green", text: "Đã hoàn thành" },
+      pending: { color: "orange", text: "Đang chờ" },
       cancelled: { color: "red", text: "Đã hủy" }
     };
     return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
   };
 
   // Upcoming appointments list
-  const upcomingAppointments = appointments.filter(a => a.status === "upcoming")
+  const upcomingAppointments = appointments
+    .filter(a => a.status === "upcoming" || a.status === "pending")
     .sort((a, b) => new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time));
 
+  const displayedAppointments = isExpanded ? upcomingAppointments : upcomingAppointments.slice(0, 3);
+
+  // Custom calendar grid (like DoctorWorkSchedule)
+  const getCalendarGrid = (monthStr) => {
+    const [year, month] = monthStr.split("-").map(Number);
+    const firstDate = new Date(year, month - 1, 1);
+    const totalDays = new Date(year, month, 0).getDate();
+    const firstDay = firstDate.getDay(); // 0=CN
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+    const calendar = [];
+    let day = 1;
+    for (let i = 0; i < 6 && day <= totalDays; i++) {
+      const week = [];
+      for (let j = 0; j < 7; j++) {
+        if ((i === 0 && j < offset) || day > totalDays) {
+          week.push(null);
+        } else {
+          week.push(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+          day++;
+        }
+      }
+      calendar.push(week);
+    }
+    return calendar;
+  };
+
+  // Appointments by date
+  const appointmentsByDate = {};
+  appointments.forEach(app => {
+    if (!appointmentsByDate[app.date]) appointmentsByDate[app.date] = [];
+    appointmentsByDate[app.date].push(app);
+  });
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <Row gutter={[16, 16]}>
-        {/* Upcoming Appointments */}
-        <Col xs={24} lg={8}>
-          <Card title="Lịch hẹn sắp tới" style={{ marginBottom: 16 }}>
-            {upcomingAppointments.length > 0 ? (
-              <List
-                itemLayout="horizontal"
-                dataSource={upcomingAppointments}
-                renderItem={appointment => (
-                  <List.Item
-                    actions={[
-                      <Button 
-                        size="small" 
-                        type="link" 
-                        onClick={() => viewAppointmentDetails(appointment)}
+    <div style={{ minHeight: '100vh', background: '#e3eafc', padding: 24 }}>
+      <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <CalendarOutlined style={{ fontSize: 28, marginRight: 8, color: '#722ed1' }} />
+        <DatePicker
+          picker="month"
+          value={dayjs(selectedMonth + "-01")}
+          onChange={d => setSelectedMonth(d.format("YYYY-MM"))}
+          allowClear={false}
+          format="MM/YYYY"
+          size="large"
+          style={{ fontWeight: 600, fontSize: 20 }}
+        />
+      </div>
+      {loading ? (
+        <Spin tip="Đang tải lịch hẹn...">
+          <div style={{ minHeight: 300 }} />
+        </Spin>
+      ) : (
+        <div style={{
+          background: '#f8fafc',
+          borderRadius: 24,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
+          padding: 32,
+          marginBottom: 32,
+          minWidth: 1000,
+          maxWidth: 1200,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+        }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+            <thead>
+              <tr>
+                {weekdays.map(day => (
+                  <th key={day} style={{ border: 'none', padding: 16, background: '#fafafa', textAlign: 'center', fontWeight: 700, fontSize: 20, color: '#722ed1' }}>{day}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {getCalendarGrid(selectedMonth).map((week, i) => (
+                <tr key={i}>
+                  {week.map((dateStr, j) => {
+                    const dayAppointments = appointmentsByDate[dateStr] || [];
+                    const bgColor = dayAppointments.length > 0 ? bgColorMap[dayAppointments[0].status] : undefined;
+                    return (
+                      <td
+                        key={j}
+                        style={{
+                          border: '2px solid #bfbfbf',
+                          height: 120,
+                          minWidth: 120,
+                          textAlign: 'center',
+                          verticalAlign: 'middle',
+                          background: dayAppointments.length > 0 ? bgColorMap[dayAppointments[0].status] : '#f3e8ff',
+                          borderRadius: 16,
+                          transition: 'background 0.2s',
+                          position: 'relative',
+                        }}
                       >
-                        Chi tiết
-                      </Button>
-                    ]}
-                  >
-                    <List.Item.Meta
-                      title={
-                        <div>
-                          <Text strong>{appointment.title}</Text>
-                          <div style={{ marginTop: 4 }}>
-                            {getStatusBadge(appointment.status)}
-                          </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                          <div style={{ fontSize: 16, color: '#aaa', marginBottom: 6 }}>{dateStr ? dayjs(dateStr).format('D') : ''}</div>
+                          {dayAppointments.map((app, idx) => (
+                            <Tag 
+                              key={idx} 
+                              color={bgColorMap[app.status] || 'blue'} 
+                              style={{ marginBottom: 4, color: '#222', fontWeight: 600, fontSize: 15, background: bgColorMap[app.status] || '#e6f7ff', border: 'none' }}
+                            >
+                              {app.title}
+                            </Tag>
+                          ))}
                         </div>
-                      }
-                      description={
-                        <div>
-                          <div>
-                            <CalendarOutlined style={{ marginRight: 8 }} />
-                            {dayjs(appointment.date).format("DD/MM/YYYY")}
-                            <ClockCircleOutlined style={{ marginLeft: 12, marginRight: 8 }} />
-                            {appointment.time}
-                          </div>
-                          <div>
-                            <UserOutlined style={{ marginRight: 8 }} />
-                            {appointment.doctor}
-                          </div>
-                          <div>
-                            <EnvironmentOutlined style={{ marginRight: 8 }} />
-                            {appointment.location}
-                          </div>
-                        </div>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            ) : (
-              <Empty description="Không có lịch hẹn sắp tới" />
-            )}
-          </Card>
-
-          {/* Reminders */}
-          <Card title="Lưu ý quan trọng">
-            <Timeline>
-              <Timeline.Item color="blue">
-                <Text strong>Chuẩn bị cho lịch hẹn</Text>
-                <Paragraph>
-                  Vui lòng đến trước giờ hẹn 15 phút để làm thủ tục
-                </Paragraph>
-              </Timeline.Item>
-              <Timeline.Item color="green">
-                <Text strong>Mang theo hồ sơ</Text>
-                <Paragraph>
-                  Đem theo hồ sơ bệnh án, kết quả xét nghiệm trước đó
-                </Paragraph>
-              </Timeline.Item>
-              <Timeline.Item color="red">
-                <Text strong>Hoãn/hủy lịch hẹn</Text>
-                <Paragraph>
-                  Vui lòng thông báo trước ít nhất 24 giờ nếu cần thay đổi lịch hẹn
-                </Paragraph>
-              </Timeline.Item>
-              <Timeline.Item color="orange">
-                <Text strong>Nhịn ăn</Text>
-                <Paragraph>
-                  Một số thủ thuật yêu cầu nhịn ăn, vui lòng đọc kỹ hướng dẫn
-                </Paragraph>
-              </Timeline.Item>
-            </Timeline>
-          </Card>
-        </Col>
-
-        {/* Calendar */}
-        <Col xs={24} lg={16}>
-          <Card>
-            <Calendar 
-              cellRender={dateCellRender} 
-              onSelect={handleDateSelect}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Day Appointments Modal */}
-      <Modal
-        title={selectedDate ? `Lịch hẹn ngày ${selectedDate.format("DD/MM/YYYY")}` : "Lịch hẹn"}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setModalVisible(false)}>
-            Đóng
-          </Button>
-        ]}
-      >
-        {selectedDate && (
-          <List
-            itemLayout="horizontal"
-            dataSource={getAppointmentsForDate(selectedDate)}
-            renderItem={appointment => (
-              <List.Item
-                actions={[
-                  <Button 
-                    type="primary" 
-                    size="small" 
-                    onClick={() => viewAppointmentDetails(appointment)}
-                  >
-                    Chi tiết
-                  </Button>
-                ]}
-              >
-                <List.Item.Meta
-                  title={
-                    <Space>
-                      <Text strong>{appointment.time}</Text>
-                      <Text>{appointment.title}</Text>
-                      {getStatusBadge(appointment.status)}
-                    </Space>
-                  }
-                  description={
-                    <div>
-                      <div>
-                        <UserOutlined style={{ marginRight: 8 }} />
-                        {appointment.doctor}
-                      </div>
-                      <div>
-                        <EnvironmentOutlined style={{ marginRight: 8 }} />
-                        {appointment.location}
-                      </div>
-                    </div>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        )}
-      </Modal>
-
-      {/* Appointment Details Modal */}
-      <Modal
-        title="Chi tiết lịch hẹn"
-        open={detailsModalVisible}
-        onCancel={() => setDetailsModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setDetailsModalVisible(false)}>
-            Đóng
-          </Button>
-        ]}
-        width={600}
-      >
-        {appointmentDetails && (
-          <div>
-            <Descriptions column={2} bordered>
-              <Descriptions.Item label="Tên lịch hẹn" span={2}>
-                <Text strong>{appointmentDetails.title}</Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày">
-                {dayjs(appointmentDetails.date).format("DD/MM/YYYY")}
-              </Descriptions.Item>
-              <Descriptions.Item label="Giờ">
-                {appointmentDetails.time}
-              </Descriptions.Item>
-              <Descriptions.Item label="Bác sĩ">
-                {appointmentDetails.doctor}
-              </Descriptions.Item>
-              <Descriptions.Item label="Khoa">
-                {appointmentDetails.department}
-              </Descriptions.Item>
-              <Descriptions.Item label="Địa điểm">
-                {appointmentDetails.location}
-              </Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
-                {getStatusBadge(appointmentDetails.status)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Mã dịch vụ">
-                <Tag color="blue">{appointmentDetails.serviceId}</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="Liên hệ" span={2}>
-                <PhoneOutlined style={{ marginRight: 8 }} />
-                {appointmentDetails.contact}
-              </Descriptions.Item>
-            </Descriptions>
-            
-            <div style={{ marginTop: 16 }}>
-              <Title level={5}>Ghi chú:</Title>
-              <Paragraph>{appointmentDetails.notes}</Paragraph>
-            </div>
-            
-            <div style={{ marginTop: 16 }}>
-              <Title level={5}>Hướng dẫn chuẩn bị:</Title>
-              <Paragraph>
-                <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
-                {appointmentDetails.preparationInstructions}
-              </Paragraph>
-            </div>
-            
-            <div style={{ marginTop: 16 }}>
-              <Space>
-                <Button type="primary">
-                  Xác nhận tham dự
-                </Button>
-                <Button danger>
-                  Yêu cầu đổi lịch
-                </Button>
-              </Space>
-            </div>
-          </div>
-        )}
-      </Modal>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

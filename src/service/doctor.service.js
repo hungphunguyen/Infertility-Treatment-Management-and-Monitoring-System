@@ -12,7 +12,6 @@ export const doctorService = {
 
       return response;
     } catch (error) {
-      console.error("💥 Error getting doctors:", error);
       throw error;
     }
   },
@@ -21,10 +20,8 @@ export const doctorService = {
   getDoctorById: async (id) => {
     try {
       const response = await http.get(`doctors/${id}`);
-      console.log(`📦 Doctor ${id} details:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error getting doctor ${id}:`, error);
       throw error;
     }
   },
@@ -33,10 +30,8 @@ export const doctorService = {
   getDoctorInfo: async (doctorId) => {
     try {
       const response = await http.get(`doctors/${doctorId}`);
-      console.log(`📋 Doctor info for ID ${doctorId}:`, response.data);
       return response;
     } catch (error) {
-      console.error(`💥 Error fetching doctor info ${doctorId}:`, error);
       throw error;
     }
   },
@@ -45,7 +40,7 @@ export const doctorService = {
   updateDoctor: async (id, data) => {
     try {
       const response = await http.put("doctors", data, {
-        params: { id }
+        params: { id },
       });
       console.log(`✅ Doctor ${id} updated:`, response.data);
       return response;
@@ -54,8 +49,11 @@ export const doctorService = {
       throw error;
     }
   },
+  getInfoDoctor: (id) => {
+    return http.get(`/doctors/${id}`);
+  },
 
   getDoctorForCard: async () => {
     return http.get("doctors/rating");
-  }
-}; 
+  },
+};

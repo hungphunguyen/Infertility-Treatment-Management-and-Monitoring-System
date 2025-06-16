@@ -34,4 +34,10 @@ export const authService = {
   updateUser: (id, data) => {
     return http.put(`user/update/${id}`, data);
   },
+
+  uploadAvatar: (payload) => {
+    return http.put(`user/upload-avatar`, payload, {
+      "Content-Type": "multipart/form-data",
+    });
+  },
 };

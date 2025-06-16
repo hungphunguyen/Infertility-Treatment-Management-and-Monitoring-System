@@ -1,30 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import React from 'react';
 import { Carousel, Typography, Row, Col, Card, Button, Input, Form, Checkbox, Space, Statistic } from 'antd';
 import { UserOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import UserHeader from '../components/UserHeader';
 import UserFooter from '../components/UserFooter';
 import UpdateUserForm from '../components/UpdateUserForm';
-import { notification } from 'antd';
 
 const { Title, Paragraph, Text } = Typography;
 
 const HomePage = () => {
-  const location = useLocation();
-  
-  // Check if user was redirected after successful registration
-  useEffect(() => {
-    if (location.state?.registrationSuccess) {
-      // Show welcome notification
-      notification.success({
-        message: 'Chào mừng bạn trở lại!',
-        description: `Đăng ký ${location.state.serviceName} thành công. Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất!`,
-        duration: 5,
-        placement: 'top',
-      });
-    }
-  }, [location]);
-
   // Giả sử bạn đã có userId và dữ liệu ban đầu của khách hàng
   const userId = "id_cua_khach_hang"; // Thay bằng id thực tế
   const initialData = {

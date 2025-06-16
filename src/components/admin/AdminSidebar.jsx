@@ -64,6 +64,14 @@ const AdminSidebar = ({
       onCollapse={onCollapse}
       theme="dark"
       width={250}
+      style={{
+        position: "fixed",
+        height: "100vh",
+        left: 0,
+        top: 0,
+        zIndex: 1000,
+        overflow: "auto",
+      }}
     >
       <div className="flex items-center justify-center py-4">
         <Title level={3} style={{ color: "white", margin: 0 }}>

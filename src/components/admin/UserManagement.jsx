@@ -257,8 +257,6 @@ const UserManagement = () => {
         </tbody>
       </table>
 
-      {/* Modal cập nhật mật khẩu */}
-
       {/* Modal chi tiết user */}
       <Modal
         isOpen={isDetailModalOpen}
@@ -309,6 +307,8 @@ const UserManagement = () => {
           </>
         )}
       </Modal>
+
+      {/* Modal cập nhật mật khẩu */}
       <Modal
         isOpen={isEditModalOpen}
         onRequestClose={() => setEditModalOpen(false)}

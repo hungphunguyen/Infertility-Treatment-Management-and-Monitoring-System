@@ -22,6 +22,8 @@ import ResendOtpPage from "../pages/ResendOtpPage";
 import DoctorDashboard from "../pages/DoctorDashboard";
 import CustomerDashboard from "../pages/CustomerDashboard";
 import ProfileUpdate from "../pages/ProfileUpdate";
+import RenderCreateTreatment from "../components/manager/managerService/RenderCreateTreatment";
+import FeedbackCustomer from "../components/customer/FeedbackCustomer";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -91,6 +93,10 @@ const UseRoutesCustom = () => {
       element: <ManagerPage />,
     },
     {
+      path: path.managerRenderCreateTreatmentService,
+      element: <RenderCreateTreatment />,
+    },
+    {
       path: "/doctor-dashboard/*",
       element: <DoctorDashboard />,
     },
@@ -98,6 +104,7 @@ const UseRoutesCustom = () => {
       path: "/customer-dashboard/*",
       element: <CustomerDashboard />,
     },
+
     {
       path: path.resendOtp,
       element: <ResendOtpPage />,
@@ -107,6 +114,7 @@ const UseRoutesCustom = () => {
       path: path.updataProfile,
       element: <ProfileUpdate />,
     },
+
     {
       path: path.pageNotFound,
       element: <PageNotFound />,

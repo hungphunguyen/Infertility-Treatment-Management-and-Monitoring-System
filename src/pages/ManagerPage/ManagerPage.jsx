@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Typography } from "antd";
+import { Layout, Spin, Typography } from "antd";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { path } from "../../common/path";
 import ManagerSidebar from "../../components/manager/ManagerSidebar";
@@ -11,6 +11,9 @@ import TodayExaminations from "../../components/manager/TodayExaminations";
 import FeedbackManagement from "../../components/manager/FeedbackManagement";
 import ServiceManagement from "../../components/manager/ServiceManagement";
 import BlogManagement from "../../components/manager/BlogManagement";
+import { useSelector } from "react-redux";
+import { authService } from "../../service/auth.service";
+import UpdateProfile from "../../components/customer/UpdateProfile";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -19,7 +22,31 @@ const ManagerPage = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState("report");
   const navigate = useNavigate();
+  const token = useSelector((state) => state.authSlice);
   const location = useLocation();
+  const [infoUser, setInfoUser] = useState();
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/");
+      return;
+    }
+    authService
+      .getMyInfo(token.token)
+      .then((res) => {
+        const user = res.data.result;
+        if (user.roleName.name !== "MANAGER") {
+          showNotification("Bạn không có quyền truy cập trang này", "error");
+          navigate("/");
+          return;
+        }
+        setInfoUser(res.data.result);
+      })
+      .catch((err) => {
+        navigate("/");
+        console.log(err);
+      });
+  }, [token]);
 
   // Update selected menu based on current path
   useEffect(() => {
@@ -40,6 +67,8 @@ const ManagerPage = () => {
       setSelectedMenu("services");
     } else if (pathname.includes("/blog")) {
       setSelectedMenu("blog");
+    } else if (pathname.includes("/update-profile")) {
+      setSelectedMenu("update-profile");
     } else {
       // Default to report if no match
       setSelectedMenu("report");
@@ -68,10 +97,20 @@ const ManagerPage = () => {
         return "Quản Lý Dịch Vụ";
       case "blog":
         return "Quản Lý Blog";
+      case "update-profile":
+        return "Cập nhật thông tin cá nhân";
       default:
         return "Dashboard";
     }
   };
+
+  if (!infoUser) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -85,20 +124,32 @@ const ManagerPage = () => {
       <Layout>
         <Header style={{ background: "#fff", padding: "0 24px" }}>
           <div className="flex justify-between items-center">
-            <Title level={2} style={{ margin: 0 }}>
+            <Title
+              level={2}
+              style={{
+                margin: 0,
+                alignItems: "center",
+                marginLeft: 250,
+              }}
+            >
               {getPageTitle()}
             </Title>
             <div className="text-right">
               <p className="text-sm text-gray-500 mb-0">Manager Dashboard</p>
               <p className="text-xs text-gray-400 mb-0">
-                {new Date().toLocaleDateString('vi-VN')}
+                {new Date().toLocaleDateString("vi-VN")}
               </p>
             </div>
           </div>
         </Header>
 
         <Content
-          style={{ margin: "24px 16px", padding: 24, background: "#f0f2f5" }}
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            background: "#f0f2f5",
+            marginLeft: 250,
+          }}
         >
           <Routes>
             <Route index element={<ReportDashboard />} />
