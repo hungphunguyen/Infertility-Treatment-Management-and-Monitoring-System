@@ -47,6 +47,7 @@ const statusMap = {
 const DoctorBlogManagement = () => {
   const [myBlogs, setMyBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
@@ -107,14 +108,17 @@ const DoctorBlogManagement = () => {
   const getStatusTag = (status) => {
     const statusInfo = statusMap[status];
     if (statusInfo) {
-      return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+      return <Tag color={statusInfo.color} style={{ fontWeight: 600 }}>{statusInfo.text}</Tag>;
     } else {
       return <Tag>Không xác định</Tag>;
     }
   };
 
   const handleCreateBlog = () => {
-    navigate("/doctor/create-blog");
+    setSelectedBlog(null);
+    setModalType("create");
+    form.resetFields();
+    setIsModalVisible(true);
   };
 
   const editBlog = (blog) => {
@@ -135,7 +139,21 @@ const DoctorBlogManagement = () => {
     setIsModalVisible(true);
   };
 
+  const handleDeleteBlog = async (blogId) => {
+    setActionLoading(true);
+    try {
+      await blogService.deleteBlog(blogId, token.token);
+      showNotification("Bài viết đã được xóa!", "success");
+      fetchMyBlogs(currentUser.id);
+    } catch (error) {
+      showNotification("Xóa bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleSubmit = async (values) => {
+    setActionLoading(true);
     try {
       if (modalType === "create") {
         if (!currentUser || !currentUser.id) {
@@ -146,10 +164,10 @@ const DoctorBlogManagement = () => {
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: 'DRAFT' // Default status when saving via form.submit() or 'Lưu'
+          status: 'DRAFT'
         });
         if (response.data) {
-          showNotification("Bài viết đã được lưu dưới dạng nháp!", "success"); // Changed message
+          showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
           setIsModalVisible(false);
           form.resetFields();
           fetchMyBlogs(currentUser.id);
@@ -162,10 +180,27 @@ const DoctorBlogManagement = () => {
         const updatedBlogData = {
           ...selectedBlog,
           ...values,
-          // Do not explicitly set status here, as status changes will be handled by separate buttons/functions
         };
         await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
-        showNotification("Bài viết đã được cập nhật!", "success");
+        if (selectedBlog.status === "DRAFT") {
+          const submitResponse = await blogService.submitBlog(
+            selectedBlog.id,
+            currentUser.id,
+            token.token,
+            {
+              title: updatedBlogData.title,
+              content: updatedBlogData.content,
+              sourceReference: updatedBlogData.sourceReference
+            }
+          );
+          if (submitResponse.data?.result?.status === "PENDING_REVIEW") {
+            showNotification("Bài viết đã được gửi duyệt thành công!", "success");
+          } else {
+            showNotification("Không thể gửi bài viết đi duyệt", "error");
+          }
+        } else {
+          showNotification("Bài viết đã được cập nhật!", "success");
+        }
         setIsModalVisible(false);
         form.resetFields();
         fetchMyBlogs(currentUser.id);
@@ -173,16 +208,18 @@ const DoctorBlogManagement = () => {
     } catch (error) {
       console.error("Lỗi khi xử lý bài viết:", error);
       showNotification("Xử lý bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleSendForReview = async (values, isNewBlog) => {
+    setActionLoading(true);
     try {
       if (!currentUser || !currentUser.id) {
         showNotification("Vui lòng đăng nhập để tạo hoặc gửi bài viết đi duyệt", "error");
         return;
       }
-
       if (isNewBlog) {
         const response = await blogService.createBlog(currentUser.id, {
             title: values.title,
@@ -196,20 +233,16 @@ const DoctorBlogManagement = () => {
             form.resetFields();
             fetchMyBlogs(currentUser.id);
         }
-      } else { // Existing blog (modalType === "edit" and selectedBlog?.status === "DRAFT")
+      } else {
         if (!selectedBlog) {
             showNotification("Không tìm thấy bài viết để gửi duyệt.", "error");
             return;
         }
-        // First, update content (if any changes were made)
         const updatedBlogData = {
           ...selectedBlog,
-          ...values, // Apply any changes from the form before submitting
+          ...values,
         };
-        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token); // Update content first
-        
-        // Then, submit the blog for review
-        console.log("Submitting blog for review:", selectedBlog.id, currentUser.id);
+        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
         await blogService.submitBlog(selectedBlog.id, currentUser.id, token.token, updatedBlogData);
         showNotification("Bài viết đã được gửi duyệt thành công!", "success");
         setIsModalVisible(false);
@@ -219,6 +252,8 @@ const DoctorBlogManagement = () => {
     } catch (error) {
       console.error("Lỗi khi gửi bài viết đi duyệt:", error);
       showNotification("Gửi duyệt bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -272,7 +307,7 @@ const DoctorBlogManagement = () => {
       key: "action",
       render: (_, record) => (
         <Space direction="vertical" size="small">
-          <Space>
+          <Space wrap>
             <Button 
               size="small" 
               icon={<EyeOutlined />}
@@ -280,16 +315,6 @@ const DoctorBlogManagement = () => {
             >
               Xem
             </Button>
-            {record.status === "DRAFT" && (
-              <Button
-                size="small"
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={() => editBlog(record)}
-              >
-                Sửa
-              </Button>
-            )}
             {record.status === "DRAFT" && (
               <Popconfirm
                 title="Bạn có chắc chắn muốn xóa bài viết này?"
@@ -301,13 +326,14 @@ const DoctorBlogManagement = () => {
                   size="small"
                   danger
                   icon={<DeleteOutlined />}
+                  loading={actionLoading}
                 >
                   Xóa
                 </Button>
               </Popconfirm>
             )}
           </Space>
-          <Space>
+          <Space wrap>
             {record.status === "DRAFT" && (
               <Button 
                 size="small" 
@@ -321,20 +347,11 @@ const DoctorBlogManagement = () => {
                     sourceReference: record.sourceReference,
                     featured: record.featured || false,
                   });
-                  handleSendForReview(form.getFieldsValue(), false); // Gửi bài viết đi duyệt
+                  handleSendForReview(form.getFieldsValue(), false);
                 }}
+                loading={actionLoading}
               >
                 Gửi duyệt
-              </Button>
-            )}
-            {record.status !== "hidden" && (
-              <Button 
-                size="small" 
-                danger
-                icon={<EyeInvisibleOutlined />}
-                onClick={() => handleStatusChange(record.id, "hidden")}
-              >
-                Ẩn
               </Button>
             )}
           </Space>
@@ -372,12 +389,13 @@ const DoctorBlogManagement = () => {
         columns={columns}
         dataSource={filteredData}
         rowKey="id"
-        loading={loading}
+        loading={loading || actionLoading}
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
           showTotal: (total) => `Tổng số ${total} bài viết`,
         }}
+        scroll={{ x: 1000 }}
       />
 
       <Modal
@@ -398,16 +416,18 @@ const DoctorBlogManagement = () => {
           }}>
             Hủy
           </Button>,
-          <Button key="saveDraft" onClick={() => form.submit()}>
+          <Button key="saveDraft" onClick={() => form.submit()} type="primary" loading={actionLoading}>
             Lưu
           </Button>,
           (modalType === "create" || (modalType === "edit" && selectedBlog?.status === "DRAFT")) && (
-            <Button key="submitReview" type="primary" onClick={() => handleSendForReview(form.getFieldsValue(), modalType === "create")}>
+            <Button key="submitReview" type="primary" onClick={() => handleSendForReview(form.getFieldsValue(), modalType === "create")}
+              loading={actionLoading}>
               Gửi duyệt
             </Button>
           )
         ]}
         width={800}
+        destroyOnClose
       >
         {modalType === "view" ? (
           selectedBlog && (

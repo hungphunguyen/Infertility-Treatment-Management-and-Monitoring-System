@@ -48,7 +48,7 @@ const DoctorSidebar = ({
       icon: <ReadOutlined />,
       label: "Bài viết của tôi",
       title: "Xem và quản lý bài viết của bạn",
-      path: "/doctor/my-blogs",
+      path: "/doctor-dashboard/my-blogs",
     },
     {
       key: "profile",

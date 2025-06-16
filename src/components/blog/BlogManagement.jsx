@@ -49,6 +49,7 @@ const statusMap = {
 const BlogManagement = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
@@ -76,7 +77,6 @@ const BlogManagement = () => {
           setCurrentUser(response.data.result);
         }
       } catch (error) {
-        console.error("Error loading user info:", error);
         showNotification("Không thể tải thông tin người dùng", "error");
       }
     };
@@ -91,7 +91,6 @@ const BlogManagement = () => {
         setBlogs(response.data.result);
       }
     } catch (error) {
-      console.error("Error fetching blogs:", error);
       showNotification("Không thể tải danh sách bài viết", "error");
     } finally {
       setLoading(false);
@@ -111,7 +110,7 @@ const BlogManagement = () => {
   const getStatusTag = (status) => {
     const statusInfo = statusMap[status];
     if (statusInfo) {
-      return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+      return <Tag color={statusInfo.color} style={{ fontWeight: 600 }}>{statusInfo.text}</Tag>;
     } else {
       return <Tag>Không xác định</Tag>;
     }
@@ -131,7 +130,7 @@ const BlogManagement = () => {
       title: blog.title,
       content: blog.content,
       sourceReference: blog.sourceReference,
-      featured: blog.featured || false, // Ensure featured is set
+      featured: blog.featured || false,
     });
     setIsModalVisible(true);
   };
@@ -142,7 +141,21 @@ const BlogManagement = () => {
     setIsModalVisible(true);
   };
 
+  const handleDeleteBlog = async (blogId) => {
+    setActionLoading(true);
+    try {
+      await blogService.deleteBlog(blogId, token.token);
+      showNotification("Bài viết đã được xóa!", "success");
+      fetchBlogs();
+    } catch (error) {
+      showNotification("Xóa bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleSubmit = async (values) => {
+    setActionLoading(true);
     try {
       if (modalType === "create") {
         if (!currentUser || !currentUser.id) {
@@ -153,10 +166,10 @@ const BlogManagement = () => {
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: 'DRAFT' // Default status when saving via form.submit() or 'Lưu'
+          status: 'DRAFT'
         });
         if (response.data) {
-          showNotification("Bài viết đã được lưu dưới dạng nháp!", "success"); // Changed message
+          showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
           setIsModalVisible(false);
           form.resetFields();
           fetchBlogs();
@@ -169,27 +182,27 @@ const BlogManagement = () => {
         const updatedBlogData = {
           ...selectedBlog,
           ...values,
-          // Do not explicitly set status here, as status changes will be handled by separate buttons/functions
         };
-        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData);
+        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
         showNotification("Bài viết đã được cập nhật!", "success");
         setIsModalVisible(false);
         form.resetFields();
         fetchBlogs();
       }
     } catch (error) {
-      console.error("Lỗi khi xử lý bài viết:", error);
       showNotification("Xử lý bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleSendForReview = async (values, isNewBlog) => {
+    setActionLoading(true);
     try {
       if (!currentUser || !currentUser.id) {
         showNotification("Vui lòng đăng nhập để tạo hoặc gửi bài viết đi duyệt", "error");
         return;
       }
-
       if (isNewBlog) {
         const response = await blogService.createBlog(currentUser.id, {
             title: values.title,
@@ -203,20 +216,16 @@ const BlogManagement = () => {
             form.resetFields();
             fetchBlogs();
         }
-      } else { // Existing blog (modalType === "edit" and selectedBlog?.status === "DRAFT")
+      } else {
         if (!selectedBlog) {
             showNotification("Không tìm thấy bài viết để gửi duyệt.", "error");
             return;
         }
-        // First, update content (if any changes were made)
         const updatedBlogData = {
           ...selectedBlog,
-          ...values, // Apply any changes from the form before submitting
+          ...values,
         };
-        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData);
-        
-        // Then, submit the blog for review
-        console.log("Submitting blog for review:", selectedBlog.id, currentUser.id);
+        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
         await blogService.submitBlog(selectedBlog.id, currentUser.id, token.token, updatedBlogData);
         showNotification("Bài viết đã được gửi duyệt thành công!", "success");
         setIsModalVisible(false);
@@ -224,12 +233,14 @@ const BlogManagement = () => {
         fetchBlogs();
       }
     } catch (error) {
-      console.error("Lỗi khi gửi bài viết đi duyệt:", error);
       showNotification("Gửi duyệt bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleStatusChange = async (blogId, currentStatus) => {
+    setActionLoading(true);
     try {
       if (!currentUser || !currentUser.id) {
         showNotification("Không có thông tin người dùng để cập nhật trạng thái bài viết.", "error");
@@ -237,7 +248,6 @@ const BlogManagement = () => {
       }
       let newStatus;
       let successMessage;
-
       if (currentStatus === 'APPROVED') {
         newStatus = 'hidden';
         successMessage = "Bài viết đã được ẩn!";
@@ -246,25 +256,16 @@ const BlogManagement = () => {
         successMessage = "Bài viết đã được hiện lại!";
       } else {
         showNotification("Không thể thay đổi trạng thái này.", "warning");
+        setActionLoading(false);
         return;
       }
       await blogService.updateBlogStatus(blogId, newStatus, token.token, currentUser.id);
       showNotification(successMessage, "success");
       fetchBlogs();
     } catch (error) {
-      console.error("Lỗi cập nhật trạng thái bài viết:", error);
       showNotification("Cập nhật trạng thái thất bại", "error");
-    }
-  };
-
-  const handleDeleteBlog = async (blogId) => {
-    try {
-      await blogService.deleteBlog(blogId, token.token);
-      showNotification("Bài viết đã được xóa!", "success");
-      fetchBlogs();
-    } catch (error) {
-      console.error("Lỗi xóa bài viết:", error);
-      showNotification("Xóa bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -279,38 +280,39 @@ const BlogManagement = () => {
   };
 
   const handleCommentSubmit = async () => {
+    setActionLoading(true);
     try {
       if (!token?.token || !currentUser?.id) {
         showNotification("Không có thông tin người dùng quản lý.", "error");
+        setActionLoading(false);
         return;
       }
-
       const { blogId, status } = currentAction;
       if (!blogId || !status) {
         showNotification("Thông tin bài viết hoặc trạng thái không hợp lệ.", "error");
+        setActionLoading(false);
         return;
       }
-
       const response = await blogService.approveBlog(
         blogId,
         currentUser.id,
         token.token,
         { action: status, comment: commentText }
       );
-
       if (response.data) {
         showNotification(
           `Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} thành công!`, "success"
         );
         setIsCommentModalVisible(false);
-        setCommentText(""); // Clear comment
-        fetchBlogs(); // Refresh danh sách
+        setCommentText("");
+        fetchBlogs();
       } else {
         showNotification("Thao tác thất bại.", "error");
       }
     } catch (error) {
-      console.error("Error processing blog action:", error);
       showNotification("Không thể thực hiện thao tác", "error");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -383,7 +385,7 @@ const BlogManagement = () => {
       key: "action",
       render: (_, record) => (
         <Space direction="vertical" size="small">
-          <Space>
+          <Space wrap>
             <Button 
               size="small" 
               icon={<EyeOutlined />}
@@ -391,35 +393,15 @@ const BlogManagement = () => {
             >
               Xem
             </Button>
-            <Button
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => editBlog(record)}
-            >
-              Sửa
-            </Button>
-            <Popconfirm
-              title="Bạn có chắc chắn muốn xóa bài viết này?"
-              onConfirm={() => handleDeleteBlog(record.id)}
-              okText="Có"
-              cancelText="Không"
-            >
-              <Button
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-              >
-                Xóa
-              </Button>
-            </Popconfirm>
           </Space>
-          <Space>
+          <Space wrap>
             {record.status === "PENDING_REVIEW" && (
               <Button 
                 size="small" 
                 type="primary"
                 icon={<CheckOutlined />}
                 onClick={() => handleApprove(record.id)}
+                loading={actionLoading}
               >
                 Duyệt
               </Button>
@@ -430,16 +412,18 @@ const BlogManagement = () => {
                 danger
                 icon={<CloseOutlined />}
                 onClick={() => handleReject(record.id)}
+                loading={actionLoading}
               >
                 Từ chối
               </Button>
             )}
-            {record.status !== "hidden" && (
+            {record.status === "APPROVED" && (
               <Button 
                 size="small" 
                 danger
                 icon={<EyeInvisibleOutlined />}
-                onClick={() => handleStatusChange(record.id, "hidden")}
+                onClick={() => handleStatusChange(record.id, "APPROVED")}
+                loading={actionLoading}
               >
                 Ẩn
               </Button>
@@ -449,7 +433,8 @@ const BlogManagement = () => {
                 size="small" 
                 type="primary"
                 icon={<EyeOutlined />}
-                onClick={() => handleStatusChange(record.id, "DRAFT")}
+                onClick={() => handleStatusChange(record.id, "hidden")}
+                loading={actionLoading}
               >
                 Bỏ ẩn
               </Button>
@@ -489,12 +474,13 @@ const BlogManagement = () => {
         columns={columns}
         dataSource={filteredData}
         rowKey="id"
-        loading={loading}
+        loading={loading || actionLoading}
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
           showTotal: (total) => `Tổng số ${total} bài viết`,
         }}
+        scroll={{ x: 1000 }}
       />
 
       <Modal
@@ -515,16 +501,18 @@ const BlogManagement = () => {
           }}>
             Hủy
           </Button>,
-          <Button key="saveDraft" onClick={() => form.submit()}>
+          <Button key="saveDraft" onClick={() => form.submit()} type="primary" loading={actionLoading}>
             Lưu
           </Button>,
           (modalType === "create" || (modalType === "edit" && selectedBlog?.status === "DRAFT")) && (
-            <Button key="submitReview" type="primary" onClick={() => handleSendForReview(form.getFieldsValue(), modalType === "create")}>
+            <Button key="submitReview" type="primary" onClick={() => handleSendForReview(form.getFieldsValue(), modalType === "create")}
+              loading={actionLoading}>
               Gửi duyệt
             </Button>
           )
         ]}
         width={800}
+        destroyOnClose
       >
         {modalType === "view" ? (
           selectedBlog && (
@@ -571,6 +559,8 @@ const BlogManagement = () => {
         onCancel={handleCommentModalCancel}
         okText="Gửi"
         cancelText="Hủy"
+        confirmLoading={actionLoading}
+        destroyOnClose
       >
         <Input.TextArea
           rows={4}
