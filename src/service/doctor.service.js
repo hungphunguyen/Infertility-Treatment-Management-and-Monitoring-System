@@ -35,19 +35,9 @@ export const doctorService = {
       throw error;
     }
   },
-
   // Cập nhật thông tin bác sĩ
   updateDoctor: async (id, data) => {
-    try {
-      const response = await http.put("doctors", data, {
-        params: { id },
-      });
-      console.log(`✅ Doctor ${id} updated:`, response.data);
-      return response;
-    } catch (error) {
-      console.error(`💥 Error updating doctor ${id}:`, error);
-      throw error;
-    }
+    return http.put(`/doctors/${id}`, data);
   },
   getInfoDoctor: (id) => {
     return http.get(`/doctors/${id}`);
