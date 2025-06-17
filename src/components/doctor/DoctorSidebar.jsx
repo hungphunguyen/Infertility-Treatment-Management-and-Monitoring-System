@@ -18,6 +18,8 @@ import {
   CalendarOutlined,
   MedicineBoxOutlined,
   HomeOutlined,
+  EditOutlined,
+  ReadOutlined,
 } from "@ant-design/icons";
 import { authService } from "../../service/auth.service";
 import { useSelector } from "react-redux";
@@ -59,6 +61,13 @@ const DoctorSidebar = ({
       path: path.doctorTestResults,
     },
     ,
+    {
+      key: "my-blogs",
+      icon: <ReadOutlined />,
+      label: "Bài viết của tôi",
+      title: "Xem và quản lý bài viết của bạn",
+      path: "/doctor-dashboard/my-blogs",
+    },
     {
       key: "profile",
       icon: <UserOutlined />,

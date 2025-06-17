@@ -10,6 +10,7 @@ import {
   LogoutOutlined,
   UserOutlined,
   DashboardOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { clearAuth } from "../redux/authSlice";
 
@@ -20,6 +21,7 @@ const UserHeader = () => {
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
   const dispatch = useDispatch();
+
   useEffect(() => {
     if (!token) return;
 
@@ -78,14 +80,14 @@ const UserHeader = () => {
             Manager
           </Link>
         </Menu.Item>
-      )}{" "}
+      )}
       {infoUser && infoUser.roleName.name === "CUSTOMER" && (
         <Menu.Item key="customer" icon={<DashboardOutlined />}>
           <Link to={path.customer} style={{ color: "inherit" }}>
             Customer
           </Link>
         </Menu.Item>
-      )}{" "}
+      )}
       {infoUser && infoUser.roleName.name === "DOCTOR" && (
         <Menu.Item key="doctor" icon={<DashboardOutlined />}>
           <Link to={path.doctor} style={{ color: "inherit" }}>

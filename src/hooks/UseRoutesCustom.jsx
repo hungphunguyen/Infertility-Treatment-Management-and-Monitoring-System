@@ -24,6 +24,7 @@ import CustomerDashboard from "../pages/CustomerDashboard";
 import ProfileUpdate from "../pages/ProfileUpdate";
 import RenderCreateTreatment from "../components/manager/managerService/RenderCreateTreatment";
 import FeedbackCustomer from "../components/customer/FeedbackCustomer";
+import CreateBlogPage from "../components/blog/CreateBlog";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -118,6 +119,22 @@ const UseRoutesCustom = () => {
     {
       path: path.pageNotFound,
       element: <PageNotFound />,
+    },
+    {
+      path: "/create-blog",
+      element: <CreateBlogPage />,
+    },
+    {
+      path: "/doctor/create-blog",
+      element: <CreateBlogPage />,
+    },
+    {
+      path: "/customer/create-blog",
+      element: <CreateBlogPage />,
+    },
+    {
+      path: "/manager/create-blog",
+      element: <CreateBlogPage />,
     },
   ]);
   return routes;

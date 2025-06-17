@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Card, Row, Col, Table, Calendar, Badge, Typography, Statistic, 
-  Tag, Avatar, Space, Button, Timeline, Progress, DatePicker, Spin, message
+import {
+  Card,
+  Row,
+  Col,
+  Table,
+  Calendar,
+  Badge,
+  Typography,
+  Statistic,
+  Tag,
+  Avatar,
+  Space,
+  Button,
+  Timeline,
+  Progress,
+  DatePicker,
+  Spin,
+  message,
 } from "antd";
 import {
   CalendarOutlined,
@@ -10,7 +25,7 @@ import {
   CheckCircleOutlined,
   MedicineBoxOutlined,
   PhoneOutlined,
-  StarFilled
+  StarFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
@@ -26,13 +41,13 @@ const shiftMap = {
   NONE: { color: "default", text: "Nghỉ" },
   undefined: { color: "default", text: "Nghỉ" },
   null: { color: "default", text: "Nghỉ" },
-  "": { color: "default", text: "Nghỉ" }
+  "": { color: "default", text: "Nghỉ" },
 };
 const weekdays = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
 const bgColorMap = {
-  MORNING: '#f6ffed',
-  AFTERNOON: '#fff7e6',
-  FULL_DAY: '#f9f0ff',
+  MORNING: "#f6ffed",
+  AFTERNOON: "#fff7e6",
+  FULL_DAY: "#f9f0ff",
 };
 
 const DashboardOverview = () => {
@@ -47,22 +62,31 @@ const DashboardOverview = () => {
   const [todayAppointments, setTodayAppointments] = useState([]);
 
   // Dashboard stats
-  const [dashboardStats, setDashboardStats] = useState({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 });
+  const [dashboardStats, setDashboardStats] = useState({
+    workShiftsThisMonth: 0,
+    patients: 0,
+    avgRating: 0,
+  });
 
   // Lấy doctorId từ token
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split("")
+            .map(function (c) {
+              return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+            })
+            .join("")
+        );
         const decoded = JSON.parse(jsonPayload);
         setDoctorId(decoded.sub);
       } catch (error) {
-        message.error('Không thể xác thực thông tin bác sĩ');
+        message.error("Không thể xác thực thông tin bác sĩ");
       }
     }
   }, []);
@@ -71,8 +95,9 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingSchedule(true);
-    managerService.getWorkScheduleMonth(doctorId)
-      .then(res => {
+    managerService
+      .getWorkScheduleMonth(doctorId)
+      .then((res) => {
         if (res.data && res.data.result && res.data.result.schedules) {
           const allSchedule = res.data.result.schedules;
           const map = {};
@@ -86,9 +111,9 @@ const DashboardOverview = () => {
           setSchedule({});
         }
       })
-      .catch(err => {
+      .catch((err) => {
         setSchedule({});
-        message.error('Không thể lấy lịch làm việc');
+        message.error("Không thể lấy lịch làm việc");
       })
       .finally(() => setLoadingSchedule(false));
   }, [doctorId, selectedMonth]);
@@ -97,9 +122,10 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingToday(true);
-    const today = dayjs().format('YYYY-MM-DD');
-    treatmentService.getDoctorAppointmentsByDate(doctorId, today)
-      .then(res => {
+    const today = dayjs().format("YYYY-MM-DD");
+    treatmentService
+      .getDoctorAppointmentsByDate(doctorId, today)
+      .then((res) => {
         if (res?.data?.result) {
           setTodayAppointments(res.data.result);
         } else {
@@ -113,13 +139,16 @@ const DashboardOverview = () => {
   // Lấy dashboard statics
   useEffect(() => {
     if (!doctorId) return;
-    doctorService.getDashboardStatics(doctorId)
-      .then(res => {
+    doctorService
+      .getDashboardStatics(doctorId)
+      .then((res) => {
         if (res?.data?.result) {
           setDashboardStats(res.data.result);
         }
       })
-      .catch(() => setDashboardStats({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 }));
+      .catch(() =>
+        setDashboardStats({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 })
+      );
   }, [doctorId]);
 
   // Bảng lịch làm việc tháng (thu nhỏ)
@@ -137,7 +166,12 @@ const DashboardOverview = () => {
         if ((i === 0 && j < offset) || day > totalDays) {
           week.push(null);
         } else {
-          week.push(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+          week.push(
+            `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+              2,
+              "0"
+            )}`
+          );
           day++;
         }
       }
@@ -154,22 +188,26 @@ const DashboardOverview = () => {
       key: "customerName",
       render: (name, record) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Avatar size="small" icon={<UserOutlined />} style={{ marginRight: 8 }} />
+          <Avatar
+            size="small"
+            icon={<UserOutlined />}
+            style={{ marginRight: 8 }}
+          />
           <span>{name}</span>
         </div>
-      )
+      ),
     },
     {
       title: "Ngày khám",
       dataIndex: "appointmentDate",
       key: "appointmentDate",
-      render: (date) => dayjs(date).format('DD/MM/YYYY')
+      render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
     {
       title: "Ca khám",
       dataIndex: "shift",
       key: "shift",
-      render: (shift) => shiftMap[shift]?.text || shift
+      render: (shift) => shiftMap[shift]?.text || shift,
     },
     {
       title: "Trạng thái",
@@ -177,22 +215,22 @@ const DashboardOverview = () => {
       key: "status",
       render: (status) => {
         const statusMap = {
-          CONFIRMED: { color: 'blue', text: 'Đã xác nhận' },
-          PLANNED: { color: 'orange', text: 'Chờ thực hiện' },
-          COMPLETED: { color: 'green', text: 'Hoàn thành' },
-          CANCELLED: { color: 'red', text: 'Đã hủy' },
-          INPROGRESS: { color: 'blue', text: 'Đang thực hiện' },
-          IN_PROGRESS: { color: 'blue', text: 'Đang thực hiện' },
+          CONFIRMED: { color: "blue", text: "Đã xác nhận" },
+          PLANNED: { color: "orange", text: "Chờ thực hiện" },
+          COMPLETED: { color: "green", text: "Hoàn thành" },
+          CANCELLED: { color: "red", text: "Đã hủy" },
+          INPROGRESS: { color: "blue", text: "Đang thực hiện" },
+          IN_PROGRESS: { color: "blue", text: "Đang thực hiện" },
         };
-        const s = statusMap[status] || { color: 'default', text: status };
+        const s = statusMap[status] || { color: "default", text: status };
         return <Tag color={s.color}>{s.text}</Tag>;
-      }
+      },
     },
     {
       title: "Dịch vụ",
       dataIndex: "serviceName",
-      key: "serviceName"
-    }
+      key: "serviceName",
+    },
   ];
 
   return (
@@ -205,7 +243,7 @@ const DashboardOverview = () => {
               title="Tổng ca làm việc tháng này"
               value={dashboardStats.workShiftsThisMonth}
               prefix={<CalendarOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: "#1890ff" }}
             />
           </Card>
         </Col>
@@ -215,7 +253,7 @@ const DashboardOverview = () => {
               title="Tổng số bệnh nhân"
               value={dashboardStats.patients}
               prefix={<UserOutlined />}
-              valueStyle={{ color: '#faad14' }}
+              valueStyle={{ color: "#faad14" }}
             />
           </Card>
         </Col>
@@ -224,8 +262,8 @@ const DashboardOverview = () => {
             <Statistic
               title="Đánh giá"
               value={dashboardStats.avgRating}
-              prefix={<StarFilled style={{ color: '#faad14' }} />}
-              valueStyle={{ color: '#faad14' }}
+              prefix={<StarFilled style={{ color: "#faad14" }} />}
+              valueStyle={{ color: "#faad14" }}
               precision={1}
             />
           </Card>
@@ -235,7 +273,7 @@ const DashboardOverview = () => {
       <Row gutter={[24, 24]}>
         {/* Today's Appointments */}
         <Col xs={24} lg={14}>
-          <Card 
+          <Card
             title={
               <Space>
                 <CalendarOutlined />
@@ -243,7 +281,6 @@ const DashboardOverview = () => {
                 <Tag color="blue">{dayjs().format("DD/MM/YYYY")}</Tag>
               </Space>
             }
-           
           >
             <Table
               columns={todayColumns}
@@ -259,7 +296,7 @@ const DashboardOverview = () => {
 
         {/* Weekly Schedule */}
         <Col xs={24} lg={10}>
-          <Card 
+          <Card
             title={
               <Space>
                 <MedicineBoxOutlined />
@@ -267,12 +304,21 @@ const DashboardOverview = () => {
               </Space>
             }
           >
-            <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
-              <CalendarOutlined style={{ fontSize: 22, marginRight: 8, color: '#722ed1' }} />
+            <div
+              style={{
+                marginBottom: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 16,
+              }}
+            >
+              <CalendarOutlined
+                style={{ fontSize: 22, marginRight: 8, color: "#722ed1" }}
+              />
               <DatePicker
                 picker="month"
                 value={dayjs(selectedMonth + "-01")}
-                onChange={d => setSelectedMonth(d.format("YYYY-MM"))}
+                onChange={(d) => setSelectedMonth(d.format("YYYY-MM"))}
                 allowClear={false}
                 format="MM/YYYY"
                 size="middle"
@@ -284,22 +330,43 @@ const DashboardOverview = () => {
                 <div style={{ minHeight: 200 }} />
               </Spin>
             ) : (
-              <div style={{
-                background: '#fff',
-                borderRadius: 16,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                padding: 12,
-                marginBottom: 12,
-                minWidth: 400,
-                maxWidth: 600,
-                width: '100%',
-                overflowX: 'auto',
-              }}>
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+              <div
+                style={{
+                  background: "#fff",
+                  borderRadius: 16,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  padding: 12,
+                  marginBottom: 12,
+                  minWidth: 400,
+                  maxWidth: 600,
+                  width: "100%",
+                  overflowX: "auto",
+                }}
+              >
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "separate",
+                    borderSpacing: 0,
+                  }}
+                >
                   <thead>
                     <tr>
-                      {weekdays.map(day => (
-                        <th key={day} style={{ border: 'none', padding: 8, background: '#fafafa', textAlign: 'center', fontWeight: 700, fontSize: 15, color: '#722ed1' }}>{day}</th>
+                      {weekdays.map((day) => (
+                        <th
+                          key={day}
+                          style={{
+                            border: "none",
+                            padding: 8,
+                            background: "#fafafa",
+                            textAlign: "center",
+                            fontWeight: 700,
+                            fontSize: 15,
+                            color: "#722ed1",
+                          }}
+                        >
+                          {day}
+                        </th>
                       ))}
                     </tr>
                   </thead>
@@ -313,29 +380,51 @@ const DashboardOverview = () => {
                             <td
                               key={j}
                               style={{
-                                border: '1.5px solid #bfbfbf',
+                                border: "1.5px solid #bfbfbf",
                                 height: 60,
                                 minWidth: 60,
-                                textAlign: 'center',
-                                verticalAlign: 'middle',
-                                background: bgColor || (dateStr === dayjs().format('YYYY-MM-DD') ? '#e6f7ff' : '#fff'),
+                                textAlign: "center",
+                                verticalAlign: "middle",
+                                background:
+                                  bgColor ||
+                                  (dateStr === dayjs().format("YYYY-MM-DD")
+                                    ? "#e6f7ff"
+                                    : "#fff"),
                                 borderRadius: 8,
-                                transition: 'background 0.2s',
-                                position: 'relative',
+                                transition: "background 0.2s",
+                                position: "relative",
                               }}
                             >
-                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  height: "100%",
+                                }}
+                              >
                                 {dateStr && shift ? (
-                                  <span style={{
-                                    color: shiftMap[shift]?.color,
-                                    fontWeight: 700,
-                                    fontSize: 15,
-                                    letterSpacing: 0.5,
-                                  }}>
-                                    {shiftMap[shift]?.text || 'Nghỉ'}
+                                  <span
+                                    style={{
+                                      color: shiftMap[shift]?.color,
+                                      fontWeight: 700,
+                                      fontSize: 15,
+                                      letterSpacing: 0.5,
+                                    }}
+                                  >
+                                    {shiftMap[shift]?.text || "Nghỉ"}
                                   </span>
                                 ) : null}
-                                <div style={{ fontSize: 13, color: '#aaa', marginTop: 6 }}>{dateStr ? dayjs(dateStr).format('D') : ''}</div>
+                                <div
+                                  style={{
+                                    fontSize: 13,
+                                    color: "#aaa",
+                                    marginTop: 6,
+                                  }}
+                                >
+                                  {dateStr ? dayjs(dateStr).format("D") : ""}
+                                </div>
                               </div>
                             </td>
                           );
@@ -353,4 +442,4 @@ const DashboardOverview = () => {
   );
 };
 
-export default DashboardOverview; 
+export default DashboardOverview;

@@ -73,7 +73,7 @@ const ManagerSidebar = ({
       key: "blog",
       icon: <EditOutlined />,
       label: "Quản Lý Blog",
-      path: "/manager/blog",
+      path: "/manager/blog-management",
     },
     {
       key: "update-profile",

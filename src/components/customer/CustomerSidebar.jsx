@@ -16,6 +16,7 @@ import {
   SettingOutlined,
   EditOutlined,
   HomeOutlined,
+  ReadOutlined,
 } from "@ant-design/icons";
 import { authService } from "../../service/auth.service";
 import { useSelector } from "react-redux";
@@ -49,6 +50,14 @@ const CustomerSidebar = ({
       label: "Điều Trị",
       title: "Theo dõi lịch trình điều trị",
       path: path.customerTreatment,
+    },
+
+    {
+      key: "my-blogs",
+      icon: <ReadOutlined />,
+      label: "Bài viết của tôi",
+      title: "Xem và quản lý bài viết của bạn",
+      path: "/customer-dashboard/my-blogs",
     },
 
     {

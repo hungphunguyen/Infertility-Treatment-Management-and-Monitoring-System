@@ -10,11 +10,12 @@ import DoctorScheduleView from "../../components/manager/DoctorScheduleView";
 import TodayExaminations from "../../components/manager/TodayExaminations";
 import FeedbackManagement from "../../components/manager/FeedbackManagement";
 import ServiceManagement from "../../components/manager/ServiceManagement";
-import BlogManagement from "../../components/manager/BlogManagement";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
 import UpdateProfile from "../../components/customer/UpdateProfile";
 import { NotificationContext } from "../../App";
+import BlogManagement from "../../components/blog/BlogManagement";
+import BlogApproval from "../../components/blog/BlogApproval";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -73,7 +74,10 @@ const ManagerPage = () => {
       setSelectedMenu("feedback");
     } else if (pathname.includes("/services")) {
       setSelectedMenu("services");
-    } else if (pathname.includes("/blog")) {
+    } else if (
+      pathname.includes("/blog-management") ||
+      pathname.includes("/blog-approval")
+    ) {
       setSelectedMenu("blog");
     } else if (pathname.includes("/update-profile")) {
       setSelectedMenu("update-profile");
@@ -107,6 +111,8 @@ const ManagerPage = () => {
         return "Quản Lý Blog";
       case "update-profile":
         return "Cập nhật thông tin cá nhân";
+      case "blog-approval":
+        return "Duyệt Bài Viết";
       default:
         return "Dashboard";
     }
@@ -183,7 +189,8 @@ const ManagerPage = () => {
             <Route path="today-exams" element={<TodayExaminations />} />
             <Route path="feedback" element={<FeedbackManagement />} />
             <Route path="services" element={<ServiceManagement />} />
-            <Route path="blog" element={<BlogManagement />} />
+            <Route path="blog-management" element={<BlogManagement />} />
+            <Route path="blog-approval" element={<BlogApproval />} />
           </Routes>
         </Content>
       </Layout>
