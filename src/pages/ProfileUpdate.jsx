@@ -473,15 +473,27 @@ const ProfileUpdate = () => {
 
                   <div className="col-span-2 flex justify-end mt-4">
                     {isEditing && (
-                      <div className="col-span-2 flex justify-end mt-4">
-                        <button
-                          type="submit"
-                          className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <CheckOutlined />
-                          <span>Cập nhật</span>
-                        </button>
-                      </div>
+                      <>
+                        <div className="col-span-2 flex justify-end mt-4 mx-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditing(false)}
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                          >
+                            <span>Đóng</span>
+                          </button>
+                        </div>
+
+                        <div className="col-span-2 flex justify-end mt-4">
+                          <button
+                            type="submit"
+                            className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <CheckOutlined />
+                            <span>Cập nhật</span>
+                          </button>
+                        </div>
+                      </>
                     )}
                     {!isEditing && (
                       <div className="flex justify-end mb-4">
