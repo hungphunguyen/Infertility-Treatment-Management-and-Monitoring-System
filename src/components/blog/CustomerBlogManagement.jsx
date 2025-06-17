@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
-import { 
-  Card, 
-  Typography, 
-  Table, 
-  Button, 
-  Space, 
-  Tag, 
+import {
+  Card,
+  Typography,
+  Table,
+  Button,
+  Space,
+  Tag,
   Select,
   Input,
   Modal,
@@ -13,16 +13,16 @@ import {
   Image,
   Avatar,
   message,
-  Popconfirm
+  Popconfirm,
 } from "antd";
-import { 
+import {
   EditOutlined,
   EyeOutlined,
   UserOutlined,
   PlusOutlined,
   SearchOutlined,
   DeleteOutlined,
-  EyeInvisibleOutlined
+  EyeInvisibleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { blogService } from "../../service/blog.service";
@@ -30,6 +30,7 @@ import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
+import { customerService } from "../../service/customer.service";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -58,8 +59,10 @@ const CustomerBlogManagement = () => {
   const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
   const [currentUser, setCurrentUser] = useState(null);
-  const navigate = useNavigate();
-
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
@@ -97,9 +100,12 @@ const CustomerBlogManagement = () => {
   };
 
   useEffect(() => {
-    const filtered = myBlogs.filter(blog => {
-      const matchesStatus = statusFilter === "all" ? true : blog.status === statusFilter;
-      const matchesSearch = blog.title.toLowerCase().includes(searchText.toLowerCase());
+    const filtered = myBlogs.filter((blog) => {
+      const matchesStatus =
+        statusFilter === "all" ? true : blog.status === statusFilter;
+      const matchesSearch = blog.title
+        .toLowerCase()
+        .includes(searchText.toLowerCase());
       return matchesStatus && matchesSearch;
     });
     setFilteredData(filtered);
@@ -157,14 +163,17 @@ const CustomerBlogManagement = () => {
     try {
       if (modalType === "create") {
         if (!currentUser || !currentUser.id) {
-          showNotification("Không thể lấy thông tin người dùng để tạo bài viết.", "error");
+          showNotification(
+            "Không thể lấy thông tin người dùng để tạo bài viết.",
+            "error"
+          );
           return;
         }
         const response = await blogService.createBlog(currentUser.id, {
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: 'DRAFT'
+          status: "DRAFT",
         });
         if (response.data) {
           showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
@@ -174,14 +183,22 @@ const CustomerBlogManagement = () => {
         }
       } else if (modalType === "edit") {
         if (!selectedBlog || !currentUser || !currentUser.id) {
-          showNotification("Không thể cập nhật bài viết. Thông tin không đầy đủ.", "error");
+          showNotification(
+            "Không thể cập nhật bài viết. Thông tin không đầy đủ.",
+            "error"
+          );
           return;
         }
         const updatedBlogData = {
           ...selectedBlog,
           ...values,
         };
-        await blogService.updateBlog(selectedBlog.id, currentUser.id, updatedBlogData, token.token);
+        await blogService.updateBlog(
+          selectedBlog.id,
+          currentUser.id,
+          updatedBlogData,
+          token.token
+        );
         if (selectedBlog.status === "DRAFT") {
           const submitResponse = await blogService.submitBlog(
             selectedBlog.id,
@@ -190,11 +207,14 @@ const CustomerBlogManagement = () => {
             {
               title: updatedBlogData.title,
               content: updatedBlogData.content,
-              sourceReference: updatedBlogData.sourceReference
+              sourceReference: updatedBlogData.sourceReference,
             }
           );
           if (submitResponse.data?.result?.status === "PENDING_REVIEW") {
-            showNotification("Bài viết đã được gửi duyệt thành công!", "success");
+            showNotification(
+              "Bài viết đã được gửi duyệt thành công!",
+              "success"
+            );
           } else {
             showNotification("Không thể gửi bài viết đi duyệt", "error");
           }
@@ -217,21 +237,65 @@ const CustomerBlogManagement = () => {
     setSearchText(value);
   };
 
+  const handleSelectFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setPreview(reader.result); // preview base64
+    };
+  };
+
+  // ✅ Handle Upload Img
+  const handleUploadImg = async () => {
+    if (!selectedFile || !selectedBlog?.id) return;
+    setUploadingImage(true); // 🔥 Start loading
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("userId", selectedBlog.id);
+
+    try {
+      const res = await customerService.uploadImg(formData);
+      showNotification("Upload avatar thành công", "success");
+
+      setSelectedBlog((prev) => ({
+        ...prev,
+        coverImageUrl: res.data.result.coverImageUrl,
+      }));
+      window.location.reload();
+      // Reset trạng thái
+      setSelectedFile(null);
+      setIsUploadModalOpen(false);
+      setPreview(null);
+    } catch (err) {
+      showNotification(err.response.data.message, "error");
+      console.log(err);
+      console.log(formData);
+    } finally {
+      setUploadingImage(false); // 🔥 End loading
+    }
+  };
+
   const columns = [
     {
       title: "Hình ảnh",
-      dataIndex: "image",
-      key: "image",
-      render: (image) => (
-        <Image 
-          width={60} 
-          height={40} 
-          src={image} 
+      key: "coverImageUrl",
+      render: (_, record) => (
+        <Image
+          width={60}
+          height={40}
+          src={record.coverImageUrl || "/images/default-blog.jpg"}
           fallback="/images/default-blog.jpg"
           style={{ objectFit: "cover", borderRadius: "4px" }}
         />
-      )
+      ),
     },
+
     {
       title: "Tiêu đề",
       dataIndex: "title",
@@ -240,23 +304,30 @@ const CustomerBlogManagement = () => {
         <div>
           <div className="font-semibold">{title}</div>
           <div className="text-sm text-gray-500">ID: {record.id}</div>
-          {record.featured && <Tag color="gold" size="small">Nổi bật</Tag>}
+          {record.featured && (
+            <Tag color="gold" size="small">
+              Nổi bật
+            </Tag>
+          )}
         </div>
-      )
+      ),
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       render: getStatusTag,
-      filters: Object.keys(statusMap).map(key => ({ text: statusMap[key].text, value: key })),
+      filters: Object.keys(statusMap).map((key) => ({
+        text: statusMap[key].text,
+        value: key,
+      })),
       onFilter: (value, record) => record.status === value,
     },
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm")
+      render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
     {
       title: "Thao tác",
@@ -264,8 +335,8 @@ const CustomerBlogManagement = () => {
       render: (_, record) => (
         <Space direction="vertical" size="small">
           <Space>
-            <Button 
-              size="small" 
+            <Button
+              size="small"
               icon={<EyeOutlined />}
               onClick={() => viewBlog(record)}
             >
@@ -282,6 +353,20 @@ const CustomerBlogManagement = () => {
                 Sửa
               </Button>
             )}
+            <Button
+              size="small"
+              style={{
+                backgroundColor: "#FFA500",
+                color: "white",
+                border: "none",
+              }}
+              onClick={() => {
+                setSelectedBlog(record); // 👈 CHỌN BLOG
+                setIsUploadModalOpen(true); // 👈 MỞ MODAL
+              }}
+            >
+              Upload ảnh
+            </Button>
             {record.status === "DRAFT" && (
               <Popconfirm
                 title="Bạn có chắc chắn muốn xóa bài viết này?"
@@ -310,7 +395,14 @@ const CustomerBlogManagement = () => {
       <div className="flex justify-between items-center mb-4">
         <Title level={4}>Bài Viết Của Tôi</Title>
         <div className="flex gap-4">
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateBlog}>Tạo Blog</Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreateBlog}
+          >
+            Tạo Blog
+          </Button>
+
           <Select
             defaultValue="all"
             style={{ width: 120 }}
@@ -318,7 +410,9 @@ const CustomerBlogManagement = () => {
             value={statusFilter}
           >
             {Object.entries(statusMap).map(([key, value]) => (
-              <Option key={key} value={key}>{value.text}</Option>
+              <Option key={key} value={key}>
+                {value.text}
+              </Option>
             ))}
           </Select>
           <Search
@@ -342,28 +436,92 @@ const CustomerBlogManagement = () => {
         }}
       />
 
+      {/* { Modal upload ảnh cho blog} */}
       <Modal
-        title={modalType === "create" ? "Tạo bài viết mới" : modalType === "edit" ? "Chỉnh sửa bài viết" : "Xem bài viết"}
+        title={`Cập nhật ảnh cho blog: ${selectedBlog?.title || ""}`}
+        open={isUploadModalOpen}
+        onCancel={() => {
+          setIsUploadModalOpen(false);
+          setSelectedFile(null);
+          setPreview(null);
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <div className="text-center">
+          <h3 className="text-xl font-semibold mb-4">Ảnh đại diện</h3>
+          <img
+            src={preview || selectedBlog?.image || "/default-blog.jpg"}
+            alt="Avatar Preview"
+            className="w-32 h-32 rounded-full object-cover border mx-auto mb-4"
+          />
+          <label
+            htmlFor="fileInput"
+            className="cursor-pointer bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 transition inline-block"
+          >
+            Chọn ảnh
+          </label>
+          <input
+            type="file"
+            id="fileInput"
+            onChange={handleSelectFile}
+            className="hidden"
+          />
+          <p className="text-sm text-gray-600 mt-2">
+            {selectedFile ? selectedFile.name : "Chưa chọn ảnh nào"}
+          </p>
+          <Button
+            type="primary"
+            loading={uploadingImage}
+            disabled={!selectedFile}
+            onClick={handleUploadImg}
+            className="mt-3"
+          >
+            {uploadingImage ? "Đang upload..." : "Lưu ảnh đại diện"}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        title={
+          modalType === "create"
+            ? "Tạo bài viết mới"
+            : modalType === "edit"
+            ? "Chỉnh sửa bài viết"
+            : "Xem bài viết"
+        }
         open={isModalVisible}
         onCancel={() => {
           setIsModalVisible(false);
           form.resetFields();
         }}
-        footer={modalType === "view" ? [
-          <Button key="close" onClick={() => setIsModalVisible(false)}>
-            Đóng
-          </Button>
-        ] : [
-          <Button key="back" onClick={() => {
-            setIsModalVisible(false);
-            form.resetFields();
-          }}>
-            Hủy
-          </Button>,
-          <Button key="saveDraft" onClick={() => form.submit()} type="primary" loading={actionLoading}>
-            Lưu
-          </Button>
-        ]}
+        footer={
+          modalType === "view"
+            ? [
+                <Button key="close" onClick={() => setIsModalVisible(false)}>
+                  Đóng
+                </Button>,
+              ]
+            : [
+                <Button
+                  key="back"
+                  onClick={() => {
+                    setIsModalVisible(false);
+                    form.resetFields();
+                  }}
+                >
+                  Hủy
+                </Button>,
+                <Button
+                  key="saveDraft"
+                  onClick={() => form.submit()}
+                  type="primary"
+                  loading={actionLoading}
+                >
+                  Lưu
+                </Button>,
+              ]
+        }
         width={800}
         destroyOnClose
       >
@@ -372,15 +530,30 @@ const CustomerBlogManagement = () => {
             <div>
               <h2 className="text-xl font-bold mb-4">{selectedBlog.title}</h2>
               <div className="mb-4">
-                <p className="text-gray-600">Tác giả: {selectedBlog.authorName}</p>
-                <p className="text-gray-600">Ngày tạo: {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY HH:mm")}</p>
-                <p className="text-gray-600">Trạng thái: {getStatusTag(selectedBlog.status)}</p>
+                <p className="text-gray-600">
+                  Tác giả: {selectedBlog.authorName}
+                </p>
+                <p className="text-gray-600">
+                  Ngày tạo:{" "}
+                  {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY HH:mm")}
+                </p>
+                <p className="text-gray-600">
+                  Trạng thái: {getStatusTag(selectedBlog.status)}
+                </p>
               </div>
-              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: selectedBlog.content }}></div>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{ __html: selectedBlog.content }}
+              ></div>
             </div>
           )
         ) : (
-          <Form form={form} layout="vertical" name="blog_form" onFinish={handleSubmit}>
+          <Form
+            form={form}
+            layout="vertical"
+            name="blog_form"
+            onFinish={handleSubmit}
+          >
             <Form.Item
               name="title"
               label="Tiêu đề"
@@ -395,10 +568,7 @@ const CustomerBlogManagement = () => {
             >
               <TextArea rows={10} />
             </Form.Item>
-            <Form.Item
-              name="sourceReference"
-              label="Tham chiếu nguồn"
-            >
+            <Form.Item name="sourceReference" label="Tham chiếu nguồn">
               <Input />
             </Form.Item>
           </Form>
@@ -408,4 +578,4 @@ const CustomerBlogManagement = () => {
   );
 };
 
-export default CustomerBlogManagement; 
+export default CustomerBlogManagement;

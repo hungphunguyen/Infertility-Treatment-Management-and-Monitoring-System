@@ -16,4 +16,10 @@ export const customerService = {
   updateFeedback: (id, data) => {
     return http.put(`/feedback/update-feedback/${id}`, data);
   },
+
+  uploadImg: (payload) => {
+    return http.put(`/blogs/update/img`, payload, {
+      "Content-Type": "multipart/form-data",
+    });
+  },
 };

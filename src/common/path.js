@@ -53,4 +53,5 @@ export const path = {
 
   updataProfile: "/update-profile",
   resendOtp: "/resend-otp",
+  payment: "/payment",
 };

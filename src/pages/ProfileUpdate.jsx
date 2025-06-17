@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { authService } from "../service/auth.service";
 import { NotificationContext } from "../App";
 import InputCustom from "../components/Input/InputCustom";
-import { Layout } from "antd";
+import { Button, Layout } from "antd";
 import { CheckOutlined, EditOutlined } from "@ant-design/icons";
 import ManagerSidebar from "../components/manager/ManagerSidebar";
 import { doctorService } from "../service/doctor.service";
@@ -28,6 +28,8 @@ const ProfileUpdate = () => {
   const [selectedMenu, setSelectedMenu] = useState("update-profile");
   const role = userInfo?.roleName?.name || "";
   const [isEditing, setIsEditing] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   useEffect(() => {
     // Fetch user info when component mounts
     const fetchUserInfo = async () => {
@@ -73,7 +75,7 @@ const ProfileUpdate = () => {
   // ✅ Handle Upload Avatar
   const handleUploadAvatar = async () => {
     if (!selectedFile || !userInfo?.id) return;
-
+    setUploadingImage(true); // 🔥 Start loading
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("userId", userInfo.id);
@@ -86,12 +88,13 @@ const ProfileUpdate = () => {
         ...prev,
         avatarUrl: res.data.result.avatarUrl,
       }));
-      window.location.reload();
       // Reset trạng thái
       setSelectedFile(null);
       setPreview(null);
     } catch (err) {
       showNotification(err.response.data.message, "error");
+    } finally {
+      setUploadingImage(false); // 🔥 End loading
     }
   };
 
@@ -237,13 +240,15 @@ const ProfileUpdate = () => {
                   <p className="text-sm text-gray-600 mt-2">
                     {selectedFile ? selectedFile.name : "Chưa chọn ảnh nào"}
                   </p>
-                  <button
-                    onClick={handleUploadAvatar}
+                  <Button
+                    type="primary"
+                    loading={uploadingImage}
                     disabled={!selectedFile}
-                    className="mt-3 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleUploadAvatar}
+                    className="mt-3"
                   >
-                    Lưu ảnh đại diện
-                  </button>
+                    {uploadingImage ? "Đang upload..." : "Lưu ảnh đại diện"}
+                  </Button>
                 </div>
 
                 {/* Học vấn */}
