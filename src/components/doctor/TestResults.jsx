@@ -208,6 +208,16 @@ const PatientRecords = () => {
           >
             Lịch sử
           </Button>
+          {record.status === "PENDING" && (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleApprove(record)}
+              style={{ background: '#fa8c16', borderColor: '#fa8c16' }}
+            >
+              Duyệt
+            </Button>
+          )}
         </Space>
       ),
     }

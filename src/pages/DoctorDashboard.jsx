@@ -13,6 +13,7 @@ import { NotificationContext } from "../App";
 import { useSelector } from "react-redux";
 import { authService } from "../service/auth.service";
 import DoctorBlogManagement from "../components/blog/DoctorBlogManagement";
+import ChangeRequests from "../components/doctor/ChangeRequests";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -51,7 +52,9 @@ const DoctorDashboard = () => {
   // Update selected menu item based on current path
   useEffect(() => {
     const pathname = location.pathname;
-    if (pathname.includes("/work-schedule")) {
+    if (pathname.includes("/change-requests")) {
+      setSelectedMenuItem("change-requests");
+    } else if (pathname.includes("/work-schedule")) {
       setSelectedMenuItem("work-schedule");
     } else if (pathname.includes("/dashboard")) {
       setSelectedMenuItem("dashboard");
@@ -94,6 +97,8 @@ const DoctorDashboard = () => {
         return "Lịch Làm Việc";
       case "treatment-stages":
         return "Chi Tiết Giai Đoạn Điều Trị";
+      case "change-requests":
+        return "Quản Lý Yêu Cầu Thay Đổi";
       default:
         return "Dashboard Bác Sĩ";
     }
@@ -180,6 +185,11 @@ const DoctorDashboard = () => {
               element={<TreatmentStageDetails />}
             />
             <Route path="my-blogs" element={<DoctorBlogManagement />} />
+            <Route
+              path="treatment-stages"
+              element={<TreatmentStageDetails />}
+            />
+            <Route path="change-requests" element={<ChangeRequests />} />
           </Routes>
         </Content>
       </Layout>

@@ -69,7 +69,7 @@ const AppointmentSchedule = () => {
         const mappedAppointments = appointmentsResponse.data.result.map(appointment => {
           let status = 'pending';
           if (appointment.status === 'COMPLETED') status = 'completed';
-          else if (appointment.status === 'IN_PROGRESS' || appointment.status === 'CONFIRMED') status = 'in-progress';
+          else if (appointment.status === 'INPROGRESS' || appointment.status === 'CONFIRMED') status = 'in-progress';
           else if (appointment.status === 'PLANNED') status = 'not-started';
           else if (appointment.status === 'CANCELLED') status = 'cancelled';
 
@@ -110,7 +110,10 @@ const AppointmentSchedule = () => {
   // Get appointments for a specific date
   const getAppointmentsForDate = (date) => {
     const formattedDate = date.format("YYYY-MM-DD");
-    return appointments.filter(appointment => appointment.date === formattedDate);
+    return appointments.filter(appointment => 
+      appointment.date === formattedDate && 
+      (appointment.serviceStatus === 'INPROGRESS' || appointment.serviceStatus === 'CONFIRMED')
+    );
   };
 
   // Handle date selection
@@ -169,7 +172,7 @@ const AppointmentSchedule = () => {
 
   // Upcoming appointments list
   const upcomingAppointments = appointments
-    .filter(a => a.status === "upcoming" || a.status === "pending")
+    .filter(a => a.serviceStatus === 'INPROGRESS' || a.serviceStatus === 'CONFIRMED')
     .sort((a, b) => new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time));
 
   const displayedAppointments = isExpanded ? upcomingAppointments : upcomingAppointments.slice(0, 3);
@@ -200,10 +203,12 @@ const AppointmentSchedule = () => {
 
   // Appointments by date
   const appointmentsByDate = {};
-  appointments.forEach(app => {
-    if (!appointmentsByDate[app.date]) appointmentsByDate[app.date] = [];
-    appointmentsByDate[app.date].push(app);
-  });
+  appointments
+    .filter(app => app.serviceStatus === 'INPROGRESS' || app.serviceStatus === 'CONFIRMED')
+    .forEach(app => {
+      if (!appointmentsByDate[app.date]) appointmentsByDate[app.date] = [];
+      appointmentsByDate[app.date].push(app);
+    });
 
   if (loading) {
     return (

@@ -545,47 +545,36 @@ const RegisterService = () => {
             throw new Error("Unexpected response");
           }
         } catch (apiError) {
-          console.log("API error:", apiError);
-          
-          // Debug log the full error details
-          if (apiError.response) {
-            console.log("Error status:", apiError.response.status);
-            console.log("Error data:", apiError.response.data);
-            
-            // For incomplete treatment, just ignore and proceed as if successful
-            if (apiError.response.data && 
-                apiError.response.data.message && 
-                (apiError.response.data.message.includes("incomplete treatment") || 
-                 apiError.response.data.message.includes("Please complete it"))) {
-              
-              console.log("Detected incomplete treatment error - proceeding as success");
-              
-              // Show success message anyway
-              showNotification("Đăng ký dịch vụ thành công!", "success");
-              
-              // Reset form and redirect
-              form.resetFields();
-              setSelectedDoctor(null);
-              setShowDoctorSchedule(false);
-              setAvailableDoctors([]);
-              setAvailabilityChecked(false);
-              
-              // Redirect user anyway
-              setTimeout(() => {
-                navigate('/customer-dashboard/treatment', { 
-                  state: { 
-                    registrationSuccess: true,
-                    serviceName: treatmentServices.find(s => s.value === values.treatmentService)?.label || 'Dịch vụ'
-                  } 
-                });
-              }, 2000);
-              
-              // Don't propagate error
-              return;
-            }
+          // Sử dụng message từ BE nếu có
+          let errorMessage = "Đăng ký dịch vụ không thành công. Vui lòng thử lại sau.";
+          if (apiError.response && apiError.response.data && apiError.response.data.message) {
+            errorMessage = apiError.response.data.message;
           }
-          
-          // Rethrow for general error handling
+          // Trường hợp đặc biệt incomplete treatment vẫn xử lý như cũ
+          if (
+            apiError.response &&
+            apiError.response.data &&
+            apiError.response.data.message &&
+            (apiError.response.data.message.includes("incomplete treatment") ||
+              apiError.response.data.message.includes("Please complete it"))
+          ) {
+            showNotification("Đăng ký dịch vụ thành công!", "success");
+            form.resetFields();
+            setSelectedDoctor(null);
+            setShowDoctorSchedule(false);
+            setAvailableDoctors([]);
+            setAvailabilityChecked(false);
+            setTimeout(() => {
+              navigate('/customer-dashboard/treatment', {
+                state: {
+                  registrationSuccess: true,
+                  serviceName: treatmentServices.find(s => s.value === values.treatmentService)?.label || 'Dịch vụ'
+                }
+              });
+            }, 2000);
+            return;
+          }
+          showNotification(errorMessage, "error");
           throw apiError;
         } finally {
           // Always re-enable the button
@@ -594,90 +583,20 @@ const RegisterService = () => {
           }
           setLoading(false);
         }
-      } catch (error) {
-        // This is the final error handler for all errors
-        console.error("Final error handler:", error);
-        
-        // Re-enable submit button if it wasn't done in finally block
+      } catch (err) {
+        // Luôn lấy message từ BE nếu có
+        let errorMessage = "Đăng ký dịch vụ không thành công. Vui lòng thử lại sau.";
+        if (err.response && err.response.data && err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        showNotification(errorMessage, "error");
+        // Re-enable submit button nếu cần
         const submitButton = document.querySelector('button[type="submit"]');
         if (submitButton) {
           submitButton.disabled = false;
         }
-        
-        // Xử lý lỗi chi tiết
-        let errorMessage = "Đăng ký dịch vụ không thành công. Vui lòng thử lại sau.";
-        
-        // Kiểm tra các loại lỗi cụ thể
-        if (error.response) {
-          // In ra chi tiết lỗi để debug
-          console.log("Debug - error response:", error.response.status, error.response.data);
-          
-          // Show actual error message from API if available
-          if (error.response.data && error.response.data.message) {
-            // Add a proper error message based on the error code
-            if (error.response.status === 400) {
-              // Check if it's a specific known error
-              const errorMsg = error.response.data.message;
-              
-              if (errorMsg.includes("already registered") || errorMsg.includes("đã đăng ký")) {
-                errorMessage = "Bạn đã đăng ký dịch vụ này. Vui lòng kiểm tra lịch hẹn trong trang cá nhân.";
-                
-                // Already registered is not an error - redirect to treatments
-                setTimeout(() => {
-                  navigate('/customer-dashboard/treatment');
-                }, 2000);
-                
-              } else if (errorMsg.includes("doctor") && errorMsg.includes("not available")) {
-                errorMessage = "Bác sĩ không có lịch trống vào ngày và ca bạn đã chọn. Vui lòng chọn bác sĩ khác hoặc đổi ngày khám.";
-                setDoctorNotAvailable(true);
-                setAvailabilityChecked(true);
-              } else if (errorMsg.includes("incomplete treatment")) {
-                // Ignore this error completely - don't show anything
-                console.log("Ignoring incomplete treatment error");
-                
-                // Pretend success for better UX
-                showNotification("Đăng ký dịch vụ thành công!", "success");
-                
-                // Reset form and redirect
-                form.resetFields();
-                setSelectedDoctor(null);
-                setShowDoctorSchedule(false);
-                setAvailableDoctors([]);
-                setAvailabilityChecked(false);
-                
-                // Redirect user anyway
-                setTimeout(() => {
-                  navigate('/customer-dashboard/treatment', { 
-                    state: { 
-                      registrationSuccess: true,
-                      serviceName: treatmentServices.find(s => s.value === values.treatmentService)?.label || 'Dịch vụ'
-                    } 
-                  });
-                }, 2000);
-                
-                setLoading(false);
-                return;
-              } else {
-                // Use the actual error message from the API
-                errorMessage = errorMsg;
-              }
-            } else if (error.response.status === 401) {
-              errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-            } else if (error.response.status === 404) {
-              errorMessage = "Không tìm thấy bác sĩ hoặc dịch vụ. Vui lòng kiểm tra lại thông tin.";
-            } else if (error.response.status === 415) {
-              errorMessage = "Định dạng dữ liệu không được hỗ trợ. Vui lòng thử lại.";
-            } else if (error.response.status === 500) {
-              errorMessage = "Lỗi hệ thống. Vui lòng thử lại sau.";
-            }
-          }
-        } else if (error.request) {
-          // Không nhận được phản hồi từ server
-          errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.";
-        }
-        
-        // Actually show the error
-        showNotification(errorMessage, "error");
         setLoading(false);
       }
     };

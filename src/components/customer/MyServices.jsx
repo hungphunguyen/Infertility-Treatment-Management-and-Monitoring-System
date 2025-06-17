@@ -13,6 +13,9 @@ import {
   Spin,
   message,
   Button,
+  Select,
+  Form,
+  Alert,
 } from "antd";
 import {
   ExperimentOutlined,
@@ -30,6 +33,8 @@ import { customerService } from "../../service/customer.service";
 import { path } from "../../common/path";
 
 const { Title, Text } = Typography;
+const { Option } = Select;
+
 const MyServices = () => {
   const [loading, setLoading] = useState(true);
   const [treatmentRecords, setTreatmentRecords] = useState([]);
@@ -44,6 +49,11 @@ const MyServices = () => {
   const [userId, setUserId] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const navigate = useNavigate();
+  const [changeModalVisible, setChangeModalVisible] = useState(false);
+  const [changeStep, setChangeStep] = useState(null);
+  const [changeAppointment, setChangeAppointment] = useState(null);
+  const [changeForm] = Form.useForm();
+  const [changeLoading, setChangeLoading] = useState(false);
 
   useEffect(() => {
     fetchTreatmentRecords();
@@ -117,38 +127,19 @@ const MyServices = () => {
     }
   };
 
-  const getStatusTag = (status, progress) => {
-    // Nếu có progress, ưu tiên hiển thị trạng thái dựa trên progress
-    if (progress !== undefined) {
-      if (progress === "0%") {
-        if (status === "CANCELLED" || status === "Cancelled") {
-          return <Tag color="error">Đã hủy</Tag>;
-        }
-        return <Tag color="warning">Đang chờ điều trị</Tag>;
-      } else if (progress === "100%") {
+  const getStatusTag = (status) => {
+    switch (status) {
+      case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
-      } else {
+      case "INPROGRESS":
         return <Tag color="#1890ff">Đang điều trị</Tag>;
-      }
+      case "PENDING":
+        return <Tag color="warning">Đang chờ điều trị</Tag>;
+      case "CANCELLED":
+        return <Tag color="error">Đã hủy</Tag>;
+      default:
+        return <Tag color="default">{status}</Tag>;
     }
-
-    // Nếu không có progress, sử dụng status
-    const statusMap = {
-      Completed: { color: "success", text: "Hoàn thành" },
-      COMPLETED: { color: "success", text: "Hoàn thành" },
-      InProgress: { color: "#1890ff", text: "Đang điều trị" },
-      INPROGRESS: { color: "#1890ff", text: "Đang điều trị" },
-      Pending: { color: "warning", text: "Đang chờ điều trị" },
-      PENDING: { color: "warning", text: "Đang chờ điều trị" },
-      Cancelled: { color: "error", text: "Đã hủy" },
-      CANCELLED: { color: "error", text: "Đã hủy" },
-    };
-
-    const { color, text } = statusMap[status] || {
-      color: "default",
-      text: status,
-    };
-    return <Tag color={color}>{text}</Tag>;
   };
 
   const calculateEstimatedEndDate = (startDate, treatmentSteps) => {
@@ -219,17 +210,7 @@ const MyServices = () => {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (status, record) => {
-        const totalSteps = record.treatmentSteps?.length || 0;
-        if (!totalSteps || record.treatmentSteps[0]?.status !== "COMPLETED") {
-          return getStatusTag(status, "0%");
-        }
-        const completedSteps =
-          record.treatmentSteps?.filter((step) => step.status === "COMPLETED")
-            .length || 0;
-        const progress = Math.round((completedSteps / totalSteps) * 100);
-        return getStatusTag(status, `${progress}%`);
-      },
+      render: (status, record) => getStatusTag(status),
     },
     {
       title: "Tiến độ",
@@ -237,14 +218,22 @@ const MyServices = () => {
       key: "progress",
       render: (_, record) => {
         const totalSteps = record.treatmentSteps?.length || 0;
-        if (!totalSteps || record.treatmentSteps[0]?.status !== "COMPLETED") {
-          return "0%";
-        }
+        if (!totalSteps) return "0%";
+
         const completedSteps =
           record.treatmentSteps?.filter((step) => step.status === "COMPLETED")
             .length || 0;
         const progress = Math.round((completedSteps / totalSteps) * 100);
-        return `${progress}%`;
+
+        if (record.status === "CANCELLED") {
+          return "Đã hủy";
+        } else if (record.status === "COMPLETED") {
+          return "100%";
+        } else if (record.status === "INPROGRESS") {
+          return `${progress}%`;
+        } else {
+          return "0%";
+        }
       },
     },
     {
@@ -304,6 +293,58 @@ const MyServices = () => {
     }
   };
 
+  // Function to open change modal for a step
+  const handleOpenChangeModal = async (step) => {
+    if (!selectedService?.customerId) return;
+    setChangeStep(step);
+    setChangeAppointment(null);
+    setChangeModalVisible(true);
+    setChangeLoading(true);
+    try {
+      const res = await treatmentService.getCustomerAppointments(
+        selectedService.customerId
+      );
+      if (res?.data?.result) {
+        // Tìm appointment đúng với step (purpose)
+        const found = res.data.result.find((app) => app.purpose === step.name);
+        setChangeAppointment(found);
+        if (found) {
+          changeForm.setFieldsValue({
+            requestedDate: found.appointmentDate
+              ? dayjs(found.appointmentDate)
+              : null,
+            requestedShift: found.shift || undefined,
+            notes: found.notes || "",
+          });
+        }
+      }
+    } catch {
+      setChangeAppointment(null);
+    } finally {
+      setChangeLoading(false);
+    }
+  };
+
+  // Function to handle submit change request
+  const handleSubmitChange = async () => {
+    if (!changeAppointment) return;
+    try {
+      setChangeLoading(true);
+      const values = await changeForm.validateFields();
+      await treatmentService.requestChangeAppointment(changeAppointment.id, {
+        requestedDate: values.requestedDate.format("YYYY-MM-DD"),
+        requestedShift: values.requestedShift,
+        notes: values.notes || "",
+      });
+      message.success("Đã gửi yêu cầu thay đổi lịch hẹn!");
+      setChangeModalVisible(false);
+    } catch (err) {
+      message.error(err?.response?.data?.message || "Không thể gửi yêu cầu.");
+    } finally {
+      setChangeLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "50px" }}>
@@ -330,7 +371,7 @@ const MyServices = () => {
       <Row gutter={32} style={{ marginBottom: 32, justifyContent: "center" }}>
         <Col xs={24} sm={8}>
           <Card
-            bordered
+            variant="outlined"
             style={{
               borderRadius: 16,
               boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
@@ -351,7 +392,7 @@ const MyServices = () => {
         </Col>
         <Col xs={24} sm={8}>
           <Card
-            bordered
+            variant="outlined"
             style={{
               borderRadius: 16,
               boxShadow: "0 4px 16px rgba(255,77,79,0.08)",
@@ -372,7 +413,7 @@ const MyServices = () => {
         </Col>
         <Col xs={24} sm={8}>
           <Card
-            bordered
+            variant="outlined"
             style={{
               borderRadius: 16,
               boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
@@ -395,6 +436,7 @@ const MyServices = () => {
 
       {/* Bảng dịch vụ */}
       <Card
+        variant="outlined"
         style={{
           borderRadius: 16,
           boxShadow: "0 2px 8px rgba(24,144,255,0.06)",
@@ -444,7 +486,7 @@ const MyServices = () => {
                     !totalSteps ||
                     selectedService.treatmentSteps[0]?.status !== "COMPLETED"
                   ) {
-                    return getStatusTag(selectedService.status, "0%");
+                    return getStatusTag(selectedService.status);
                   }
                   const completedSteps =
                     selectedService.treatmentSteps?.filter(
@@ -453,7 +495,7 @@ const MyServices = () => {
                   const progress = Math.round(
                     (completedSteps / totalSteps) * 100
                   );
-                  return getStatusTag(selectedService.status, `${progress}%`);
+                  return getStatusTag(selectedService.status);
                 })()}
               </Descriptions.Item>
               <Descriptions.Item label="Ngày bắt đầu">
@@ -481,35 +523,42 @@ const MyServices = () => {
               <Title level={5}>Tiến trình điều trị:</Title>
               <Timeline>
                 {selectedService.treatmentSteps?.map((step, index) => {
-                  // Tìm appointment thực tế cho step này
-                  const appointment = appointments.find(
-                    (app) => app.purpose === step.name
-                  );
-                  // Lấy ngày và trạng thái thực tế nếu có
-                  const displayDate =
-                    appointment?.appointmentDate || step.scheduledDate;
-                  const displayStatus = appointment?.status || step.status;
                   const statusMap = {
                     CONFIRMED: { color: "blue", text: "Đã xác nhận" },
                     PLANNED: { color: "orange", text: "Chờ thực hiện" },
                     COMPLETED: { color: "green", text: "Hoàn thành" },
                     CANCELLED: { color: "red", text: "Đã hủy" },
                     INPROGRESS: { color: "blue", text: "Đang thực hiện" },
-                    IN_PROGRESS: { color: "blue", text: "Đang thực hiện" },
                   };
-                  const s = statusMap[displayStatus] || {
+                  const s = statusMap[step.status] || {
                     color: "default",
-                    text: displayStatus,
+                    text: step.status,
                   };
                   return (
                     <Timeline.Item key={index} color={s.color}>
-                      <Text strong>
-                        {displayDate
-                          ? new Date(displayDate).toLocaleDateString("vi-VN")
-                          : "Chưa lên lịch"}{" "}
-                        - {step.name}
-                      </Text>
-                      <br />
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <Text strong>
+                          {step.scheduledDate
+                            ? new Date(step.scheduledDate).toLocaleDateString(
+                                "vi-VN"
+                              )
+                            : "Chưa lên lịch"}{" "}
+                          - {step.name}
+                        </Text>
+                        <Button
+                          size="small"
+                          type="primary"
+                          onClick={() => handleOpenChangeModal(step)}
+                        >
+                          Gửi yêu cầu thay đổi lịch hẹn
+                        </Button>
+                      </div>
                       <Text type="secondary">{s.text}</Text>
                       {step.notes && (
                         <div style={{ marginTop: 4 }}>
@@ -522,6 +571,49 @@ const MyServices = () => {
               </Timeline>
             </div>
           </div>
+        )}
+      </Modal>
+
+      {/* Modal đổi lịch hẹn */}
+      <Modal
+        title={`Gửi yêu cầu thay đổi lịch hẹn: ${changeStep?.name || ""}`}
+        open={changeModalVisible}
+        onCancel={() => setChangeModalVisible(false)}
+        onOk={handleSubmitChange}
+        okText="Gửi yêu cầu"
+        confirmLoading={changeLoading}
+        destroyOnClose
+      >
+        {changeLoading ? (
+          <Spin />
+        ) : changeAppointment ? (
+          <Form form={changeForm} layout="vertical">
+            <Form.Item
+              label="Ngày hẹn mới"
+              name="requestedDate"
+              rules={[{ required: true, message: "Chọn ngày mới" }]}
+            >
+              <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item
+              label="Ca khám mới"
+              name="requestedShift"
+              rules={[{ required: true, message: "Chọn ca khám" }]}
+            >
+              <Select placeholder="Chọn ca">
+                <Option value="MORNING">Sáng</Option>
+                <Option value="AFTERNOON">Chiều</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item label="Ghi chú" name="notes">
+              <Input.TextArea rows={2} placeholder="Ghi chú thêm (nếu có)" />
+            </Form.Item>
+          </Form>
+        ) : (
+          <Alert
+            type="warning"
+            message="Không tìm thấy lịch hẹn tương ứng cho bước này!"
+          />
         )}
       </Modal>
     </div>

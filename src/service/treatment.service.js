@@ -319,9 +319,15 @@ export const treatmentService = {
     return http.get(`/appointments/get-by-step-id/${stepId}`);
   },
 
-  // Lấy danh sách lịch hẹn của khách hàng
-  getCustomerAppointments: (customerId) => {
-    return http.get(`/appointments/customer/${customerId}`);
+  // Lấy danh sách appointment của customer
+  getCustomerAppointments: async (customerId) => {
+    try {
+      const response = await http.get(`/appointments/customer/${customerId}`);
+      return response;
+    } catch (error) {
+      console.error("Error fetching customer appointments:", error);
+      throw error;
+    }
   },
 
   getTreatmentRecordsByCustomerId: (customerId) => {
@@ -338,5 +344,29 @@ export const treatmentService = {
       console.error("Error updating treatment record status:", error);
       throw error;
     }
+  },
+  updateTreatmentStatus: async (recordId, status) => {
+    return await http.put(
+      `/treatment-records/update-status/${recordId}/${status}`
+    );
+  },
+  // Gửi yêu cầu đổi lịch hẹn (customer)
+
+  requestChangeAppointment: async (appointmentId, data) => {
+    return await fetch(
+      `${
+        process.env.REACT_APP_API_URL ||
+        "http://18.183.187.237/infertility-system-api"
+      }/appointments/request-change/${appointmentId}`,
+      {
+        method: "PUT",
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(data),
+      }
+    ).then((res) => res.json());
   },
 };

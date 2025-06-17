@@ -20,6 +20,7 @@ import {
   HomeOutlined,
   EditOutlined,
   ReadOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import { authService } from "../../service/auth.service";
 import { useSelector } from "react-redux";
@@ -74,6 +75,13 @@ const DoctorSidebar = ({
       label: "Hồ Sơ",
       title: "Thông tin cá nhân bác sĩ",
       path: path.doctorProfile,
+    },
+    {
+      key: "change-requests",
+      icon: <ClockCircleOutlined />,
+      label: "Yêu cầu đổi lịch hẹn",
+      title: "Quản lý yêu cầu đổi lịch",
+      path: "/doctor-dashboard/change-requests",
     },
   ];
   const token = useSelector((state) => state.authSlice);
@@ -138,13 +146,16 @@ const DoctorSidebar = ({
           key: item.key,
           icon: item.icon,
           label: (
-            <Link
-              to={item.path}
+            <span
+              onClick={() => {
+                if (item.path) navigate(item.path);
+                setSelectedMenuItem(item.key);
+              }}
               title={collapsed ? item.title : ""}
-              style={{ color: "#fff" }}
+              style={{ color: "#fff", cursor: "pointer" }}
             >
               {item.label}
-            </Link>
+            </span>
           ),
         }))}
       />
@@ -189,6 +200,3 @@ const DoctorSidebar = ({
 };
 
 export default DoctorSidebar;
-
-
-
