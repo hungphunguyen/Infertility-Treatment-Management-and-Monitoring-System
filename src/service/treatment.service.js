@@ -295,7 +295,7 @@ export const treatmentService = {
     return http.get(`/appointments/get-by-step-id/${stepId}`);
   },
 
-  // Lấy danh sách lịch hẹn của khách hàng
+  // Lấy danh sách appointment của customer
   getCustomerAppointments: async (customerId) => {
     try {
       const response = await http.get(`/appointments/customer/${customerId}`);
@@ -322,19 +322,6 @@ export const treatmentService = {
 
   updateTreatmentStatus: async (recordId, status) => {
     return await http.put(`/treatment-records/update-status/${recordId}/${status}`);
-  },
-
-  // Lấy danh sách appointment của customer
-  getCustomerAppointments: async (customerId) => {
-    return await fetch(
-      `${process.env.REACT_APP_API_URL || 'http://18.183.187.237/infertility-system-api'}/appointments/customer/${customerId}`,
-      {
-        headers: {
-          'accept': '*/*',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      }
-    ).then(res => res.json());
   },
 
   // Gửi yêu cầu đổi lịch hẹn (customer)

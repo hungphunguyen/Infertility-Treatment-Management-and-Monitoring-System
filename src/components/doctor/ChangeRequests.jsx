@@ -68,6 +68,8 @@ const ChangeRequests = () => {
     { title: 'Bước', dataIndex: 'purpose', key: 'purpose' },
     { title: 'Ngày hẹn', dataIndex: 'appointmentDate', key: 'appointmentDate', render: t => t ? dayjs(t).format('DD/MM/YYYY') : '' },
     { title: 'Ca', dataIndex: 'shift', key: 'shift' },
+    { title: 'Đổi sang ngày', dataIndex: 'requestedDate', key: 'requestedDate', render: t => t ? dayjs(t).format('DD/MM/YYYY') : '' },
+    { title: 'Đổi sang ca', dataIndex: 'requestedShift', key: 'requestedShift', render: s => s === 'MORNING' ? 'Sáng' : s === 'AFTERNOON' ? 'Chiều' : s },
     { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: s => <Tag color="orange">Chờ duyệt</Tag> },
     { title: 'Ghi chú', dataIndex: 'notes', key: 'notes' },
     {
@@ -94,6 +96,8 @@ const ChangeRequests = () => {
             <p><b>Bước:</b> {selected.purpose}</p>
             <p><b>Ngày hẹn:</b> {selected.appointmentDate ? dayjs(selected.appointmentDate).format('DD/MM/YYYY') : ''}</p>
             <p><b>Ca:</b> {selected.shift}</p>
+            <p><b>Đổi sang ngày:</b> {selected.requestedDate ? dayjs(selected.requestedDate).format('DD/MM/YYYY') : ''}</p>
+            <p><b>Đổi sang ca:</b> {selected.requestedShift === 'MORNING' ? 'Sáng' : selected.requestedShift === 'AFTERNOON' ? 'Chiều' : selected.requestedShift}</p>
             <Input.TextArea
               rows={3}
               value={notes}
@@ -102,7 +106,7 @@ const ChangeRequests = () => {
               style={{ marginBottom: 12 }}
             />
             <Button type="primary" loading={actionLoading} onClick={() => handleAction('CONFIRMED')} style={{ marginRight: 8 }}>Duyệt</Button>
-            <Button danger loading={actionLoading} onClick={() => handleAction('CANCELLED')}>Từ chối</Button>
+            <Button danger loading={actionLoading} onClick={() => handleAction('REJECTED')}>Từ chối</Button>
           </div>
         )}
       </Modal>
