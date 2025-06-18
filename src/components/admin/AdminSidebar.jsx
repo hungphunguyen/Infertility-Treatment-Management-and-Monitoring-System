@@ -23,6 +23,12 @@ const AdminSidebar = ({
   const token = useSelector((state) => state.authSlice);
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    // Clear token and redirect to home page
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
   const menuItems = [
     {
       key: "dashboard",
@@ -116,6 +122,7 @@ const AdminSidebar = ({
           type="text"
           icon={<LogoutOutlined />}
           style={{ color: "white", width: "100%" }}
+          onClick={handleLogout}
         >
           {!collapsed && "Đăng Xuất"}
         </Button>

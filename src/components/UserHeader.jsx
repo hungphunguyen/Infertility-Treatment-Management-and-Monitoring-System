@@ -60,7 +60,8 @@ const UserHeader = () => {
       // Xử lý logout
       dispatch(clearAuth());
       localStorage.removeItem("token");
-      window.location.reload();
+      // Chuyển hướng về trang chủ thay vì reload
+      navigate(path.homePage);
     }
   };
 

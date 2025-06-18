@@ -10,6 +10,7 @@ import {
   Select,
   Button,
   Input,
+  message,
 } from "antd";
 import { treatmentService } from "../../service/treatment.service";
 import dayjs from "dayjs";
@@ -170,7 +171,61 @@ const AppointmentManagement = () => {
       width: 150,
       render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
+    {
+      title: "Hành động",
+      key: "action",
+      width: 200,
+      render: (_, record) => (
+        <Space>
+          {record.status === "PENDING" && (
+            <>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => handleUpdateStatus(record.id, "CONFIRMED")}
+              >
+                Duyệt
+              </Button>
+              <Button
+                danger
+                size="small"
+                onClick={() => handleUpdateStatus(record.id, "CANCELLED")}
+              >
+                Hủy
+              </Button>
+            </>
+          )}
+          {record.status === "CONFIRMED" && (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleUpdateStatus(record.id, "COMPLETED")}
+            >
+              Hoàn thành
+            </Button>
+          )}
+        </Space>
+      ),
+    },
   ];
+
+  const handleUpdateStatus = async (appointmentId, newStatus) => {
+    try {
+      setLoading(true);
+      const response = await treatmentService.updateAppointmentStatus(appointmentId, newStatus);
+      if (response?.data?.code === 1000) {
+        message.success(`Cập nhật trạng thái thành công!`);
+        fetchAppointments(); // Refresh data
+      } else {
+        message.error(response?.data?.message || "Cập nhật trạng thái thất bại!");
+      }
+    } catch (error) {
+      console.error("Error updating appointment status:", error);
+      message.error("Có lỗi xảy ra khi cập nhật trạng thái!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ padding: "24px" }}>

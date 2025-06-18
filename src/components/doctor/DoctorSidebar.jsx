@@ -21,6 +21,7 @@ import {
   EditOutlined,
   ReadOutlined,
   ClockCircleOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { authService } from "../../service/auth.service";
 import { useSelector } from "react-redux";
@@ -97,6 +98,13 @@ const DoctorSidebar = ({
       })
       .catch((err) => {});
   }, [token]);
+  
+  const handleLogout = () => {
+    // Clear token and redirect to home page
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+  
   const checkLogin = () => {
     if (infoUser) {
       return (
@@ -174,6 +182,22 @@ const DoctorSidebar = ({
           onClick={() => navigate("/")}
         >
           {!collapsed && <span style={{ marginLeft: 8 }}>Về Trang Chủ</span>}
+        </Button>
+      </div>
+
+      {/* Nút đăng xuất */}
+      <div className="px-4 mt-2">
+        <Button
+          type="default"
+          icon={<LogoutOutlined />}
+          danger
+          style={{
+            width: "100%",
+            border: "none",
+          }}
+          onClick={handleLogout}
+        >
+          {!collapsed && <span style={{ marginLeft: 8 }}>Đăng Xuất</span>}
         </Button>
       </div>
 

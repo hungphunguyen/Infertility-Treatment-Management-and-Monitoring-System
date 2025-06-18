@@ -14,6 +14,7 @@ import {
   DashboardOutlined,
   HomeOutlined,
   FormOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
@@ -95,6 +96,13 @@ const ManagerSidebar = ({
       })
       .catch((err) => {});
   }, [token]);
+  
+  const handleLogout = () => {
+    // Clear token and redirect to home page
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+  
   const checkLogin = () => {
     if (infoUser) {
       return (
@@ -149,6 +157,19 @@ const ManagerSidebar = ({
           onClick={() => navigate("/")}
         >
           {!collapsed && "Về Trang Chủ"}
+        </Button>
+      </div>
+
+      {/* Nút đăng xuất */}
+      <div className="px-4 mt-2">
+        <Button
+          type="default"
+          icon={<LogoutOutlined />}
+          danger
+          style={{ width: "100%" }}
+          onClick={handleLogout}
+        >
+          {!collapsed && "Đăng Xuất"}
         </Button>
       </div>
     </Sider>

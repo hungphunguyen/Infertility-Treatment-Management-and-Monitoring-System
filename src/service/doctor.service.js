@@ -117,6 +117,16 @@ export const doctorService = {
     }
   },
 
+  // Lấy lịch làm việc của bác sĩ theo doctorId
+  getDoctorScheduleById: async (doctorId) => {
+    try {
+      const response = await http.get(`doctors/schedules/${doctorId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Lấy danh sách các appointment có yêu cầu đổi lịch (pending change) cho bác sĩ
   getAppointmentsWithPendingChange: async (doctorId) => {
     try {
