@@ -22,4 +22,16 @@ export const customerService = {
       "Content-Type": "multipart/form-data",
     });
   },
+
+  paymentForCustomer: (recordId) => {
+    return http.post(`/payment/momo/create/${recordId}`);
+  },
+
+  paymentNotificationForCustomer: (recordId) => {
+    return http.get(`/payment/result/${recordId}`);
+  },
+
+  paymentVnpayForCustomer: (recordId) => {
+    return http.get(`/payment/vnpay/${recordId}`);
+  },
 };

@@ -134,11 +134,6 @@ const UseRoutesCustom = () => {
       element: <CreateBlogPage />,
     },
     {
-      path: path.payment,
-      element: <PaymentPage />,
-    },
-
-    {
       path: path.pageNotFound,
       element: <PageNotFound />,
     },
