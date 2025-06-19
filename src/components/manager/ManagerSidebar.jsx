@@ -153,7 +153,7 @@ const ManagerSidebar = ({
         <Button
           type="default"
           icon={<HomeOutlined />}
-          style={{ width: "100%" }}
+          style={{ width: "100%",height: "30px", }}
           onClick={() => navigate("/")}
         >
           {!collapsed && "Về Trang Chủ"}
@@ -166,10 +166,17 @@ const ManagerSidebar = ({
           type="default"
           icon={<LogoutOutlined />}
           danger
-          style={{ width: "100%" }}
+          style={{ 
+            width: "100%",
+            backgroundColor: "#ff4d4f",
+            borderColor: "#ff4d4f",
+            color: "#fff",
+            height: "40px",
+            height: "30px",
+          }}
           onClick={handleLogout}
         >
-          {!collapsed && "Đăng Xuất"}
+          {!collapsed && <span style={{ color: "#fff" }}>Đăng Xuất</span>}
         </Button>
       </div>
     </Sider>

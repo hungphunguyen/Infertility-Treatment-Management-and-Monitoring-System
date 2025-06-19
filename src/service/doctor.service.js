@@ -2,9 +2,9 @@ import { http } from "./config";
 import { getLocgetlStorage } from "../utils/util";
 
 // Đặt biến API_URL dùng cho fetch
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://18.183.187.237/infertility-system-api";
+// const API_URL =
+//   import.meta.env.VITE_API_URL ||
+//   "http://18.183.187.237/infertility-system-api";
 
 export const doctorService = {
   // Lấy danh sách tất cả bác sĩ
@@ -141,17 +141,9 @@ export const doctorService = {
   // Duyệt hoặc hủy yêu cầu đổi lịch (PUT)
   confirmAppointmentChange: async (appointmentId, data) => {
     try {
-      const response = await fetch(
-        `${API_URL}/appointments/confirm-appointment/${appointmentId}`,
-        {
-          method: "PUT",
-          headers: {
-            accept: "*/*",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify(data),
-        }
+      const response = await http.put(
+        `appointments/confirm-appointment/${appointmentId}`,
+        data
       );
       return response;
     } catch (error) {

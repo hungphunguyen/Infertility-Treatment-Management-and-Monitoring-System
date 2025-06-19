@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Button, Tag, Modal, Input, message, Spin } from 'antd';
+import { Card, Table, Button, Tag, Modal, Input, message, Spin, Space, Typography, Descriptions } from 'antd';
 import { doctorService } from '../../service/doctor.service';
 import { authService } from '../../service/auth.service';
 import dayjs from 'dayjs';
+import { UserOutlined, CalendarOutlined, SyncOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from '@ant-design/icons';
+
+const { Title, Text } = Typography;
 
 const ChangeRequests = () => {
   const [loading, setLoading] = useState(true);
@@ -15,31 +18,25 @@ const ChangeRequests = () => {
 
   useEffect(() => {
     const fetchDoctor = async () => {
-      const res = await authService.getMyInfo();
-      console.log('[ChangeRequests] Doctor info:', res?.data?.result);
-      setDoctorId(res?.data?.result?.id);
+      try {
+        const res = await authService.getMyInfo();
+        setDoctorId(res?.data?.result?.id);
+      } catch {}
     };
     fetchDoctor();
   }, []);
 
   useEffect(() => {
-    if (doctorId) {
-      console.log('[ChangeRequests] doctorId:', doctorId);
-      console.log('[ChangeRequests] Token:', localStorage.getItem('token'));
-      fetchRequests();
-    }
+    if (doctorId) fetchRequests();
     // eslint-disable-next-line
   }, [doctorId]);
 
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      console.log('[ChangeRequests] Fetching requests for doctorId:', doctorId);
       const res = await doctorService.getAppointmentsWithPendingChange(doctorId);
-      console.log('[ChangeRequests] API response:', res);
       setRequests(res.data.result || []);
     } catch (err) {
-      console.error('[ChangeRequests] Error fetching requests:', err);
       message.error('Không thể tải yêu cầu đổi lịch!');
     } finally {
       setLoading(false);
@@ -62,55 +59,125 @@ const ChangeRequests = () => {
   };
 
   const columns = [
-    { title: 'Khách hàng', dataIndex: 'customerName', key: 'customerName' },
+    {
+      title: <span><UserOutlined /> Khách hàng</span>,
+      dataIndex: 'customerName',
+      key: 'customerName',
+      render: (t) => <Text strong>{t}</Text>
+    },
     { title: 'Email', dataIndex: 'customerEmail', key: 'customerEmail' },
     { title: 'Dịch vụ', dataIndex: 'serviceName', key: 'serviceName' },
     { title: 'Bước', dataIndex: 'purpose', key: 'purpose' },
-    { title: 'Ngày hẹn', dataIndex: 'appointmentDate', key: 'appointmentDate', render: t => t ? dayjs(t).format('DD/MM/YYYY') : '' },
+    {
+      title: <span><CalendarOutlined /> Ngày hẹn</span>,
+      dataIndex: 'appointmentDate',
+      key: 'appointmentDate',
+      render: t => t ? dayjs(t).format('DD/MM/YYYY') : ''
+    },
     { title: 'Ca', dataIndex: 'shift', key: 'shift' },
-    { title: 'Đổi sang ngày', dataIndex: 'requestedDate', key: 'requestedDate', render: t => t ? dayjs(t).format('DD/MM/YYYY') : '' },
-    { title: 'Đổi sang ca', dataIndex: 'requestedShift', key: 'requestedShift', render: s => s === 'MORNING' ? 'Sáng' : s === 'AFTERNOON' ? 'Chiều' : s },
-    { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: s => <Tag color="orange">Chờ duyệt</Tag> },
+    {
+      title: <span><SyncOutlined spin /> Đổi sang ngày</span>,
+      dataIndex: 'requestedDate',
+      key: 'requestedDate',
+      render: t => t ? dayjs(t).format('DD/MM/YYYY') : ''
+    },
+    {
+      title: 'Đổi sang ca',
+      dataIndex: 'requestedShift',
+      key: 'requestedShift',
+      render: s => s === 'MORNING' ? 'Sáng' : s === 'AFTERNOON' ? 'Chiều' : s
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'status',
+      key: 'status',
+      render: s => <Tag color="orange">Chờ duyệt</Tag>
+    },
     { title: 'Ghi chú', dataIndex: 'notes', key: 'notes' },
     {
       title: 'Hành động',
       key: 'action',
-      render: (_, record) => <Button type="primary" onClick={() => { setSelected(record); setModalVisible(true); setNotes(''); }}>Duyệt</Button>
+      render: (_, record) => (
+        <Button 
+          type="primary" 
+          icon={<EditOutlined />} 
+          onClick={() => { setSelected(record); setModalVisible(true); setNotes(''); }}
+        >
+          Duyệt
+        </Button>
+      )
     }
   ];
 
   return (
-    <Card title="Yêu cầu đổi lịch hẹn từ khách hàng" style={{ margin: 24 }}>
-      <Spin spinning={loading}>
-        <Table columns={columns} dataSource={requests} rowKey="id" pagination={false} />
-      </Spin>
-      <Modal
-        title="Duyệt yêu cầu đổi lịch hẹn"
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
+    <div style={{ padding: 24, background: '#f0f2f5', minHeight: '100vh' }}>
+      <Card 
+        title={<Space><SyncOutlined spin style={{ color: '#faad14' }} /> <span>Yêu cầu đổi lịch hẹn từ khách hàng</span></Space>}
+        style={{ maxWidth: 1200, margin: '0 auto', borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+        styles={{ body: { padding: 24 } }}
+        hoverable
       >
-        {selected && (
-          <div>
-            <p><b>Khách hàng:</b> {selected.customerName}</p>
-            <p><b>Bước:</b> {selected.purpose}</p>
-            <p><b>Ngày hẹn:</b> {selected.appointmentDate ? dayjs(selected.appointmentDate).format('DD/MM/YYYY') : ''}</p>
-            <p><b>Ca:</b> {selected.shift}</p>
-            <p><b>Đổi sang ngày:</b> {selected.requestedDate ? dayjs(selected.requestedDate).format('DD/MM/YYYY') : ''}</p>
-            <p><b>Đổi sang ca:</b> {selected.requestedShift === 'MORNING' ? 'Sáng' : selected.requestedShift === 'AFTERNOON' ? 'Chiều' : selected.requestedShift}</p>
-            <Input.TextArea
-              rows={3}
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Ghi chú cho khách hàng (nếu có)"
-              style={{ marginBottom: 12 }}
-            />
-            <Button type="primary" loading={actionLoading} onClick={() => handleAction('CONFIRMED')} style={{ marginRight: 8 }}>Duyệt</Button>
-            <Button danger loading={actionLoading} onClick={() => handleAction('REJECTED')}>Từ chối</Button>
-          </div>
-        )}
-      </Modal>
-    </Card>
+        <Spin spinning={loading} tip="Đang tải...">
+          <Table 
+            columns={columns} 
+            dataSource={requests} 
+            rowKey="id" 
+            pagination={{ pageSize: 8 }}
+            bordered
+            size="middle"
+            style={{ background: 'white', borderRadius: 8 }}
+            scroll={{ x: 'max-content' }}
+          />
+        </Spin>
+        <Modal
+          title={<Space><EditOutlined /> Duyệt yêu cầu đổi lịch hẹn</Space>}
+          open={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          footer={null}
+          centered
+        >
+          {selected && (
+            <div style={{ padding: 8 }}>
+              <Descriptions column={1} size="small" bordered style={{ marginBottom: 12 }}>
+                <Descriptions.Item label="Khách hàng">{selected.customerName}</Descriptions.Item>
+                <Descriptions.Item label="Bước">{selected.purpose}</Descriptions.Item>
+                <Descriptions.Item label="Ngày hẹn">{selected.appointmentDate ? dayjs(selected.appointmentDate).format('DD/MM/YYYY') : ''}</Descriptions.Item>
+                <Descriptions.Item label="Ca">{selected.shift}</Descriptions.Item>
+                <Descriptions.Item label="Đổi sang ngày">{selected.requestedDate ? dayjs(selected.requestedDate).format('DD/MM/YYYY') : ''}</Descriptions.Item>
+                <Descriptions.Item label="Đổi sang ca">{selected.requestedShift === 'MORNING' ? 'Sáng' : selected.requestedShift === 'AFTERNOON' ? 'Chiều' : selected.requestedShift}</Descriptions.Item>
+              </Descriptions>
+              <Input.TextArea
+                rows={3}
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Ghi chú cho khách hàng (nếu có)"
+                style={{ marginBottom: 16 }}
+              />
+              <Space style={{ width: '100%', justifyContent: 'end' }}>
+                <Button 
+                  type="primary" 
+                  icon={<CheckCircleOutlined />} 
+                  loading={actionLoading} 
+                  onClick={() => handleAction('CONFIRMED')} 
+                  style={{ minWidth: 120 }}
+                >
+                  Duyệt
+                </Button>
+                <Button 
+                  danger 
+                  icon={<CloseCircleOutlined />} 
+                  loading={actionLoading} 
+                  onClick={() => handleAction('REJECTED')} 
+                  style={{ minWidth: 120 }}
+                >
+                  Từ chối
+                </Button>
+              </Space>
+            </div>
+          )}
+        </Modal>
+      </Card>
+    </div>
   );
 };
 

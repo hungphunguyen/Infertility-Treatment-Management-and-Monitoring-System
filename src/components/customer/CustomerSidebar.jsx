@@ -168,6 +168,7 @@ const CustomerSidebar = ({
           icon={<HomeOutlined />}
           style={{
             width: "100%",
+            height: "30px",
             color: "#001529",
             background: "#fff",
             border: "none",
@@ -186,11 +187,14 @@ const CustomerSidebar = ({
           danger
           style={{
             width: "100%",
-            border: "none",
+            backgroundColor: "#ff4d4f",
+            borderColor: "#ff4d4f",
+            color: "#fff",
+            height: "30px",
           }}
           onClick={handleLogout}
         >
-          {!collapsed && <span style={{ marginLeft: 8 }}>Đăng Xuất</span>}
+          {!collapsed && <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>}
         </Button>
       </div>
 

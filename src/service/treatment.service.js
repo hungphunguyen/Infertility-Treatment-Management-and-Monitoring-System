@@ -1,6 +1,8 @@
 import { http } from "./config";
 import axios from "axios";
 
+// const API_URL = "http://18.181.252.234/infertility-system-api";
+
 export const treatmentService = {
   getTreatmentRecordsForManager: async () => {
     try {
@@ -354,10 +356,34 @@ export const treatmentService = {
 
   requestChangeAppointment: async (appointmentId, data) => {
     return await fetch(
-      `${
-        process.env.REACT_APP_API_URL ||
-        "http://18.183.187.237/infertility-system-api"
-      }/appointments/request-change/${appointmentId}`,
+      `${API_URL}/appointments/request-change/${appointmentId}`,
+      {
+        method: "PUT",
+        headers: {
+          accept: "*/*",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(data),
+      }
+    ).then((res) => res.json());
+  },
+
+  getDoctorChangeRequests: async (doctorId) => {
+    return await fetch(
+      `${API_URL}/appointments/with-status-pending-change/${doctorId}`,
+      {
+        headers: {
+          accept: "*/*",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    ).then((res) => res.json());
+  },
+
+  confirmAppointmentChange: async (appointmentId, data) => {
+    return await fetch(
+      `${API_URL}/appointments/confirm-appointment/${appointmentId}`,
       {
         method: "PUT",
         headers: {

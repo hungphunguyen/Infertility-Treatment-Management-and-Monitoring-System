@@ -178,6 +178,7 @@ const DoctorSidebar = ({
             color: "#001529",
             background: "#fff",
             border: "none",
+            height: "30px",
           }}
           onClick={() => navigate("/")}
         >
@@ -193,11 +194,15 @@ const DoctorSidebar = ({
           danger
           style={{
             width: "100%",
-            border: "none",
+            backgroundColor: "#ff4d4f",
+            borderColor: "#ff4d4f",
+            color: "#fff",
+            height: "40px",
+            height: "30px",
           }}
           onClick={handleLogout}
         >
-          {!collapsed && <span style={{ marginLeft: 8 }}>Đăng Xuất</span>}
+          {!collapsed && <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>}
         </Button>
       </div>
 
