@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Card, Table, Button, Space, Tag, Avatar, Modal, Descriptions, 
-  Row, Col, Input, Select, Typography, Spin, message 
-} from "antd";
 import {
-  UserOutlined
-} from "@ant-design/icons";
+  Card,
+  Table,
+  Button,
+  Space,
+  Tag,
+  Avatar,
+  Modal,
+  Descriptions,
+  Row,
+  Col,
+  Input,
+  Select,
+  Typography,
+  Spin,
+  message,
+} from "antd";
+import { UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
@@ -51,25 +62,30 @@ const PatientList = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const today = dayjs().format('YYYY-MM-DD');
+        const today = dayjs().format("YYYY-MM-DD");
         // Gọi song song 2 API
         const [appointmentsRes, treatmentRecordsRes] = await Promise.all([
           treatmentService.getDoctorAppointmentsByDate(doctorId, today),
-          treatmentService.getTreatmentRecordsByDoctor(doctorId)
+          treatmentService.getTreatmentRecordsByDoctor(doctorId),
         ]);
         const appointments = appointmentsRes?.data?.result || [];
-        const treatmentRecords = Array.isArray(treatmentRecordsRes) ? treatmentRecordsRes : [];
+        const treatmentRecords = Array.isArray(treatmentRecordsRes)
+          ? treatmentRecordsRes
+          : [];
         // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ
-        const filtered = appointments.filter(appt => {
-          return treatmentRecords.some(record =>
-            (record.customerId === appt.customerId || record.customerName === appt.customerName) &&
-            record.status !== 'PENDING' && record.status !== 'CANCELLED'
+        const filtered = appointments.filter((appt) => {
+          return treatmentRecords.some(
+            (record) =>
+              (record.customerId === appt.customerId ||
+                record.customerName === appt.customerName) &&
+              record.status !== "PENDING" &&
+              record.status !== "CANCELLED"
           );
         });
         setPatients(filtered);
       } catch (error) {
-        console.error('Error fetching data:', error);
-        message.error('Có lỗi xảy ra khi lấy dữ liệu bệnh nhân');
+        console.error("Error fetching data:", error);
+        message.error("Có lỗi xảy ra khi lấy dữ liệu bệnh nhân");
         setPatients([]);
       } finally {
         setLoading(false);
@@ -79,31 +95,40 @@ const PatientList = () => {
   }, [doctorId]);
 
   // Filter data
-  const filteredData = patients.filter(patient => {
-    const matchesSearch = patient.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
-                         patient.id.toString().includes(searchText);
-    const matchesStatus = statusFilter === "all" || patient.status === statusFilter;
+  const filteredData = patients.filter((patient) => {
+    const matchesSearch =
+      patient.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
+      patient.id.toString().includes(searchText);
+    const matchesStatus =
+      statusFilter === "all" || patient.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusTag = (status) => {
     const statusMap = {
-      "CONFIRMED": { color: "blue", text: "Đã xác nhận" },
-      "PENDING": { color: "orange", text: "Chờ xác nhận" },
-      "REJECTED_CHANGE": { color: "red", text: "Từ chối thay đổi" },
-      "CANCELLED": { color: "red", text: "Đã hủy" },
-      "COMPLETED": { color: "green", text: "Đã hoàn thành" },
-      "INPROGRESS": { color: "blue", text: "Đang thực hiện" }
+      CONFIRMED: { color: "blue", text: "Đã xác nhận" },
+      PENDING: { color: "orange", text: "Chờ xác nhận" },
+      REJECTED_CHANGE: { color: "red", text: "Từ chối thay đổi" },
+      CANCELLED: { color: "red", text: "Đã hủy" },
+      COMPLETED: { color: "green", text: "Đã hoàn thành" },
+      INPROGRESS: { color: "blue", text: "Đang thực hiện" },
     };
-    return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text || status}</Tag>;
+    return (
+      <Tag color={statusMap[status]?.color}>
+        {statusMap[status]?.text || status}
+      </Tag>
+    );
   };
 
   const handleDetail = (record) => {
-    treatmentService.getTreatmentRecordsByDoctor(doctorId).then(records => {
+    treatmentService.getTreatmentRecordsByDoctor(doctorId).then((records) => {
       const treatmentRecord = Array.isArray(records)
-        ? records.find(r =>
-            (r.customerId === record.customerId || r.customerName === record.customerName) &&
-            r.status !== 'PENDING' && r.status !== 'CANCELLED'
+        ? records.find(
+            (r) =>
+              (r.customerId === record.customerId ||
+                r.customerName === record.customerName) &&
+              r.status !== "PENDING" &&
+              r.status !== "CANCELLED"
           )
         : null;
       if (treatmentRecord) {
@@ -117,7 +142,9 @@ const PatientList = () => {
           },
         });
       } else {
-        message.error('Không tìm thấy hồ sơ điều trị hợp lệ cho bệnh nhân này!');
+        message.error(
+          "Không tìm thấy hồ sơ điều trị hợp lệ cho bệnh nhân này!"
+        );
       }
     });
   };
@@ -127,7 +154,7 @@ const PatientList = () => {
       title: "ID",
       dataIndex: "id",
       key: "id",
-      render: (id) => <Tag color="blue">{id}</Tag>
+      render: (id) => <Tag color="blue">{id}</Tag>,
     },
     {
       title: "Bệnh nhân",
@@ -135,9 +162,9 @@ const PatientList = () => {
       key: "customerName",
       render: (name, record) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Avatar 
-            size={40} 
-            icon={<UserOutlined />} 
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
             style={{ marginRight: 12, backgroundColor: "#1890ff" }}
           />
           <div>
@@ -148,29 +175,41 @@ const PatientList = () => {
             </Text>
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Ngày khám",
       dataIndex: "appointmentDate",
       key: "appointmentDate",
-      render: (date) => dayjs(date).format("DD/MM/YYYY")
+      render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
     {
       title: "Ca khám",
       dataIndex: "shift",
       key: "shift",
-      render: (shift) => <Tag color="cyan">{shift}</Tag>
+      render: (shift) => (
+        <Tag color="cyan">
+          {shift === "MORNING"
+            ? "Sáng"
+            : shift === "AFTERNOON"
+            ? "Chiều"
+            : shift}
+        </Tag>
+      ),
     },
     {
       title: "Trạng thái",
       key: "status",
-      render: (record) => getStatusTag(record.status)
+      render: (record) => getStatusTag(record.status),
     },
     {
       title: "Dịch vụ",
       key: "serviceName",
-      render: (record) => <Tag color="purple">{record.purpose || record.serviceName || 'Chưa có'}</Tag>
+      render: (record) => (
+        <Tag color="purple">
+          {record.purpose || record.serviceName || "Chưa có"}
+        </Tag>
+      ),
     },
     {
       title: "Thao tác",
@@ -186,13 +225,20 @@ const PatientList = () => {
           </Button>
         </Space>
       ),
-    }
+    },
   ];
 
   return (
     <div>
       {/* Filters */}
-      <Card className="mb-6" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)', borderRadius: 12, border: 'none' }}>
+      <Card
+        className="mb-6"
+        style={{
+          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+          borderRadius: 12,
+          border: "none",
+        }}
+      >
         <Row gutter={16} align="middle">
           <Col span={8}>
             <Search
@@ -217,19 +263,35 @@ const PatientList = () => {
             </Select>
           </Col>
           <Col span={10} style={{ textAlign: "right" }}>
-            <Text type="secondary">
-              Tổng: {filteredData.length} bệnh nhân
-            </Text>
+            <Text type="secondary">Tổng: {filteredData.length} bệnh nhân</Text>
           </Col>
         </Row>
       </Card>
 
       {/* Patient Table */}
-      <Card title={<span style={{ fontWeight: 600, fontSize: 20, color: '#1890ff' }}>Danh Sách Bệnh Nhân Hôm Nay</span>}
-            style={{ boxShadow: '0 4px 16px rgba(24,144,255,0.08)', borderRadius: 16, border: 'none', marginBottom: 24 }}>
+      <Card
+        title={
+          <span style={{ fontWeight: 600, fontSize: 20, color: "#1890ff" }}>
+            Danh Sách Bệnh Nhân Hôm Nay
+          </span>
+        }
+        style={{
+          boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
+          borderRadius: 16,
+          border: "none",
+          marginBottom: 24,
+        }}
+      >
         <Spin spinning={loading}>
           {filteredData.length === 0 ? (
-            <div style={{ padding: 32, textAlign: 'center', color: '#888', fontSize: 16 }}>
+            <div
+              style={{
+                padding: 32,
+                textAlign: "center",
+                color: "#888",
+                fontSize: 16,
+              }}
+            >
               <p>Không có bệnh nhân nào cần điều trị hôm nay.</p>
             </div>
           ) : (
@@ -240,7 +302,7 @@ const PatientList = () => {
               pagination={{ pageSize: 10 }}
               scroll={{ x: 1000 }}
               bordered
-              style={{ borderRadius: 12, overflow: 'hidden' }}
+              style={{ borderRadius: 12, overflow: "hidden" }}
             />
           )}
         </Spin>
@@ -260,11 +322,21 @@ const PatientList = () => {
       >
         {selectedPatient && (
           <Descriptions column={2} bordered>
-            <Descriptions.Item label="ID">{selectedPatient.id}</Descriptions.Item>
-            <Descriptions.Item label="Họ tên">{selectedPatient.customerName}</Descriptions.Item>
-            <Descriptions.Item label="Email">{selectedPatient.customerEmail}</Descriptions.Item>
-            <Descriptions.Item label="Bác sĩ">{selectedPatient.doctorName}</Descriptions.Item>
-            <Descriptions.Item label="Dịch vụ">{selectedPatient.serviceName || "Chưa có"}</Descriptions.Item>
+            <Descriptions.Item label="ID">
+              {selectedPatient.id}
+            </Descriptions.Item>
+            <Descriptions.Item label="Họ tên">
+              {selectedPatient.customerName}
+            </Descriptions.Item>
+            <Descriptions.Item label="Email">
+              {selectedPatient.customerEmail}
+            </Descriptions.Item>
+            <Descriptions.Item label="Bác sĩ">
+              {selectedPatient.doctorName}
+            </Descriptions.Item>
+            <Descriptions.Item label="Dịch vụ">
+              {selectedPatient.serviceName || "Chưa có"}
+            </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
               {getStatusTag(selectedPatient.status)}
             </Descriptions.Item>
@@ -287,4 +359,4 @@ const PatientList = () => {
   );
 };
 
-export default PatientList; 
+export default PatientList;

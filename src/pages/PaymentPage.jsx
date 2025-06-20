@@ -49,6 +49,7 @@ const PaymentPage = () => {
               setSelectedTreatment(null);
               clearInterval(interval);
             }
+            console.log(res.data);
           })
           .catch((err) => {
             console.error("❌ Lỗi khi kiểm tra trạng thái thanh toán:", err);

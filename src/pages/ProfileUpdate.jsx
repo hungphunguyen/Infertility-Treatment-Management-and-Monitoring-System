@@ -141,6 +141,9 @@ const ProfileUpdate = () => {
 
             console.log(res);
             showNotification("Cập nhật thông tin thành công", "success");
+            setTimeout(() => {
+              navigate("/");
+            }, 1000);
           } catch (error) {
             console.log(error);
             showNotification(error.response?.data?.message, "error");
