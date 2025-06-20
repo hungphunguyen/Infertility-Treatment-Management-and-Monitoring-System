@@ -45,6 +45,7 @@ const UserTemplate = () => {
       try {
         setLoading(true);
         const response = await doctorService.getDoctorForCard();
+        setDoctors([]);
         setDoctors(response.data.result);
       } catch (error) {
         console.error("Error fetching doctors:", error);
@@ -277,77 +278,69 @@ const UserTemplate = () => {
             </span>
           </div>
           {loading ? (
-            <div className="text-center py-12">
-              <Spin size="large" />
-              <p className="text-white mt-4">Đang tải thông tin bác sĩ...</p>
-            </div>
-          ) : doctors.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {doctors.slice(0, 3).map((doctor) => (
-                <Card
-                  key={doctor.id}
-                  className="relative w-[280px] mx-auto mb-8 cursor-pointer group shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white"
-                  onClick={() => navigate(`/doctor/${doctor.id}`)}
-                  bodyStyle={{ padding: 0 }}
-                >
-                  <div className="relative w-full max-w-sm rounded-lg overflow-hidden shadow-md group hover:scale-105 transition-transform duration-300">
-                    <img
-                      src={doctor.avatarUrl}
-                      alt={doctor.fullName}
-                      className="w-full h-[350px] object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
-                    />
-                    <div className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 py-3 shadow-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                      <h3 className="text-lg font-semibold text-gray-800 text-center truncate">
-                        {doctor.fullName}
-                      </h3>
-                      <div className="mt-1 text-center space-y-1">
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Chuyên khoa:
-                          </span>{" "}
-                          {doctor.specialty}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Bằng cấp:
-                          </span>{" "}
-                          {doctor.qualifications}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Kinh nghiệm:
-                          </span>{" "}
-                          {doctor.experienceYears} năm
-                        </p>
-                      </div>
-                      <div className="mt-2 flex items-center justify-center">
-                        <StarRatings
-                          rating={doctor.rate}
-                          starRatedColor="#fadb14"
-                          numberOfStars={5}
-                          name="rating"
-                          starDimension="20px"
-                          starSpacing="2px"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">
-                          ({doctor.rate})
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-white text-lg">
-                Hiện tại chưa có thông tin bác sĩ.
+  <div className="text-center py-12">
+    <Spin size="large" />
+    <p className="text-white mt-4">Đang tải thông tin bác sĩ...</p>
+  </div>
+) : doctors.length === 0 ? (
+  <div className="text-center py-12">
+    <p className="text-white text-lg">
+      Hiện tại chưa có thông tin bác sĩ. Vui lòng thử lại sau.
+    </p>
+    <p className="text-white text-sm mt-2">
+      Nếu vấn đề vẫn tiếp diễn, hãy liên hệ với bộ phận hỗ trợ.
+    </p>
+  </div>
+) : (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    {doctors.slice(0, 3).map((doctor) => (
+      <Card
+        key={doctor.id}
+        className="relative w-[280px] mx-auto mb-8 cursor-pointer group shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white"
+        onClick={() => navigate(`/doctor/${doctor.id}`)}
+        bodyStyle={{ padding: 0 }}
+      >
+        <div className="relative w-full max-w-sm rounded-lg overflow-hidden shadow-md group hover:scale-105 transition-transform duration-300">
+          <img
+            src={doctor.avatarUrl}
+            alt={doctor.fullName}
+            className="w-full h-[350px] object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
+          />
+          <div className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 py-3 shadow-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+            <h3 className="text-lg font-semibold text-gray-800 text-center truncate">
+              {doctor.fullName}
+            </h3>
+            <div className="mt-1 text-center space-y-1">
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-700">Chuyên khoa:</span>{" "}
+                {doctor.specialty}
               </p>
-              <p className="text-white text-sm mt-2">
-                Vui lòng quay lại sau khi database đã có dữ liệu.
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-700">Bằng cấp:</span>{" "}
+                {doctor.qualifications}
+              </p>
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-700">Kinh nghiệm:</span>{" "}
+                {doctor.experienceYears} năm
               </p>
             </div>
-          )}
+            <div className="mt-2 flex items-center justify-center">
+              <StarRatings
+                rating={doctor.rate}
+                starRatedColor="#fadb14"
+                numberOfStars={5}
+                name="rating"
+                starDimension="20px"
+                starSpacing="2px"
+              />
+              <span className="ml-2 text-sm text-gray-600">({doctor.rate})</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+    ))}
+  </div>
+)}
           <div className="text-center mt-10">
             <Button
               onClick={() => navigate("/our-staff")}

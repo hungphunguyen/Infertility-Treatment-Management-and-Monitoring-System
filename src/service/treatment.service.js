@@ -1,6 +1,7 @@
 import { http } from "./config";
 import axios from "axios";
 
+
 export const treatmentService = {
   getTreatmentRecordsForManager: async () => {
     try {
@@ -351,22 +352,58 @@ export const treatmentService = {
     );
   },
   // Gửi yêu cầu đổi lịch hẹn (customer)
-
   requestChangeAppointment: async (appointmentId, data) => {
-    return await fetch(
-      `${
-        process.env.REACT_APP_API_URL ||
-        "http://18.183.187.237/infertility-system-api"
-      }/appointments/request-change/${appointmentId}`,
-      {
-        method: "PUT",
-        headers: {
-          accept: "*/*",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(data),
-      }
-    ).then((res) => res.json());
+    try {
+      const response = await http.put(
+        `/appointments/request-change/${appointmentId}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error requesting appointment change:", error);
+      throw error;
+    }
+  },
+
+  getDoctorChangeRequests: async (doctorId) => {
+    try {
+      const response = await http.get(
+        `/appointments/with-status-pending-change/${doctorId}`,
+        {
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching doctor change requests:", error);
+      throw error;
+    }
+  },
+
+  confirmAppointmentChange: async (appointmentId, data) => {
+    try {
+      const response = await http.put(
+        `/appointments/confirm-appointment/${appointmentId}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error confirming appointment change:", error);
+      throw error;
+    }
   },
 };

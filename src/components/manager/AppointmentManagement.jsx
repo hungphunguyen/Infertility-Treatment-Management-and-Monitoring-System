@@ -10,6 +10,7 @@ import {
   Select,
   Button,
   Input,
+  message,
 } from "antd";
 import { treatmentService } from "../../service/treatment.service";
 import dayjs from "dayjs";
@@ -65,6 +66,8 @@ const AppointmentManagement = () => {
         return "gold";
       case "REJECTED_CHANGE":
         return "volcano";
+      case "REJECTED":
+        return "blue";
       default:
         return "default";
     }
@@ -84,6 +87,8 @@ const AppointmentManagement = () => {
         return "Chờ duyệt đổi lịch";
       case "REJECTED_CHANGE":
         return "Từ chối đổi lịch";
+      case "REJECTED":
+        return "Đang điều trị";
       default:
         return status;
     }
@@ -170,7 +175,61 @@ const AppointmentManagement = () => {
       width: 150,
       render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
+    {
+      title: "Hành động",
+      key: "action",
+      width: 200,
+      render: (_, record) => (
+        <Space>
+          {record.status === "PENDING" && (
+            <>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => handleUpdateStatus(record.id, "CONFIRMED")}
+              >
+                Duyệt
+              </Button>
+              <Button
+                danger
+                size="small"
+                onClick={() => handleUpdateStatus(record.id, "CANCELLED")}
+              >
+                Hủy
+              </Button>
+            </>
+          )}
+          {record.status === "CONFIRMED" && (
+            <Button
+              type="primary"
+              size="small"
+              onClick={() => handleUpdateStatus(record.id, "COMPLETED")}
+            >
+              Hoàn thành
+            </Button>
+          )}
+        </Space>
+      ),
+    },
   ];
+
+  const handleUpdateStatus = async (appointmentId, newStatus) => {
+    try {
+      setLoading(true);
+      const response = await treatmentService.updateAppointmentStatus(appointmentId, newStatus);
+      if (response?.data?.code === 1000) {
+        message.success(`Cập nhật trạng thái thành công!`);
+        fetchAppointments(); // Refresh data
+      } else {
+        message.error(response?.data?.message || "Cập nhật trạng thái thất bại!");
+      }
+    } catch (error) {
+      console.error("Error updating appointment status:", error);
+      message.error("Có lỗi xảy ra khi cập nhật trạng thái!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div style={{ padding: "24px" }}>
@@ -191,10 +250,13 @@ const AppointmentManagement = () => {
             onChange={setStatusFilter}
             options={[
               { value: "all", label: "Tất cả trạng thái" },
-              { value: "Completed", label: "Hoàn thành" },
-              { value: "InProgress", label: "Đang thực hiện" },
-              { value: "Pending", label: "Chờ xử lý" },
-              { value: "Cancelled", label: "Đã hủy" },
+              { value: "PENDING", label: "Chờ xác nhận" },
+              { value: "CONFIRMED", label: "Đã xác nhận" },
+              { value: "COMPLETED", label: "Hoàn thành" },
+              { value: "CANCELLED", label: "Đã hủy" },
+              { value: "PENDING_CHANGE", label: "Chờ duyệt đổi lịch" },
+              { value: "REJECTED_CHANGE", label: "Từ chối đổi lịch" },
+              { value: "REJECTED", label: "Đang điều trị" },
             ]}
           />
           <Select

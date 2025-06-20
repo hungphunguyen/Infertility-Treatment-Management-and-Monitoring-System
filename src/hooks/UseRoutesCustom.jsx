@@ -16,6 +16,7 @@ import OurStaffPage from "../pages/OurStaffPage";
 import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
 import RegisterService from "../pages/RegisterService";
+import ProtectedRoute from "../components/ProtectedRoute";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import ManagerPage from "../pages/ManagerPage/ManagerPage";
 import ResendOtpPage from "../pages/ResendOtpPage";
@@ -89,7 +90,11 @@ const UseRoutesCustom = () => {
     },
     {
       path: path.appointment,
-      element: <RegisterService />,
+      element: (
+        <ProtectedRoute>
+          <RegisterService />
+        </ProtectedRoute>
+      ),
     },
     {
       path: path.admin,

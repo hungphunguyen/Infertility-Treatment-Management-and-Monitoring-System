@@ -45,9 +45,19 @@ const LoginPage = () => {
 
             // thực hiên thông báo chuyển hướng người dùng
             showNotification("Đăng nhập thành công", "success");
-            setTimeout(() => {
-              navigate("/");
-            }, 1000);
+            
+            // Kiểm tra xem có URL redirect không
+            const redirectUrl = localStorage.getItem('redirectAfterLogin');
+            if (redirectUrl) {
+              localStorage.removeItem('redirectAfterLogin'); // Xóa URL redirect
+              setTimeout(() => {
+                navigate(redirectUrl);
+              }, 1000);
+            } else {
+              setTimeout(() => {
+                navigate("/");
+              }, 1000);
+            }
           })
           .catch((error) => {
             if (error.response.data.code == 1014) {

@@ -112,9 +112,9 @@ const CustomerSidebar = ({
   };
 
   const handleLogout = () => {
-    // Clear token and redirect to login
+    // Clear token and redirect to home page
     localStorage.removeItem("token");
-    window.location.href = "/sign-in";
+    navigate("/");
   };
 
   return (
@@ -168,6 +168,7 @@ const CustomerSidebar = ({
           icon={<HomeOutlined />}
           style={{
             width: "100%",
+            height: "30px",
             color: "#001529",
             background: "#fff",
             border: "none",
@@ -175,6 +176,25 @@ const CustomerSidebar = ({
           onClick={() => navigate("/")}
         >
           {!collapsed && <span style={{ marginLeft: 8 }}>Về Trang Chủ</span>}
+        </Button>
+      </div>
+
+      {/* Nút đăng xuất */}
+      <div className="px-4 mt-2">
+        <Button
+          type="default"
+          icon={<LogoutOutlined />}
+          danger
+          style={{
+            width: "100%",
+            backgroundColor: "#ff4d4f",
+            borderColor: "#ff4d4f",
+            color: "#fff",
+            height: "30px",
+          }}
+          onClick={handleLogout}
+        >
+          {!collapsed && <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>}
         </Button>
       </div>
 

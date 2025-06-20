@@ -45,7 +45,7 @@ const TreatmentStageDetails = () => {
           navigate(-1);
         }
       } catch (error) {
-        console.error("Error fetching doctor info:", error);
+        // console.error("Error fetching doctor info:", error);
         showNotification("Không thể lấy thông tin bác sĩ", "error");
         navigate(-1);
       }
@@ -65,8 +65,8 @@ const TreatmentStageDetails = () => {
           return;
         }
 
-        console.log('Patient info:', patientInfo);
-        console.log('Passed treatment data:', passedTreatmentData);
+        // console.log('Patient info:', patientInfo);
+        // console.log('Passed treatment data:', passedTreatmentData);
 
         // Nếu có treatment data được truyền qua, kiểm tra và sử dụng
         if (passedTreatmentData) {
@@ -98,7 +98,7 @@ const TreatmentStageDetails = () => {
           setTreatmentData(latestTreatment);
         }
       } catch (error) {
-        console.error("Error fetching treatment data:", error);
+        // console.error("Error fetching treatment data:", error);
         showNotification("Không thể lấy thông tin điều trị", "error");
       } finally {
         setLoading(false);
@@ -110,11 +110,11 @@ const TreatmentStageDetails = () => {
 
   useEffect(() => {
     if (showScheduleModal && (!treatmentData?.customerId || !doctorId || !nextStep?.id)) {
-      console.warn('Missing data for appointment:', {
-        customerId: treatmentData?.customerId,
-        doctorId,
-        nextStepId: nextStep?.id
-      });
+      // console.warn('Missing data for appointment:', {
+      //   customerId: treatmentData?.customerId,
+      //   doctorId,
+      //   nextStepId: nextStep?.id
+      // });
     }
   }, [showScheduleModal, treatmentData, doctorId, nextStep]);
 
@@ -143,6 +143,8 @@ const TreatmentStageDetails = () => {
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "PENDING_CHANGE":
+        return "Chờ duyệt đổi lịch";
       default:
         return status;
     }
@@ -178,7 +180,7 @@ const TreatmentStageDetails = () => {
         form.resetFields();
       }
     } catch (error) {
-      console.error('Error updating treatment step:', error);
+      // console.error('Error updating treatment step:', error);
       showNotification('Có lỗi xảy ra khi cập nhật', 'error');
     }
   };

@@ -95,6 +95,10 @@ const RegisterService = () => {
   const [unavailableDoctor, setUnavailableDoctor] = useState(null);
   const [newlySelectedDoctor, setNewlySelectedDoctor] = useState(null);
   
+  // Add state for doctor schedule
+  const [doctorSchedule, setDoctorSchedule] = useState(null);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  
   // Always ignore incomplete treatment warning
   const [ignoreIncompleteWarning, setIgnoreIncompleteWarning] = useState(true);
   
@@ -356,55 +360,47 @@ const RegisterService = () => {
   };
 
   // Modify onDoctorChange to check if doctor is available
-  const onDoctorChange = (value) => {
+  const onDoctorChange = async (value) => {
     console.log("Debug - doctor changed to:", value, typeof value);
     
     // Clear previous doctor not available status
     setDoctorNotAvailable(false);
     setShowDoctorSchedule(false);
+    setDoctorSchedule(null);
+    setAvailableDoctors([]);
+    setAvailabilityChecked(false);
     
     if (!value || value === "") {
       // If user selects "No doctor" option
       setSelectedDoctor(null);
       form.setFieldsValue({ doctor: null });
-      // Still show available doctors list
-      setAvailabilityChecked(true);
       return;
     }
     
     setSelectedDoctor(value);
     
-    // Check if selected doctor is available
-    if (value && availableDoctors.length > 0) {
-      const doctorIsAvailable = availableDoctors.some(doctor => doctor.id === value);
-      if (!doctorIsAvailable) {
-        // Store information about the unavailable doctor
-        const doctorInfo = doctors.find(doc => doc.value === value);
-        if (doctorInfo) {
-          setUnavailableDoctor({
-            id: value,
-            name: doctorInfo.label || "Bác sĩ đã chọn",
-            specialty: doctorInfo.specialty || "Chuyên khoa"
-          });
-        }
-        
-        setDoctorNotAvailable(true);
-        showNotification("Bác sĩ này không có lịch trống vào ngày và ca bạn đã chọn.", "warning");
-        // Keep available doctors list open
-        setAvailabilityChecked(true);
-      } else {
-        setDoctorNotAvailable(false);
-        // Doctor is available, we can hide the list
-        setAvailabilityChecked(false);
-        
-        // Show success notification
-        const doctorName = availableDoctors.find(doc => doc.id === value)?.fullName || "Bác sĩ";
-        showNotification(`Đã chọn ${doctorName} làm bác sĩ điều trị`, "success");
+    // Fetch doctor schedule when a doctor is selected
+    try {
+      setScheduleLoading(true);
+      const response = await doctorService.getDoctorScheduleById(value);
+      if (response?.data?.code === 1000 && response.data.result) {
+        setDoctorSchedule(response.data.result);
+        setShowDoctorSchedule(true);
       }
-    } else {
-      // If we don't have availability data yet, don't show error
-      setDoctorNotAvailable(false);
+    } catch (error) {
+      console.error("Error fetching doctor schedule:", error);
+    } finally {
+      setScheduleLoading(false);
     }
+  };
+
+  // Function to handle schedule selection
+  const handleScheduleSelection = (date, shift) => {
+    form.setFieldsValue({
+      appointmentDate: dayjs(date),
+      shift: shift.toLowerCase()
+    });
+    showNotification(`Đã chọn ngày ${dayjs(date).format('DD/MM/YYYY')} - Ca ${shift === 'MORNING' ? 'Sáng' : 'Chiều'}`, 'success');
   };
 
   // Add a more comprehensive error handler that also shows more info to the user in this scenario
@@ -459,25 +455,12 @@ const RegisterService = () => {
           }
         }
 
-        // Check if selected doctor is available
-        if (selectedDoctor && availableDoctors.length > 0) {
-          const doctorIsAvailable = availableDoctors.some(doctor => doctor.id === selectedDoctor);
-          if (!doctorIsAvailable && !newlySelectedDoctor) {
-            showNotification("Bác sĩ đã chọn không có lịch trống vào ngày và ca này. Vui lòng chọn bác sĩ khác.", "error");
-            setDoctorNotAvailable(true);
-            setAvailabilityChecked(true);
-            form.scrollToField('doctor');
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Xử lý doctorId đúng định dạng
+        // Xử lý doctorId đúng định dạng - cho phép rỗng để hệ thống tự chọn
         let doctorId = values.doctor;
         
-        // Nếu doctorId là chuỗi rỗng, gán null
+        // Nếu doctorId là chuỗi rỗng hoặc null, gán chuỗi rỗng để hệ thống tự chọn
         if (!doctorId || doctorId === "") {
-          doctorId = null;
+          doctorId = "";
         }
         // Nếu doctorId bắt đầu bằng "dr_", cắt bỏ tiền tố
         else if (typeof doctorId === 'string' && doctorId.startsWith('dr_')) {
@@ -492,7 +475,7 @@ const RegisterService = () => {
           doctorId: doctorId,
           treatmentServiceId: parseInt(values.treatmentService),
           startDate: values.appointmentDate.format('YYYY-MM-DD'),
-          shift: values.shift || "morning",
+          shift: values.shift.toUpperCase() || "MORNING",
         };
         
         // Only add optional fields if they have values
@@ -529,6 +512,7 @@ const RegisterService = () => {
             form.resetFields();
             setSelectedDoctor(null);
             setShowDoctorSchedule(false);
+            setDoctorSchedule(null);
             setAvailableDoctors([]);
             setAvailabilityChecked(false);
             
@@ -550,30 +534,6 @@ const RegisterService = () => {
           if (apiError.response && apiError.response.data && apiError.response.data.message) {
             errorMessage = apiError.response.data.message;
           }
-          // Trường hợp đặc biệt incomplete treatment vẫn xử lý như cũ
-          if (
-            apiError.response &&
-            apiError.response.data &&
-            apiError.response.data.message &&
-            (apiError.response.data.message.includes("incomplete treatment") ||
-              apiError.response.data.message.includes("Please complete it"))
-          ) {
-            showNotification("Đăng ký dịch vụ thành công!", "success");
-            form.resetFields();
-            setSelectedDoctor(null);
-            setShowDoctorSchedule(false);
-            setAvailableDoctors([]);
-            setAvailabilityChecked(false);
-            setTimeout(() => {
-              navigate('/customer-dashboard/treatment', {
-                state: {
-                  registrationSuccess: true,
-                  serviceName: treatmentServices.find(s => s.value === values.treatmentService)?.label || 'Dịch vụ'
-                }
-              });
-            }, 2000);
-            return;
-          }
           showNotification(errorMessage, "error");
           throw apiError;
         } finally {
@@ -584,14 +544,7 @@ const RegisterService = () => {
           setLoading(false);
         }
       } catch (err) {
-        // Luôn lấy message từ BE nếu có
-        let errorMessage = "Đăng ký dịch vụ không thành công. Vui lòng thử lại sau.";
-        if (err.response && err.response.data && err.response.data.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        showNotification(errorMessage, "error");
+        // Không hiển thị thông báo lỗi ở đây vì đã hiển thị ở trên
         // Re-enable submit button nếu cần
         const submitButton = document.querySelector('button[type="submit"]');
         if (submitButton) {
@@ -603,37 +556,6 @@ const RegisterService = () => {
     
     registerTreatment();
   };
-
-  const [hasUnfinishedAppointment, setHasUnfinishedAppointment] = useState(false);
-
-  // Sử dụng API đúng cho customer
-  const checkUnfinishedAppointment = async (customerId) => {
-    try {
-      const token = getLocgetlStorage('token');
-      const res = await fetch(`http://54.199.236.209/infertility-system-api/appointments/customer/${customerId}`, {
-        headers: {
-          'accept': '*/*',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await res.json();
-      if (data && data.result) {
-        // Kiểm tra trạng thái chưa hoàn thành
-        const unfinished = data.result.some(
-          appt => !['COMPLETED', 'CANCELLED'].includes(appt.status)
-        );
-        setHasUnfinishedAppointment(unfinished);
-      }
-    } catch (err) {
-      // Xử lý lỗi nếu cần
-    }
-  };
-
-  useEffect(() => {
-    if (currentUser && currentUser.id) {
-      checkUnfinishedAppointment(currentUser.id);
-    }
-  }, [currentUser]);
 
   const isLoggedIn = !!token;
 
@@ -673,20 +595,12 @@ const RegisterService = () => {
                   className="mb-4"
                 />
               )}
-              {hasUnfinishedAppointment && (
-                <Alert
-                  message="Bạn đã có lịch hẹn điều trị chưa hoàn thành. Vui lòng hoàn thành lịch hẹn trước khi đăng ký mới."
-                  type="warning"
-                  showIcon
-                  className="mb-4"
-                />
-              )}
               <Form
                 form={form}
                 layout="vertical"
                 onFinish={onFinish}
                 scrollToFirstError
-                disabled={hasUnfinishedAppointment || !isLoggedIn}
+                disabled={!isLoggedIn}
                 validateMessages={{
                   required: '${label} là trường bắt buộc!',
                   types: {
@@ -888,7 +802,7 @@ const RegisterService = () => {
                 
                 <Form.Item
                   name="doctor"
-                  label={initialSelectedDoctor ? "Bác sĩ đã chọn" : "Chỉ định bác sĩ điều trị (nếu muốn)"}
+                  label={initialSelectedDoctor ? "Bác sĩ đã chọn" : "Chỉ định bác sĩ điều trị (tùy chọn)"}
                 >
                   {initialSelectedDoctor ? (
                     <div className="p-4 bg-green-50 border border-green-200 rounded">
@@ -907,95 +821,6 @@ const RegisterService = () => {
                           {doctorSpecialization}
                         </div>
                       )}
-                      
-                      {doctorNotAvailable && (
-                        <div className="mt-3">
-                          <Alert
-                            message="Hiện tại bác sĩ của bạn hôm nay đã không còn lịch trống"
-                            description="Vui lòng chọn một bác sĩ có lịch trống từ danh sách bên dưới."
-                            type="warning"
-                            showIcon
-                            className="mb-3"
-                          />
-                          <Button 
-                            danger
-                            onClick={() => {
-                              setSelectedDoctor(null);
-                              form.setFieldsValue({ doctor: "" });
-                              setDoctorNotAvailable(false);
-                              showNotification("Đã xóa lựa chọn bác sĩ. Hệ thống sẽ tự động phân bác sĩ có lịch trống.", "info");
-                            }}
-                          >
-                            Chọn bác sĩ khác
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : doctorNotAvailable && unavailableDoctor ? (
-                    <div>
-                      {newlySelectedDoctor ? (
-                        // Hiển thị thông tin bác sĩ mới được chọn
-                        <div className="p-4 bg-green-50 border border-green-200 rounded">
-                          <div className="flex items-center">
-                            <div className="text-green-500 mr-2">
-                              <span role="img" aria-label="success">✅</span>
-                            </div>
-                            <div>
-                              <Text strong className="text-green-700">
-                                {newlySelectedDoctor.name}
-                              </Text>
-                              <div className="text-gray-600 text-sm">
-                                {newlySelectedDoctor.specialty}
-                              </div>
-                              <div className="text-green-600 text-sm mt-1">
-                                Đã được chọn làm bác sĩ điều trị thay thế
-                              </div>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-sm text-gray-500">
-                            <span>Bác sĩ {unavailableDoctor.name} không có lịch trống vào ngày và ca đã chọn</span>
-                          </div>
-                          <div className="mt-3">
-                            <Button 
-                              danger
-                              size="small"
-                              onClick={() => {
-                                setSelectedDoctor(null);
-                                form.setFieldsValue({ doctor: "" });
-                                setDoctorNotAvailable(false);
-                                setUnavailableDoctor(null);
-                                setNewlySelectedDoctor(null);
-                                showNotification("Đã xóa lựa chọn bác sĩ. Hệ thống sẽ tự động phân bác sĩ có lịch trống.", "info");
-                              }}
-                            >
-                              Chọn bác sĩ khác
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        // Hiển thị thông báo bác sĩ không có lịch
-                        <div>
-                          <Alert
-                            message={`Bác sĩ ${unavailableDoctor.name} không có lịch trống`}
-                            description="Vui lòng chọn một bác sĩ có lịch trống từ danh sách bên dưới."
-                            type="warning"
-                            showIcon
-                            className="mb-3"
-                          />
-                          <Button 
-                            danger
-                            onClick={() => {
-                              setSelectedDoctor(null);
-                              form.setFieldsValue({ doctor: "" });
-                              setDoctorNotAvailable(false);
-                              setUnavailableDoctor(null);
-                              showNotification("Đã xóa lựa chọn bác sĩ. Hệ thống sẽ tự động phân bác sĩ có lịch trống.", "info");
-                            }}
-                          >
-                            Chọn bác sĩ khác
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   ) : doctorsLoading ? (
                     <div className="flex items-center">
@@ -1004,7 +829,7 @@ const RegisterService = () => {
                     </div>
                   ) : (
                     <Select 
-                      placeholder="-- Không chọn --" 
+                      placeholder="-- Không chọn (hệ thống tự phân bác sĩ) --" 
                       size="large"
                       onChange={onDoctorChange}
                     >
@@ -1016,28 +841,67 @@ const RegisterService = () => {
                 </Form.Item>
 
                 {/* Doctor Schedule */}
-                {showDoctorSchedule && (
+                {showDoctorSchedule && doctorSchedule && (
                   <Card className="mb-4" style={{ backgroundColor: '#f9f9f9' }}>
                     <Title level={4}>🗓 Lịch làm việc của bác sĩ</Title>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
-                        <thead>
-                          <tr>
-                            <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Ngày</th>
-                            <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Sáng</th>
-                            <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Chiều</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {/* Doctor schedule content will be populated here */}
-                        </tbody>
-                      </table>
-                    </div>
+                    {scheduleLoading ? (
+                      <div className="flex items-center justify-center p-4">
+                        <Spin size="large" />
+                        <span className="ml-2">Đang tải lịch làm việc...</span>
+                      </div>
+                    ) : (
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
+                          <thead>
+                            <tr>
+                              <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Ngày</th>
+                              <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Ca sáng</th>
+                              <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Ca chiều</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {Object.entries(doctorSchedule.schedules || {}).map(([date, shifts]) => (
+                              <tr key={date}>
+                                <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>
+                                  {dayjs(date).format('DD/MM/YYYY')}
+                                </td>
+                                <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>
+                                  {shifts.includes('MORNING') ? (
+                                    <Button 
+                                      type="primary" 
+                                      size="small"
+                                      onClick={() => handleScheduleSelection(date, 'MORNING')}
+                                    >
+                                      Chọn
+                                    </Button>
+                                  ) : (
+                                    <span style={{ color: '#ccc' }}>Nghỉ</span>
+                                  )}
+                                </td>
+                                <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>
+                                  {shifts.includes('AFTERNOON') ? (
+                                    <Button 
+                                      type="primary" 
+                                      size="small"
+                                      onClick={() => handleScheduleSelection(date, 'AFTERNOON')}
+                                    >
+                                      Chọn
+                                    </Button>
+                                  ) : (
+                                    <span style={{ color: '#ccc' }}>Nghỉ</span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </Card>
                 )}
                 
-                {/* Available Doctors Section */}
-                {(availabilityChecked || doctorNotAvailable) && (
+                {/* Available Doctors Section - Only show when no doctor is selected */}
+                {!selectedDoctor && (availabilityChecked || doctorNotAvailable) && (
                   <div className="mt-4 mb-4">
                     <Card 
                       title={
