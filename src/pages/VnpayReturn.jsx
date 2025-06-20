@@ -20,9 +20,9 @@ const VnpayReturnPage = () => {
       showNotification("❌ Thanh toán VNPAY thất bại", "error");
     }
 
-    setTimeout(() => {
-      navigate("/customer-dashboard/payment");
-    }, 3000);
+    // setTimeout(() => {
+    //   navigate("/customer-dashboard/payment");
+    // }, 3000);
   }, []);
 
   return (

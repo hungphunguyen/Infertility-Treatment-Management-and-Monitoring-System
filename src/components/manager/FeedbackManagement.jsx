@@ -210,17 +210,19 @@ const FeedbackManagement = () => {
                   </td>
                   <td className="px-4 py-3">
                     <Space>
-                      {/* {!item.approved && ( */}
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<CheckOutlined />}
-                        loading={loadingIds.includes(item.id)}
-                        onClick={() => openApprovalModal(item.id, "APPROVED")}
-                      >
-                        Duyệt
-                      </Button>
-                      {/* )} */}
+                      {(item.status === "PENDING" ||
+                        item.status === "REJECTED") && (
+                        <Button
+                          type="primary"
+                          size="small"
+                          icon={<CheckOutlined />}
+                          loading={loadingIds.includes(item.id)}
+                          onClick={() => openApprovalModal(item.id, "APPROVED")}
+                        >
+                          Duyệt
+                        </Button>
+                      )}
+
                       {/* {item.approved && ( */}
                       <Button
                         type="default"

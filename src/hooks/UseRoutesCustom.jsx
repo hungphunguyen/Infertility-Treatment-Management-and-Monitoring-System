@@ -26,6 +26,7 @@ import RenderCreateTreatment from "../components/manager/managerService/RenderCr
 import FeedbackCustomer from "../components/customer/FeedbackCustomer";
 import CreateBlogPage from "../components/blog/CreateBlog";
 import PaymentPage from "../pages/PaymentPage";
+import AuthPage from "../pages/AuthPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -41,6 +42,10 @@ const UseRoutesCustom = () => {
     {
       path: path.signUp,
       element: <RegisterPage />,
+    },
+    {
+      path: path.testLogin,
+      element: <AuthPage />,
     },
     {
       path: path.verify,
