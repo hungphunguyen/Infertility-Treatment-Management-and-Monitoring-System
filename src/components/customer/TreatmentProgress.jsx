@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Card, Steps, Row, Col, Typography, Descriptions, Tag, 
   Timeline, Space, Divider, Progress, Collapse, Spin, message, Button, Modal,
@@ -28,6 +28,7 @@ import { treatmentService } from '../../service/treatment.service';
 import { authService } from '../../service/auth.service';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { path } from '../../common/path';
+import { NotificationContext } from '../../App';
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -49,6 +50,7 @@ const TreatmentProgress = () => {
   const location = useLocation();
   const [viewMode, setViewMode] = useState('list');
   const [treatments, setTreatments] = useState([]);
+  const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     if (location.state?.treatmentRecord && location.state?.treatmentId) {
@@ -189,7 +191,7 @@ const TreatmentProgress = () => {
 
   const handleSubmitChange = async () => {
     if (!selectedAppointment) {
-      message.error("Vui lòng chọn lịch hẹn để thay đổi");
+      showNotification("Vui lòng chọn lịch hẹn để thay đổi", "error");
       return;
     }
     
@@ -219,13 +221,13 @@ const TreatmentProgress = () => {
       console.log("Change request response:", response);
 
       if (response?.data?.code === 1000 || response?.status === 200) {
-        message.success("Đã gửi yêu cầu thay đổi lịch hẹn!");
+        showNotification("Đã gửi yêu cầu thay đổi lịch hẹn!", "success");
         setChangeModalVisible(false);
         setSelectedAppointment(null);
         changeForm.resetFields();
         fetchData();
       } else {
-        message.error(response?.data?.message || response?.message || "Không thể gửi yêu cầu.");
+        showNotification(response?.data?.message || response?.message || "Không thể gửi yêu cầu.", "error");
       }
     } catch (err) {
       console.error('Error submitting change request:', err);
@@ -237,11 +239,11 @@ const TreatmentProgress = () => {
       });
       
       if (err?.response?.status === 404) {
-        message.error("Không tìm thấy lịch hẹn với ID: " + selectedAppointment.id);
+        showNotification("Không tìm thấy lịch hẹn với ID: " + selectedAppointment.id, "error");
       } else if (err?.response?.status === 400) {
-        message.error("Dữ liệu không hợp lệ: " + (err?.response?.data?.message || err?.message));
+        showNotification("Dữ liệu không hợp lệ: " + (err?.response?.data?.message || err?.message), "error");
       } else {
-        message.error(err?.response?.data?.message || err?.message || "Không thể gửi yêu cầu.");
+        showNotification(err?.response?.data?.message || err?.message || "Không thể gửi yêu cầu.", "error");
       }
     } finally {
       setChangeLoading(false);

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Card, Table, Button, Tag, Modal, Input, message, Spin, Space, Typography, Descriptions } from 'antd';
 import { doctorService } from '../../service/doctor.service';
 import { authService } from '../../service/auth.service';
 import dayjs from 'dayjs';
 import { UserOutlined, CalendarOutlined, SyncOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from '@ant-design/icons';
+import { NotificationContext } from '../../App';
 
 const { Title, Text } = Typography;
 
@@ -15,6 +16,7 @@ const ChangeRequests = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [notes, setNotes] = useState('');
   const [doctorId, setDoctorId] = useState(null);
+  const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     const fetchDoctor = async () => {
@@ -37,7 +39,7 @@ const ChangeRequests = () => {
       const res = await doctorService.getAppointmentsWithPendingChange(doctorId);
       setRequests(res.data.result || []);
     } catch (err) {
-      message.error('Không thể tải yêu cầu đổi lịch!');
+      showNotification('Không thể tải yêu cầu đổi lịch!', 'error');
     } finally {
       setLoading(false);
     }
@@ -48,11 +50,11 @@ const ChangeRequests = () => {
     setActionLoading(true);
     try {
       await doctorService.confirmAppointmentChange(selected.id, { status, notes });
-      message.success(status === 'CONFIRMED' ? 'Đã duyệt yêu cầu!' : 'Đã từ chối yêu cầu!');
+      showNotification(status === 'CONFIRMED' ? 'Đã duyệt yêu cầu!' : 'Đã từ chối yêu cầu!', 'success');
       setModalVisible(false);
       fetchRequests();
     } catch (err) {
-      message.error('Không thể cập nhật yêu cầu!');
+      showNotification('Không thể cập nhật yêu cầu!', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -74,7 +76,12 @@ const ChangeRequests = () => {
       key: 'appointmentDate',
       render: t => t ? dayjs(t).format('DD/MM/YYYY') : ''
     },
-    { title: 'Ca', dataIndex: 'shift', key: 'shift' },
+    {
+      title: 'Ca cũ',
+      dataIndex: 'shift',
+      key: 'shift',
+      render: s => s === 'MORNING' ? 'Sáng' : s === 'AFTERNOON' ? 'Chiều' : s
+    },
     {
       title: <span><SyncOutlined spin /> Đổi sang ngày</span>,
       dataIndex: 'requestedDate',
@@ -82,7 +89,7 @@ const ChangeRequests = () => {
       render: t => t ? dayjs(t).format('DD/MM/YYYY') : ''
     },
     {
-      title: 'Đổi sang ca',
+      title: 'Ca muốn đổi',
       dataIndex: 'requestedShift',
       key: 'requestedShift',
       render: s => s === 'MORNING' ? 'Sáng' : s === 'AFTERNOON' ? 'Chiều' : s
@@ -142,9 +149,9 @@ const ChangeRequests = () => {
                 <Descriptions.Item label="Khách hàng">{selected.customerName}</Descriptions.Item>
                 <Descriptions.Item label="Bước">{selected.purpose}</Descriptions.Item>
                 <Descriptions.Item label="Ngày hẹn">{selected.appointmentDate ? dayjs(selected.appointmentDate).format('DD/MM/YYYY') : ''}</Descriptions.Item>
-                <Descriptions.Item label="Ca">{selected.shift}</Descriptions.Item>
+                <Descriptions.Item label="Ca cũ">{selected.shift === 'MORNING' ? 'Sáng' : selected.shift === 'AFTERNOON' ? 'Chiều' : selected.shift}</Descriptions.Item>
                 <Descriptions.Item label="Đổi sang ngày">{selected.requestedDate ? dayjs(selected.requestedDate).format('DD/MM/YYYY') : ''}</Descriptions.Item>
-                <Descriptions.Item label="Đổi sang ca">{selected.requestedShift === 'MORNING' ? 'Sáng' : selected.requestedShift === 'AFTERNOON' ? 'Chiều' : selected.requestedShift}</Descriptions.Item>
+                <Descriptions.Item label="Ca muốn đổi">{selected.requestedShift === 'MORNING' ? 'Sáng' : selected.requestedShift === 'AFTERNOON' ? 'Chiều' : selected.requestedShift}</Descriptions.Item>
               </Descriptions>
               <Input.TextArea
                 rows={3}

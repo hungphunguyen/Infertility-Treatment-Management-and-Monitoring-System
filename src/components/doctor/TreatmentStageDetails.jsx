@@ -143,6 +143,8 @@ const TreatmentStageDetails = () => {
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "PENDING_CHANGE":
+        return "Chờ duyệt đổi lịch";
       default:
         return status;
     }
