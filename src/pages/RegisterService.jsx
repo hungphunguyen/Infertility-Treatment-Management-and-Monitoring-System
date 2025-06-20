@@ -396,10 +396,6 @@ const RegisterService = () => {
         setDoctorNotAvailable(false);
         // Doctor is available, we can hide the list
         setAvailabilityChecked(false);
-        
-        // Show success notification
-        const doctorName = availableDoctors.find(doc => doc.id === value)?.fullName || "Bác sĩ";
-        showNotification(`Đã chọn ${doctorName} làm bác sĩ điều trị`, "success");
       }
     } else {
       // If we don't have availability data yet, don't show error
@@ -1007,10 +1003,27 @@ const RegisterService = () => {
                       placeholder="-- Không chọn --" 
                       size="large"
                       onChange={onDoctorChange}
+                      onFocus={async () => {
+                        const appointmentDate = form.getFieldValue('appointmentDate');
+                        const shift = form.getFieldValue('shift');
+                        if (appointmentDate && shift) {
+                          await checkDoctorAvailability(appointmentDate, shift);
+                        } else {
+                          showNotification('Vui lòng chọn ngày thăm khám và buổi khám trước khi chọn bác sĩ!', 'warning');
+                        }
+                      }}
                     >
-                      {doctors.map(doctor => (
-                        <Option key={doctor.value} value={doctor.value}>{doctor.label}</Option>
-                      ))}
+                      {availableDoctors.length > 0 ? (
+                        availableDoctors.map(doctor => (
+                          <Option key={doctor.id} value={doctor.id}>
+                            {doctor.fullName || 'Bác sĩ'} - {doctor.specialty || doctor.qualifications || 'Chuyên khoa'}
+                          </Option>
+                        ))
+                      ) : (
+                        <Option disabled key="no-available" value="">
+                          Không có bác sĩ nào có lịch trống
+                        </Option>
+                      )}
                     </Select>
                   )}
                 </Form.Item>
@@ -1034,98 +1047,6 @@ const RegisterService = () => {
                       </table>
                     </div>
                   </Card>
-                )}
-                
-                {/* Available Doctors Section */}
-                {(availabilityChecked || doctorNotAvailable) && (
-                  <div className="mt-4 mb-4">
-                    <Card 
-                      title={
-                        <div className="flex items-center">
-                          <CheckCircleOutlined style={{ color: '#52c41a', marginRight: '8px' }} />
-                          <span>
-                            {doctorNotAvailable && unavailableDoctor 
-                              ? `Bác sĩ ${unavailableDoctor.name} không có lịch - Vui lòng chọn bác sĩ khác` 
-                              : "Bác sĩ có lịch trống"}
-                          </span>
-                          {checkingAvailability && <Spin size="small" className="ml-2" />}
-                        </div>
-                      }
-                      size="small"
-                      className={doctorNotAvailable ? "bg-blue-50 border-blue-200" : "bg-green-50"}
-                    >
-                      {availableDoctors.length > 0 ? (
-                        <List
-                          itemLayout="horizontal"
-                          dataSource={availableDoctors}
-                          renderItem={doctor => (
-                            <List.Item
-                              actions={[
-                                <Button 
-                                  type={doctorNotAvailable ? "primary" : "default"}
-                                  size="small"
-                                  onClick={() => {
-                                    // Update the selected doctor
-                                    setSelectedDoctor(doctor.id);
-                                    form.setFieldsValue({ doctor: doctor.id });
-                                    
-                                    // Store information about the newly selected doctor
-                                    setNewlySelectedDoctor({
-                                      id: doctor.id,
-                                      name: doctor.fullName || "Bác sĩ",
-                                      specialty: doctor.specialty || doctor.qualifications || "Chuyên khoa"
-                                    });
-                                    
-                                    setDoctorNotAvailable(false);
-                                    
-                                    // Show notification when doctor is selected
-                                    const doctorName = doctor.fullName || "Bác sĩ";
-                                    showNotification(`Đã chọn ${doctorName} làm bác sĩ điều trị`, "success");
-                                    
-                                    // Scroll to the doctor field to show the selection
-                                    form.scrollToField('doctor');
-                                    
-                                    // Hide available doctors list after selection since doctor is available
-                                    setAvailabilityChecked(false);
-                                  }}
-                                >
-                                  Chọn
-                                </Button>
-                              ]}
-                            >
-                              <List.Item.Meta
-                                avatar={<Avatar src={doctor.avatarUrl || "https://via.placeholder.com/40"} />}
-                                title={
-                                  <div className="flex items-center">
-                                    <span className="font-medium">{doctor.fullName || "Bác sĩ"}</span>
-                                    {selectedDoctor === doctor.id && (
-                                      <span className="ml-2 text-green-500 text-xs font-bold">✓ Đã chọn</span>
-                                    )}
-                                  </div>
-                                }
-                                description={
-                                  <div>
-                                    <div>{doctor.specialty || doctor.qualifications || "Chuyên khoa"}</div>
-                                    <div className="text-xs text-gray-500">
-                                      {doctor.experienceYears ? `${doctor.experienceYears} năm kinh nghiệm` : ''}
-                                      {doctor.graduationYear ? ` • Tốt nghiệp năm ${doctor.graduationYear}` : ''}
-                                    </div>
-                                  </div>
-                                }
-                              />
-                            </List.Item>
-                          )}
-                        />
-                      ) : (
-                        <Alert
-                          message="Không có bác sĩ nào có lịch trống vào ngày và ca đã chọn"
-                          description="Vui lòng chọn ngày hoặc ca khám khác."
-                          type="info"
-                          showIcon
-                        />
-                      )}
-                    </Card>
-                  </div>
                 )}
                 
                 <Divider />

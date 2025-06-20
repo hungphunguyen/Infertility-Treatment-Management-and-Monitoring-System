@@ -356,7 +356,7 @@ export const treatmentService = {
     return await fetch(
       `${
         process.env.REACT_APP_API_URL ||
-        "http://18.183.187.237/infertility-system-api"
+        "http://35.76.121.154/infertility-system-api"
       }/appointments/request-change/${appointmentId}`,
       {
         method: "PUT",
