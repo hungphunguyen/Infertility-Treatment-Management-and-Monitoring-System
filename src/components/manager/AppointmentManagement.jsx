@@ -66,6 +66,8 @@ const AppointmentManagement = () => {
         return "gold";
       case "REJECTED_CHANGE":
         return "volcano";
+      case "REJECTED":
+        return "blue";
       default:
         return "default";
     }
@@ -85,6 +87,8 @@ const AppointmentManagement = () => {
         return "Chờ duyệt đổi lịch";
       case "REJECTED_CHANGE":
         return "Từ chối đổi lịch";
+      case "REJECTED":
+        return "Đang điều trị";
       default:
         return status;
     }
@@ -246,10 +250,13 @@ const AppointmentManagement = () => {
             onChange={setStatusFilter}
             options={[
               { value: "all", label: "Tất cả trạng thái" },
-              { value: "Completed", label: "Hoàn thành" },
-              { value: "InProgress", label: "Đang thực hiện" },
-              { value: "Pending", label: "Chờ xử lý" },
-              { value: "Cancelled", label: "Đã hủy" },
+              { value: "PENDING", label: "Chờ xác nhận" },
+              { value: "CONFIRMED", label: "Đã xác nhận" },
+              { value: "COMPLETED", label: "Hoàn thành" },
+              { value: "CANCELLED", label: "Đã hủy" },
+              { value: "PENDING_CHANGE", label: "Chờ duyệt đổi lịch" },
+              { value: "REJECTED_CHANGE", label: "Từ chối đổi lịch" },
+              { value: "REJECTED", label: "Đang điều trị" },
             ]}
           />
           <Select
