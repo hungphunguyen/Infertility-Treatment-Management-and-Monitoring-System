@@ -154,6 +154,9 @@ const ProfileUpdate = () => {
             setIsEditing(false);
 
             showNotification("Cập nhật thông tin thành công", "success");
+            setTimeout(() => {
+              navigate("/");
+            }, 1000);
           } catch (err) {
             console.log(err);
             showNotification(err.response?.data?.message, "error");
