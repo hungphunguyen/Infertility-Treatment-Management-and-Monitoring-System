@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { customerService } from "../service/customer.service";
 import { treatmentService } from "../service/treatment.service";
 import { authService } from "../service/auth.service";
@@ -11,7 +11,10 @@ const PaymentPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedTreatment, setSelectedTreatment] = useState(null);
   const { showNotification } = useContext(NotificationContext);
-
+  const intervalRef = useRef(null);
+  const [countdown, setCountdown] = useState(); // 5 phút = 300s
+  const countdownIntervalRef = useRef(null);
+  const [reloadCooldown, setReloadCooldown] = useState(0);
   useEffect(() => {
     authService
       .getMyInfo()
@@ -21,6 +24,7 @@ const PaymentPage = () => {
       .catch((err) => {});
   }, []);
 
+  // hien thi danh sach record cua customer
   useEffect(() => {
     if (infoUser?.id) {
       treatmentService
@@ -34,9 +38,10 @@ const PaymentPage = () => {
     }
   }, [infoUser]);
 
+  // hien thi thong bao khi thanh toan momo
   useEffect(() => {
     if (showModal && selectedTreatment?.id) {
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         customerService
           .paymentNotificationForCustomer(selectedTreatment.id)
           .then((res) => {
@@ -47,7 +52,7 @@ const PaymentPage = () => {
               setShowModal(false);
               setQrCodeUrl("");
               setSelectedTreatment(null);
-              clearInterval(interval);
+              clearInterval(intervalRef.current);
             }
             console.log(res.data);
           })
@@ -55,23 +60,41 @@ const PaymentPage = () => {
             console.error("❌ Lỗi khi kiểm tra trạng thái thanh toán:", err);
           });
       }, 3000); // mỗi 3 giây
-
-      return () => clearInterval(interval); // dọn dẹp nếu modal đóng
     }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }; // dọn dẹp nếu modal đóng
   }, [showModal, selectedTreatment]);
 
+  // ham thanh toan momo
   const handleMomoPayment = async (recordId, treatment) => {
     try {
       const res = await customerService.paymentForCustomer(recordId);
       setQrCodeUrl(res.data.result); // dùng để hiển thị QR Code
       setSelectedTreatment(treatment);
       setShowModal(true);
+      setCountdown(300); // set thoi gian 5p cho coutdow reload momo
+      setReloadCooldown(60);
+      // ✅ Lưu vào session
+      sessionStorage.setItem(
+        "momo_payment",
+        JSON.stringify({
+          qrCodeUrl: res.data.result,
+          treatment,
+          countdown: 300,
+          reloadCooldown: 60,
+        })
+      );
     } catch (error) {
       console.log("Tạo thanh toán thất bại:", error);
       showNotification(error.response.data.message, "error");
     }
   };
 
+  // ham thanh toan vnpay
   const handleVnpayPayment = async (recordId) => {
     try {
       const res = await customerService.paymentVnpayForCustomer(recordId); // gọi GET /payment/vnpay/{recordId}
@@ -86,6 +109,93 @@ const PaymentPage = () => {
       showNotification("Thanh toán VNPAY thất bại", "error");
     }
   };
+
+  // ham cancel khi thanh toan momo
+  const handleMoMoCancel = async (recordId) => {
+    try {
+      const res = await customerService.paymentCancelForCustomer(recordId);
+      showNotification("Đã hủy thanh toán", "error");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleMoMoReload = async (recordId, treatment) => {
+    try {
+      const res = await customerService.paymentReloadForCustomer(recordId);
+      setQrCodeUrl(res.data.result); // dùng để hiển thị QR Code
+      setSelectedTreatment(treatment);
+      setReloadCooldown(60);
+      showNotification("Lấy mã thanh toán mới thành công", "success");
+    } catch (error) {
+      console.log("Tạo thanh toán thất bại:", error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (selectedTreatment?.id) {
+      handleMoMoCancel(selectedTreatment.id);
+    }
+    setShowModal(false);
+    setQrCodeUrl("");
+    setSelectedTreatment(null);
+    sessionStorage.removeItem("momo_payment"); // ✅ xóa session
+  };
+  // hàm xử lí count dow cho thanh toán momo
+  useEffect(() => {
+    if (showModal && selectedTreatment?.id) {
+      countdownIntervalRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          const next = prev - 1;
+
+          if (next <= 0) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+
+            // ✅ Check: chỉ reload khi cooldown đã xong
+            if (reloadCooldown <= 0) {
+              handleMoMoReload(selectedTreatment.id, selectedTreatment);
+              setReloadCooldown(60); // Reset cooldown luôn ở đây
+            }
+
+            return 300; // reset sau reload
+          }
+
+          return next;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+  }, [showModal, selectedTreatment]);
+  // hàm xử lí đếm ngược cho nút reload (60s)
+  useEffect(() => {
+    if (reloadCooldown > 0) {
+      const cooldownInterval = setInterval(() => {
+        setReloadCooldown((prev) => prev - 1);
+      }, 1000);
+
+      return () => clearInterval(cooldownInterval);
+    }
+  }, [reloadCooldown]);
+  // hàm xử lí dữ liệu khi đang thanh toán sẽ được lưu vào session để bảo quản không bị mất dữ liệu khi f5
+  useEffect(() => {
+    const saved = sessionStorage.getItem("momo_payment");
+    if (saved) {
+      const { qrCodeUrl, treatment, countdown, reloadCooldown } =
+        JSON.parse(saved);
+      setQrCodeUrl(qrCodeUrl);
+      setSelectedTreatment(treatment);
+      setShowModal(true);
+      setCountdown(countdown);
+      setReloadCooldown(reloadCooldown);
+    }
+  }, []);
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -150,7 +260,11 @@ const PaymentPage = () => {
       {showModal && selectedTreatment && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-          onClick={() => setShowModal(false)}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCloseModal(); // ✅ Gọi cancel luôn khi click ngoài
+            }
+          }}
         >
           <div
             className="bg-white p-6 rounded-xl shadow-xl w-[340px] max-w-[90%] text-center"
@@ -159,6 +273,14 @@ const PaymentPage = () => {
             <h3 className="text-lg font-semibold mb-2">
               🔍 Quét mã MoMo để thanh toán
             </h3>
+            <p className="text-sm text-gray-600 mt-3">
+              ⏳ Mã QR sẽ hết hạn sau:{" "}
+              <strong>
+                {Math.floor(countdown / 60)}:
+                {(countdown % 60).toString().padStart(2, "0")}
+              </strong>
+            </p>
+
             <p className="text-sm mb-1">
               👤 <strong>{infoUser?.fullName}</strong>
             </p>
@@ -173,9 +295,25 @@ const PaymentPage = () => {
                 className="w-48 h-48 object-contain"
               />
             </div>
-            <div className="mt-5 flex justify-center">
+
+            <div className="mt-5 flex justify-between">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() =>
+                  handleMoMoReload(selectedTreatment.id, selectedTreatment)
+                }
+                disabled={reloadCooldown > 0}
+                className={`px-4 py-2 rounded text-white transition ${
+                  reloadCooldown > 0
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }`}
+              >
+                {reloadCooldown > 0
+                  ? `Tải lại mã QR (${reloadCooldown}s)`
+                  : "Tải lại mã QR"}
+              </button>
+              <button
+                onClick={handleCloseModal}
                 className="5 bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700"
               >
                 Đóng

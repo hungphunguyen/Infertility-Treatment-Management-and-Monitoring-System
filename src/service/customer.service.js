@@ -34,4 +34,12 @@ export const customerService = {
   paymentVnpayForCustomer: (recordId) => {
     return http.get(`/payment/vnpay/${recordId}`);
   },
+
+  paymentReloadForCustomer: (recordId) => {
+    return http.post(`/payment/momo/reload/${recordId}`);
+  },
+
+  paymentCancelForCustomer: (recordId) => {
+    return http.delete(`/payment/cancelled/${recordId}`);
+  },
 };
