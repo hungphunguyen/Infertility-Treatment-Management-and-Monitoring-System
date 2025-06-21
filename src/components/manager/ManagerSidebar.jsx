@@ -172,7 +172,6 @@ const ManagerSidebar = ({
             borderColor: "#ff4d4f",
             color: "#fff",
             height: "40px",
-            height: "30px",
           }}
           onClick={handleLogout}
         >

@@ -150,25 +150,14 @@ const DoctorDetailPage = () => {
                 type="primary"
                 size="large"
                 className="bg-[#ff8460] hover:bg-[#ff6b40] border-none shadow"
-                onClick={() => {
-                  // Save doctor information to localStorage for later use
-                  localStorage.setItem('pendingDoctorSelection', JSON.stringify({
+                onClick={() => navigate('/register-service', { 
+                  state: { 
                     selectedDoctor: doctor.id,
                     doctorName: doctor.fullName,
                     doctorRole: doctor.roleName?.description || "Bác sĩ chuyên khoa",
-                    doctorSpecialization: doctor.specialty || doctor.qualifications,
-                    from: `/doctor/${id}`
-                  }));
-                  
-                  navigate('/register-service', { 
-                    state: { 
-                      selectedDoctor: doctor.id,
-                      doctorName: doctor.fullName,
-                      doctorRole: doctor.roleName?.description || "Bác sĩ chuyên khoa",
-                      doctorSpecialization: doctor.specialty || doctor.qualifications
-                    } 
-                  });
-                }}
+                    doctorSpecialization: doctor.specialty || doctor.qualifications
+                  } 
+                })}
               >
                 Đặt lịch khám
               </Button>
