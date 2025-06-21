@@ -77,7 +77,7 @@ const PaymentPage = () => {
       setSelectedTreatment(treatment);
       setShowModal(true);
       setCountdown(300); // set thoi gian 5p cho coutdow reload momo
-      setReloadCooldown(60);
+      setReloadCooldown(5);
       // ✅ Lưu vào session
       sessionStorage.setItem(
         "momo_payment",
@@ -125,7 +125,8 @@ const PaymentPage = () => {
       const res = await customerService.paymentReloadForCustomer(recordId);
       setQrCodeUrl(res.data.result); // dùng để hiển thị QR Code
       setSelectedTreatment(treatment);
-      setReloadCooldown(60);
+      setCountdown(300); // set thoi gian 5p cho coutdow reload momo
+      setReloadCooldown(5); // set thời gian cho nút reload mã thanh toán momo
       showNotification("Lấy mã thanh toán mới thành công", "success");
     } catch (error) {
       console.log("Tạo thanh toán thất bại:", error);
@@ -155,7 +156,7 @@ const PaymentPage = () => {
             // ✅ Check: chỉ reload khi cooldown đã xong
             if (reloadCooldown <= 0) {
               handleMoMoReload(selectedTreatment.id, selectedTreatment);
-              setReloadCooldown(60); // Reset cooldown luôn ở đây
+              setReloadCooldown(30); // Reset cooldown luôn ở đây
             }
 
             return 300; // reset sau reload
