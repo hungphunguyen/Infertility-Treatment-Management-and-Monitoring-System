@@ -12,7 +12,7 @@ const PaymentPage = () => {
   const [selectedTreatment, setSelectedTreatment] = useState(null);
   const { showNotification } = useContext(NotificationContext);
   const intervalRef = useRef(null);
-  const [countdown, setCountdown] = useState(); // 5 phút = 300s
+  const [countdown, setCountdown] = useState();
   const countdownIntervalRef = useRef(null);
   const [reloadCooldown, setReloadCooldown] = useState(0);
   useEffect(() => {
@@ -57,7 +57,7 @@ const PaymentPage = () => {
             console.log(res.data);
           })
           .catch((err) => {
-            console.error("❌ Lỗi khi kiểm tra trạng thái thanh toán:", err);
+            console.error("Lỗi khi kiểm tra trạng thái thanh toán:", err);
           });
       }, 3000); // mỗi 3 giây
     }
@@ -97,7 +97,7 @@ const PaymentPage = () => {
   // ham thanh toan vnpay
   const handleVnpayPayment = async (recordId) => {
     try {
-      const res = await customerService.paymentVnpayForCustomer(recordId); // gọi GET /payment/vnpay/{recordId}
+      const res = await customerService.paymentVnpayForCustomer(recordId);
       const paymentUrl = res.data.result;
       if (paymentUrl) {
         window.location.href = paymentUrl; // chuyển hướng sang trang VNPAY
@@ -199,7 +199,7 @@ const PaymentPage = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">📋 Danh sách dịch vụ của bạn</h2>
+      <h2 className="text-2xl font-bold mb-4"> Danh sách dịch vụ của bạn</h2>
 
       {treatmentList.length === 0 ? (
         <p className="text-gray-600">Không có dịch vụ nào.</p>
@@ -271,10 +271,10 @@ const PaymentPage = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-semibold mb-2">
-              🔍 Quét mã MoMo để thanh toán
+              Quét mã MoMo để thanh toán
             </h3>
             <p className="text-sm text-gray-600 mt-3">
-              ⏳ Mã QR sẽ hết hạn sau:{" "}
+              Mã QR sẽ hết hạn sau:{" "}
               <strong>
                 {Math.floor(countdown / 60)}:
                 {(countdown % 60).toString().padStart(2, "0")}
@@ -282,10 +282,10 @@ const PaymentPage = () => {
             </p>
 
             <p className="text-sm mb-1">
-              👤 <strong>{infoUser?.fullName}</strong>
+              <strong>{infoUser?.fullName}</strong>
             </p>
             <p className="text-sm mb-4">
-              💼 {selectedTreatment.treatmentServiceName}
+              {selectedTreatment.treatmentServiceName}
             </p>
 
             <div className="inline-block  border-4 border-pink-500 rounded-lg p-2 bg-white">

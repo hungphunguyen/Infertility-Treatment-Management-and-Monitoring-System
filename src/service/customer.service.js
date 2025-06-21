@@ -32,7 +32,7 @@ export const customerService = {
   },
 
   paymentVnpayForCustomer: (recordId) => {
-    return http.get(`/payment/vnpay/${recordId}`);
+    return http.post(`/payment/vnpay/create/${recordId}`);
   },
 
   paymentReloadForCustomer: (recordId) => {
