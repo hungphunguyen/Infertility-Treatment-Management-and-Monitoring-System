@@ -119,7 +119,7 @@ const BlogDetailPage = () => {
                 <div>
                   <Text strong className="block text-lg">{blogPost.authorName}</Text>
                   <Text type="secondary" className="flex items-center">
-                    <CalendarOutlined className="mr-2" /> {dayjs(blogPost.createdAt).format("DD THÁNG MM, YYYY HH:mm")}
+                    <CalendarOutlined className="mr-2" /> {dayjs(blogPost.createdAt).format("DD MMMM, YYYY HH:mm")}
                   </Text>
                 </div>
               </div>
@@ -170,7 +170,7 @@ const BlogDetailPage = () => {
                             title={item.title} 
                             description={
                               <Space direction="vertical">
-                                <Text type="secondary">{dayjs(item.createdAt).format("DD THÁNG MM, YYYY")}</Text>
+                                <Text type="secondary">{dayjs(item.createdAt).format("DD MMMM, YYYY")}</Text>
                                 <Button 
                                   type="text" 
                                   icon={<RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />}
