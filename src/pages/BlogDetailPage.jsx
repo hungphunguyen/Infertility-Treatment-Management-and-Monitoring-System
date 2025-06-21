@@ -130,9 +130,7 @@ const BlogDetailPage = () => {
                   </Text>
                   <Text type="secondary" className="flex items-center">
                     <CalendarOutlined className="mr-2" />{" "}
-                    {dayjs(blogPost.createdAt).format(
-                      "DD THÁNG MM, YYYY HH:mm"
-                    )}
+                    {dayjs(blogPost.createdAt).format("DD/MM/YYYY")}
                   </Text>
                 </div>
               </div>
