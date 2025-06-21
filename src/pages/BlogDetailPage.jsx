@@ -1,7 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Typography, Row, Col, Divider, Tag, Card, Avatar, Button, Space, List, message } from "antd";
-import { CalendarOutlined, UserOutlined, TagOutlined, ClockCircleOutlined, RightOutlined } from "@ant-design/icons";
+import {
+  Typography,
+  Row,
+  Col,
+  Divider,
+  Tag,
+  Card,
+  Avatar,
+  Button,
+  Space,
+  List,
+  message,
+} from "antd";
+import {
+  CalendarOutlined,
+  UserOutlined,
+  TagOutlined,
+  ClockCircleOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { blogService } from "../service/blog.service";
@@ -74,30 +92,39 @@ const BlogDetailPage = () => {
   return (
     <div className="min-h-screen">
       <UserHeader />
-      
+
       {/* Hero Banner */}
       <div className="relative h-[400px] w-full overflow-hidden">
-        <img 
-          src={blogPost.coverImageUrl || "/images/default-blog.jpg"} 
-          alt={blogPost.title} 
+        <img
+          src={blogPost.coverImageUrl || "/images/default-blog.jpg"}
+          alt={blogPost.title}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center max-w-4xl px-4">
             <div className="flex justify-center items-center mb-4">
-              <Tag color="#ff8460" className="text-white px-3 py-1 mr-2">{blogPost.category}</Tag>
+              <Tag color="#ff8460" className="text-white px-3 py-1 mr-2">
+                {blogPost.category}
+              </Tag>
               <span className="text-white flex items-center">
-                <ClockCircleOutlined className="mr-1" />{blogPost.readTime || "5 phút đọc"}
+                <ClockCircleOutlined className="mr-1" />
+                {blogPost.readTime || "5 phút đọc"}
               </span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{blogPost.title}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              {blogPost.title}
+            </h1>
             <div className="flex items-center justify-center text-white text-sm">
               <span className="mx-2">TRANG CHỦ</span>
-              <span className="mx-2">{'>'}</span>
+              <span className="mx-2">{">"}</span>
               <span className="mx-2">BLOG</span>
-              <span className="mx-2">{'>'}</span>
-              <span className="mx-2">{blogPost.category ? blogPost.category.toUpperCase() : "KHÔNG XÁC ĐỊNH"}</span>
+              <span className="mx-2">{">"}</span>
+              <span className="mx-2">
+                {blogPost.category
+                  ? blogPost.category.toUpperCase()
+                  : "KHÔNG XÁC ĐỊNH"}
+              </span>
             </div>
           </div>
         </div>
@@ -110,16 +137,19 @@ const BlogDetailPage = () => {
             <Col xs={24} lg={16}>
               {/* Author Info */}
               <div className="flex items-center mb-8">
-                <Avatar 
-                  src={blogPost.authorImage || "/images/default-avatar.jpg"} 
-                  size={64} 
-                  icon={<UserOutlined />} 
+                <Avatar
+                  src={blogPost.authorImage || "/images/default-avatar.jpg"}
+                  size={64}
+                  icon={<UserOutlined />}
                   className="mr-4"
                 />
                 <div>
-                  <Text strong className="block text-lg">{blogPost.authorName}</Text>
+                  <Text strong className="block text-lg">
+                    {blogPost.authorName}
+                  </Text>
                   <Text type="secondary" className="flex items-center">
-                    <CalendarOutlined className="mr-2" /> {dayjs(blogPost.createdAt).format("DD THÁNG MM, YYYY HH:mm")}
+                    <CalendarOutlined className="mr-2" />{" "}
+                    {dayjs(blogPost.createdAt).format("DD/MM/YYYY")}
                   </Text>
                 </div>
               </div>
@@ -129,12 +159,18 @@ const BlogDetailPage = () => {
                 <Paragraph className="text-lg font-medium mb-8">
                   {blogPost.summary}
                 </Paragraph>
-                
-                {blogPost.content && blogPost.content.split('\n').map((paragraph, index) => ( // Assuming content is a single string with \n for new lines
-                  <Paragraph key={index} className="text-gray-700 mb-6">
-                    {paragraph}
-                  </Paragraph>
-                ))}
+
+                {blogPost.content &&
+                  blogPost.content.split("\n").map(
+                    (
+                      paragraph,
+                      index // Assuming content is a single string with \n for new lines
+                    ) => (
+                      <Paragraph key={index} className="text-gray-700 mb-6">
+                        {paragraph}
+                      </Paragraph>
+                    )
+                  )}
               </div>
 
               {/* Tags */}
@@ -143,7 +179,9 @@ const BlogDetailPage = () => {
                   <Space size={[0, 8]} wrap>
                     <TagOutlined className="mr-1 text-gray-500" />
                     {blogPost.tags.map((tag, index) => (
-                      <Tag key={index} color="blue">{tag}</Tag>
+                      <Tag key={index} color="blue">
+                        {tag}
+                      </Tag>
                     ))}
                   </Space>
                 </div>
@@ -151,35 +189,51 @@ const BlogDetailPage = () => {
 
               {/* Share */}
               <Divider />
-              
+
               {/* Related Posts - Mobile View and Desktop View (adjust data source if needed) */}
               <div className="mb-10">
-                <Title level={4} className="mb-6">Bài Viết Liên Quan</Title>
+                <Title level={4} className="mb-6">
+                  Bài Viết Liên Quan
+                </Title>
                 <List
                   grid={{ gutter: 16, xs: 1, sm: 2 }} // Can reuse for mobile and desktop for simplicity for now
                   dataSource={blogPost.relatedPosts || []} // Assuming backend provides relatedPosts
-                  renderItem={item => (
+                  renderItem={(item) => (
                     <List.Item>
-                      <Link to={`/blog/${item.id}`}> {/* Link to related blog using ID */}
-                        <Card 
-                          hoverable 
-                          cover={<img alt={item.title} src={item.coverImageUrl || "/images/default-blog.jpg"} className="h-48 object-cover" />}
+                      <Link to={`/blog/${item.id}`}>
+                        {" "}
+                        {/* Link to related blog using ID */}
+                        <Card
+                          hoverable
+                          cover={
+                            <img
+                              alt={item.title}
+                              src={
+                                item.coverImageUrl || "/images/default-blog.jpg"
+                              }
+                              className="h-48 object-cover"
+                            />
+                          }
                           className="border border-gray-200"
                         >
-                          <Card.Meta 
-                            title={item.title} 
+                          <Card.Meta
+                            title={item.title}
                             description={
                               <Space direction="vertical">
-                                <Text type="secondary">{dayjs(item.createdAt).format("DD THÁNG MM, YYYY")}</Text>
-                                <Button 
-                                  type="text" 
-                                  icon={<RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />}
+                                <Text type="secondary">
+                                  {dayjs(item.createdAt).format("DD/MM/YYYY")}
+                                </Text>
+                                <Button
+                                  type="text"
+                                  icon={
+                                    <RightOutlined className="bg-[#ff8460] text-white rounded-full p-1 mr-2" />
+                                  }
                                   className="text-[#ff8460] hover:text-[#ff6b40] px-0"
                                 >
                                   Đọc Thêm
                                 </Button>
                               </Space>
-                            } 
+                            }
                           />
                         </Card>
                       </Link>
@@ -192,19 +246,20 @@ const BlogDetailPage = () => {
             {/* Sidebar */}
             <Col xs={24} lg={8}>
               {/* Subscribe */}
-              <Card 
-                title="Đăng Ký" 
+              <Card
+                title="Đăng Ký"
                 className="border border-gray-200"
-                headStyle={{ borderBottom: '2px solid #ff8460' }}
+                headStyle={{ borderBottom: "2px solid #ff8460" }}
               >
                 <Paragraph>
-                  Nhận các bài viết và thông tin mới nhất từ các chuyên gia sinh sản của chúng tôi
+                  Nhận các bài viết và thông tin mới nhất từ các chuyên gia sinh
+                  sản của chúng tôi
                 </Paragraph>
                 <div className="mt-4">
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     className="w-full bg-[#ff8460] hover:bg-[#ff6b40] border-none"
-                    onClick={() => navigate('/contacts')}
+                    onClick={() => navigate("/contacts")}
                   >
                     Liên Hệ Với Chúng Tôi
                   </Button>
@@ -214,7 +269,7 @@ const BlogDetailPage = () => {
           </Row>
         </div>
       </div>
-      
+
       <UserFooter />
     </div>
   );
