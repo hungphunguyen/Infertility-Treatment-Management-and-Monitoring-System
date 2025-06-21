@@ -3,6 +3,7 @@ export const path = {
   pageNotFound: "*",
   signUp: "/sign-up",
   signIn: "/sign-in",
+  testLogin: "/dang-nhap",
   verify: "/verify-otp",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",

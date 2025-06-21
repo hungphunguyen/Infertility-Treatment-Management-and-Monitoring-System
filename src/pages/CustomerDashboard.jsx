@@ -17,6 +17,7 @@ import { authService } from "../service/auth.service";
 import { NotificationContext } from "../App";
 import { useSelector } from "react-redux";
 import CustomerBlogManagement from "../components/blog/CustomerBlogManagement";
+import VnpayReturn from "./VnpayReturn";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -202,6 +203,7 @@ const CustomerDashboard = () => {
             <Route path="feedback" element={<Feedback />} />
             <Route path="medical-record" element={<MedicalRecord />} />
             <Route path="payment" element={<Payment />} />
+            <Route path="payment/vnpay/return" element={<VnpayReturn />} />
             <Route path="update-profile" element={<UpdateProfile />} />
             <Route path="my-blogs" element={<CustomerBlogManagement />} />
           </Routes>

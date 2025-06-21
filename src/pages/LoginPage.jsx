@@ -12,6 +12,7 @@ import GoogleLogin from "../components/GoogleLogin";
 import { NotificationContext } from "../App";
 import { useDispatch } from "react-redux";
 import { setToken } from "../redux/authSlice";
+import PulleyAnimation from "./PulleyAnimation";
 const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -44,11 +45,11 @@ const LoginPage = () => {
 
             // thực hiên thông báo chuyển hướng người dùng
             showNotification("Đăng nhập thành công", "success");
-            
+
             // Kiểm tra xem có URL redirect không
-            const redirectUrl = localStorage.getItem('redirectAfterLogin');
+            const redirectUrl = localStorage.getItem("redirectAfterLogin");
             if (redirectUrl) {
-              localStorage.removeItem('redirectAfterLogin'); // Xóa URL redirect
+              localStorage.removeItem("redirectAfterLogin"); // Xóa URL redirect
               setTimeout(() => {
                 navigate(redirectUrl);
               }, 1000);
@@ -82,92 +83,107 @@ const LoginPage = () => {
     });
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-r from-red-700 to-orange-600 overflow-hidden">
-      {/* Lớp phủ glass effect */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-0" />
-
-      <div className="relative z-10 flex flex-col items-center text-white w-full max-w-md px-6 py-12 bg-white/10 backdrop-blur-md rounded-xl shadow-2xl">
-        {/* Logo + Title */}
-        <div className="mb-6 flex flex-col items-center">
-          <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center mb-2 shadow-md">
-            <span className="text-orange-500 font-bold text-2xl">⬢</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-white">Đăng nhập</h1>
+    <div className="min-h-screen w-full flex items-center justify-center bg-orange-100 relative overflow-hidden">
+      {/* Container */}
+      <div className="flex flex-col md:flex-row w-full max-w-5xl bg-orange-50 text-gray-800 rounded-xl overflow-hidden shadow-xl z-10">
+        {/* Left animation */}
+        <div className="hidden md:block md:w-1/2">
+          <PulleyAnimation />
         </div>
 
-        {/* Form */}
-        <form className="w-full space-y-5" onSubmit={handleSubmit}>
-          {/* Username */}
-          <div className="relative">
-            <span className="absolute inset-y-0 left-3 flex items-center text-orange-600">
-              <i className="fas fa-user"></i>
-            </span>
-            <InputCustom
-              name="username"
-              onChange={handleChange}
-              value={values.username}
-              placeholder="Vui lòng nhập tài khoản"
-              labelContent={null}
-              error={errors.username}
-              touched={touched.username}
-              onBlur={handleBlur}
-              className="pl-10 bg-orange-200 text-black"
-            />
+        {/* Right form */}
+        <div className="w-full md:w-1/2 px-8 py-12 text-gray-800 flex flex-col justify-center">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center mb-2 ring-2 ring-orange-400 shadow-lg">
+              <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+                <img
+                  src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
+                  alt="Logo"
+                  className="w-10 h-10 object-contain"
+                />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold">Chào mừng đến đây</h2>
+            <p className="text-sm text-gray-500">
+              Vui lòng đăng nhập để tiếp tục
+            </p>
           </div>
 
-          {/* Password */}
-          <div className="relative">
-            <span className="absolute inset-y-0 left-3 flex items-center text-orange-600">
-              <i className="fas fa-lock"></i>
-            </span>
-            <InputCustom
-              name="password"
-              onChange={handleChange}
-              value={values.password}
-              placeholder="Vui lòng nhập mật khẩu"
-              labelContent={null}
-              typeInput="password"
-              error={errors.password}
-              touched={touched.password}
-              onBlur={handleBlur}
-              className="pl-10 bg-orange-200 text-black"
-            />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Username */}
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-500">
+                <i className="fas fa-user" />
+              </span>
+              <InputCustom
+                name="username"
+                value={values.username}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.username}
+                error={errors.username}
+                placeholder="Tài khoản"
+                labelContent={null}
+                className="pl-10 bg-white/90 text-black"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-500">
+                <i className="fas fa-lock" />
+              </span>
+              <InputCustom
+                name="password"
+                value={values.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.password}
+                error={errors.password}
+                placeholder="Mật khẩu"
+                typeInput="password"
+                labelContent={null}
+                className="pl-10 bg-white/90 text-black"
+              />
+            </div>
+
+            <div className="text-right text-sm">
+              <Link
+                to={path.forgotPassword}
+                className="text-orange-500 hover:underline"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2 bg-orange-600 hover:brightness-110 hover:scale-[1.02] transition-all duration-200 ease-in-out rounded-md text-white font-semibold"
+            >
+              Đăng nhập
+            </button>
+          </form>
+
+          <div className="my-5 text-sm flex items-center gap-4">
+            <hr className="flex-grow border-white/30" />
+            <span className="text-white/70">Hoặc</span>
+            <hr className="flex-grow border-white/30" />
           </div>
 
-          {/* Remember + Forgot */}
-          <div className="flex justify-between text-sm text-white">
-            <Link to={path.forgotPassword} className="hover:underline">
-              Quên mật khẩu?
+          <GoogleLogin />
+
+          <div className="text-center text-sm mt-6">
+            Chưa có tài khoản?{" "}
+            <Link to={path.signUp} className="text-orange-300 hover:underline">
+              Đăng ký ngay
             </Link>
           </div>
 
-          {/* Login Button */}
-          <button
-            type="submit"
-            className="w-full py-2 rounded bg-[#7c2d12] hover:bg-[#5a1f0e] text-white font-semibold transition duration-300"
-          >
-            Đăng nhập
-          </button>
-        </form>
-
-        {/* Divider */}
-        <div className="my-6 w-full border-t border-orange-300 text-center text-sm text-white relative">
-          <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-white/10 px-2 backdrop-blur">
-            Hoặc đăng nhập với
-          </span>
-        </div>
-
-        {/* Google Login */}
-        <div className="flex justify-center">
-          <GoogleLogin />
-        </div>
-
-        {/* Sign up */}
-        <div className="mt-6 text-sm text-white">
-          Không có tài khoản?{" "}
-          <Link to={path.signUp} className="underline hover:text-orange-100">
-            Đăng kí
-          </Link>
+          {isResend && (
+            <div className="mt-4 text-yellow-300 text-center text-sm">
+              Nếu bạn muốn xác nhận OTP lại, hãy nhấn vào đây.
+            </div>
+          )}
         </div>
       </div>
     </div>
