@@ -279,13 +279,56 @@ const RegisterService = () => {
   };
 
   useEffect(() => {
-    // If a doctor was selected from the doctor's page, set the form field
+    // If a doctor was selected from the doctor's page, set the form field and fetch their schedule
     if (initialSelectedDoctor) {
-      console.log("Debug - initialSelectedDoctor:", initialSelectedDoctor, typeof initialSelectedDoctor);
-      setSelectedDoctor(initialSelectedDoctor);
-      form.setFieldsValue({
-        doctor: initialSelectedDoctor
-      });
+      console.log("🔍 Initial doctor selection detected:", initialSelectedDoctor);
+      console.log("🔍 Doctor name:", doctorName);
+      console.log("🔍 Doctor role:", doctorRole);
+      console.log("🔍 Doctor specialization:", doctorSpecialization);
+      
+      // We need to call the same logic as onDoctorChange
+      const fetchInitialDoctorSchedule = async (doctorId) => {
+        if (!doctorId) return;
+
+        console.log("🔍 Fetching schedule for doctor ID:", doctorId);
+
+        // Set the selected doctor in state and form
+        setSelectedDoctor(doctorId);
+        form.setFieldsValue({ doctor: doctorId });
+
+        // Show loading state for schedule
+        setScheduleLoading(true);
+        setDoctorSchedule(null);
+        setShowDoctorSchedule(false);
+
+        try {
+          // Call API to get doctor schedule
+          const response = await doctorService.getDoctorScheduleById(doctorId);
+          console.log("🔍 Doctor Schedule API Response:", response);
+          console.log("🔍 Response data:", response.data);
+          console.log("🔍 Response result:", response.data?.result);
+          
+          if (response.data && response.data.result) {
+            console.log("✅ Setting doctor schedule:", response.data.result);
+            setDoctorSchedule(response.data.result);
+            setShowDoctorSchedule(true);
+          } else {
+            console.log("❌ No schedule data found");
+            // No schedule found or error
+            setDoctorSchedule(null);
+            setShowDoctorSchedule(false);
+          }
+        } catch (error) {
+          console.error("❌ Error fetching doctor schedule:", error);
+          // Handle error if schedule fetching fails
+          setDoctorSchedule(null);
+          setShowDoctorSchedule(false);
+        } finally {
+          setScheduleLoading(false);
+        }
+      };
+
+      fetchInitialDoctorSchedule(initialSelectedDoctor);
     }
     
     // If a service was selected from the service detail page, set the form field
@@ -295,6 +338,13 @@ const RegisterService = () => {
       });
     }
   }, [initialSelectedDoctor, selectedService, form]);
+
+  // Debug useEffect to monitor schedule state changes
+  useEffect(() => {
+    console.log("🔍 State Debug - showDoctorSchedule:", showDoctorSchedule);
+    console.log("🔍 State Debug - doctorSchedule:", doctorSchedule);
+    console.log("🔍 State Debug - scheduleLoading:", scheduleLoading);
+  }, [showDoctorSchedule, doctorSchedule, scheduleLoading]);
 
   // Add function to check doctor availability
   const checkDoctorAvailability = async (date, shift) => {
@@ -313,19 +363,74 @@ const RegisterService = () => {
       const response = await doctorService.getAvailableDoctors(formattedDate, formattedShift);
       
       if (response && response.data && response.data.result) {
-        setAvailableDoctors(Array.isArray(response.data.result) ? response.data.result : [response.data.result]);
+        const availableDoctorsData = Array.isArray(response.data.result) ? response.data.result : [response.data.result];
+        setAvailableDoctors(availableDoctorsData);
         setAvailabilityChecked(true);
+        
+        // Update the doctors dropdown with only available doctors
+        const mappedAvailableDoctors = availableDoctorsData.map(doctor => ({
+          value: doctor.id,
+          label: `${doctor.fullName || "Bác sĩ"} - ${doctor.qualifications || "Chuyên khoa"}`,
+          specialty: doctor.qualifications || "Chuyên khoa"
+        }));
+        
+        // If there's an initially selected doctor, make sure they're included
+        if (initialSelectedDoctor && !availableDoctorsData.find(d => d.id === initialSelectedDoctor)) {
+          // Find the initially selected doctor from the original doctors list
+          const originalDoctors = await fetchOriginalDoctors();
+          const selectedDoctor = originalDoctors.find(d => d.value === initialSelectedDoctor);
+          if (selectedDoctor) {
+            mappedAvailableDoctors.unshift(selectedDoctor);
+          }
+        }
+        
+        // Add "No selection" option
+        mappedAvailableDoctors.push({ value: "", label: "Không chọn - Bác sĩ có sẵn", specialty: "Tổng quát" });
+        
+        // Update the doctors state with only available doctors
+        setDoctors(mappedAvailableDoctors);
       } else {
         setAvailableDoctors([]);
         setAvailabilityChecked(true);
+        
+        // If no doctors available, show empty list with "No selection" option
+        setDoctors([{ value: "", label: "Không có bác sĩ có lịch trống - Vui lòng chọn ngày/ca khác", specialty: "Tổng quát" }]);
       }
     } catch (error) {
       console.error("Error checking doctor availability:", error);
       setAvailableDoctors([]);
       setAvailabilityChecked(true);
+      
+      // On error, show empty list with "No selection" option
+      setDoctors([{ value: "", label: "Không thể tải danh sách bác sĩ - Vui lòng thử lại", specialty: "Tổng quát" }]);
     } finally {
       setCheckingAvailability(false);
     }
+  };
+
+  // Helper function to fetch original doctors list
+  const fetchOriginalDoctors = async () => {
+    try {
+      const response = await doctorService.getAllDoctors();
+      
+      if (response && response.data && response.data.result) {
+        let doctorsData = Array.isArray(response.data.result) 
+          ? response.data.result 
+          : [response.data.result];
+        
+        // Map API data to the format needed for Select options
+        const mappedDoctors = doctorsData.map(doctor => ({
+          value: doctor.id,
+          label: `${doctor.fullName || "Bác sĩ"} - ${doctor.qualifications || "Chuyên khoa"}`,
+          specialty: doctor.qualifications || "Chuyên khoa"
+        }));
+        
+        return mappedDoctors;
+      }
+    } catch (error) {
+      console.error("Error fetching original doctors:", error);
+    }
+    return [];
   };
 
   // Add effect to check availability when date or shift changes
@@ -337,6 +442,8 @@ const RegisterService = () => {
       checkDoctorAvailability(appointmentDate, shift);
     } else {
       setAvailabilityChecked(false);
+      // Reset doctors list to original state when no date/shift selected
+      fetchDoctors();
     }
   }, [form.getFieldValue('appointmentDate'), form.getFieldValue('shift')]);
 
@@ -347,6 +454,8 @@ const RegisterService = () => {
       checkDoctorAvailability(date, shift);
     } else {
       setAvailabilityChecked(false);
+      // Reset doctors list to original state when no date/shift selected
+      fetchDoctors();
     }
   };
 
@@ -356,39 +465,50 @@ const RegisterService = () => {
       checkDoctorAvailability(appointmentDate, value);
     } else {
       setAvailabilityChecked(false);
+      // Reset doctors list to original state when no date/shift selected
+      fetchDoctors();
     }
   };
 
   // Modify onDoctorChange to check if doctor is available
   const onDoctorChange = async (value) => {
-    console.log("Debug - doctor changed to:", value, typeof value);
-    
-    // Clear previous doctor not available status
+    setSelectedDoctor(value);
     setDoctorNotAvailable(false);
-    setShowDoctorSchedule(false);
-    setDoctorSchedule(null);
     setAvailableDoctors([]);
     setAvailabilityChecked(false);
     
     if (!value || value === "") {
       // If user selects "No doctor" option
-      setSelectedDoctor(null);
       form.setFieldsValue({ doctor: null });
+      setShowDoctorSchedule(false);
+      setDoctorSchedule(null);
       return;
     }
     
-    setSelectedDoctor(value);
-    
-    // Fetch doctor schedule when a doctor is selected
+    // Fetch doctor schedule when a doctor is selected, same logic as initial fetch
+    setScheduleLoading(true);
+    setDoctorSchedule(null);
+    setShowDoctorSchedule(false);
+
     try {
-      setScheduleLoading(true);
       const response = await doctorService.getDoctorScheduleById(value);
-      if (response?.data?.code === 1000 && response.data.result) {
+      console.log("🔍 onDoctorChange - API Response:", response);
+      console.log("🔍 onDoctorChange - Response data:", response.data);
+      console.log("🔍 onDoctorChange - Response result:", response.data?.result);
+      
+      if (response.data && response.data.result) {
+        console.log("✅ onDoctorChange - Setting doctor schedule:", response.data.result);
         setDoctorSchedule(response.data.result);
         setShowDoctorSchedule(true);
+      } else {
+        console.log("❌ onDoctorChange - No schedule data found");
+        setDoctorSchedule(null);
+        setShowDoctorSchedule(false);
       }
     } catch (error) {
-      console.error("Error fetching doctor schedule:", error);
+      console.error("❌ onDoctorChange - Error fetching doctor schedule:", error);
+      setDoctorSchedule(null);
+      setShowDoctorSchedule(false);
     } finally {
       setScheduleLoading(false);
     }
@@ -400,7 +520,6 @@ const RegisterService = () => {
       appointmentDate: dayjs(date),
       shift: shift.toLowerCase()
     });
-    showNotification(`Đã chọn ngày ${dayjs(date).format('DD/MM/YYYY')} - Ca ${shift === 'MORNING' ? 'Sáng' : 'Chiều'}`, 'success');
   };
 
   // Add a more comprehensive error handler that also shows more info to the user in this scenario
@@ -941,10 +1060,6 @@ const RegisterService = () => {
                                     });
                                     
                                     setDoctorNotAvailable(false);
-                                    
-                                    // Show notification when doctor is selected
-                                    const doctorName = doctor.fullName || "Bác sĩ";
-                                    showNotification(`Đã chọn ${doctorName} làm bác sĩ điều trị`, "success");
                                     
                                     // Scroll to the doctor field to show the selection
                                     form.scrollToField('doctor');
