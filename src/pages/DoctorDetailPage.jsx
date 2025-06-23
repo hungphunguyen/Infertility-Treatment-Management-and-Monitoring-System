@@ -140,10 +140,10 @@ const DoctorDetailPage = () => {
               <div className="mb-2 flex items-center"><UserOutlined className="mr-2 text-orange-400" /> <span className="font-semibold mr-1">Chuyên khoa:</span> <span>{doctor.specialty || "Chưa cập nhật"}</span></div>
               <div className="mb-2 flex items-center"><MailOutlined className="mr-2 text-orange-400" /> <span className="font-semibold mr-1">Email:</span> <span>{doctor.email || "Chưa cập nhật"}</span></div>
               <div className="mb-2 flex items-center"><PhoneOutlined className="mr-2 text-orange-400" /> <span className="font-semibold mr-1">Số điện thoại:</span> <span>{doctor.phoneNumber || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">🎓</span> <span className="font-semibold mr-1">Bằng cấp:</span> <span>{doctor.qualifications || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">📅</span> <span className="font-semibold mr-1">Năm tốt nghiệp:</span> <span>{doctor.graduationYear || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">📍</span> <span className="font-semibold mr-1">Địa chỉ:</span> <span>{doctor.address || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">💼</span> <span className="font-semibold mr-1">Kinh nghiệm:</span> <span>{doctor.experienceYears ? `${doctor.experienceYears} năm kinh nghiệm` : "Chưa cập nhật"}</span></div>
+              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400"></span> <span className="font-semibold mr-1">Bằng cấp:</span> <span>{doctor.qualifications || "Chưa cập nhật"}</span></div>
+              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400"></span> <span className="font-semibold mr-1">Năm tốt nghiệp:</span> <span>{doctor.graduationYear || "Chưa cập nhật"}</span></div>
+              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400"></span> <span className="font-semibold mr-1">Địa chỉ:</span> <span>{doctor.address || "Chưa cập nhật"}</span></div>
+              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400"></span> <span className="font-semibold mr-1">Kinh nghiệm:</span> <span>{doctor.experienceYears ? `${doctor.experienceYears} năm kinh nghiệm` : "Chưa cập nhật"}</span></div>
             </Col>
             <Col xs={24} md={4} className="flex flex-col items-center justify-center">
               <Button
