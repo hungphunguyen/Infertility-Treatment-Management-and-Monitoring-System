@@ -13,10 +13,16 @@ import {
   message,
 } from "antd";
 import { treatmentService } from "../../service/treatment.service";
+import { 
+  UserOutlined, 
+  CalendarOutlined,
+  FileTextOutlined,
+  MedicineBoxOutlined
+} from "@ant-design/icons";
 import dayjs from "dayjs";
 import { http } from "../../service/config";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 const AppointmentManagement = () => {
@@ -101,25 +107,25 @@ const AppointmentManagement = () => {
     if (searchText.trim()) {
       const lower = searchText.toLowerCase();
       filtered = filtered.filter(
-        (app) =>
-          (app.customerName &&
-            app.customerName.toLowerCase().includes(lower)) ||
-          (app.doctorName && app.doctorName.toLowerCase().includes(lower)) ||
-          (app.treatmentServiceName &&
-            app.treatmentServiceName.toLowerCase().includes(lower)) ||
-          (app.id && app.id.toString().includes(lower))
+        (appointment) =>
+          (appointment.customerName &&
+            appointment.customerName.toLowerCase().includes(lower)) ||
+          (appointment.doctorName && appointment.doctorName.toLowerCase().includes(lower)) ||
+          (appointment.purpose &&
+            appointment.purpose.toLowerCase().includes(lower)) ||
+          (appointment.id && appointment.id.toString().includes(lower))
       );
     }
 
     // Lọc theo trạng thái
     if (statusFilter !== "all") {
-      filtered = filtered.filter((app) => app.status === statusFilter);
+      filtered = filtered.filter((appointment) => appointment.status === statusFilter);
     }
 
     // Lọc theo dịch vụ/bước điều trị
     if (serviceFilter !== "all") {
-      filtered = filtered.filter((app) =>
-        (app.treatmentServiceName || "").includes(serviceFilter)
+      filtered = filtered.filter((appointment) =>
+        (appointment.serviceName || "").includes(serviceFilter)
       );
     }
 
@@ -128,113 +134,91 @@ const AppointmentManagement = () => {
 
   const columns = [
     {
-      title: "Khách hàng",
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      width: 80,
+      render: (id) => <Tag color="blue">{id}</Tag>
+    },
+    {
+      title: "Bệnh nhân",
       dataIndex: "customerName",
       key: "customerName",
-      width: 200,
+      width: 150,
+      render: (name) => (
+        <Space>
+          <UserOutlined style={{ color: '#1890ff' }} />
+          <Text strong>{name}</Text>
+        </Space>
+      )
     },
     {
       title: "Bác sĩ",
       dataIndex: "doctorName",
       key: "doctorName",
+      width: 150,
+      render: (name) => (
+        <Space>
+          <UserOutlined style={{ color: '#722ed1' }} />
+          <Text>{name}</Text>
+        </Space>
+      )
+    },
+    {
+      title: "Mục đích",
+      dataIndex: "purpose",
+      key: "purpose",
       width: 200,
+      render: (text) => (
+        <Space>
+          <MedicineBoxOutlined style={{ color: '#722ed1' }} />
+          <Text>{text}</Text>
+        </Space>
+      )
     },
     {
-      title: "Dịch vụ điều trị",
-      dataIndex: "treatmentServiceName",
-      key: "treatmentServiceName",
-      width: 300,
+      title: "Ngày hẹn",
+      dataIndex: "appointmentDate",
+      key: "appointmentDate",
+      width: 120,
+      render: (date) => (
+        <Space>
+          <CalendarOutlined />
+          {dayjs(date).format("DD/MM/YYYY")}
+        </Space>
+      )
     },
     {
-      title: "Ngày bắt đầu",
-      dataIndex: "startDate",
-      key: "startDate",
-      width: 150,
-      render: (date) => dayjs(date).format("DD/MM/YYYY"),
-    },
-    {
-      title: "Ngày kết thúc",
-      dataIndex: "endDate",
-      key: "endDate",
-      width: 150,
-      render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "Chưa có"),
+      title: "Ca khám",
+      dataIndex: "shift",
+      key: "shift",
+      width: 100,
+      render: (shift) => (
+        <Tag color="cyan">
+          {shift === "MORNING" ? "Sáng" : shift === "AFTERNOON" ? "Chiều" : shift}
+        </Tag>
+      )
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      width: 150,
+      width: 120,
       render: (status) => (
         <Tag color={getStatusColor(status)}>{getStatusText(status)}</Tag>
-      ),
-    },
-    {
-      title: "Ngày tạo",
-      dataIndex: "createdDate",
-      key: "createdDate",
-      width: 150,
-      render: (date) => dayjs(date).format("DD/MM/YYYY"),
-    },
-    {
-      title: "Hành động",
-      key: "action",
-      width: 200,
-      render: (_, record) => (
-        <Space>
-          {record.status === "PENDING" && (
-            <>
-              <Button
-                type="primary"
-                size="small"
-                onClick={() => handleUpdateStatus(record.id, "CONFIRMED")}
-              >
-                Duyệt
-              </Button>
-              <Button
-                danger
-                size="small"
-                onClick={() => handleUpdateStatus(record.id, "CANCELLED")}
-              >
-                Hủy
-              </Button>
-            </>
-          )}
-          {record.status === "CONFIRMED" && (
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => handleUpdateStatus(record.id, "COMPLETED")}
-            >
-              Hoàn thành
-            </Button>
-          )}
-        </Space>
-      ),
-    },
-  ];
-
-  const handleUpdateStatus = async (appointmentId, newStatus) => {
-    try {
-      setLoading(true);
-      const response = await treatmentService.updateAppointmentStatus(appointmentId, newStatus);
-      if (response?.data?.code === 1000) {
-        message.success(`Cập nhật trạng thái thành công!`);
-        fetchAppointments(); // Refresh data
-      } else {
-        message.error(response?.data?.message || "Cập nhật trạng thái thất bại!");
-      }
-    } catch (error) {
-      console.error("Error updating appointment status:", error);
-      message.error("Có lỗi xảy ra khi cập nhật trạng thái!");
-    } finally {
-      setLoading(false);
+      )
     }
-  };
+  ];
 
   return (
     <div style={{ padding: "24px" }}>
       <Card>
-        <Title level={4}>Quản lý lịch hẹn điều trị</Title>
+        <Title level={4}>
+          <Space>
+            <FileTextOutlined />
+            Quản lý lịch hẹn điều trị
+          </Space>
+        </Title>
 
         <Space style={{ marginBottom: 16 }}>
           <Input.Search
@@ -285,7 +269,7 @@ const AppointmentManagement = () => {
             columns={columns}
             dataSource={filteredAppointments}
             rowKey="id"
-            scroll={{ x: 1300 }}
+            scroll={{ x: 900 }}
             pagination={{
               pageSize: 10,
               showSizeChanger: false,

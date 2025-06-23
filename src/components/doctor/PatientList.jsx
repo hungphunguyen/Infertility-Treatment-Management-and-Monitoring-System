@@ -139,6 +139,7 @@ const PatientList = () => {
               customerName: treatmentRecord.customerName,
             },
             treatmentData: treatmentRecord,
+            sourcePage: "patients"
           },
         });
       } else {

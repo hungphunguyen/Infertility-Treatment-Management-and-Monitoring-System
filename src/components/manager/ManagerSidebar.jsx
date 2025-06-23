@@ -15,6 +15,7 @@ import {
   HomeOutlined,
   FormOutlined,
   LogoutOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
@@ -45,6 +46,12 @@ const ManagerSidebar = ({
       icon: <ScheduleOutlined />,
       label: "Quản Lý Lịch Hẹn",
       path: path.managerAppointments,
+    },
+    {
+      key: "treatment-records",
+      icon: <FileTextOutlined />,
+      label: "Quản Lý Hồ Sơ Điều Trị",
+      path: "/manager/treatment-records",
     },
     {
       key: "doctor-schedule",
