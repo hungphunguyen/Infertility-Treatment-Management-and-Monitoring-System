@@ -395,7 +395,7 @@ const TreatmentProgress = () => {
 
           {phase.activities.length > 0 && (
             <div style={{ marginTop: 16 }}>
-              <Text strong>Các hoạt động:</Text>
+              <Text strong>Lịch hẹn:</Text>
               <Timeline 
                 style={{ marginTop: 16 }}
                 items={phase.activities.map((activity, index) => ({
