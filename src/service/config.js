@@ -3,7 +3,7 @@ import axios from "axios";
 //setup axios custom xử lí gọi API cho dự án
 const http = axios.create({
   baseURL:
-    "https://wesley-external-mpg-keyword.trycloudflare.com/infertility-system/api/", // domain
+    "https://years-scoop-jacob-infection.trycloudflare.com/infertility-system/api/", // domain
   timeout: 30000,
   headers: {},
 });

@@ -24,12 +24,13 @@ const BlogPage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchApprovedBlogs = async () => {
+    const fetchApprovedBlogs = async (page = 0) => {
       try {
         setLoading(true);
-        const response = await blogService.getBlogsByStatus("APPROVED"); // Fetch approved blogs
-        if (response.data && response.data.result) {
-          setBlogPosts(response.data.result);
+        const response = await blogService.getBlogPublic("", page, 3); // Fetch approved blogs
+        console.log(response);
+        if (response.data && response.data.result.content) {
+          setBlogPosts(response.data.result.content);
         } else {
           setBlogPosts([]);
           message.warning("Không có bài viết nào được duyệt.");

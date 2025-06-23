@@ -11,7 +11,7 @@ export const blogService = {
     return http.get(`blogs/${id}`);
   },
 
-  // Lấy blog theo status
+  // Lấy blog theo status (trang public)
   getBlogsByStatus: (status) => {
     return http.get(`blogs/status/${status}`);
   },
@@ -26,7 +26,7 @@ export const blogService = {
     return http.post(`blogs/${userId}`, {
       title: data.title,
       content: data.content,
-      sourceReference: data.sourceReference
+      sourceReference: data.sourceReference,
     });
   },
 
@@ -39,24 +39,28 @@ export const blogService = {
   uploadBlogImage: (data, blogId, token) => {
     return http.put(`blogs/update/img?blogId=${blogId}`, data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`
-      }
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
     });
   },
 
   // Gửi duyệt blog
   submitBlog: (blogId, userId, token, data) => {
-    return http.post(`blogs/submit/${blogId}/${userId}`, {
-      title: data.title,
-      content: data.content,
-      sourceReference: data.sourceReference
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    return http.post(
+      `blogs/submit/${blogId}/${userId}`,
+      {
+        title: data.title,
+        content: data.content,
+        sourceReference: data.sourceReference,
       },
-    });
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 
   // Duyệt blog (approve)
@@ -64,18 +68,22 @@ export const blogService = {
     return http.post(`blogs/${blogId}/${managerId}`, requestData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }
+        "Content-Type": "application/json",
+      },
     });
   },
 
   updateBlogStatus: (blogId, status, token, managerId) => {
-    return http.put(`blogs/${blogId}/status`, { status, managerId }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    return http.put(
+      `blogs/${blogId}/status`,
+      { status, managerId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 
   deleteBlog: (blogId, token) => {
@@ -85,4 +93,14 @@ export const blogService = {
       },
     });
   },
-}; 
+
+  getBlogPublic: (keyWord, page, size) => {
+    return http.get(`/v1/public/blogs`, {
+      params: {
+        keyWord,
+        page,
+        size,
+      },
+    });
+  },
+};
