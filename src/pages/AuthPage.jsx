@@ -9,68 +9,25 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen bg-orange-100 flex items-center justify-center px-4">
       <div className="relative w-full max-w-6xl h-[640px] rounded-xl overflow-hidden shadow-2xl bg-white">
+        {/* FORM: Register (bên trái) */}
+        <div className="absolute top-0 left-0 w-1/2 h-full z-20 flex items-center justify-center p-8 transition-opacity duration-500">
+          <RegisterForm switchToLogin={() => setIsRegistering(false)} />
+        </div>
+
+        {/* FORM: Login (bên phải) */}
+        <div className="absolute top-0 right-0 w-1/2 h-full z-20 flex items-center justify-center p-8 transition-opacity duration-500">
+          <LoginForm switchToRegister={() => setIsRegistering(true)} />
+        </div>
+
+        {/* PULLEY - nằm trên, di chuyển qua trái/phải để che */}
         <div
-          className="absolute inset-0 flex transition-all duration-700 ease-in-out"
+          className="absolute top-0 h-full w-1/2 transition-transform duration-700 ease-in-out z-30"
           style={{
-            transform: isRegistering ? "translateX(-50%)" : "translateX(0%)", // Di chuyển form đăng nhập và đăng ký qua lại
-            width: "200%",
+            transform: isRegistering ? "translateX(100%)" : "translateX(0%)",
+            left: 0,
           }}
         >
-          {/* Left panel: Login */}
-          <div
-            className="w-1/2 relative flex flex-col md:flex-row"
-            style={{
-              opacity: isRegistering ? "0" : "1", // Ẩn khi đang ở Register
-              transition: "opacity 0.7s ease-in-out",
-            }}
-          >
-            {/* Pulley Animation */}
-            <div
-              className="absolute inset-0 w-full flex items-center justify-center z-10"
-              style={{
-                transform: isRegistering
-                  ? "translateX(100%)"
-                  : "translateX(0%)", // Pulley animation di chuyển
-                transition: "transform 0.7s ease-in-out",
-                zIndex: 1, // Đảm bảo PulleyAnimation không che form
-              }}
-            >
-              <PulleyAnimation />
-            </div>
-
-            {/* Right: Form */}
-            <div className="w-full md:w-1/2 z-20">
-              <LoginForm switchToRegister={() => setIsRegistering(true)} />
-            </div>
-          </div>
-
-          {/* Right panel: Register */}
-          <div
-            className="w-1/2 relative flex flex-col md:flex-row"
-            style={{
-              opacity: !isRegistering ? "0" : "1", // Ẩn khi đang ở Login
-              transition: "opacity 0.7s ease-in-out",
-            }}
-          >
-            {/* Pulley Animation */}
-            <div
-              className="absolute inset-0 w-full flex items-center justify-center z-10"
-              style={{
-                transform: isRegistering
-                  ? "translateX(0%)"
-                  : "translateX(-100%)", // Pulley animation di chuyển
-                transition: "transform 0.7s ease-in-out",
-                zIndex: 1, // Đảm bảo PulleyAnimation không che form
-              }}
-            >
-              <PulleyAnimation />
-            </div>
-
-            {/* Left: Form */}
-            <div className="w-full md:w-1/2 z-20">
-              <RegisterForm switchToLogin={() => setIsRegistering(false)} />
-            </div>
-          </div>
+          <PulleyAnimation />
         </div>
       </div>
     </div>

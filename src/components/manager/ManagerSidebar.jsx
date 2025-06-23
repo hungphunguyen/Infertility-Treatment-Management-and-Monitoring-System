@@ -96,13 +96,13 @@ const ManagerSidebar = ({
       })
       .catch((err) => {});
   }, [token]);
-  
+
   const handleLogout = () => {
     // Clear token and redirect to home page
     localStorage.removeItem("token");
     navigate("/");
   };
-  
+
   const checkLogin = () => {
     if (infoUser) {
       return (
@@ -125,6 +125,7 @@ const ManagerSidebar = ({
       onCollapse={onCollapse}
       theme="dark"
       width={250}
+      trigger={null}
       style={{
         position: "fixed",
         height: "100vh",
@@ -153,7 +154,7 @@ const ManagerSidebar = ({
         <Button
           type="default"
           icon={<HomeOutlined />}
-          style={{ width: "100%",height: "30px", }}
+          style={{ width: "100%", height: "30px" }}
           onClick={() => navigate("/")}
         >
           {!collapsed && "Về Trang Chủ"}
@@ -166,7 +167,7 @@ const ManagerSidebar = ({
           type="default"
           icon={<LogoutOutlined />}
           danger
-          style={{ 
+          style={{
             width: "100%",
             backgroundColor: "#ff4d4f",
             borderColor: "#ff4d4f",

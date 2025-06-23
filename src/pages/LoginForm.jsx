@@ -129,7 +129,7 @@ const LoginForm = ({ switchToRegister }) => {
           <div className="text-right text-sm">
             <Link
               to={path.forgotPassword}
-              className="text-white/80 hover:underline"
+              className="text-orange-500 hover:underline"
             >
               Quên mật khẩu?
             </Link>
@@ -143,13 +143,13 @@ const LoginForm = ({ switchToRegister }) => {
           </button>
         </form>
 
-        <div className="my-1 text-sm flex items-center gap-4">
+        <div className="text-sm flex items-center gap-4">
           <hr className="flex-grow border-white/30" />
           <span className="text-white/70">Hoặc</span>
           <hr className="flex-grow border-white/30" />
         </div>
 
-        <p className="text-sm mt-3 text-center">
+        <p className="text-sm mt-1 text-center">
           Chưa có tài khoản?{" "}
           <button
             onClick={switchToRegister}
@@ -162,7 +162,7 @@ const LoginForm = ({ switchToRegister }) => {
         <GoogleLogin />
 
         {isResend && (
-          <div className="mt-4 text-yellow-300 text-center text-sm">
+          <div className=" text-yellow-300 text-center text-sm">
             Nếu bạn muốn xác nhận OTP lại, hãy nhấn vào đây.
           </div>
         )}

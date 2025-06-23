@@ -1,34 +1,44 @@
 import { http } from "./config";
 
 export const adminService = {
-  getUsers: () => {
-    return http.get("admin/get-users");
+  getUsers: (isRemoved = false, page, size) => {
+    return http.get("v1/admin/users", {
+      params: {
+        isRemoved,
+        page,
+        size,
+      },
+    });
   },
 
   getUserId: (id) => {
-    return http.get(`admin/get-user/${id}`);
-  },
-
-  getRemovedUsers: () => {
-    return http.get("admin/get-users-removed");
+    return http.get(`v1/admin/users/${id}`);
   },
 
   deleteUser: (data) => {
-    return http.delete(`admin/remove-user/${data}`);
+    return http.delete(`v1/admin/users/${data}`);
   },
   restoreUser: (data) => {
-    return http.put(`admin/restore-user/${data}`, null);
+    return http.put(`v1/admin/users/${data}/restore-user`, null);
   },
 
   updatePasswordUser: (id, password) => {
-    return http.put(`admin/update-user-password/${id}`, { password });
+    return http.put(`v1/admin/users/${id}/password`, { password });
   },
 
   updateUserById: (id, data) => {
-    return http.put(`admin/update-user/${id}`, data);
+    return http.put(`v1/admin/users/${id}`, data);
   },
 
   createUser: (data) => {
-    return http.post("admin/create-user", data);
+    return http.post("v1/admin/users", data);
+  },
+
+  adminStatisticsStatus: () => {
+    return http.get("v1/admin/statistics/users-by-status");
+  },
+
+  adminStatisticsRole: () => {
+    return http.get("v1/admin/statistics/users-by-role");
   },
 };

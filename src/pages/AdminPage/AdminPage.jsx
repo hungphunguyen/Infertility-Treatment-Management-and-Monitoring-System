@@ -37,7 +37,7 @@ const AdminPage = () => {
     authService
       .getMyInfo(token.token)
       .then((res) => {
-        console.log(res);
+        // console.log(res);
         const user = res.data.result;
         if (user.roleName.name !== "ADMIN") {
           showNotification("Bạn không có quyền truy cập trang này", "error");

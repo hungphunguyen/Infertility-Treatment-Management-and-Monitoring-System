@@ -19,23 +19,27 @@ const UserManagement = () => {
   const { showNotification } = useContext(NotificationContext);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   const [userDetail, setUserDetail] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
+  const [isFetched, setIsFetched] = useState(false);
 
   // thực hiện chức năng gọi danh sách User
-  const fetchUsers = (isRemoved) => {
+  const fetchUsers = async (isRemove, page = 0) => {
     if (!token) return;
 
-    const apiCall = isRemoved
-      ? adminService.getRemovedUsers
-      : adminService.getUsers;
-
-    apiCall(token.token)
-      .then((res) => {
-        setUsers(res.data.result);
-        setShowRemoved(isRemoved);
-      })
-      .catch((err) => {
-        showNotification(err.response.data.message, "error");
-      });
+    try {
+      const res = await adminService.getUsers(isRemove, page, 5);
+      setUsers(res.data.result.content);
+      setTotalPages(res.data.result.totalPages);
+      console.log(res.data.result.totalPages);
+      setCurrentPage(page);
+      console.log(page);
+      setShowRemoved(isRemove); // để biết đang ở "tắt" hay "hoạt động"
+      setIsFetched(true);
+    } catch (err) {
+      console.log(err);
+      showNotification(err.response?.data?.message, "error");
+    }
   };
   // lọc user theo từng username và id
   const filteredUsers = useMemo(() => {
@@ -44,7 +48,7 @@ const UserManagement = () => {
       return (
         (user.username || "").toLowerCase().includes(q) ||
         (user.email || "").toLowerCase().includes(q) ||
-        (user.roleName.name || "").toLowerCase().includes(q)
+        (user.roleName || "").toLowerCase().includes(q)
       );
     });
   }, [users, searchText]);
@@ -72,7 +76,7 @@ const UserManagement = () => {
     adminService
       .deleteUser(id)
       .then((res) => {
-        showNotification("Removed success", "success");
+        showNotification("Đã tắt tài khoản này thành công", "success");
         setTimeout(() => {
           fetchUsers(showRemoved);
         }, 200);
@@ -87,7 +91,7 @@ const UserManagement = () => {
     adminService
       .restoreUser(id, token.token)
       .then((res) => {
-        showNotification("Restored success", "success");
+        showNotification("Đã khôi phục tài khoản này thành công", "success");
 
         setTimeout(() => {
           fetchUsers(showRemoved);
@@ -178,7 +182,6 @@ const UserManagement = () => {
           </Button>
         </Space>
       </div>
-
       <table className="w-full border text-sm bg-white shadow-md rounded">
         <thead>
           <tr className="bg-gray-100 text-left">
@@ -199,10 +202,10 @@ const UserManagement = () => {
               <td className="p-2">
                 <span
                   className={`px-2 py-1 text-xs rounded ${getRoleColor(
-                    user.roleName?.name
+                    user.roleName
                   )}`}
                 >
-                  {user.roleName?.name}
+                  {user.roleName}
                 </span>
               </td>
               <td className="p-2">
@@ -257,6 +260,28 @@ const UserManagement = () => {
         </tbody>
       </table>
 
+      {isFetched && (
+        <div className="flex justify-end mt-4">
+          <Button
+            disabled={currentPage === 0}
+            onClick={() => fetchUsers(showRemoved, currentPage - 1)}
+            className="mr-2"
+          >
+            Trang trước
+          </Button>
+          <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+            Trang {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage + 1 >= totalPages}
+            onClick={() => fetchUsers(showRemoved, currentPage + 1)}
+            className="ml-2"
+          >
+            Trang tiếp
+          </Button>
+        </div>
+      )}
+
       {/* Modal chi tiết user */}
       <Modal
         isOpen={isDetailModalOpen}
@@ -307,7 +332,6 @@ const UserManagement = () => {
           </>
         )}
       </Modal>
-
       {/* Modal cập nhật mật khẩu */}
       <Modal
         isOpen={isEditModalOpen}

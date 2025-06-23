@@ -449,7 +449,7 @@ const CustomerBlogManagement = () => {
         destroyOnClose
       >
         <div className="text-center">
-          <h3 className="text-xl font-semibold mb-4">Ảnh đại diện</h3>
+          <h3 className="text-xl font-semibold mb-4">Ảnh blog</h3>
           <img
             src={preview || selectedBlog?.image || "/default-blog.jpg"}
             alt="Avatar Preview"
@@ -477,7 +477,7 @@ const CustomerBlogManagement = () => {
             onClick={handleUploadImg}
             className="mt-3"
           >
-            {uploadingImage ? "Đang upload..." : "Lưu ảnh đại diện"}
+            {uploadingImage ? "Đang upload..." : "Lưu ảnh"}
           </Button>
         </div>
       </Modal>

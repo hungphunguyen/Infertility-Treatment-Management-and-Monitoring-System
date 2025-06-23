@@ -26,30 +26,26 @@ const UserRoleChart = () => {
     if (!token) return;
     const fetchData = async () => {
       try {
-        const activeRes = await adminService.getUsers(token.token);
-        const activeUsers = activeRes.data.result || [];
-
-        const removedRes = await adminService.getRemovedUsers(token.token);
-        const removedUsers = removedRes.data.result || [];
-
-        const roleCount = {};
-        activeUsers.forEach((user) => {
-          const role = user.roleName?.name || "UNKNOWN";
-          roleCount[role] = (roleCount[role] || 0) + 1;
-        });
-
-        const barFormatted = Object.entries(roleCount).map(([role, count]) => ({
-          role,
-          users: count,
+        // Gọi API thống kê theo vai trò
+        const roleRes = await adminService.adminStatisticsRole(); // new method
+        const barFormatted = roleRes.data.result.map((item) => ({
+          role: item.role,
+          users: item.count,
         }));
         setBarData(barFormatted);
 
+        // Gọi API thống kê theo trạng thái
+        const statusRes = await adminService.adminStatisticsStatus(); // new method
+        const { userNotRemove, userRemove } = statusRes.data.result;
+
         const pieFormatted = [
-          { name: "Active", value: activeUsers.length },
-          { name: "Inactive", value: removedUsers.length },
+          { name: "Hoạt động", value: userNotRemove },
+          { name: "Đã bị xoá", value: userRemove },
         ];
         setPieData(pieFormatted);
-      } catch (err) {}
+      } catch (err) {
+        console.log(err);
+      }
     };
 
     fetchData();

@@ -70,7 +70,10 @@ const ReportDashboard = () => {
           setChartData(parsedChartData);
 
           // Tính giá trị doanh thu lớn nhất
-          const maxRevenue = Math.max(...parsedChartData.map((d) => d.revenue));
+          const maxRevenue = Math.max(
+            0,
+            ...parsedChartData.map((d) => d.revenue)
+          );
 
           // Lấy đơn vị phù hợp
           const { unit, divider } = getYAxisUnit(maxRevenue);
