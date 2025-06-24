@@ -32,6 +32,10 @@ const FeedbackManagement = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentId, setCurrentId] = useState(null);
   const [currentStatus, setCurrentStatus] = useState("");
+
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+
   useEffect(() => {
     authService
       .getMyInfo()
@@ -110,6 +114,10 @@ const FeedbackManagement = () => {
         ).toFixed(1)
       : "0.0";
 
+  const openDetailModal = (feedback) => {
+    setSelectedFeedback(feedback);
+    setDetailModalVisible(true);
+  };
   return (
     <div>
       {/* 🔢 Box thống kê */}
@@ -168,11 +176,9 @@ const FeedbackManagement = () => {
             <thead className="bg-gray-100 text-xs font-semibold text-gray-700 uppercase">
               <tr>
                 <th className="px-4 py-3">Bệnh nhân</th>
-                <th className="px-4 py-3">Bác sĩ & Dịch vụ</th>
+                <th className="px-4 py-3">Bác sĩ</th>
                 <th className="px-4 py-3">Đánh giá</th>
-                <th className="px-4 py-3">Nội dung</th>
                 <th className="px-4 py-3">Trạng thái</th>
-                <th className="px-4 py-3">Ngày tạo</th>
                 <th className="px-4 py-3">Thao tác</th>
               </tr>
             </thead>
@@ -186,7 +192,6 @@ const FeedbackManagement = () => {
                   <td className="px-4 py-3">
                     <Rate disabled value={item.rating} />
                   </td>
-                  <td className="px-4 py-3">{item.comment}</td>
                   <td className="px-4 py-3">
                     <Tag
                       color={
@@ -206,42 +211,85 @@ const FeedbackManagement = () => {
                   </td>
 
                   <td className="px-4 py-3">
-                    {dayjs(item.submitDate).format("DD/MM/YYYY")}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Space>
-                      {(item.status === "PENDING" ||
-                        item.status === "REJECTED") && (
-                        <Button
-                          type="primary"
-                          size="small"
-                          icon={<CheckOutlined />}
-                          loading={loadingIds.includes(item.id)}
-                          onClick={() => openApprovalModal(item.id, "APPROVED")}
-                        >
-                          Duyệt
-                        </Button>
-                      )}
-
-                      {/* {item.approved && ( */}
-                      <Button
-                        type="default"
-                        danger
-                        size="small"
-                        icon={<ExclamationCircleOutlined />}
-                        loading={loadingIds.includes(item.id)}
-                        onClick={() => openApprovalModal(item.id, "REJECTED")}
-                      >
-                        Từ chối
-                      </Button>
-                      {/* )} */}
-                    </Space>
+                    <Button
+                      type="primary"
+                      size="small"
+                      onClick={() => openDetailModal(item)}
+                    >
+                      Xem
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        <Modal
+          title="Chi tiết phản hồi"
+          open={detailModalVisible}
+          onCancel={() => setDetailModalVisible(false)}
+          footer={[
+            selectedFeedback?.status === "PENDING" ||
+            selectedFeedback?.status === "REJECTED" ? (
+              <>
+                <Button
+                  key="reject"
+                  danger
+                  onClick={() =>
+                    openApprovalModal(selectedFeedback.id, "REJECTED")
+                  }
+                >
+                  Từ chối
+                </Button>
+                <Button
+                  key="approve"
+                  type="primary"
+                  onClick={() =>
+                    openApprovalModal(selectedFeedback.id, "APPROVED")
+                  }
+                >
+                  Duyệt
+                </Button>
+              </>
+            ) : null,
+          ]}
+        >
+          {selectedFeedback && (
+            <div className="space-y-3 text-sm">
+              <p>
+                <strong>Bệnh nhân:</strong> {selectedFeedback.customerName}
+              </p>
+              <p>
+                <strong>Bác sĩ:</strong>{" "}
+                {doctorMap[selectedFeedback.doctorId] || "Không rõ"}
+              </p>
+              <p>
+                <strong>Đánh giá:</strong>{" "}
+                <Rate disabled value={selectedFeedback.rating} />
+              </p>
+              <p>
+                <strong>Bình luận:</strong> {selectedFeedback.comment}
+              </p>
+              <p>
+                <strong>Ngày gửi:</strong>{" "}
+                {selectedFeedback.submitDate
+                  ? dayjs(selectedFeedback.submitDate).format("DD/MM/YYYY")
+                  : ""}
+              </p>
+              <p>
+                <strong>Trạng thái:</strong> {selectedFeedback.status}
+              </p>
+              <p>
+                <strong>Note:</strong> {selectedFeedback.note}
+              </p>
+              <p>
+                <strong>Người duyệt:</strong>{" "}
+                {selectedFeedback.approvedBy || "Chưa có"}
+              </p>
+            </div>
+          )}
+        </Modal>
+
         <Modal
           title={
             currentStatus === "APPROVED"
