@@ -58,6 +58,11 @@ function removeIncompleteWarning() {
   });
 }
 
+const MONTHS_VI = [
+  'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+  'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+];
+
 const RegisterService = () => {
   const { showNotification } = useContext(NotificationContext);
   const [form] = Form.useForm();
@@ -101,6 +106,8 @@ const RegisterService = () => {
   
   // Always ignore incomplete treatment warning
   const [ignoreIncompleteWarning, setIgnoreIncompleteWarning] = useState(true);
+  
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().month()); // Mặc định là tháng hiện tại
   
   // Add more aggressive DOM cleanup on mount and for every render
   useEffect(() => {
@@ -520,6 +527,10 @@ const RegisterService = () => {
       appointmentDate: dayjs(date),
       shift: shift.toLowerCase()
     });
+  };
+
+  const handleMonthChange = (value) => {
+    setSelectedMonth(value);
   };
 
   // Add a more comprehensive error handler that also shows more info to the user in this scenario
@@ -963,6 +974,19 @@ const RegisterService = () => {
                 {showDoctorSchedule && doctorSchedule && (
                   <Card className="mb-4" style={{ backgroundColor: '#f9f9f9' }}>
                     <Title level={4}>🗓 Lịch làm việc của bác sĩ</Title>
+                    <div className="mb-4 flex items-center gap-4">
+                      <span>Xem lịch tháng:</span>
+                      <Select
+                        value={selectedMonth}
+                        onChange={handleMonthChange}
+                        style={{ width: 120 }}
+                      >
+                        {MONTHS_VI.map((m, idx) => (
+                          <Select.Option key={idx} value={idx}>{m}</Select.Option>
+                        ))}
+                      </Select>
+                      <span>{dayjs().year()}</span>
+                    </div>
                     {scheduleLoading ? (
                       <div className="flex items-center justify-center p-4">
                         <Spin size="large" />
@@ -977,18 +1001,16 @@ const RegisterService = () => {
                         overflowX: 'auto'
                       }}>
                         {(() => {
-                          // Get all dates and group by month
                           const dates = Object.keys(doctorSchedule.schedules || {}).sort();
                           const months = {};
-                          
                           dates.forEach(date => {
-                            const monthKey = dayjs(date).format('YYYY-MM');
-                            if (!months[monthKey]) {
-                              months[monthKey] = [];
+                            const d = dayjs(date);
+                            if (d.month() === selectedMonth) {
+                              const monthKey = d.format('YYYY-MM');
+                              if (!months[monthKey]) months[monthKey] = [];
+                              months[monthKey].push(date);
                             }
-                            months[monthKey].push(date);
                           });
-                          
                           return Object.entries(months).map(([monthKey, monthDates]) => {
                             const [year, month] = monthKey.split('-');
                             const monthName = dayjs(monthKey + '-01').format('MMMM YYYY');
@@ -1298,129 +1320,22 @@ const RegisterService = () => {
                           <CheckCircleOutlined style={{ color: '#52c41a', marginRight: '8px' }} />
                           <span>
                             {doctorNotAvailable && unavailableDoctor 
-                              ? `Bác sĩ ${unavailableDoctor.name} không có lịch - Vui lòng chọn bác sĩ khác` 
-                              : "Bác sĩ có lịch trống"}
+                              ? `Bác sĩ ${unavailableDoctor.name} không có lịch - Vui lòng chọn bác sĩ khác`
+                              : "Bác sĩ không có lịch trống vào ngày và ca này. Vui lòng chọn ngày hoặc ca khác."}
                           </span>
-                          {checkingAvailability && <Spin size="small" className="ml-2" />}
                         </div>
                       }
-                      size="small"
-                      className={doctorNotAvailable ? "bg-blue-50 border-blue-200" : "bg-green-50"}
                     >
-                      {availableDoctors.length > 0 ? (
-                        <List
-                          itemLayout="horizontal"
-                          dataSource={availableDoctors}
-                          renderItem={doctor => (
-                            <List.Item
-                              actions={[
-                                <Button 
-                                  type={doctorNotAvailable ? "primary" : "default"}
-                                  size="small"
-                                  onClick={() => {
-                                    // Update the selected doctor
-                                    setSelectedDoctor(doctor.id);
-                                    form.setFieldsValue({ doctor: doctor.id });
-                                    
-                                    // Store information about the newly selected doctor
-                                    setNewlySelectedDoctor({
-                                      id: doctor.id,
-                                      name: doctor.fullName || "Bác sĩ",
-                                      specialty: doctor.specialty || doctor.qualifications || "Chuyên khoa"
-                                    });
-                                    
-                                    setDoctorNotAvailable(false);
-                                    
-                                    // Scroll to the doctor field to show the selection
-                                    form.scrollToField('doctor');
-                                    
-                                    // Hide available doctors list after selection since doctor is available
-                                    setAvailabilityChecked(false);
-                                  }}
-                                >
-                                  Chọn
-                                </Button>
-                              ]}
-                            >
-                              <List.Item.Meta
-                                avatar={<Avatar src={doctor.avatarUrl || "https://via.placeholder.com/40"} />}
-                                title={
-                                  <div className="flex items-center">
-                                    <span className="font-medium">{doctor.fullName || "Bác sĩ"}</span>
-                                    {selectedDoctor === doctor.id && (
-                                      <span className="ml-2 text-green-500 text-xs font-bold">✓ Đã chọn</span>
-                                    )}
-                                  </div>
-                                }
-                                description={
-                                  <div>
-                                    <div>{doctor.specialty || doctor.qualifications || "Chuyên khoa"}</div>
-                                    <div className="text-xs text-gray-500">
-                                      {doctor.experienceYears ? `${doctor.experienceYears} năm kinh nghiệm` : ''}
-                                      {doctor.graduationYear ? ` • Tốt nghiệp năm ${doctor.graduationYear}` : ''}
-                                    </div>
-                                  </div>
-                                }
-                              />
-                            </List.Item>
-                          )}
-                        />
-                      ) : (
-                        <Alert
-                          message="Không có bác sĩ nào có lịch trống vào ngày và ca đã chọn"
-                          description="Vui lòng chọn ngày hoặc ca khám khác."
-                          type="info"
-                          showIcon
-                        />
-                      )}
+                      {/* Add any additional content or components here */}
                     </Card>
                   </div>
                 )}
-                
-                <Divider />
-                
-                <Form.Item>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit" 
-                    loading={loading}
-                    size="large"
-                    block
-                    style={{ 
-                      backgroundColor: '#1976d2', 
-                      borderColor: '#1976d2',
-                      height: '48px',
-                      fontSize: '16px',
-                      fontWeight: 'bold'
-                    }}
-                    onClick={() => {
-                      // Force form validation before submission
-                      form.validateFields()
-                        .then(values => {
-                          // Instead of form.submit() which might not trigger onFinish
-                          // Call onFinish directly with validated values
-                          onFinish(values);
-                        })
-                        .catch(error => {
-                          console.log("Validation error:", error);
-                          // Show validation errors to the user
-                          if (error.errorFields && error.errorFields.length > 0) {
-                            const firstError = error.errorFields[0];
-                            showNotification(firstError.errors[0], "error");
-                            form.scrollToField(firstError.name[0]);
-                          }
-                        });
-                    }}
-                  >
-                    Gửi đăng ký
-                  </Button>
-                </Form.Item>
               </Form>
             </Card>
           </div>
         </div>
       </div>
-      
+
       <UserFooter />
     </div>
   );
