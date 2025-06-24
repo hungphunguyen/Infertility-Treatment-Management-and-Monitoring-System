@@ -1311,23 +1311,43 @@ const RegisterService = () => {
                   </Card>
                 )}
                 
-                {/* Available Doctors Section - Only show when no doctor is selected */}
-                {!selectedDoctor && (availabilityChecked || doctorNotAvailable) && (
-                  <div className="mt-4 mb-4">
-                    <Card 
-                      title={
-                        <div className="flex items-center">
-                          <CheckCircleOutlined style={{ color: '#52c41a', marginRight: '8px' }} />
-                          <span>
-                            {doctorNotAvailable && unavailableDoctor 
-                              ? `Bác sĩ ${unavailableDoctor.name} không có lịch - Vui lòng chọn bác sĩ khác`
-                              : "Bác sĩ không có lịch trống vào ngày và ca này. Vui lòng chọn ngày hoặc ca khác."}
-                          </span>
-                        </div>
-                      }
-                    >
-                      {/* Add any additional content or components here */}
-                    </Card>
+                
+
+                {/* Sau phần chọn ngày và ca, thêm lại UI đề cử bác sĩ mới: */}
+                {availabilityChecked && (
+                  <div className="my-4">
+                    {availableDoctors.length > 0 ? (
+                      <Card title="Đề cử bác sĩ phù hợp cho ngày và ca bạn chọn" bordered={false} className="shadow-md bg-blue-50">
+                        <List
+                          itemLayout="horizontal"
+                          dataSource={availableDoctors}
+                          renderItem={doctor => (
+                            <List.Item
+                              actions={[
+                                <Button
+                                  type={selectedDoctor === doctor.id ? 'primary' : 'default'}
+                                  size="small"
+                                  onClick={() => {
+                                    setSelectedDoctor(doctor.id);
+                                    form.setFieldsValue({ doctor: doctor.id });
+                                  }}
+                                >
+                                  {selectedDoctor === doctor.id ? 'Đã chọn' : 'Chọn'}
+                                </Button>
+                              ]}
+                            >
+                              <List.Item.Meta
+                                avatar={<Avatar src={doctor.avatarUrl || undefined} icon={<UserOutlined />} />}
+                                title={<span className="font-semibold text-blue-700">{doctor.fullName || 'Bác sĩ'}</span>}
+                                description={<span>{doctor.specialty || doctor.qualifications || 'Chuyên khoa'}</span>}
+                              />
+                            </List.Item>
+                          )}
+                        />
+                      </Card>
+                    ) : (
+                      <Alert message="Không có bác sĩ nào trống cho ngày và ca này. Vui lòng chọn ngày hoặc ca khác." type="info" showIcon />
+                    )}
                   </div>
                 )}
               </Form>
