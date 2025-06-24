@@ -42,7 +42,7 @@ const OurStaffPage = () => {
   }, []);
 
   const handleDoctorClick = (doctorId) => {
-    navigate(`/doctor/${doctorId}`);
+    navigate(`/doctors/detail/${doctorId}`);
   };
   return (
     <div className="w-full min-h-screen bg-[#f7f8fa]">

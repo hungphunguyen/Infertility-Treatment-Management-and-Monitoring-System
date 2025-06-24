@@ -832,17 +832,23 @@ const TreatmentProgress = () => {
                   dataIndex: 'status',
                   key: 'status',
                   render: (status) => {
-                    switch (status) {
+                    switch ((status || '').toUpperCase()) {
                       case 'CONFIRMED':
-                        return <Tag color="green">Đã xác nhận</Tag>;
+                        return <Tag color="#1890ff">Đã xác nhận</Tag>;
                       case 'PENDING':
                         return <Tag color="orange">Đang chờ</Tag>;
-                      case 'REJECTED':
-                        return <Tag color="red">Đã từ chối</Tag>;
                       case 'PENDING_CHANGE':
-                        return <Tag color="blue">Chờ duyệt đổi lịch</Tag>;
+                        return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
                       case 'REJECTED_CHANGE':
                         return <Tag color="red">Từ chối đổi lịch</Tag>;
+                      case 'REJECTED':
+                        return <Tag color="red">Đã từ chối</Tag>;
+                      case 'COMPLETED':
+                        return <Tag color="green">Đã hoàn thành</Tag>;
+                      case 'CANCELLED':
+                        return <Tag color="error">Đã hủy</Tag>;
+                      case 'INPROGRESS':
+                        return <Tag color="#1890ff">Đang thực hiện</Tag>;
                       default:
                         return <Tag color="default">{status}</Tag>;
                     }

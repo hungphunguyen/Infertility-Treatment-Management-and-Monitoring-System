@@ -42,78 +42,54 @@ const TreatmentStagesView = () => {
     fetchData();
   }, [location.state, navigate, showNotification]);
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "CONFIRMED":
-        return "blue";
-      case "PLANNED":
-        return "default";
-      case "COMPLETED":
-        return "green";
-      case "CANCELLED":
-        return "red";
-      default:
-        return "default";
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case "CONFIRMED":
-        return "Đã xác nhận";
-      case "PLANNED":
-        return "Chờ xếp lịch";
-      case "COMPLETED":
-        return "Hoàn thành";
-      case "CANCELLED":
-        return "Đã hủy";
-      case "PENDING_CHANGE":
-        return "Chờ duyệt đổi lịch";
-      default:
-        return status;
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "COMPLETED":
-        return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
-      case "CONFIRMED":
-        return <ClockCircleOutlined style={{ color: '#1890ff' }} />;
-      case "CANCELLED":
-        return <CloseCircleOutlined style={{ color: '#ff4d4f' }} />;
-      default:
-        return <ClockCircleOutlined style={{ color: '#d9d9d9' }} />;
-    }
-  };
-
+  // Treatment record status (hồ sơ điều trị)
   const getTreatmentStatusColor = (status) => {
-    switch (status) {
-      case "PENDING":
-        return "orange";
-      case "INPROGRESS":
-        return "blue";
-      case "COMPLETED":
-        return "green";
-      case "CANCELLED":
-        return "red";
-      default:
-        return "default";
+    switch (status?.toUpperCase()) {
+      case "PENDING": return "orange";
+      case "INPROGRESS": return "blue";
+      case "COMPLETED": return "green";
+      case "CANCELLED": return "red";
+      default: return "default";
     }
   };
 
   const getTreatmentStatusText = (status) => {
-    switch (status) {
-      case "PENDING":
-        return "Đang chờ xử lý";
-      case "INPROGRESS":
-        return "Đang điều trị";
-      case "COMPLETED":
-        return "Hoàn thành";
-      case "CANCELLED":
-        return "Đã hủy";
-      default:
-        return status;
+    switch (status?.toUpperCase()) {
+      case "PENDING": return "Vừa đăng ký";
+      case "INPROGRESS": return "Đang điều trị";
+      case "COMPLETED": return "Hoàn thành";
+      case "CANCELLED": return "Đã hủy";
+      default: return status || "Không xác định";
+    }
+  };
+
+  // Treatment step status (bước điều trị)
+  const getStatusColor = (status) => {
+    switch (status?.toUpperCase()) {
+      case "PLANNED": return "default";
+      case "CONFIRMED": return "blue";
+      case "COMPLETED": return "green";
+      case "CANCELLED": return "red";
+      default: return "default";
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status?.toUpperCase()) {
+      case "PLANNED": return "Chưa có lịch";
+      case "CONFIRMED": return "Đã có lịch";
+      case "COMPLETED": return "Đã thực hiện";
+      case "CANCELLED": return "Đã hủy";
+      default: return status || "Không xác định";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status?.toUpperCase()) {
+      case "COMPLETED": return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
+      case "CONFIRMED": return <ClockCircleOutlined style={{ color: '#1890ff' }} />;
+      case "CANCELLED": return <CloseCircleOutlined style={{ color: '#ff4d4f' }} />;
+      case "PLANNED": default: return <ClockCircleOutlined style={{ color: '#d9d9d9' }} />;
     }
   };
 
@@ -191,7 +167,16 @@ const TreatmentStagesView = () => {
             <Col xs={24} md={8}>
               <Space>
                 <Text strong>Trạng thái:</Text>
-                <Tag color={getTreatmentStatusColor(treatmentData.status)}>
+                <Tag 
+                  color={getTreatmentStatusColor(treatmentData.status)}
+                  style={{ 
+                    fontWeight: 'bold',
+                    borderRadius: '6px',
+                    padding: '4px 12px',
+                    fontSize: '14px'
+                  }}
+                  icon={getStatusIcon(treatmentData.status)}
+                >
                   {getTreatmentStatusText(treatmentData.status)}
                 </Tag>
               </Space>
@@ -219,10 +204,16 @@ const TreatmentStagesView = () => {
                   style={{ 
                     marginBottom: 16,
                     borderLeft: `4px solid ${
-                      step.status === 'COMPLETED' ? '#52c41a' :
-                      step.status === 'CONFIRMED' ? '#1890ff' :
-                      step.status === 'CANCELLED' ? '#ff4d4f' : '#d9d9d9'
-                    }`
+                      step.status === 'COMPLETED' || step.status === 'FINISHED' || step.status === 'APPROVED' ? '#52c41a' :
+                      step.status === 'CONFIRMED' || step.status === 'SCHEDULED' || step.status === 'ACTIVE' ? '#1890ff' :
+                      step.status === 'CANCELLED' || step.status === 'FAILED' || step.status === 'REJECTED' ? '#ff4d4f' :
+                      step.status === 'PENDING' || step.status === 'ON_HOLD' || step.status === 'WAITING' ? '#fa8c16' :
+                      step.status === 'INPROGRESS' || step.status === 'IN_PROGRESS' ? '#1890ff' :
+                      step.status === 'PENDING_CHANGE' ? '#722ed1' :
+                      step.status === 'DRAFT' || step.status === 'INACTIVE' ? '#d9d9d9' : '#d9d9d9'
+                    }`,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    borderRadius: '8px'
                   }}
                 >
                   <Row gutter={[16, 8]}>
@@ -234,7 +225,13 @@ const TreatmentStagesView = () => {
                     <Col xs={24} md={8}>
                       <Space>
                         <Text type="secondary">Trạng thái:</Text>
-                        <Tag color={getStatusColor(step.status)}>
+                        <Tag 
+                          color={getStatusColor(step.status)}
+                          style={{ 
+                            fontWeight: 'bold',
+                            borderRadius: '4px'
+                          }}
+                        >
                           {getStatusText(step.status)}
                         </Tag>
                       </Space>
@@ -242,7 +239,7 @@ const TreatmentStagesView = () => {
                     <Col xs={24} md={8}>
                       <Space>
                         <Text type="secondary">Lịch dự kiến:</Text>
-                        <Text>
+                        <Text style={{ fontWeight: '500' }}>
                           {step.scheduledDate 
                             ? dayjs(step.scheduledDate).format("DD/MM/YYYY")
                             : "Chưa lên lịch"
@@ -253,7 +250,7 @@ const TreatmentStagesView = () => {
                     <Col xs={24} md={8}>
                       <Space>
                         <Text type="secondary">Ngày thực hiện:</Text>
-                        <Text>
+                        <Text style={{ fontWeight: '500' }}>
                           {step.actualDate 
                             ? dayjs(step.actualDate).format("DD/MM/YYYY")
                             : "Chưa thực hiện"
@@ -263,9 +260,17 @@ const TreatmentStagesView = () => {
                     </Col>
                     {step.notes && (
                       <Col span={24}>
-                        <Space>
+                        <Space direction="vertical" style={{ width: '100%' }}>
                           <Text type="secondary">Ghi chú:</Text>
-                          <Text>{step.notes}</Text>
+                          <Text style={{ 
+                            backgroundColor: '#f5f5f5', 
+                            padding: '8px 12px', 
+                            borderRadius: '4px',
+                            display: 'block',
+                            width: '100%'
+                          }}>
+                            {step.notes}
+                          </Text>
                         </Space>
                       </Col>
                     )}
