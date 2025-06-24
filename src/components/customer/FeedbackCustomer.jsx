@@ -93,7 +93,7 @@ const FeedbackCustomer = () => {
       getAllFeedBack();
     }
   }, [infoUser]);
-
+  // tạo feedback
   const formik = useFormik({
     initialValues: {
       customerId: "",
@@ -108,7 +108,7 @@ const FeedbackCustomer = () => {
         console.log(values);
 
         const res = await customerService.createFeedback(values);
-        console.log(res);
+        await getAllFeedBack();
         showNotification("Gửi phản hồi thành công!", "success");
       } catch (err) {
         console.log(err);
@@ -166,12 +166,6 @@ const FeedbackCustomer = () => {
       }
     }
   }, [state, doctors, service, setFieldValue]);
-
-  const getDoctorName = (id) =>
-    doctors.find((doc) => doc.id === id)?.fullName || "Đang tải...";
-
-  const getServiceName = (id) =>
-    service.find((sv) => sv.id === id)?.name || "Đang tải...";
 
   const getRecordCode = (id) =>
     treatment.find((rec) => rec.id === id)?.code || `Hồ sơ ${id}`;
@@ -262,7 +256,7 @@ const FeedbackCustomer = () => {
       )}
       <div className="mt-10">
         <h3 className="text-lg font-bold mb-3 text-gray-700">
-          📋 Danh sách phản hồi
+          Danh sách phản hồi
         </h3>
         <div className="overflow-x-auto rounded-xl border bg-white shadow-md">
           <table className="min-w-full text-sm text-gray-700 ">
@@ -273,7 +267,6 @@ const FeedbackCustomer = () => {
                 <th className="py-2 px-3 font-semibold">Bác sĩ</th>
                 <th className="py-2 px-3 font-semibold">Đánh giá</th>
                 <th className="py-2 px-3 font-semibold">Bình luận</th>
-                <th className="py-2 px-3 font-semibold">Ngày duyệt</th>
                 <th className="py-2 px-3 font-semibold">Trạng thái</th>
                 <th className="py-2 px-3 font-semibold">Thao tác</th>
               </tr>
@@ -288,7 +281,6 @@ const FeedbackCustomer = () => {
                     <Rate disabled defaultValue={fb.rating} />
                   </td>
                   <td className="py-2 px-3">{fb.comment}</td>
-                  <td className="py-2 px-3">{fb.submitDate}</td>
                   <td className="py-2 px-3">
                     <span
                       className={`text-sm font-medium ${
@@ -356,7 +348,7 @@ const FeedbackCustomer = () => {
             <hr />
 
             <label className="block font-semibold mt-4">
-              Cập nhật đánh giá
+              <strong>Cập nhật đánh giá</strong>
             </label>
             <Rate
               value={selectedFeedback.rating}
