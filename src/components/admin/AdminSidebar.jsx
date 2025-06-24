@@ -23,6 +23,12 @@ const AdminSidebar = ({
   const token = useSelector((state) => state.authSlice);
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    // Clear token and redirect to home page
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
   const menuItems = [
     {
       key: "dashboard",
@@ -104,7 +110,7 @@ const AdminSidebar = ({
         <Button
           type="default"
           icon={<HomeOutlined />}
-          style={{ width: "100%" }}
+          style={{ width: "100%",height: "30px", }}
           onClick={() => navigate("/")}
         >
           {!collapsed && "Về Trang Chủ"}
@@ -115,9 +121,16 @@ const AdminSidebar = ({
         <Button
           type="text"
           icon={<LogoutOutlined />}
-          style={{ color: "white", width: "100%" }}
+          style={{ 
+            color: "white", 
+            width: "100%",
+            backgroundColor: "#ff4d4f",
+            borderColor: "#ff4d4f",
+            height: "30px",
+          }}
+          onClick={handleLogout}
         >
-          {!collapsed && "Đăng Xuất"}
+          {!collapsed && <span style={{ color: "#fff" }}>Đăng Xuất</span>}
         </Button>
       </div>
     </Sider>

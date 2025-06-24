@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { 
   Card, Table, Button, Space, Tag, Modal, Descriptions, 
-  Row, Col, Input, Select, Typography, notification, Drawer
+  Row, Col, Input, Select, Typography, notification, Drawer,
+  Collapse
 } from "antd";
 import {
-  UserOutlined, EyeOutlined
+  UserOutlined, EyeOutlined, DownOutlined, UpOutlined,
+  CalendarOutlined, FileTextOutlined, MedicineBoxOutlined,
+  CheckOutlined, CloseOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
@@ -14,8 +17,9 @@ import { useNavigate } from "react-router-dom";
 const { Search } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
+const { Panel } = Collapse;
 
-const PatientRecords = () => {
+const TestResults = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -23,7 +27,7 @@ const PatientRecords = () => {
   const [records, setRecords] = useState([]);
   const [doctorId, setDoctorId] = useState("");
   const navigate = useNavigate();
-  const [historyDrawer, setHistoryDrawer] = useState({ open: false, patient: null });
+  const [expandedRows, setExpandedRows] = useState([]);
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
@@ -33,10 +37,16 @@ const PatientRecords = () => {
         if (id) {
           setDoctorId(id);
         } else {
-          console.error("Không thể lấy thông tin bác sĩ");
+          notification.error({
+            message: "Lỗi",
+            description: "Không thể lấy thông tin bác sĩ"
+          });
         }
       } catch (error) {
-        console.error("Error fetching doctor info:", error);
+        notification.error({
+          message: "Lỗi",
+          description: "Không thể lấy thông tin bác sĩ"
+        });
       }
     };
     fetchDoctorInfo();
@@ -49,12 +59,42 @@ const PatientRecords = () => {
       try {
         const result = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
         if (result) {
-          setRecords(result);
+          // Nhóm các records theo customerId
+          const groupedByCustomer = result.reduce((acc, record) => {
+            if (!acc[record.customerId]) {
+              acc[record.customerId] = [];
+            }
+            acc[record.customerId].push(record);
+            return acc;
+          }, {});
+
+          // Chuyển đổi thành mảng và sắp xếp
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+            // Sắp xếp treatments theo ngày tạo mới nhất
+            const sortedTreatments = treatments.sort((a, b) => 
+              new Date(b.createdDate) - new Date(a.createdDate)
+            );
+            
+            return {
+              key: customerId,
+              customerId: customerId,
+              customerName: sortedTreatments[0].customerName,
+              treatments: sortedTreatments.map(treatment => ({
+                ...treatment,
+                key: treatment.id
+              }))
+            };
+          });
+
+          setRecords(formattedRecords);
         } else {
           setRecords([]);
         }
       } catch (error) {
-        console.error('Error fetching treatment records:', error);
+        notification.error({
+          message: "Lỗi",
+          description: "Không thể lấy danh sách điều trị"
+        });
         setRecords([]);
       }
     };
@@ -65,7 +105,7 @@ const PatientRecords = () => {
   const getStatusTag = (status) => {
     const statusMap = {
       PENDING: { color: "orange", text: "Đang chờ xử lý" },
-      INPROGRESS: { color: "blue", text: "Đã xác nhận" },
+      INPROGRESS: { color: "blue", text: "Đang điều trị" },
       CANCELLED: { color: "red", text: "Đã hủy" },
       COMPLETED: { color: "green", text: "Hoàn thành" }
     };
@@ -84,18 +124,42 @@ const PatientRecords = () => {
     });
   };
 
-  const handleApprove = async (record) => {
+  const handleApprove = async (treatment) => {
     try {
-      const response = await treatmentService.updateTreatmentRecordStatus(record.id, "INPROGRESS");
+      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "INPROGRESS");
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Duyệt hồ sơ thành công!",
-          description: `Hồ sơ của bệnh nhân ${record.customerName} đã chuyển sang trạng thái 'Đã xác nhận'.`,
+          description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã chuyển sang trạng thái 'Đang điều trị'.`,
         });
         // Refresh the list
         const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
         if (updatedRecords) {
-          setRecords(updatedRecords);
+          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
+            if (!acc[record.customerId]) {
+              acc[record.customerId] = [];
+            }
+            acc[record.customerId].push(record);
+            return acc;
+          }, {});
+
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+            const sortedTreatments = treatments.sort((a, b) => 
+              new Date(b.createdDate) - new Date(a.createdDate)
+            );
+            
+            return {
+              key: customerId,
+              customerId: customerId,
+              customerName: sortedTreatments[0].customerName,
+              treatments: sortedTreatments.map(treatment => ({
+                ...treatment,
+                key: treatment.id
+              }))
+            };
+          });
+
+          setRecords(formattedRecords);
         }
       } else {
         notification.error({
@@ -111,18 +175,42 @@ const PatientRecords = () => {
     }
   };
 
-  const handleCancel = async (record) => {
+  const handleCancel = async (treatment) => {
     try {
-      const response = await treatmentService.updateTreatmentRecordStatus(record.id, "CANCELLED");
+      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "CANCELLED");
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Hủy hồ sơ thành công!",
-          description: `Hồ sơ của bệnh nhân ${record.customerName} đã được hủy.`,
+          description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã được hủy.`,
         });
         // Refresh the list
         const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
         if (updatedRecords) {
-          setRecords(updatedRecords);
+          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
+            if (!acc[record.customerId]) {
+              acc[record.customerId] = [];
+            }
+            acc[record.customerId].push(record);
+            return acc;
+          }, {});
+
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+            const sortedTreatments = treatments.sort((a, b) => 
+              new Date(b.createdDate) - new Date(a.createdDate)
+            );
+            
+            return {
+              key: customerId,
+              customerId: customerId,
+              customerName: sortedTreatments[0].customerName,
+              treatments: sortedTreatments.map(treatment => ({
+                ...treatment,
+                key: treatment.id
+              }))
+            };
+          });
+
+          setRecords(formattedRecords);
         }
       } else {
         notification.error({
@@ -138,180 +226,202 @@ const PatientRecords = () => {
     }
   };
 
-  // Group records by customerId, prefer INPROGRESS or PENDING for display
-  const groupedRecords = Object.values(records.reduce((acc, record) => {
-    if (!acc[record.customerId]) {
-      acc[record.customerId] = {
-        ...record,
-        history: [record]
-      };
-    } else {
-      acc[record.customerId].history.push(record);
-      // Pick the most recent INPROGRESS or PENDING record for display
-      const current = acc[record.customerId];
-      const isCurrentActive = ["INPROGRESS", "PENDING"].includes(current.status);
-      const isNewActive = ["INPROGRESS", "PENDING"].includes(record.status);
-      if (
-        (isNewActive && !isCurrentActive) ||
-        (isNewActive && isCurrentActive && new Date(record.createdDate) > new Date(current.createdDate)) ||
-        (!isNewActive && !isCurrentActive && new Date(record.createdDate) > new Date(current.createdDate))
-      ) {
-        acc[record.customerId] = {
-          ...record,
-          history: acc[record.customerId].history
-        };
+  const expandedRowRender = (record) => {
+    const columns = [
+      {
+        title: 'Dịch vụ',
+        dataIndex: 'treatmentServiceName',
+        key: 'treatmentServiceName',
+        render: (text) => (
+          <Space>
+            <MedicineBoxOutlined style={{ color: '#722ed1' }} />
+            <Text strong>{text}</Text>
+          </Space>
+        )
+      },
+      {
+        title: 'Ngày bắt đầu',
+        dataIndex: 'startDate',
+        key: 'startDate',
+        render: (date) => (
+          <Space>
+            <CalendarOutlined />
+            {dayjs(date).format("DD/MM/YYYY")}
+          </Space>
+        )
+      },
+      {
+        title: 'Trạng thái',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status) => getStatusTag(status)
+      },
+      {
+        title: 'Ghi chú',
+        dataIndex: 'notes',
+        key: 'notes',
+        render: (notes) => notes || '-'
+      },
+      {
+        title: 'Thao tác',
+        key: 'action',
+        render: (_, treatment) => (
+          <Space>
+            <Button
+              type="primary"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => viewRecord(treatment)}
+            >
+              Xem chi tiết
+            </Button>
+            {treatment.status === "PENDING" && (
+              <>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<CheckOutlined />}
+                  onClick={() => handleApprove(treatment)}
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  Duyệt
+                </Button>
+                <Button
+                  danger
+                  size="small"
+                  icon={<CloseOutlined />}
+                  onClick={() => handleCancel(treatment)}
+                >
+                  Hủy
+                </Button>
+              </>
+            )}
+          </Space>
+        )
       }
-    }
-    return acc;
-  }, {}));
+    ];
+
+    return (
+      <Card bordered={false} style={{ marginBottom: 16 }}>
+        <Table
+          columns={columns}
+          dataSource={record.treatments}
+          pagination={false}
+          size="small"
+        />
+      </Card>
+    );
+  };
 
   const columns = [
     {
       title: "Bệnh nhân",
       dataIndex: "customerName",
       key: "customerName",
-      render: (name) => <Text strong>{name}</Text>
-    },
-    {
-      title: "Dịch vụ",
-      dataIndex: "treatmentServiceName",
-      key: "treatmentServiceName",
-      render: (service) => <Tag color="purple">{service}</Tag>
-    },
-    {
-      title: "Ngày bắt đầu",
-      dataIndex: "startDate",
-      key: "startDate",
-      render: (date) => dayjs(date).format("DD/MM/YYYY")
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => getStatusTag(status)
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="primary"
-            size="small"
-            onClick={() => viewRecord(record)}
-          >
-            Chi Tiết
-          </Button>
-          <Button
-            size="small"
-            onClick={() => setHistoryDrawer({ open: true, patient: record })}
-          >
-            Lịch sử
-          </Button>
-          {record.status === "PENDING" && (
-            <Button
-              type="primary"
-              size="small"
-              onClick={() => handleApprove(record)}
-              style={{ background: '#fa8c16', borderColor: '#fa8c16' }}
-            >
-              Duyệt
-            </Button>
-          )}
+      render: (name) => (
+        <Space>
+          <UserOutlined style={{ color: '#1890ff' }} />
+          <Text strong>{name}</Text>
         </Space>
-      ),
+      )
+    },
+    {
+      title: "Số dịch vụ",
+      key: "treatmentCount",
+      render: (_, record) => (
+        <Tag color="blue">{record.treatments.length} dịch vụ</Tag>
+      )
+    },
+    {
+      title: "Dịch vụ mới nhất",
+      key: "latestTreatment",
+      render: (_, record) => (
+        <Tag color="purple">{record.treatments[0].treatmentServiceName}</Tag>
+      )
+    },
+    {
+      title: "Trạng thái mới nhất",
+      key: "latestStatus",
+      render: (_, record) => getStatusTag(record.treatments[0].status)
+    },
+    {
+      title: "Chi tiết",
+      key: "expand",
+      render: (_, record) => (
+        <Button
+          type="text"
+          icon={expandedRows.includes(record.key) ? <UpOutlined /> : <DownOutlined />}
+          onClick={() => {
+            const newExpandedRows = expandedRows.includes(record.key)
+              ? expandedRows.filter(key => key !== record.key)
+              : [...expandedRows, record.key];
+            setExpandedRows(newExpandedRows);
+          }}
+        >
+          {expandedRows.includes(record.key) ? 'Thu gọn' : 'Xem thêm'}
+        </Button>
+      )
     }
   ];
 
-  const filteredData = records.filter(record => {
-    const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
-                         record.id.toString().includes(searchText);
-    const matchesStatus = statusFilter === "all" || record.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
   return (
-    <div>
-      <Card title="Hồ Sơ Bệnh Nhân">
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={8}>
+    <div style={{ padding: '24px' }}>
+      <Card>
+        <Title level={3}>
+          <Space>
+            <FileTextOutlined />
+            Kết quả xét nghiệm
+          </Space>
+        </Title>
+
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col xs={24} sm={12} md={8}>
             <Search
-              placeholder="Tìm kiếm tên hoặc ID bệnh nhân..."
+              placeholder="Tìm kiếm theo tên bệnh nhân"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: "100%" }}
+              style={{ width: '100%' }}
             />
           </Col>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={8}>
             <Select
+              style={{ width: '100%' }}
               value={statusFilter}
               onChange={setStatusFilter}
-              style={{ width: "100%" }}
+              placeholder="Lọc theo trạng thái"
             >
               <Option value="all">Tất cả trạng thái</Option>
               <Option value="PENDING">Đang chờ xử lý</Option>
-              <Option value="CONFIRMED">Đã xác nhận</Option>
-              <Option value="CANCELLED">Đã hủy</Option>
+              <Option value="INPROGRESS">Đang điều trị</Option>
               <Option value="COMPLETED">Hoàn thành</Option>
+              <Option value="CANCELLED">Đã hủy</Option>
             </Select>
           </Col>
         </Row>
+
         <Table
+          dataSource={records.filter(record => {
+            const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || 
+              record.treatments.some(t => t.status === statusFilter);
+            return matchesSearch && matchesStatus;
+          })}
           columns={columns}
-          dataSource={groupedRecords}
-          rowKey="customerId"
+          expandable={{
+            expandedRowRender,
+            expandedRowKeys: expandedRows,
+            onExpand: (expanded, record) => {
+              const newExpandedRows = expanded
+                ? [...expandedRows, record.key]
+                : expandedRows.filter(key => key !== record.key);
+              setExpandedRows(newExpandedRows);
+            }
+          }}
           pagination={{ pageSize: 10 }}
-          bordered
         />
       </Card>
-
-      <Modal
-        title="Chi Tiết Hồ Sơ"
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setModalVisible(false)}>
-            Đóng
-          </Button>
-        ]}
-        width={800}
-      >
-        {selectedRecord && (
-          <Descriptions column={2} bordered>
-            <Descriptions.Item label="ID">{selectedRecord.id}</Descriptions.Item>
-            <Descriptions.Item label="Bệnh nhân">{selectedRecord.customerName}</Descriptions.Item>
-            <Descriptions.Item label="Dịch vụ">{selectedRecord.treatmentServiceName}</Descriptions.Item>
-            <Descriptions.Item label="Ngày bắt đầu">{dayjs(selectedRecord.startDate).format("DD/MM/YYYY")}</Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">{getStatusTag(selectedRecord.status)}</Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">{dayjs(selectedRecord.createdDate).format("DD/MM/YYYY")}</Descriptions.Item>
-          </Descriptions>
-        )}
-      </Modal>
-
-      <Drawer
-        title={`Lịch sử điều trị - ${historyDrawer.patient?.customerName || ''}`}
-        open={historyDrawer.open}
-        onClose={() => setHistoryDrawer({ open: false, patient: null })}
-        width={600}
-      >
-        {historyDrawer.patient && (
-          <Table
-            columns={[
-              { title: 'Dịch vụ', dataIndex: 'treatmentServiceName', key: 'service' },
-              { title: 'Ngày bắt đầu', dataIndex: 'startDate', key: 'startDate', render: (date) => dayjs(date).format('DD/MM/YYYY') },
-              { title: 'Trạng thái', dataIndex: 'status', key: 'status', render: getStatusTag },
-              { title: 'Ngày tạo', dataIndex: 'createdDate', key: 'createdDate', render: (date) => dayjs(date).format('DD/MM/YYYY') },
-            ]}
-            dataSource={historyDrawer.patient.history}
-            rowKey="id"
-            pagination={false}
-            size="small"
-            bordered
-          />
-        )}
-      </Drawer>
     </div>
   );
 };
 
-export default PatientRecords; 
+export default TestResults; 

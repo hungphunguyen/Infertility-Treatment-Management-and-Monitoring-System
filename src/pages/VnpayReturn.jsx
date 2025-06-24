@@ -13,11 +13,11 @@ const VnpayReturnPage = () => {
     const orderId = query.get("vnp_TxnRef");
 
     if (responseCode === "00") {
-      showNotification("✅ Thanh toán VNPAY thành công", "success");
+      showNotification("Thanh toán VNPAY thành công", "success");
     } else if (responseCode === "24") {
-      showNotification("⚠️ Bạn đã huỷ thanh toán VNPAY", "warning");
+      showNotification("Bạn đã huỷ thanh toán VNPAY", "warning");
     } else {
-      showNotification("❌ Thanh toán VNPAY thất bại", "error");
+      showNotification("Thanh toán VNPAY thất bại", "error");
     }
 
     setTimeout(() => {

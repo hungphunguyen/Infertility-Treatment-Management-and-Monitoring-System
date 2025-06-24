@@ -7,7 +7,7 @@ const http = axios.create({
   headers: {},
 });
 
-// Add a request interceptor 
+// Add a request interceptor
 http.interceptors.request.use(
   function (config) {
     // Do something before request is sent

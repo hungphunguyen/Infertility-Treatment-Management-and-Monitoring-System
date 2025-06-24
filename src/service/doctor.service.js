@@ -2,9 +2,9 @@ import { http } from "./config";
 import { getLocgetlStorage } from "../utils/util";
 
 // Đặt biến API_URL dùng cho fetch
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://18.183.84.218/infertility-system-api";
+// const API_URL =
+//   import.meta.env.VITE_API_URL ||
+//   "http://18.183.187.237/infertility-system-api";
 
 export const doctorService = {
   // Lấy danh sách tất cả bác sĩ

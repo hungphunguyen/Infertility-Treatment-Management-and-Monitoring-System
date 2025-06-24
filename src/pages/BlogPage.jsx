@@ -106,7 +106,7 @@ const BlogPage = () => {
                     >
                       <div className="text-center flex-grow">
                         <div className="text-gray-500 text-sm mb-2">
-                          {dayjs(post.createdAt).format("DD MMMM, YYYY")}
+                          {dayjs(post.createdAt).format("DD/MM/YYYY")}
                         </div>
                         <Title level={4} className="mb-4">
                           {post.title}
@@ -155,7 +155,7 @@ const BlogPage = () => {
                       >
                         <div className="text-center flex-grow">
                           <div className="text-gray-500 text-sm mb-2">
-                            {dayjs(post.createdAt).format("DD MMMM, YYYY")}
+                            {dayjs(post.createdAt).format("DD/MM/YYYY")}
                           </div>
                           <Title level={4} className="mb-4">
                             {post.title}
@@ -203,7 +203,7 @@ const BlogPage = () => {
                       >
                         <div className="text-center flex-grow">
                           <div className="text-gray-500 text-sm mb-2">
-                            {dayjs(post.createdAt).format("DD MMMM, YYYY")}
+                            {dayjs(post.createdAt).format("DD/MM/YYYY")}
                           </div>
                           <Title level={4} className="mb-4">
                             {post.title}

@@ -16,6 +16,7 @@ import OurStaffPage from "../pages/OurStaffPage";
 import ContactsPage from "../pages/ContactsPage";
 import DoctorDetailPage from "../pages/DoctorDetailPage";
 import RegisterService from "../pages/RegisterService";
+import ProtectedRoute from "../components/ProtectedRoute";
 import AdminPage from "../pages/AdminPage/AdminPage";
 import ManagerPage from "../pages/ManagerPage/ManagerPage";
 import ResendOtpPage from "../pages/ResendOtpPage";
@@ -26,6 +27,7 @@ import RenderCreateTreatment from "../components/manager/managerService/RenderCr
 import FeedbackCustomer from "../components/customer/FeedbackCustomer";
 import CreateBlogPage from "../components/blog/CreateBlog";
 import PaymentPage from "../pages/PaymentPage";
+import AuthPage from "../pages/AuthPage";
 
 const UseRoutesCustom = () => {
   const routes = useRoutes([
@@ -41,6 +43,10 @@ const UseRoutesCustom = () => {
     {
       path: path.signUp,
       element: <RegisterPage />,
+    },
+    {
+      path: path.testLogin,
+      element: <AuthPage />,
     },
     {
       path: path.verify,
@@ -84,7 +90,11 @@ const UseRoutesCustom = () => {
     },
     {
       path: path.appointment,
-      element: <RegisterService />,
+      element: (
+        <ProtectedRoute>
+          <RegisterService />
+        </ProtectedRoute>
+      ),
     },
     {
       path: path.admin,

@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Typography, Card, Row, Col, Avatar, Spin, Alert, Button, List, Rate } from "antd";
 import { UserOutlined, PhoneOutlined, MailOutlined } from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { useParams, useNavigate } from "react-router-dom";
 import { doctorService } from "../service/doctor.service";
+import { getLocgetlStorage } from "../utils/util";
+import { NotificationContext } from "../App";
 
 const { Title } = Typography;
 
@@ -148,14 +150,25 @@ const DoctorDetailPage = () => {
                 type="primary"
                 size="large"
                 className="bg-[#ff8460] hover:bg-[#ff6b40] border-none shadow"
-                onClick={() => navigate('/register-service', {
-                  state: {
+                onClick={() => {
+                  // Save doctor information to localStorage for later use
+                  localStorage.setItem('pendingDoctorSelection', JSON.stringify({
                     selectedDoctor: doctor.id,
                     doctorName: doctor.fullName,
-                    doctorRole: doctor.roleName?.description,
-                    doctorSpecialization: doctor.specialty || doctor.qualifications
-                  }
-                })}
+                    doctorRole: doctor.roleName?.description || "Bác sĩ chuyên khoa",
+                    doctorSpecialization: doctor.specialty || doctor.qualifications,
+                    from: `/doctor/${id}`
+                  }));
+                  
+                  navigate('/register-service', { 
+                    state: { 
+                      selectedDoctor: doctor.id,
+                      doctorName: doctor.fullName,
+                      doctorRole: doctor.roleName?.description || "Bác sĩ chuyên khoa",
+                      doctorSpecialization: doctor.specialty || doctor.qualifications
+                    } 
+                  });
+                }}
               >
                 Đặt lịch khám
               </Button>
