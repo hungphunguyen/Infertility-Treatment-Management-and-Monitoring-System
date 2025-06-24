@@ -4,6 +4,9 @@ export const managerService = {
   getWorkScheduleMonth: (id) => {
     return http.get(`work-schedule/this-month/${id}`);
   },
+  getWorkScheduleYear: (yearMonth, doctorId) => {
+    return http.get(`/work-schedule/${yearMonth}/${doctorId}`);
+  },
 
   getTreatmentType: () => {
     return http.get("treatment-type");
