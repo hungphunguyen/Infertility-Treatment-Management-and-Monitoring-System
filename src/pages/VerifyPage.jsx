@@ -22,7 +22,7 @@ const VerifyPage = () => {
         authService
           .verify(values)
           .then((res) => {
-            showNotification("OTP check successful", "success");
+            showNotification("OTP xác nhận thành công", "success");
             setTimeout(() => {
               navigate("/sign-in");
               localStorage.clear();
@@ -34,7 +34,7 @@ const VerifyPage = () => {
           });
       },
       validationSchema: yup.object({
-        otp: yup.string().required("Please do not leave blank"),
+        otp: yup.string().required("Vui lòng không để trống"),
       }),
     });
 
@@ -42,24 +42,20 @@ const VerifyPage = () => {
     <div>
       <div className="max-w-md mx-auto mt-20 p-8 border rounded-lg shadow-sm bg-white">
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">
-          Verify your account
+          Xác nhận tài khoản của bạn
         </h2>
         <p className="text-center text-gray-600 mb-6">
-          Please enter the verification code that we sent to <br />
-          <span className="font-medium text-gray-900">
-            {infoUser.email}
-
-            
-          </span>{" "}
-          in order to activate your account.
+          Vui lòng nhập mã code OTP chungs tôi đã gửi <br />
+          <span className="font-medium text-gray-900">{infoUser.email}</span> để
+          kích hoạt tài khoản này.
         </p>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <InputCustom
-            labelContent="Your code verify"
+            labelContent="Mã code xác nhận"
             id="otp"
             name="otp"
-            placeholder="Enter OTP"
+            placeholder="Nhập mã code OTP"
             typeInput="text"
             value={values.otp}
             onChange={handleChange}
@@ -71,11 +67,11 @@ const VerifyPage = () => {
             type="submit"
             className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition"
           >
-            Confirm code
+            Xác nhận code
           </button>
 
           <p className="text-center text-sm mt-4 text-blue-500 cursor-pointer hover:underline">
-            Resend code
+            Gửi lại code
           </p>
         </form>
       </div>

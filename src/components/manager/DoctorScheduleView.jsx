@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { 
-  Card, 
-  Typography, 
-  Table, 
-  Tag, 
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  Typography,
+  Table,
+  Tag,
   Select,
   Input,
   Row,
@@ -13,174 +13,208 @@ import {
   Badge,
   Space,
   Button,
-  Tooltip
+  Tooltip,
+  Spin,
+  Modal,
+  Progress,
 } from "antd";
-import { 
+import {
   UserOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   TeamOutlined,
   CalendarOutlined,
-  PhoneOutlined
+  PhoneOutlined,
+  MailOutlined,
+  EnvironmentOutlined,
+  CalendarOutlined as CalendarIcon,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { doctorService } from "../../service/doctor.service";
+import { treatmentService } from "../../service/treatment.service";
+import { http } from "../../service/config";
+import { managerService } from "../../service/manager.service";
 
 const { Title } = Typography;
 const { Option } = Select;
 const { Search } = Input;
 
 const DoctorScheduleView = () => {
-  const [doctorSchedules, setDoctorSchedules] = useState([
-    {
-      key: 1,
-      doctorId: "DOC001",
-      doctorName: "BS. Trần Văn Nam",
-      specialty: "Hỗ trợ sinh sản",
-      shift: "Sáng",
-      startTime: "08:00",
-      endTime: "12:00",
-      room: "P101",
-      status: "present", // present, absent, late
-      checkInTime: "07:55",
-      totalPatients: 8,
-      completedPatients: 5,
-      phone: "0912345678",
-      notes: "Có họp từ 10:30-11:00"
-    },
-    {
-      key: 2,
-      doctorId: "DOC002", 
-      doctorName: "BS. Nguyễn Thị Mai",
-      specialty: "Nội tiết sinh sản",
-      shift: "Chiều",
-      startTime: "13:00",
-      endTime: "17:00",
-      room: "P102",
-      status: "present",
-      checkInTime: "12:50",
-      totalPatients: 6,
-      completedPatients: 3,
-      phone: "0987654321",
-      notes: ""
-    },
-    {
-      key: 3,
-      doctorId: "DOC003",
-      doctorName: "ThS. Lê Văn Hùng",
-      specialty: "Phôi học lâm sàng",
-      shift: "Sáng",
-      startTime: "08:00", 
-      endTime: "12:00",
-      room: "P103",
-      status: "late",
-      checkInTime: "08:15",
-      totalPatients: 4,
-      completedPatients: 1,
-      phone: "0901234567",
-      notes: "Muộn do tắc đường"
-    },
-    {
-      key: 4,
-      doctorId: "DOC004",
-      doctorName: "BSCKII Phạm Thị Lan",
-      specialty: "Sản phụ khoa",
-      shift: "Cả ngày",
-      startTime: "08:00",
-      endTime: "17:00",
-      room: "P104",
-      status: "absent",
-      checkInTime: null,
-      totalPatients: 10,
-      completedPatients: 0,
-      phone: "0934567890",
-      notes: "Nghỉ phép bệnh"
-    },
-    {
-      key: 5,
-      doctorId: "DOC005",
-      doctorName: "TS. Hoàng Minh Đức",
-      specialty: "Nam khoa",
-      shift: "Chiều",
-      startTime: "14:00",
-      endTime: "18:00",
-      room: "P105",
-      status: "present",
-      checkInTime: "13:45",
-      totalPatients: 5,
-      completedPatients: 4,
-      phone: "0945678901",
-      notes: ""
-    }
-  ]);
-
-  const [filteredData, setFilteredData] = useState(doctorSchedules);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [doctorSchedules, setDoctorSchedules] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [shiftFilter, setShiftFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [doctorModalVisible, setDoctorModalVisible] = useState(false);
+  const [doctorDetails, setDoctorDetails] = useState(null);
+  const [loadingDoctorDetails, setLoadingDoctorDetails] = useState(false);
+  const [todayAppointments, setTodayAppointments] = useState([]);
+  const [workStats, setWorkStats] = useState(null);
+
+  // Fetch doctor schedules and today's appointments when component mounts
+  useEffect(() => {
+    fetchData();
+    fetchTodayAppointments();
+    fetchWorkStats();
+  }, []);
+
+  const fetchTodayAppointments = async () => {
+    try {
+      const response = await http.get("/appointments/get-all");
+      const today = dayjs().format("YYYY-MM-DD");
+      const filtered = response.data.result.filter(
+        (item) => item.appointmentDate === today
+      );
+      setTodayAppointments(filtered);
+    } catch (error) {
+      setTodayAppointments([]);
+    }
+  };
+
+  const fetchWorkStats = async () => {
+    try {
+      const res = await managerService.getWorkScheduleStatics();
+      if (res?.data?.result) {
+        setWorkStats(res.data.result);
+      }
+    } catch (error) {
+      setWorkStats(null);
+    }
+  };
+
+  const fetchDoctorsByShift = async (date, shift) => {
+    const response = await doctorService.getAvailableDoctors(date, shift);
+    return (response?.data?.result || []).map((doctor) => ({
+      ...doctor,
+      shift:
+        shift === "MORNING"
+          ? "Sáng"
+          : shift === "AFTERNOON"
+          ? "Chiều"
+          : "Cả ngày",
+      startTime:
+        shift === "MORNING"
+          ? "08:00"
+          : shift === "AFTERNOON"
+          ? "13:00"
+          : "08:00",
+      endTime:
+        shift === "MORNING"
+          ? "12:00"
+          : shift === "AFTERNOON"
+          ? "17:00"
+          : "17:00",
+      key: doctor.id,
+      doctorId: doctor.id,
+      doctorName: doctor.fullName,
+      specialty:
+        doctor.specialty ||
+        doctor.qualifications ||
+        doctor.roleName?.description ||
+        "Bác sĩ điều trị",
+      phone: doctor.phoneNumber,
+    }));
+  };
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const today = dayjs().format("YYYY-MM-DD");
+      let doctors = [];
+      if (shiftFilter === "all") {
+        // Gọi cả 3 ca, merge lại, loại trùng
+        const [morning, afternoon, fullDay] = await Promise.all([
+          fetchDoctorsByShift(today, "MORNING"),
+          fetchDoctorsByShift(today, "AFTERNOON"),
+          fetchDoctorsByShift(today, "FULL_DAY"),
+        ]);
+        // Merge, ưu tiên Cả ngày > Sáng/Chiều
+        const doctorMap = new Map();
+        fullDay.forEach((d) => doctorMap.set(d.doctorId, d));
+        morning.forEach((d) => {
+          if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d);
+        });
+        afternoon.forEach((d) => {
+          if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d);
+        });
+        doctors = Array.from(doctorMap.values());
+      } else {
+        // Chỉ gọi đúng ca
+        const apiShift =
+          shiftFilter === "Sáng"
+            ? "MORNING"
+            : shiftFilter === "Chiều"
+            ? "AFTERNOON"
+            : "FULL_DAY";
+        doctors = await fetchDoctorsByShift(today, apiShift);
+      }
+      setDoctorSchedules(doctors);
+      setFilteredData(doctors);
+    } catch (error) {
+      console.log("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDoctorDetails = async (doctorId) => {
+    try {
+      setLoadingDoctorDetails(true);
+      const response = await doctorService.getDoctorById(doctorId);
+      if (response?.data?.result) {
+        setDoctorDetails(response.data.result);
+      }
+    } catch (error) {
+      console.error("Error fetching doctor details:", error);
+    } finally {
+      setLoadingDoctorDetails(false);
+    }
+  };
+
+  const showDoctorDetails = async (doctorId) => {
+    setSelectedDoctor(doctorId);
+    setDoctorModalVisible(true);
+    await fetchDoctorDetails(doctorId);
+  };
 
   // Filter schedules
-  React.useEffect(() => {
+  useEffect(() => {
     let filtered = doctorSchedules;
-    
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(item => item.status === statusFilter);
-    }
-    
+
     if (shiftFilter !== "all") {
-      filtered = filtered.filter(item => item.shift === shiftFilter);
+      filtered = filtered.filter((item) => item.shift === shiftFilter);
     }
-    
+
     if (searchText) {
-      filtered = filtered.filter(item => 
-        item.doctorName.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.specialty.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.room.toLowerCase().includes(searchText.toLowerCase())
+      filtered = filtered.filter(
+        (item) =>
+          item.doctorName.toLowerCase().includes(searchText.toLowerCase()) ||
+          item.specialty.toLowerCase().includes(searchText.toLowerCase())
       );
     }
-    
-    setFilteredData(filtered);
-  }, [statusFilter, shiftFilter, searchText, doctorSchedules]);
 
-  const getStatusBadge = (status, checkInTime) => {
-    const statusMap = {
-      present: { 
-        status: "success", 
-        text: "Có mặt",
-        color: "green"
-      },
-      absent: { 
-        status: "error", 
-        text: "Vắng mặt",
-        color: "red"
-      },
-      late: { 
-        status: "warning", 
-        text: "Muộn",
-        color: "orange"
-      }
-    };
-    
-    const config = statusMap[status];
-    return (
-      <div>
-        <Badge status={config.status} text={config.text} />
-        {checkInTime && (
-          <div className="text-xs text-gray-500">
-            Check-in: {checkInTime}
-          </div>
-        )}
-      </div>
-    );
-  };
+    setFilteredData(filtered);
+  }, [shiftFilter, searchText, doctorSchedules]);
 
   const getShiftTag = (shift) => {
     const shiftMap = {
-      "Sáng": { color: "blue" },
-      "Chiều": { color: "orange" },
-      "Cả ngày": { color: "purple" }
+      Sáng: { color: "blue" },
+      Chiều: { color: "orange" },
+      "Cả ngày": { color: "purple" },
     };
     return <Tag color={shiftMap[shift]?.color}>{shift}</Tag>;
+  };
+
+  const getDoctorStats = (doctorName) => {
+    const patients = todayAppointments.filter(
+      (a) => a.doctorName === doctorName
+    );
+    const total = patients.length;
+    const completed = patients.filter((a) => a.status === "COMPLETED").length;
+    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { total, completed, progress };
   };
 
   const columns = [
@@ -188,85 +222,80 @@ const DoctorScheduleView = () => {
       title: "Bác sĩ",
       key: "doctor",
       render: (_, record) => (
-        <div className="flex items-center">
-          <Avatar 
-            size={40} 
-            icon={<UserOutlined />} 
+        <div
+          className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
+          onClick={() => showDoctorDetails(record.doctorId)}
+        >
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
             className="mr-3"
-            style={{ backgroundColor: '#1890ff' }}
+            style={{ backgroundColor: "#1890ff" }}
           />
           <div>
             <div className="font-semibold">{record.doctorName}</div>
             <div className="text-sm text-gray-500">{record.specialty}</div>
           </div>
         </div>
-      )
+      ),
     },
     {
       title: "Ca làm việc",
-      dataIndex: "shift",
       key: "shift",
-      render: (shift, record) => (
-        <div>
-          {getShiftTag(shift)}
-          <div className="text-sm text-gray-500 mt-1">
-            {record.startTime} - {record.endTime}
+      render: (_, record) => {
+        const stats = getDoctorStats(record.doctorName);
+        let color = "blue";
+        if (record.shift === "Chiều") color = "orange";
+        if (record.shift === "Cả ngày") color = "purple";
+        return (
+          <div>
+            <div className="flex items-center space-x-2">
+              <Tag color={color}>{record.shift}</Tag>
+              <span className="text-sm text-gray-500">
+                {record.startTime} - {record.endTime}
+              </span>
+            </div>
+            <div className="text-sm text-gray-500 mt-1">
+              {stats.total} bệnh nhân hôm nay
+            </div>
           </div>
-        </div>
-      )
-    },
-    {
-      title: "Phòng",
-      dataIndex: "room",
-      key: "room",
-      render: (room) => (
-        <Tag color="cyan" icon={<CalendarOutlined />}>
-          {room}
-        </Tag>
-      )
-    },
-    {
-      title: "Trạng thái",
-      key: "status",
-      render: (_, record) => getStatusBadge(record.status, record.checkInTime)
+        );
+      },
     },
     {
       title: "Bệnh nhân",
       key: "patients",
-      render: (_, record) => (
-        <div>
-          <div className="font-semibold">
-            {record.completedPatients}/{record.totalPatients}
+      render: (_, record) => {
+        const stats = getDoctorStats(record.doctorName);
+        return (
+          <div>
+            <div className="font-semibold">
+              {stats.completed}/{stats.total}
+            </div>
+            <div className="text-sm text-gray-500">Đã khám/Tổng</div>
           </div>
-          <div className="text-sm text-gray-500">
-            {record.status !== "absent" ? "Đã khám/Tổng" : "Chưa khám"}
-          </div>
-        </div>
-      )
+        );
+      },
     },
     {
       title: "Tiến độ",
       key: "progress",
       render: (_, record) => {
-        const percentage = record.totalPatients > 0 
-          ? Math.round((record.completedPatients / record.totalPatients) * 100)
-          : 0;
-        
+        const stats = getDoctorStats(record.doctorName);
         return (
           <div className="w-full">
             <div className="flex justify-between text-sm mb-1">
               <span>Tiến độ</span>
-              <span>{percentage}%</span>
+              <span>{stats.progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${percentage}%` }}
-              ></div>
-            </div>
+            <Progress
+              percent={stats.progress}
+              size="small"
+              status={stats.progress === 100 ? "success" : "active"}
+            />
           </div>
         );
-      }
+      },
     },
     {
       title: "Liên hệ",
@@ -274,84 +303,92 @@ const DoctorScheduleView = () => {
       key: "phone",
       render: (phone) => (
         <Tooltip title="Gọi điện">
-          <Button 
-            type="link" 
-            icon={<PhoneOutlined />}
-            size="small"
-          >
+          <Button type="link" icon={<PhoneOutlined />} size="small">
             {phone}
           </Button>
         </Tooltip>
-      )
+      ),
     },
-    {
-      title: "Ghi chú",
-      dataIndex: "notes",
-      key: "notes",
-      render: (notes) => (
-        <div className="max-w-xs">
-          {notes ? (
-            <span className="text-sm">{notes}</span>
-          ) : (
-            <span className="text-gray-400 text-sm">Không có ghi chú</span>
-          )}
-        </div>
-      )
-    }
   ];
 
-  // Statistics
+  // Calculate statistics
   const stats = {
-    total: doctorSchedules.length,
-    present: doctorSchedules.filter(d => d.status === "present").length,
-    absent: doctorSchedules.filter(d => d.status === "absent").length,
-    late: doctorSchedules.filter(d => d.status === "late").length,
-    totalPatients: doctorSchedules.reduce((sum, d) => sum + d.totalPatients, 0),
-    completedPatients: doctorSchedules.reduce((sum, d) => sum + d.completedPatients, 0)
+    totalDoctors: doctorSchedules.length,
+    totalPatients: todayAppointments.length,
+    completedPatients: todayAppointments.filter((a) => a.status === "COMPLETED")
+      .length,
   };
 
   return (
     <div>
-      {/* Statistics Cards */}
-      <Row gutter={16} className="mb-6">
-        <Col span={6}>
-          <Card>
+      {/* Statistics Section */}
+      <Row gutter={24} style={{ marginBottom: 24 }}>
+        <Col span={8}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
             <Statistic
-              title="Tổng bác sĩ"
-              value={stats.total}
-              prefix={<TeamOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              title={
+                <span style={{ color: "#1890ff", fontWeight: 600 }}>
+                  Tổng bác sĩ hôm nay
+                </span>
+              }
+              value={workStats ? workStats.totalDoctorsToday : 0}
+              prefix={<TeamOutlined style={{ color: "#1890ff" }} />}
+              valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
+        <Col span={8}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
             <Statistic
-              title="Có mặt"
-              value={stats.present}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
+              title={
+                <span style={{ color: "#52c41a", fontWeight: 600 }}>
+                  Bệnh nhân đã khám
+                </span>
+              }
+              value={workStats ? workStats.completedPatientsToday : 0}
+              prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
+              valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
+        <Col span={8}>
+          <Card
+            bordered
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
             <Statistic
-              title="Vắng mặt"
-              value={stats.absent}
-              prefix={<CloseCircleOutlined />}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="Tỷ lệ khám"
-              value={stats.totalPatients > 0 ? Math.round((stats.completedPatients / stats.totalPatients) * 100) : 0}
+              title={
+                <span style={{ color: "#faad14", fontWeight: 600 }}>
+                  Tỷ lệ khám
+                </span>
+              }
+              value={
+                workStats && workStats.totalPatientsToday > 0
+                  ? Math.round(
+                      (workStats.completedPatientsToday /
+                        workStats.totalPatientsToday) *
+                        100
+                    )
+                  : 0
+              }
               suffix="%"
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#faad14' }}
+              prefix={<CalendarOutlined style={{ color: "#faad14" }} />}
+              valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
@@ -360,28 +397,12 @@ const DoctorScheduleView = () => {
       {/* Additional Stats */}
       <Card className="mb-6 shadow-md">
         <Row gutter={24}>
-          <Col span={8}>
+          <Col span={24}>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {stats.completedPatients}/{stats.totalPatients}
-              </div>
-              <div className="text-sm text-gray-500">Bệnh nhân đã khám/Tổng</div>
-            </div>
-          </Col>
-          <Col span={8}>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
                 {dayjs().format("DD/MM/YYYY")}
               </div>
               <div className="text-sm text-gray-500">Ngày hôm nay</div>
-            </div>
-          </Col>
-          <Col span={8}>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {stats.late}
-              </div>
-              <div className="text-sm text-gray-500">Bác sĩ đi muộn</div>
             </div>
           </Col>
         </Row>
@@ -390,20 +411,7 @@ const DoctorScheduleView = () => {
       {/* Filters */}
       <Card className="mb-6 shadow-md">
         <Row gutter={16} align="middle">
-          <Col span={4}>
-            <Select
-              value={statusFilter}
-              onChange={setStatusFilter}
-              style={{ width: "100%" }}
-              size="large"
-            >
-              <Option value="all">Tất cả trạng thái</Option>
-              <Option value="present">Có mặt</Option>
-              <Option value="absent">Vắng mặt</Option>
-              <Option value="late">Muộn</Option>
-            </Select>
-          </Col>
-          <Col span={4}>
+          <Col span={8}>
             <Select
               value={shiftFilter}
               onChange={setShiftFilter}
@@ -416,18 +424,22 @@ const DoctorScheduleView = () => {
               <Option value="Cả ngày">Cả ngày</Option>
             </Select>
           </Col>
-          <Col span={10}>
+          <Col span={12}>
             <Search
-              placeholder="Tìm kiếm bác sĩ, chuyên khoa, phòng..."
+              placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               size="large"
             />
           </Col>
-          <Col span={6} className="text-right">
-            <span className="text-gray-500">
-              Cập nhật: {dayjs().format("HH:mm")}
-            </span>
+          <Col span={4} className="text-right">
+            <Button
+              type="primary"
+              onClick={fetchData}
+              icon={<CalendarOutlined />}
+            >
+              Làm mới
+            </Button>
           </Col>
         </Row>
       </Card>
@@ -439,15 +451,101 @@ const DoctorScheduleView = () => {
           dataSource={filteredData}
           pagination={false}
           scroll={{ x: 1200 }}
-          rowClassName={(record) => {
-            if (record.status === "absent") return "bg-red-50";
-            if (record.status === "late") return "bg-yellow-50";
-            return "";
-          }}
+          loading={loading}
         />
       </Card>
+
+      {/* Doctor Details Modal */}
+      <Modal
+        title="Thông tin chi tiết bác sĩ"
+        open={doctorModalVisible}
+        onCancel={() => setDoctorModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        {loadingDoctorDetails ? (
+          <div className="flex justify-center items-center h-64">
+            <Spin size="large" />
+          </div>
+        ) : doctorDetails ? (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <Avatar
+                size={64}
+                icon={<UserOutlined />}
+                style={{ backgroundColor: "#1890ff" }}
+              />
+              <div>
+                <h3 className="text-xl font-bold">{doctorDetails.fullName}</h3>
+                <p className="text-gray-500">
+                  {doctorDetails.roleName?.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center text-gray-600">
+                  <MailOutlined className="mr-2" />
+                  <span>{doctorDetails.email}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <PhoneOutlined className="mr-2" />
+                  <span>{doctorDetails.phoneNumber}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <EnvironmentOutlined className="mr-2" />
+                  <span>{doctorDetails.address}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <CalendarIcon className="mr-2" />
+                  <span>
+                    Ngày sinh:{" "}
+                    {dayjs(doctorDetails.dateOfBirth).format("DD/MM/YYYY")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center text-gray-600">
+                  <span className="font-semibold mr-2">Giới tính:</span>
+                  <span>{doctorDetails.gender === "male" ? "Nam" : "Nữ"}</span>
+                </div>
+                {doctorDetails.qualifications && (
+                  <div className="flex items-center text-gray-600">
+                    <span className="font-semibold mr-2">Bằng cấp:</span>
+                    <span>{doctorDetails.qualifications}</span>
+                  </div>
+                )}
+                {doctorDetails.graduationYear && (
+                  <div className="flex items-center text-gray-600">
+                    <span className="font-semibold mr-2">Năm tốt nghiệp:</span>
+                    <span>{doctorDetails.graduationYear}</span>
+                  </div>
+                )}
+                {doctorDetails.experienceYears && (
+                  <div className="flex items-center text-gray-600">
+                    <span className="font-semibold mr-2">Kinh nghiệm:</span>
+                    <span>{doctorDetails.experienceYears} năm</span>
+                  </div>
+                )}
+                {doctorDetails.specialty && (
+                  <div className="flex items-center text-gray-600">
+                    <span className="font-semibold mr-2">Chuyên khoa:</span>
+                    <span>{doctorDetails.specialty}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">
+            Không tìm thấy thông tin bác sĩ
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
 
-export default DoctorScheduleView; 
+export default DoctorScheduleView;

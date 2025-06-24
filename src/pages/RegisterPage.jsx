@@ -49,49 +49,51 @@ const RegisterPage = () => {
       validationSchema: yup.object({
         username: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please do not leave blank"),
+          .trim("Vui lòng không để trống hoặc khoảng trắng")
+          .required("Vui lòng không để trống hoặc khoảng trắng"),
         password: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please do not leave blank"),
+          .trim("Vui lòng không để trống hoặc khoảng trắng")
+          .required("Vui lòng không để trống hoặc khoảng trắng"),
         fullName: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Full name is required"),
+          .trim("Vui lòng không để trống hoặc khoảng trắng")
+          .required("Tên đầy đủ là bắt buộc"),
         email: yup
           .string()
-          .trim("Please do not leave blank")
-          .email("Invalid email")
-          .required("Email is required"),
+          .trim("Vui lòng không để trống hoặc khoảng trắng")
+          .email("Không đúng định dạng email")
+          .required("Email Là bắt buộc"),
         phoneNumber: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Phone is required"),
+          .trim("Vui lòng không để trống hoặc khoảng trắng")
+          .required("Số điện thoại là bắt buộc"),
         gender: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please choose your gender"),
-        dateOfBirth: yup.date().required("Date of birth is required"),
+          .trim("Vui lòng không để trống hoặc khoảng trắng")
+          .required("Vui lòng chọn giới tính"),
+        dateOfBirth: yup.date().required("Ngày sinh là bắt buộc"),
         address: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Address is required"),
+          .trim("Vui lòng không để trống hoặc khoảng trắng")
+          .required("Địa chỉ là bắt buộc"),
       }),
     });
 
   return (
     <div>
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
-        <h2 className="text-2xl font-bold mb-8 text-center">Register</h2>
+        <h2 className="text-2xl font-bold mb-8 text-center">
+          Đăng kí tài khoản
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {/* LEFT COLUMN */}
             <InputCustom
-              labelContent="Username"
+              labelContent="Tài khoản"
               id="username"
               name="username"
-              placeholder="Enter username"
+              placeholder="Nhập tài khoản"
               value={values.username}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -100,10 +102,10 @@ const RegisterPage = () => {
             />
 
             <InputCustom
-              labelContent="Password"
+              labelContent="Mật khẩu"
               id="password"
               name="password"
-              placeholder="Enter password"
+              placeholder="Nhập mật khẩu"
               typeInput="password"
               value={values.password}
               onChange={handleChange}
@@ -113,10 +115,10 @@ const RegisterPage = () => {
             />
 
             <InputCustom
-              labelContent="Full Name"
+              labelContent="Tên đầy đủ"
               id="fullName"
               name="fullName"
-              placeholder="Enter full name"
+              placeholder="Nhập tên đầy đủ"
               value={values.fullName}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -128,7 +130,7 @@ const RegisterPage = () => {
               labelContent="Email"
               id="email"
               name="email"
-              placeholder="Enter email"
+              placeholder="Nhập email"
               typeInput="email"
               value={values.email}
               onChange={handleChange}
@@ -138,10 +140,10 @@ const RegisterPage = () => {
             />
 
             <InputCustom
-              labelContent="Phone Number"
+              labelContent="Số điện thoại"
               id="phoneNumber"
               name="phoneNumber"
-              placeholder="Enter phone number"
+              placeholder="Nhập số điện thoại"
               value={values.phoneNumber}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -150,10 +152,10 @@ const RegisterPage = () => {
             />
 
             <InputCustom
-              labelContent="Address"
+              labelContent="Địa chỉ"
               id="address"
               name="address"
-              placeholder="Enter your address"
+              placeholder="Nhập địa chỉ của bạn"
               value={values.address}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -167,7 +169,7 @@ const RegisterPage = () => {
                 htmlFor="gender"
                 className="block mb-2 text-sm font-medium text-gray-900"
               >
-                Gender
+                Giới tính
               </label>
               <select
                 id="gender"
@@ -177,10 +179,10 @@ const RegisterPage = () => {
                 onBlur={handleBlur}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">-- Select gender --</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="">-- Chọn giới tính --</option>
+                <option value="male">Nam</option>
+                <option value="female">Nữ</option>
+                <option value="other">Khác</option>
               </select>
               {errors.gender && touched.gender && (
                 <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
@@ -188,7 +190,7 @@ const RegisterPage = () => {
             </div>
 
             <InputCustom
-              labelContent="Date of Birth"
+              labelContent="Ngày sinh"
               id="dateOfBirth"
               name="dateOfBirth"
               typeInput="date"
@@ -205,13 +207,13 @@ const RegisterPage = () => {
               type="submit"
               className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition duration-200"
             >
-              Register
+              Đăng kí
             </button>{" "}
             <Link
               to={path.signIn}
               className="mt-3 text-blue-600 hover:underline duration-300"
             >
-              Already have account, click here
+              Đã có tài khoản, nhấp vào đây
             </Link>
           </div>
         </form>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Layout, Typography } from "antd";
+import React, { useState, useEffect, useContext } from "react";
+import { Layout, Spin, Typography } from "antd";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { path } from "../common/path";
 import CustomerSidebar from "../components/customer/CustomerSidebar";
@@ -13,7 +13,11 @@ import Feedback from "../components/customer/Feedback";
 import MedicalRecord from "../components/customer/MedicalRecord";
 import Payment from "../components/customer/Payment";
 import UpdateProfile from "../components/customer/UpdateProfile";
+import { authService } from "../service/auth.service";
+import { NotificationContext } from "../App";
+import { useSelector } from "react-redux";
 import CustomerBlogManagement from "../components/blog/CustomerBlogManagement";
+import VnpayReturn from "./VnpayReturn";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -23,6 +27,52 @@ const CustomerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
+  const token = useSelector((state) => state.authSlice);
+  const { showNotification } = useContext(NotificationContext);
+  const [infoUser, setInfoUser] = useState();
+
+  // check hiệu lực token
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, [token]);
+
+  const checkIntrospect = async () => {
+    await authService
+      .checkIntrospect(token.token)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        if (err.response.data.code == 1006) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      });
+  };
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/");
+      return;
+    }
+    authService
+      .getMyInfo(token.token)
+      .then((res) => {
+        const user = res.data.result;
+        if (user.roleName.name !== "CUSTOMER") {
+          showNotification("Bạn không có quyền truy cập trang này", "error");
+          navigate("/");
+          return;
+        }
+        setInfoUser(res.data.result);
+      })
+      .catch((err) => {
+        navigate("/");
+        console.log(err);
+      });
+  }, [token]);
 
   // Update selected menu item based on current path
   useEffect(() => {
@@ -87,49 +137,61 @@ const CustomerDashboard = () => {
         return "Phản Hồi Của Tôi";
       case "payment":
         return "Thanh Toán";
+
       default:
         return "Dashboard Khách Hàng";
     }
   };
 
+  if (!infoUser) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider 
-        collapsible 
-        collapsed={collapsed} 
+      <Sider
+        collapsible
+        collapsed={collapsed}
         onCollapse={setCollapsed}
         theme="light"
         width={280}
       >
-        <CustomerSidebar 
+        <CustomerSidebar
           selectedMenuItem={selectedMenuItem}
           setSelectedMenuItem={setSelectedMenuItem}
           collapsed={collapsed}
         />
       </Sider>
-      
+
       <Layout>
-        <Header style={{ 
-          background: "#fff", 
-          padding: "0 24px", 
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}>
+        <Header
+          style={{
+            background: "#fff",
+            padding: "0 24px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <Title level={3} style={{ margin: 0, color: "#1890ff" }}>
             {getPageTitle()}
           </Title>
           <div style={{ color: "#666" }}>
-            Chào mừng, Phú Lâm Nguyên
+            Chào mừng, {infoUser?.fullName || "Khách hàng"}
           </div>
         </Header>
-        
-        <Content style={{ 
-          margin: "24px", 
-          background: "#f0f2f5",
-          minHeight: "calc(100vh - 112px)"
-        }}>
+
+        <Content
+          style={{
+            margin: "24px",
+            background: "#f0f2f5",
+            minHeight: "calc(100vh - 112px)",
+          }}
+        >
           <Routes>
             <Route index element={<ProfileOverview />} />
             <Route path="profile" element={<ProfileOverview />} />
@@ -141,6 +203,7 @@ const CustomerDashboard = () => {
             <Route path="feedback" element={<Feedback />} />
             <Route path="medical-record" element={<MedicalRecord />} />
             <Route path="payment" element={<Payment />} />
+            <Route path="payment/vnpay/return" element={<VnpayReturn />} />
             <Route path="update-profile" element={<UpdateProfile />} />
             <Route path="my-blogs" element={<CustomerBlogManagement />} />
           </Routes>

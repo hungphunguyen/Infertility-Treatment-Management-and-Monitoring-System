@@ -29,9 +29,20 @@ export const authService = {
     return http.post("auth/resend-otp", data); // resend OTP
   },
   checkIntrospect: (data) => {
-    return http.post("auth/introspect", data);
+    return http.post("auth/introspect", data, {
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+    });
   },
   updateUser: (id, data) => {
     return http.put(`user/update/${id}`, data);
+  },
+
+  uploadAvatar: (payload) => {
+    return http.put(`user/upload-avatar`, payload, {
+      "Content-Type": "multipart/form-data",
+    });
   },
 };

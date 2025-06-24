@@ -1,430 +1,348 @@
-import React, { useState } from "react";
-import { 
-  Card, 
-  Typography, 
-  Table, 
-  Button, 
-  Space, 
-  Tag, 
-  Input,
-  Modal,
-  Form,
-  InputNumber,
-  message,
-  Row,
-  Col,
-  Popconfirm,
-  Image,
-  Upload,
-  Switch,
-  Descriptions
-} from "antd";
-import { 
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
+import React, { useContext, useEffect, useState } from "react";
+import { NotificationContext } from "../../App";
+import { managerService } from "../../service/manager.service";
+import {
   EyeOutlined,
-  UploadOutlined,
-  SearchOutlined
+  DeleteOutlined,
+  PlusOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
-
-const { Title } = Typography;
-const { Search } = Input;
-const { TextArea } = Input;
-
+import { useNavigate } from "react-router-dom";
+import { path } from "../../common/path";
+import "../../index.scss";
+import { Popconfirm } from "antd";
 const ServiceManagement = () => {
-  const [services, setServices] = useState([
-    {
-      key: 1,
-      id: "SRV001",
-      name: "Thụ Tinh Trong Ống Nghiệm (IVF)",
-      description: "IVF là kỹ thuật hỗ trợ sinh sản tiên tiến nhất, trong đó trứng được thụ tinh với tinh trùng trong phòng thí nghiệm.",
-      price: 50000000,
-      duration: "2-3 tháng",
-      category: "Hỗ trợ sinh sản",
-      isActive: true,
-      image: "/images/services/ivf.jpg",
-      createdDate: "2024-01-01"
-    },
-    {
-      key: 2,
-      id: "SRV002", 
-      name: "Thụ Tinh Nhân Tạo (IUI)",
-      description: "IUI là phương pháp đưa tinh trùng đã được xử lý trực tiếp vào tử cung của người phụ nữ.",
-      price: 15000000,
-      duration: "1 tháng",
-      category: "Hỗ trợ sinh sản",
-      isActive: true,
-      image: "/images/services/iui.jpg",
-      createdDate: "2024-01-01"
-    },
-    {
-      key: 3,
-      id: "SRV003",
-      name: "Xét Nghiệm Chẩn Đoán",
-      description: "Xét nghiệm toàn diện để xác định nguyên nhân của vô sinh.",
-      price: 2000000,
-      duration: "1-2 tuần",
-      category: "Chẩn đoán",
-      isActive: true,
-      image: "/images/services/diagnostic.jpg",
-      createdDate: "2024-01-01"
-    }
-  ]);
-
-  const [filteredData, setFilteredData] = useState(services);
-  const [searchText, setSearchText] = useState("");
+  const { showNotification } = useContext(NotificationContext);
+  const [treatmentService, setTreatmentService] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedService, setSelectedService] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [modalType, setModalType] = useState(""); // create, edit, view
-  const [form] = Form.useForm();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editedService, setEditedService] = useState(null);
+  const navigate = useNavigate();
 
-  // Filter services
-  React.useEffect(() => {
-    let filtered = services;
-    
-    if (searchText) {
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.id.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchText.toLowerCase())
-      );
+  const fetchTreatmentService = async () => {
+    try {
+      const res = await managerService.getTreatmentService();
+      setTreatmentService(res.data.result);
+    } catch (error) {
+      showNotification("Lỗi khi tải dịch vụ", "error");
     }
-    
-    setFilteredData(filtered);
-  }, [searchText, services]);
-
-  const createService = () => {
-    setSelectedService(null);
-    setModalType("create");
-    form.resetFields();
-    setIsModalVisible(true);
   };
 
-  const editService = (service) => {
-    setSelectedService(service);
-    setModalType("edit");
-    form.setFieldsValue({
-      name: service.name,
-      description: service.description,
-      price: service.price,
-      duration: service.duration,
-      category: service.category,
-      isActive: service.isActive
-    });
-    setIsModalVisible(true);
+  useEffect(() => {
+    fetchTreatmentService();
+  }, []);
+
+  const handleStatusChange = async (id) => {
+    try {
+      const service = treatmentService.find((service) => service.id === id);
+
+      if (!service.remove) {
+        await managerService.deleteTreatmentService(id);
+        showNotification("Dịch vụ đã được tắt", "success");
+      } else {
+        await managerService.restoreTreatmentService(id);
+        showNotification("Dịch vụ đã được khôi phục", "success");
+      }
+
+      await fetchTreatmentService();
+    } catch (error) {
+      showNotification(error.response.data.message);
+    }
   };
 
-  const viewService = (service) => {
-    setSelectedService(service);
-    setModalType("view");
-    setIsModalVisible(true);
+  const getTreatmentServiceDetail = async (serviceId) => {
+    try {
+      const res = await managerService.getTreatmentServiceDetail(serviceId);
+      setSelectedService(res.data.result);
+      setEditedService({ ...res.data.result });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const deleteService = (serviceId) => {
-    setServices(prev => prev.filter(service => service.id !== serviceId));
-    message.success("Dịch vụ đã được xóa!");
-  };
-
-  const toggleServiceStatus = (serviceId) => {
-    setServices(prev => prev.map(service => 
-      service.id === serviceId 
-        ? { ...service, isActive: !service.isActive }
-        : service
-    ));
-    message.success("Trạng thái dịch vụ đã được cập nhật!");
-  };
-
-  const handleSubmit = (values) => {
-    const serviceData = {
-      ...values,
-      id: modalType === "create" ? `SRV${String(services.length + 1).padStart(3, '0')}` : selectedService.id,
-      key: modalType === "create" ? Date.now() : selectedService.key,
-      image: "/images/services/default.jpg",
-      createdDate: modalType === "create" ? new Date().toISOString().split('T')[0] : selectedService.createdDate
-    };
-
-    if (modalType === "create") {
-      setServices(prev => [...prev, serviceData]);
-      message.success("Dịch vụ mới đã được tạo!");
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "price" || name === "duration") {
+      setEditedService((prev) => ({
+        ...prev,
+        [name]: value.replace(/\D/g, ""), // Loại bỏ ký tự không phải là số
+      }));
     } else {
-      setServices(prev => prev.map(service => 
-        service.id === selectedService.id ? { ...service, ...serviceData } : service
-      ));
-      message.success("Dịch vụ đã được cập nhật!");
+      setEditedService((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
-
-    setIsModalVisible(false);
-    form.resetFields();
   };
 
-  const columns = [
-    {
-      title: "Mã dịch vụ",
-      dataIndex: "id",
-      key: "id",
-      render: (id) => <Tag color="blue">{id}</Tag>
-    },
-    {
-      title: "Hình ảnh",
-      dataIndex: "image",
-      key: "image",
-      render: (image) => (
-        <Image 
-          width={60} 
-          height={40} 
-          src={image} 
-          fallback="/images/default-service.jpg"
-          style={{ objectFit: "cover", borderRadius: "4px" }}
-        />
-      )
-    },
-    {
-      title: "Tên dịch vụ",
-      dataIndex: "name",
-      key: "name",
-      render: (name) => <div className="font-semibold">{name}</div>
-    },
-    {
-      title: "Danh mục",
-      dataIndex: "category",
-      key: "category",
-      render: (category) => <Tag color="green">{category}</Tag>
-    },
-    {
-      title: "Giá",
-      dataIndex: "price",
-      key: "price",
-      render: (price) => `${price.toLocaleString('vi-VN')} VNĐ`
-    },
-    {
-      title: "Thời gian",
-      dataIndex: "duration",
-      key: "duration",
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "isActive",
-      key: "isActive",
-      render: (isActive, record) => (
-        <Switch 
-          checked={isActive} 
-          onChange={() => toggleServiceStatus(record.id)}
-          checkedChildren="Hoạt động"
-          unCheckedChildren="Tạm dừng"
-        />
-      )
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      render: (_, record) => (
-        <Space>
-          <Button 
-            size="small" 
-            icon={<EyeOutlined />}
-            onClick={() => viewService(record)}
-          >
-            Xem
-          </Button>
-          <Button 
-            size="small" 
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={() => editService(record)}
-          >
-            Sửa
-          </Button>
-          <Popconfirm
-            title="Xác nhận xóa dịch vụ"
-            description="Bạn có chắc chắn muốn xóa dịch vụ này?"
-            onConfirm={() => deleteService(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-          >
-            <Button 
-              size="small" 
-              danger
-              icon={<DeleteOutlined />}
-            >
-              Xóa
-            </Button>
-          </Popconfirm>
-        </Space>
-      )
+  const updateTreatmentService = async () => {
+    try {
+      const res = await managerService.updateTreatmentService(
+        editedService.id,
+        editedService
+      );
+      setTreatmentService((prev) =>
+        prev.map((service) =>
+          service.id === editedService.id ? editedService : service
+        )
+      );
+      showNotification("Cập nhật dịch vụ thành công", "success");
+      setIsModalOpen(false);
+    } catch (error) {
+      console.log(error);
+      showNotification(error.response.data.message, "error");
     }
-  ];
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredServices = treatmentService.filter((service) =>
+    service.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedService(null);
+    setEditedService(null);
+  };
 
   return (
-    <div>
-      {/* Header & Actions */}
-      <Card className="mb-6 shadow-md">
-        <Row gutter={16} align="middle">
-          <Col span={12}>
-            <Search
-              placeholder="Tìm kiếm dịch vụ, mã dịch vụ, danh mục..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              size="large"
-            />
-          </Col>
-          <Col span={12} className="text-right">
-            <Button 
-              type="primary" 
-              icon={<PlusOutlined />}
-              size="large"
-              onClick={createService}
-            >
-              Thêm Dịch Vụ Mới
-            </Button>
-          </Col>
-        </Row>
-      </Card>
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-4 flex justify-between items-center">
+        <div className="">
+          <input
+            type="text"
+            placeholder="Tìm kiếm dịch vụ..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="w-full p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <button
+          onClick={() => {
+            setTimeout(() => {
+              navigate(path.managerRenderCreateTreatmentService);
+            }, 500);
+          }}
+          className="bg-green-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600"
+        >
+          <PlusOutlined />
+          <span> Tạo Dịch Vụ</span>
+        </button>
+      </div>
+      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+        <table className="min-w-full table-auto">
+          <thead className="bg-gray-200 text-gray-600">
+            <tr>
+              <th className="px-6 py-3 text-left">Mã dịch vụ</th>
+              <th className="px-6 py-3 text-left">Tên dịch vụ</th>
+              <th className="px-6 py-3 text-left">Giá</th>
+              <th className="px-6 py-3 text-left">Thời gian</th>
+              <th className="px-6 py-3 text-left">Danh mục</th>
+              <th className="px-6 py-3 text-left">Trạng thái</th>
+              <th className="px-6 py-3 text-left">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredServices.length > 0 ? (
+              filteredServices.map((service) => (
+                <tr key={service.id} className="border-t hover:bg-gray-50">
+                  <td className="px-6 py-4">{service.id}</td>
+                  <td className="px-6 py-4">{service.name}</td>
+                  <td className="px-6 py-4">
+                    {service.price.toLocaleString()} VNĐ
+                  </td>
+                  <td className="px-6 py-4">{service.duration} tháng</td>
+                  <td className="px-6 py-4">{service.treatmentTypeName}</td>
+                  <td className="px-6 py-4">
+                    <label className="relative inline-block w-[110px] h-[36px] select-none">
+                      <input
+                        type="checkbox"
+                        checked={!service.remove}
+                        onChange={() => handleStatusChange(service.id)}
+                        className="sr-only peer"
+                      />
 
-      {/* Services Table */}
-      <Card title="Danh Sách Dịch Vụ" className="shadow-md">
-        <Table
-          columns={columns}
-          dataSource={filteredData}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 1000 }}
-        />
-      </Card>
+                      {/* Background toggle */}
+                      <div
+                        className="
+      w-full h-full rounded-full
+      transition-colors duration-300
+      peer-checked:bg-green-500
+      bg-red-100
+    "
+                      ></div>
 
-      {/* Modal */}
-      <Modal
-        title={
-          modalType === "create" ? "Thêm Dịch Vụ Mới" :
-          modalType === "edit" ? "Chỉnh Sửa Dịch Vụ" : "Chi Tiết Dịch Vụ"
-        }
-        open={isModalVisible}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields();
-        }}
-        footer={modalType === "view" ? [
-          <Button key="close" onClick={() => setIsModalVisible(false)}>
-            Đóng
-          </Button>
-        ] : [
-          <Button key="cancel" onClick={() => setIsModalVisible(false)}>
-            Hủy
-          </Button>,
-          <Button key="submit" type="primary" onClick={() => form.submit()}>
-            {modalType === "create" ? "Tạo Dịch Vụ" : "Cập Nhật"}
-          </Button>
-        ]}
-        width={700}
-      >
-        {modalType === "view" && selectedService && (
-          <Descriptions column={1} bordered>
-            <Descriptions.Item label="Mã dịch vụ">{selectedService.id}</Descriptions.Item>
-            <Descriptions.Item label="Tên dịch vụ">{selectedService.name}</Descriptions.Item>
-            <Descriptions.Item label="Mô tả">{selectedService.description}</Descriptions.Item>
-            <Descriptions.Item label="Giá">
-              {selectedService.price.toLocaleString('vi-VN')} VNĐ
-            </Descriptions.Item>
-            <Descriptions.Item label="Thời gian">{selectedService.duration}</Descriptions.Item>
-            <Descriptions.Item label="Danh mục">{selectedService.category}</Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              <Tag color={selectedService.isActive ? "green" : "red"}>
-                {selectedService.isActive ? "Hoạt động" : "Tạm dừng"}
-              </Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">{selectedService.createdDate}</Descriptions.Item>
-          </Descriptions>
-        )}
+                      {/* Label text - Căn giữa */}
+                      <span
+                        className="
+      absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+      text-sm font-semibold pointer-events-none
+      text-red-600 peer-checked:text-white
+    "
+                      >
+                        {service.remove ? "Tắt" : "Hoạt động"}
+                      </span>
 
-        {(modalType === "create" || modalType === "edit") && (
-          <Form form={form} layout="vertical" onFinish={handleSubmit}>
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="name"
-                  label="Tên dịch vụ"
-                  rules={[{ required: true, message: "Vui lòng nhập tên dịch vụ!" }]}
-                >
-                  <Input size="large" />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="category"
-                  label="Danh mục"
-                  rules={[{ required: true, message: "Vui lòng nhập danh mục!" }]}
-                >
-                  <Input size="large" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Form.Item
-              name="description"
-              label="Mô tả dịch vụ"
-              rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
-            >
-              <TextArea rows={4} />
-            </Form.Item>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="price"
-                  label="Giá dịch vụ (VNĐ)"
-                  rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
-                >
-                  <InputNumber 
-                    size="large"
-                    style={{ width: "100%" }}
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="duration"
-                  label="Thời gian điều trị"
-                  rules={[{ required: true, message: "Vui lòng nhập thời gian!" }]}
-                >
-                  <Input size="large" placeholder="VD: 2-3 tháng" />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="isActive"
-                  label="Trạng thái"
-                  valuePropName="checked"
-                >
-                  <Switch 
-                    checkedChildren="Hoạt động"
-                    unCheckedChildren="Tạm dừng"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="Hình ảnh">
-                  <Upload
-                    listType="picture-card"
-                    maxCount={1}
-                    beforeUpload={() => false}
-                  >
-                    <div>
-                      <UploadOutlined />
-                      <div style={{ marginTop: 8 }}>Tải lên</div>
+                      {/* Toggle dot */}
+                      <div
+                        className="
+      absolute top-1/2 w-[26px] h-[26px] bg-white rounded-full shadow
+      -translate-y-1/2 transition-all duration-300
+      left-[6px] peer-checked:left-[calc(100%-32px)]
+    "
+                      ></div>
+                    </label>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex space-x-2">
+                      <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600"
+                        onClick={() => getTreatmentServiceDetail(service.id)}
+                      >
+                        <EyeOutlined />
+                        <span> Xem</span>
+                      </button>
                     </div>
-                  </Upload>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        )}
-      </Modal>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="9" className="px-6 py-4 text-center text-gray-500">
+                  Không có dịch vụ nào.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      {/* Modal */}
+      {isModalOpen && selectedService && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg w-2/3 md:w-1/2">
+            <h2 className="text-xl font-semibold mb-4">Chi tiết dịch vụ</h2>
+            <div className="flex gap-8">
+              {/* Left Section: Display static info */}
+              <div className="flex-1">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mã dịch vụ
+                  </label>
+                  <input
+                    type="text"
+                    value={editedService.id}
+                    readOnly
+                    className="mt-1 p-2 w-full border rounded-md"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Người tạo
+                  </label>
+                  <input
+                    type="text"
+                    value={editedService.createdBy}
+                    readOnly
+                    className="mt-1 p-2 w-full border rounded-md"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Thời gian
+                  </label>
+                  <input
+                    name="duration"
+                    type="text"
+                    value={editedService.duration.toLocaleString() + " Tháng"}
+                    onChange={handleEditChange}
+                    className="mt-1 p-2 w-full border rounded-md"
+                  />
+                </div>
+              </div>
+
+              {/* Right Section: Editable fields */}
+              <div className="flex-1">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mã kiểu dịch vụ
+                  </label>
+                  <input
+                    type="text"
+                    name="treatmentTypeId"
+                    value={editedService.treatmentTypeId}
+                    onChange={handleEditChange}
+                    className="mt-1 p-2 w-full border rounded-md"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Tên dịch vụ
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editedService.name}
+                    onChange={handleEditChange}
+                    className="mt-1 p-2 w-full border rounded-md"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Giá
+                  </label>
+                  <input
+                    type="text"
+                    name="price"
+                    value={editedService.price.toLocaleString() + " VNĐ"}
+                    onChange={handleEditChange}
+                    className="mt-1 p-2 w-full border rounded-md"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Mô tả
+              </label>
+              <textarea
+                name="description"
+                value={editedService.description}
+                onChange={handleEditChange}
+                className="mt-1 p-2 w-full border rounded-md"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <button
+                className="bg-gray-500 text-white px-4 py-2 rounded-md"
+                onClick={closeModal}
+              >
+                Đóng
+              </button>
+
+              <Popconfirm
+                title="Bạn có chắc muốn sửa những gì đã thay đổi không?"
+                onConfirm={() => updateTreatmentService()}
+                okText="Sửa"
+                cancelText="Huỷ"
+              >
+                <button className="bg-yellow-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-yellow-600">
+                  Sửa
+                </button>
+              </Popconfirm>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default ServiceManagement; 
+export default ServiceManagement;

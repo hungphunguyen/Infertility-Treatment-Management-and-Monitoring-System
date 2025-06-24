@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Layout, Typography, Button, Space, Spin } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 
@@ -10,6 +10,7 @@ import CreateAccount from "../../components/admin/CreateAccount";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
+import { NotificationContext } from "../../App";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -20,6 +21,13 @@ const AdminPage = () => {
   const token = useSelector((state) => state.authSlice);
   const [infoUser, setInfoUser] = useState();
   const navigate = useNavigate();
+  const { showNotification } = useContext(NotificationContext);
+
+  useEffect(() => {
+    if (token?.token) {
+      checkIntrospect();
+    }
+  }, [token]);
 
   useEffect(() => {
     if (!token) {
@@ -70,6 +78,21 @@ const AdminPage = () => {
     }
   };
 
+  // check hiệu lực token
+  const checkIntrospect = async () => {
+    await authService
+      .checkIntrospect(token.token)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        if (err.response.data.code == 1006) {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }
+      });
+  };
+
   if (!infoUser) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -92,25 +115,28 @@ const AdminPage = () => {
           <div
             style={{
               display: "flex",
-              justifyContent: "center",
+              justifyContent: "space-between",
               alignItems: "center",
               height: "100%",
               padding: "16px 0",
             }}
           >
             <Title
-              level={3}
+              level={2}
               style={{
                 margin: 0,
-                fontWeight: 700,
-                color: "#1f2937",
-                letterSpacing: 0.5,
-                textTransform: "uppercase",
-                textAlign: "center",
+                alignItems: "center",
+                marginLeft: 250,
               }}
             >
               {getPageTitle()}
             </Title>
+            <div className="text-right">
+              <p className="text-sm text-gray-500 mb-0">Admin Dashboard</p>
+              <p className="text-xs text-gray-400 mb-0">
+                {new Date().toLocaleDateString("vi-VN")}
+              </p>
+            </div>
           </div>
         </Header>
 
@@ -120,6 +146,7 @@ const AdminPage = () => {
             padding: 24,
             background: "#f0f2f5",
             minHeight: "calc(100vh - 112px)",
+            marginLeft: 250,
           }}
         >
           {renderContent()}

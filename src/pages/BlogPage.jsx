@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Row, Col, Divider, Space, Button, Card, message } from "antd";
+import {
+  Typography,
+  Row,
+  Col,
+  Divider,
+  Space,
+  Button,
+  Card,
+  message,
+} from "antd";
 import { RightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import UserHeader from "../components/UserHeader";
@@ -54,11 +63,10 @@ const BlogPage = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#f7f8fa]">
       <UserHeader />
-
       {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden">
+      <div className="relative h-[400px] w-full overflow-hidden mb-0">
         <img
           src="/images/features/pc8.jpg"
           alt="Băng rôn Blog"
@@ -67,11 +75,12 @@ const BlogPage = () => {
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">Blogs</h1>
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              Blogs
+            </h1>
           </div>
         </div>
       </div>
-
       {/* Blog Content */}
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -86,7 +95,9 @@ const BlogPage = () => {
                       cover={
                         <div className="overflow-hidden">
                           <img
-                            src={post.coverImageUrl || "/images/default-blog.jpg"}
+                            src={
+                              post.coverImageUrl || "/images/default-blog.jpg"
+                            }
                             alt={post.title}
                             className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
                           />
@@ -95,14 +106,16 @@ const BlogPage = () => {
                     >
                       <div className="text-center flex-grow">
                         <div className="text-gray-500 text-sm mb-2">
-                          {dayjs(post.createdAt).format("DD THÁNG MM, YYYY")}
+                          {dayjs(post.createdAt).format("DD/MM/YYYY")}
                         </div>
                         <Title level={4} className="mb-4">
                           {post.title}
                         </Title>
                       </div>
                       <div className="text-center mt-auto">
-                        <Link to={`/blog/${post.id}`}> {/* Changed to post.id for dynamic routing */}
+                        <Link to={`/blog/${post.id}`}>
+                          {" "}
+                          {/* Changed to post.id for dynamic routing */}
                           <Button
                             type="text"
                             icon={
@@ -131,7 +144,9 @@ const BlogPage = () => {
                         cover={
                           <div className="overflow-hidden">
                             <img
-                              src={post.coverImageUrl || "/images/default-blog.jpg"}
+                              src={
+                                post.coverImageUrl || "/images/default-blog.jpg"
+                              }
                               alt={post.title}
                               className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
                             />
@@ -140,7 +155,7 @@ const BlogPage = () => {
                       >
                         <div className="text-center flex-grow">
                           <div className="text-gray-500 text-sm mb-2">
-                            {dayjs(post.createdAt).format("DD THÁNG MM, YYYY")}
+                            {dayjs(post.createdAt).format("DD/MM/YYYY")}
                           </div>
                           <Title level={4} className="mb-4">
                             {post.title}
@@ -177,7 +192,9 @@ const BlogPage = () => {
                         cover={
                           <div className="overflow-hidden">
                             <img
-                              src={post.coverImageUrl || "/images/default-blog.jpg"}
+                              src={
+                                post.coverImageUrl || "/images/default-blog.jpg"
+                              }
                               alt={post.title}
                               className="w-full h-48 object-cover transform hover:scale-105 transition-transform duration-300"
                             />
@@ -186,7 +203,7 @@ const BlogPage = () => {
                       >
                         <div className="text-center flex-grow">
                           <div className="text-gray-500 text-sm mb-2">
-                            {dayjs(post.createdAt).format("DD THÁNG MM, YYYY")}
+                            {dayjs(post.createdAt).format("DD/MM/YYYY")}
                           </div>
                           <Title level={4} className="mb-4">
                             {post.title}
@@ -218,7 +235,6 @@ const BlogPage = () => {
           )}
         </div>
       </div>
-
       <UserFooter />
     </div>
   );

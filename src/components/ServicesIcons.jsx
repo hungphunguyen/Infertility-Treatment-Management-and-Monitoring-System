@@ -7,15 +7,11 @@ const ServicesIcons = () => {
   const services = [
     { icon: "🧬", title: "THỤ TINH TRONG ỐNG NGHIỆM (IVF)", action: () => {
       console.log('Navigating to IVF service detail');
-      navigate('/service-detail/ivf');
+      navigate('/service-detail/2');
     }},
     { icon: "💉", title: "THỤ TINH NHÂN TẠO (IUI)", action: () => {
       console.log('Navigating to IUI service detail');
-      navigate('/service-detail/iui');
-    }},
-    { icon: "🔬", title: "XÉT NGHIỆM VÀ CHẨN ĐOÁN", action: () => {
-      console.log('Navigating to diagnostic testing service detail');
-      navigate('/service-detail/diagnostic-testing');
+      navigate('/service-detail/1');
     }}
   ];
 
@@ -23,7 +19,7 @@ const ServicesIcons = () => {
     <div className="w-full bg-[#c2da5c] py-16">
       <div className="container mx-auto px-4">
         <div className="flex justify-center items-center">
-          <div className="grid grid-cols-3 gap-16 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 gap-16 max-w-2xl mx-auto">
             {services.map((service, index) => (
               <div 
                 key={index} 

@@ -1,426 +1,425 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, Table, Button, Space, Tag, Modal, Descriptions, 
-  Row, Col, Input, Select, DatePicker, Typography, Alert,
-  Upload, Tabs, List, Avatar, Badge
+  Row, Col, Input, Select, Typography, notification, Drawer,
+  Collapse
 } from "antd";
 import {
-  FileTextOutlined, EyeOutlined, DownloadOutlined, UploadOutlined,
-  CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined,
-  UserOutlined, SearchOutlined
+  UserOutlined, EyeOutlined, DownOutlined, UpOutlined,
+  CalendarOutlined, FileTextOutlined, MedicineBoxOutlined,
+  CheckOutlined, CloseOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { treatmentService } from "../../service/treatment.service";
+import { authService } from "../../service/auth.service";
+import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
-const { TabPane } = Tabs;
+const { Panel } = Collapse;
 
 const TestResults = () => {
-  const [selectedResult, setSelectedResult] = useState(null);
+  const [selectedRecord, setSelectedRecord] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [testTypeFilter, setTestTypeFilter] = useState("all");
+  const [records, setRecords] = useState([]);
+  const [doctorId, setDoctorId] = useState("");
+  const navigate = useNavigate();
+  const [expandedRows, setExpandedRows] = useState([]);
 
-  // Mock test results data
-  const testResults = [
-    {
-      key: 1,
-      id: "XN001",
-      patientId: "BN001",
-      patientName: "Nguyễn Thị Mai",
-      testType: "Hormone",
-      testName: "Hormone sinh sản",
-      orderDate: "2024-01-20",
-      resultDate: "2024-01-21",
-      status: "completed",
-      priority: "normal",
-      doctor: "BS. Nguyễn Văn A",
-      results: {
-        FSH: { value: "8.2", unit: "mIU/mL", normal: "3.5-12.5", status: "normal" },
-        LH: { value: "5.8", unit: "mIU/mL", normal: "2.4-12.6", status: "normal" },
-        AMH: { value: "1.2", unit: "ng/mL", normal: "1.0-4.0", status: "low" },
-        E2: { value: "45", unit: "pg/mL", normal: "12.5-166.0", status: "normal" }
-      },
-      conclusion: "AMH thấp, cần theo dõi chức năng buồng trứng",
-      notes: "Bệnh nhân cần tư vấn về dự trữ buồng trứng"
-    },
-    {
-      key: 2,
-      id: "XN002",
-      patientId: "BN002",
-      patientName: "Trần Văn Hùng",
-      testType: "Tinh dịch đồ",
-      testName: "Phân tích tinh dịch",
-      orderDate: "2024-01-19",
-      resultDate: "2024-01-20",
-      status: "completed",
-      priority: "normal",
-      doctor: "BS. Nguyễn Văn A",
-      results: {
-        count: { value: "35", unit: "triệu/mL", normal: ">15", status: "normal" },
-        motility: { value: "42", unit: "%", normal: ">40", status: "normal" },
-        morphology: { value: "5", unit: "%", normal: ">4", status: "normal" },
-        volume: { value: "3.2", unit: "mL", normal: "1.5-5.0", status: "normal" }
-      },
-      conclusion: "Chất lượng tinh trùng bình thường",
-      notes: "Có thể tiến hành IUI"
-    },
-    {
-      key: 3,
-      id: "XN003",
-      patientId: "BN003",
-      patientName: "Lê Thị Lan",
-      testType: "Siêu âm",
-      testName: "Siêu âm buồng trứng",
-      orderDate: "2024-01-21",
-      resultDate: null,
-      status: "pending",
-      priority: "urgent",
-      doctor: "BS. Nguyễn Văn A",
-      results: null,
-      conclusion: null,
-      notes: "Cần siêu âm để đếm nang noãn"
-    },
-    {
-      key: 4,
-      id: "XN004",
-      patientId: "BN001",
-      patientName: "Nguyễn Thị Mai",
-      testType: "Máu",
-      testName: "Beta-HCG",
-      orderDate: "2024-01-22",
-      resultDate: "2024-01-22",
-      status: "abnormal",
-      priority: "urgent",
-      doctor: "BS. Nguyễn Văn A",
-      results: {
-        betaHCG: { value: "1250", unit: "mIU/mL", normal: "Âm tính", status: "positive" }
-      },
-      conclusion: "Thai kỳ sớm",
-      notes: "Cần theo dõi Beta-HCG định kỳ"
-    }
-  ];
+  useEffect(() => {
+    const fetchDoctorInfo = async () => {
+      try {
+        const res = await authService.getMyInfo();
+        const id = res?.data?.result?.id;
+        if (id) {
+          setDoctorId(id);
+        } else {
+          notification.error({
+            message: "Lỗi",
+            description: "Không thể lấy thông tin bác sĩ"
+          });
+        }
+      } catch (error) {
+        notification.error({
+          message: "Lỗi",
+          description: "Không thể lấy thông tin bác sĩ"
+        });
+      }
+    };
+    fetchDoctorInfo();
+  }, []);
+
+  useEffect(() => {
+    if (!doctorId) return;
+
+    const fetchRecords = async () => {
+      try {
+        const result = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+        if (result) {
+          // Nhóm các records theo customerId
+          const groupedByCustomer = result.reduce((acc, record) => {
+            if (!acc[record.customerId]) {
+              acc[record.customerId] = [];
+            }
+            acc[record.customerId].push(record);
+            return acc;
+          }, {});
+
+          // Chuyển đổi thành mảng và sắp xếp
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+            // Sắp xếp treatments theo ngày tạo mới nhất
+            const sortedTreatments = treatments.sort((a, b) => 
+              new Date(b.createdDate) - new Date(a.createdDate)
+            );
+            
+            return {
+              key: customerId,
+              customerId: customerId,
+              customerName: sortedTreatments[0].customerName,
+              treatments: sortedTreatments.map(treatment => ({
+                ...treatment,
+                key: treatment.id
+              }))
+            };
+          });
+
+          setRecords(formattedRecords);
+        } else {
+          setRecords([]);
+        }
+      } catch (error) {
+        notification.error({
+          message: "Lỗi",
+          description: "Không thể lấy danh sách điều trị"
+        });
+        setRecords([]);
+      }
+    };
+
+    fetchRecords();
+  }, [doctorId]);
 
   const getStatusTag = (status) => {
     const statusMap = {
-      pending: { color: "orange", text: "Chờ kết quả", icon: <ClockCircleOutlined /> },
-      completed: { color: "green", text: "Hoàn thành", icon: <CheckCircleOutlined /> },
-      abnormal: { color: "red", text: "Bất thường", icon: <ExclamationCircleOutlined /> }
+      PENDING: { color: "orange", text: "Đang chờ xử lý" },
+      INPROGRESS: { color: "blue", text: "Đang điều trị" },
+      CANCELLED: { color: "red", text: "Đã hủy" },
+      COMPLETED: { color: "green", text: "Hoàn thành" }
     };
+    return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
+  };
+
+  const viewRecord = (record) => {
+    navigate("/doctor-dashboard/treatment-stages", {
+      state: {
+        patientInfo: {
+          customerId: record.customerId,
+          customerName: record.customerName,
+        },
+        treatmentData: record,
+      },
+    });
+  };
+
+  const handleApprove = async (treatment) => {
+    try {
+      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "INPROGRESS");
+      if (response?.data?.code === 1000) {
+        notification.success({
+          message: "Duyệt hồ sơ thành công!",
+          description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã chuyển sang trạng thái 'Đang điều trị'.`,
+        });
+        // Refresh the list
+        const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+        if (updatedRecords) {
+          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
+            if (!acc[record.customerId]) {
+              acc[record.customerId] = [];
+            }
+            acc[record.customerId].push(record);
+            return acc;
+          }, {});
+
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+            const sortedTreatments = treatments.sort((a, b) => 
+              new Date(b.createdDate) - new Date(a.createdDate)
+            );
+            
+            return {
+              key: customerId,
+              customerId: customerId,
+              customerName: sortedTreatments[0].customerName,
+              treatments: sortedTreatments.map(treatment => ({
+                ...treatment,
+                key: treatment.id
+              }))
+            };
+          });
+
+          setRecords(formattedRecords);
+        }
+      } else {
+        notification.error({
+          message: "Duyệt hồ sơ thất bại!",
+          description: response?.data?.message || "Không thể duyệt hồ sơ, vui lòng thử lại.",
+        });
+      }
+    } catch (error) {
+      notification.error({
+        message: "Lỗi khi duyệt hồ sơ!",
+        description: error.message || "Đã xảy ra lỗi, vui lòng thử lại.",
+      });
+    }
+  };
+
+  const handleCancel = async (treatment) => {
+    try {
+      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "CANCELLED");
+      if (response?.data?.code === 1000) {
+        notification.success({
+          message: "Hủy hồ sơ thành công!",
+          description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã được hủy.`,
+        });
+        // Refresh the list
+        const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+        if (updatedRecords) {
+          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
+            if (!acc[record.customerId]) {
+              acc[record.customerId] = [];
+            }
+            acc[record.customerId].push(record);
+            return acc;
+          }, {});
+
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+            const sortedTreatments = treatments.sort((a, b) => 
+              new Date(b.createdDate) - new Date(a.createdDate)
+            );
+            
+            return {
+              key: customerId,
+              customerId: customerId,
+              customerName: sortedTreatments[0].customerName,
+              treatments: sortedTreatments.map(treatment => ({
+                ...treatment,
+                key: treatment.id
+              }))
+            };
+          });
+
+          setRecords(formattedRecords);
+        }
+      } else {
+        notification.error({
+          message: "Hủy hồ sơ thất bại!",
+          description: response?.data?.message || "Không thể hủy hồ sơ, vui lòng thử lại.",
+        });
+      }
+    } catch (error) {
+      notification.error({
+        message: "Lỗi khi hủy hồ sơ!",
+        description: error.message || "Đã xảy ra lỗi, vui lòng thử lại.",
+      });
+    }
+  };
+
+  const expandedRowRender = (record) => {
+    const columns = [
+      {
+        title: 'Dịch vụ',
+        dataIndex: 'treatmentServiceName',
+        key: 'treatmentServiceName',
+        render: (text) => (
+          <Space>
+            <MedicineBoxOutlined style={{ color: '#722ed1' }} />
+            <Text strong>{text}</Text>
+          </Space>
+        )
+      },
+      {
+        title: 'Ngày bắt đầu',
+        dataIndex: 'startDate',
+        key: 'startDate',
+        render: (date) => (
+          <Space>
+            <CalendarOutlined />
+            {dayjs(date).format("DD/MM/YYYY")}
+          </Space>
+        )
+      },
+      {
+        title: 'Trạng thái',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status) => getStatusTag(status)
+      },
+      {
+        title: 'Ghi chú',
+        dataIndex: 'notes',
+        key: 'notes',
+        render: (notes) => notes || '-'
+      },
+      {
+        title: 'Thao tác',
+        key: 'action',
+        render: (_, treatment) => (
+          <Space>
+            <Button
+              type="primary"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => viewRecord(treatment)}
+            >
+              Xem chi tiết
+            </Button>
+            {treatment.status === "PENDING" && (
+              <>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<CheckOutlined />}
+                  onClick={() => handleApprove(treatment)}
+                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                >
+                  Duyệt
+                </Button>
+                <Button
+                  danger
+                  size="small"
+                  icon={<CloseOutlined />}
+                  onClick={() => handleCancel(treatment)}
+                >
+                  Hủy
+                </Button>
+              </>
+            )}
+          </Space>
+        )
+      }
+    ];
+
     return (
-      <Tag color={statusMap[status]?.color} icon={statusMap[status]?.icon}>
-        {statusMap[status]?.text}
-      </Tag>
-    );
-  };
-
-  const getPriorityTag = (priority) => {
-    const priorityMap = {
-      normal: { color: "default", text: "Bình thường" },
-      urgent: { color: "red", text: "Khẩn cấp" }
-    };
-    return <Tag color={priorityMap[priority]?.color}>{priorityMap[priority]?.text}</Tag>;
-  };
-
-  const viewResult = (result) => {
-    setSelectedResult(result);
-    setModalVisible(true);
-  };
-
-  const renderTestValues = (results) => {
-    if (!results) return null;
-    
-    return (
-      <div>
-        {Object.entries(results).map(([key, value]) => (
-          <Row key={key} style={{ marginBottom: 8 }}>
-            <Col span={8}>
-              <Text strong>{key.toUpperCase()}:</Text>
-            </Col>
-            <Col span={6}>
-              <Text>{value.value} {value.unit}</Text>
-            </Col>
-            <Col span={6}>
-              <Text type="secondary">({value.normal})</Text>
-            </Col>
-            <Col span={4}>
-              <Tag color={value.status === "normal" ? "green" : value.status === "positive" ? "blue" : "red"}>
-                {value.status === "normal" ? "Bình thường" : 
-                 value.status === "positive" ? "Dương tính" :
-                 value.status === "low" ? "Thấp" : "Cao"}
-              </Tag>
-            </Col>
-          </Row>
-        ))}
-      </div>
+      <Card bordered={false} style={{ marginBottom: 16 }}>
+        <Table
+          columns={columns}
+          dataSource={record.treatments}
+          pagination={false}
+          size="small"
+        />
+      </Card>
     );
   };
 
   const columns = [
     {
-      title: "Mã XN",
-      dataIndex: "id",
-      key: "id",
-      render: (id) => <Tag color="blue">{id}</Tag>
-    },
-    {
       title: "Bệnh nhân",
-      key: "patient",
-      render: (_, record) => (
-        <div>
-          <Text strong>{record.patientName}</Text>
-          <br />
-          <Text type="secondary" style={{ fontSize: "12px" }}>
-            {record.patientId}
-          </Text>
-        </div>
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (name) => (
+        <Space>
+          <UserOutlined style={{ color: '#1890ff' }} />
+          <Text strong>{name}</Text>
+        </Space>
       )
     },
     {
-      title: "Loại xét nghiệm",
-      dataIndex: "testType",
-      key: "testType",
-      render: (type) => <Tag color="cyan">{type}</Tag>
-    },
-    {
-      title: "Tên xét nghiệm",
-      dataIndex: "testName",
-      key: "testName"
-    },
-    {
-      title: "Ngày chỉ định",
-      dataIndex: "orderDate",
-      key: "orderDate",
-      render: (date) => dayjs(date).format("DD/MM/YYYY")
-    },
-    {
-      title: "Ngày có kết quả",
-      dataIndex: "resultDate",
-      key: "resultDate",
-      render: (date) => date ? dayjs(date).format("DD/MM/YYYY") : "-"
-    },
-    {
-      title: "Độ ưu tiên",
-      dataIndex: "priority",
-      key: "priority",
-      render: getPriorityTag
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: getStatusTag
-    },
-    {
-      title: "Thao tác",
-      key: "action",
+      title: "Số dịch vụ",
+      key: "treatmentCount",
       render: (_, record) => (
-        <Space>
-          <Button 
-            size="small" 
-            icon={<EyeOutlined />}
-            onClick={() => viewResult(record)}
-          >
-            Xem
-          </Button>
-          {record.status === "completed" && (
-            <Button 
-              size="small" 
-              icon={<DownloadOutlined />}
-              type="primary"
-            >
-              Tải
-            </Button>
-          )}
-        </Space>
+        <Tag color="blue">{record.treatments.length} dịch vụ</Tag>
+      )
+    },
+    {
+      title: "Dịch vụ mới nhất",
+      key: "latestTreatment",
+      render: (_, record) => (
+        <Tag color="purple">{record.treatments[0].treatmentServiceName}</Tag>
+      )
+    },
+    {
+      title: "Trạng thái mới nhất",
+      key: "latestStatus",
+      render: (_, record) => getStatusTag(record.treatments[0].status)
+    },
+    {
+      title: "Chi tiết",
+      key: "expand",
+      render: (_, record) => (
+        <Button
+          type="text"
+          icon={expandedRows.includes(record.key) ? <UpOutlined /> : <DownOutlined />}
+          onClick={() => {
+            const newExpandedRows = expandedRows.includes(record.key)
+              ? expandedRows.filter(key => key !== record.key)
+              : [...expandedRows, record.key];
+            setExpandedRows(newExpandedRows);
+          }}
+        >
+          {expandedRows.includes(record.key) ? 'Thu gọn' : 'Xem thêm'}
+        </Button>
       )
     }
   ];
 
-  // Filter data
-  const filteredData = testResults.filter(result => {
-    const matchesSearch = result.patientName.toLowerCase().includes(searchText.toLowerCase()) ||
-                         result.id.toLowerCase().includes(searchText.toLowerCase());
-    const matchesStatus = statusFilter === "all" || result.status === statusFilter;
-    const matchesType = testTypeFilter === "all" || result.testType === testTypeFilter;
-    return matchesSearch && matchesStatus && matchesType;
-  });
-
-  // Statistics
-  const stats = {
-    total: testResults.length,
-    pending: testResults.filter(r => r.status === "pending").length,
-    completed: testResults.filter(r => r.status === "completed").length,
-    abnormal: testResults.filter(r => r.status === "abnormal").length
-  };
-
   return (
-    <div>
-      {/* Statistics */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Card>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#1890ff" }}>
-                {stats.total}
-              </div>
-              <div>Tổng xét nghiệm</div>
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#faad14" }}>
-                {stats.pending}
-              </div>
-              <div>Chờ kết quả</div>
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#52c41a" }}>
-                {stats.completed}
-              </div>
-              <div>Hoàn thành</div>
-            </div>
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#f5222d" }}>
-                {stats.abnormal}
-              </div>
-              <div>Bất thường</div>
-            </div>
-          </Card>
-        </Col>
-      </Row>
+    <div style={{ padding: '24px' }}>
+      <Card>
+        <Title level={3}>
+          <Space>
+            <FileTextOutlined />
+            Kết quả xét nghiệm
+          </Space>
+        </Title>
 
-      {/* Filters */}
-      <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col span={6}>
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col xs={24} sm={12} md={8}>
             <Search
-              placeholder="Tìm kiếm bệnh nhân hoặc mã XN..."
+              placeholder="Tìm kiếm theo tên bệnh nhân"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: '100%' }}
             />
           </Col>
-          <Col span={4}>
+          <Col xs={24} sm={12} md={8}>
             <Select
-              value={testTypeFilter}
-              onChange={setTestTypeFilter}
-              style={{ width: "100%" }}
-            >
-              <Option value="all">Tất cả loại XN</Option>
-              <Option value="Hormone">Hormone</Option>
-              <Option value="Tinh dịch đồ">Tinh dịch đồ</Option>
-              <Option value="Siêu âm">Siêu âm</Option>
-              <Option value="Máu">Xét nghiệm máu</Option>
-            </Select>
-          </Col>
-          <Col span={4}>
-            <Select
+              style={{ width: '100%' }}
               value={statusFilter}
               onChange={setStatusFilter}
-              style={{ width: "100%" }}
+              placeholder="Lọc theo trạng thái"
             >
               <Option value="all">Tất cả trạng thái</Option>
-              <Option value="pending">Chờ kết quả</Option>
-              <Option value="completed">Hoàn thành</Option>
-              <Option value="abnormal">Bất thường</Option>
+              <Option value="PENDING">Đang chờ xử lý</Option>
+              <Option value="INPROGRESS">Đang điều trị</Option>
+              <Option value="COMPLETED">Hoàn thành</Option>
+              <Option value="CANCELLED">Đã hủy</Option>
             </Select>
           </Col>
-          <Col span={10} style={{ textAlign: "right" }}>
-            <Space>
-              <Button type="primary" icon={<UploadOutlined />}>
-                Tải lên kết quả
-              </Button>
-              <Text type="secondary">
-                Tổng: {filteredData.length} kết quả
-              </Text>
-            </Space>
-          </Col>
         </Row>
-      </Card>
 
-      {/* Results Table */}
-      <Card title="Kết Quả Xét Nghiệm">
         <Table
+          dataSource={records.filter(record => {
+            const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase());
+            const matchesStatus = statusFilter === 'all' || 
+              record.treatments.some(t => t.status === statusFilter);
+            return matchesSearch && matchesStatus;
+          })}
           columns={columns}
-          dataSource={filteredData}
+          expandable={{
+            expandedRowRender,
+            expandedRowKeys: expandedRows,
+            onExpand: (expanded, record) => {
+              const newExpandedRows = expanded
+                ? [...expandedRows, record.key]
+                : expandedRows.filter(key => key !== record.key);
+              setExpandedRows(newExpandedRows);
+            }
+          }}
           pagination={{ pageSize: 10 }}
-          scroll={{ x: 1200 }}
         />
       </Card>
-
-      {/* Result Detail Modal */}
-      <Modal
-        title="Chi Tiết Kết Quả Xét Nghiệm"
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setModalVisible(false)}>
-            Đóng
-          </Button>,
-          <Button key="print" type="primary">
-            In kết quả
-          </Button>
-        ]}
-        width={800}
-      >
-        {selectedResult && (
-          <div>
-            <Descriptions column={2} bordered style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="Mã xét nghiệm">{selectedResult.id}</Descriptions.Item>
-              <Descriptions.Item label="Bệnh nhân">{selectedResult.patientName}</Descriptions.Item>
-              <Descriptions.Item label="Mã bệnh nhân">{selectedResult.patientId}</Descriptions.Item>
-              <Descriptions.Item label="Loại xét nghiệm">{selectedResult.testType}</Descriptions.Item>
-              <Descriptions.Item label="Tên xét nghiệm">{selectedResult.testName}</Descriptions.Item>
-              <Descriptions.Item label="Ngày chỉ định">
-                {dayjs(selectedResult.orderDate).format("DD/MM/YYYY")}
-              </Descriptions.Item>
-              <Descriptions.Item label="Ngày có kết quả">
-                {selectedResult.resultDate ? dayjs(selectedResult.resultDate).format("DD/MM/YYYY") : "Chưa có"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
-                {getStatusTag(selectedResult.status)}
-              </Descriptions.Item>
-            </Descriptions>
-
-            {selectedResult.results && (
-              <div style={{ marginTop: 16 }}>
-                <Title level={5}>Kết quả chi tiết:</Title>
-                {renderTestValues(selectedResult.results)}
-              </div>
-            )}
-
-            {selectedResult.conclusion && (
-              <div style={{ marginTop: 16 }}>
-                <Title level={5}>Kết luận:</Title>
-                <Alert 
-                  message={selectedResult.conclusion} 
-                  type={selectedResult.status === "abnormal" ? "error" : "info"}
-                />
-              </div>
-            )}
-
-            {selectedResult.notes && (
-              <div style={{ marginTop: 16 }}>
-                <Title level={5}>Ghi chú:</Title>
-                <Text>{selectedResult.notes}</Text>
-              </div>
-            )}
-          </div>
-        )}
-      </Modal>
     </div>
   );
 };

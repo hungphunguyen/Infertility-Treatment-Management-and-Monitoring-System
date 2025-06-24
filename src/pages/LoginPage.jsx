@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import signInAnimation from "./../assets/animation/signIn_Animation.json";
+import signInAnimation from "./../assets/animation/Animation - 1744810564155.json";
 import { useLottie } from "lottie-react";
 import InputCustom from "../components/Input/InputCustom";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,6 +12,7 @@ import GoogleLogin from "../components/GoogleLogin";
 import { NotificationContext } from "../App";
 import { useDispatch } from "react-redux";
 import { setToken } from "../redux/authSlice";
+import PulleyAnimation from "./PulleyAnimation";
 const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -43,17 +44,26 @@ const LoginPage = () => {
             dispatch(setToken(res.data.result.token));
 
             // thực hiên thông báo chuyển hướng người dùng
-            showNotification("Login successful", "success");
-            setTimeout(() => {
-              navigate("/");
-              window.location.reload();
-            }, 1000);
+            showNotification("Đăng nhập thành công", "success");
+
+            // Kiểm tra xem có URL redirect không
+            const redirectUrl = localStorage.getItem("redirectAfterLogin");
+            if (redirectUrl) {
+              localStorage.removeItem("redirectAfterLogin"); // Xóa URL redirect
+              setTimeout(() => {
+                navigate(redirectUrl);
+              }, 1000);
+            } else {
+              setTimeout(() => {
+                navigate("/");
+              }, 1000);
+            }
           })
           .catch((error) => {
             if (error.response.data.code == 1014) {
               setIsResend(true);
               showNotification(
-                "If you want to verify please click resend otp!",
+                "Nếu bạn muốn xác nhận otp lại, hãy nhấn vào đây",
                 "warning"
               );
             }
@@ -63,82 +73,117 @@ const LoginPage = () => {
       validationSchema: yup.object({
         username: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please do not leave blank"),
+          .trim("Vui lòng không để trống tài khoản")
+          .required("Vui lòng không để trống tài khoản"),
         password: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please do not leave blank"),
+          .trim("Vui lòng không để trống mật khẩu")
+          .required("Vui lòng không để trống mật khẩu"),
       }),
     });
+
   return (
-    <div className="">
-      <div className="container">
-        <div className="loginPage_content flex items-center h-screen">
-          <div className="loginPage_img w-1/2">{View}</div>
-          <div className="loginPage_form w-1/2">
-            <form className="space-y-5" onSubmit={handleSubmit}>
-              <h1 className="text-center text-4xl font-medium">LOGIN</h1>
-              {/* username */}
-              <InputCustom
-                name={"username"}
-                onChange={handleChange}
-                value={values.username}
-                placeholder={"Please enter user name"}
-                labelContent={"User Name"}
-                error={errors.username}
-                touched={touched.username}
-                onBlur={handleBlur}
-              />
-              <InputCustom
-                name={"password"}
-                onChange={handleChange}
-                value={values.password}
-                labelContent={"Password"}
-                placeholder={"Please enter password"}
-                typeInput="password"
-                error={errors.password}
-                touched={touched.password}
-                onBlur={handleBlur}
-              />
-              <div>
-                <button
-                  type="submit"
-                  className="inline-block w-full bg-black text-white py-2 px-5 rounded-md"
-                >
-                  Sign In
-                </button>
-                <GoogleLogin />
-                <div className="mt-3 flex justify-between items-center">
-                  <Link
-                    to={path.signUp}
-                    className="text-blue-600 hover:underline duration-300"
-                  >
-                    If you do not have an account, click here
-                  </Link>
-                  <Link
-                    to={path.homePage}
-                    className="text-blue-500 hover:underline duration-300"
-                  >
-                    Go back home
-                  </Link>
-                  <Link
-                    to={path.forgotPassword}
-                    className="text-[#ff8460] hover:underline duration-300"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-orange-100 relative overflow-hidden">
+      {/* Container */}
+      <div className="flex flex-col md:flex-row w-full max-w-5xl bg-orange-50 text-gray-800 rounded-xl overflow-hidden shadow-xl z-10">
+        {/* Left animation */}
+        <div className="hidden md:block md:w-1/2">
+          <PulleyAnimation />
+        </div>
+
+        {/* Right form */}
+        <div className="w-full md:w-1/2 px-8 py-12 text-gray-800 flex flex-col justify-center">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center mb-2 ring-2 ring-orange-400 shadow-lg">
+              <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+                <img
+                  src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
+                  alt="Logo"
+                  className="w-10 h-10 object-contain"
+                />
               </div>
-              {isResend && (
-                <Link to={path.resendOtp}>
-                  <button className="py-2 px-4 font-medium border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white  duration-300">
-                    Resend OTP
-                  </button>
-                </Link>
-              )}
-            </form>
+            </div>
+            <h2 className="text-2xl font-bold">Chào mừng đến đây</h2>
+            <p className="text-sm text-gray-500">
+              Vui lòng đăng nhập để tiếp tục
+            </p>
           </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Username */}
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-500">
+                <i className="fas fa-user" />
+              </span>
+              <InputCustom
+                name="username"
+                value={values.username}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.username}
+                error={errors.username}
+                placeholder="Tài khoản"
+                labelContent={null}
+                className="pl-10 bg-white/90 text-black"
+              />
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-500">
+                <i className="fas fa-lock" />
+              </span>
+              <InputCustom
+                name="password"
+                value={values.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                touched={touched.password}
+                error={errors.password}
+                placeholder="Mật khẩu"
+                typeInput="password"
+                labelContent={null}
+                className="pl-10 bg-white/90 text-black"
+              />
+            </div>
+
+            <div className="text-right text-sm">
+              <Link
+                to={path.forgotPassword}
+                className="text-orange-500 hover:underline"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2 bg-orange-600 hover:brightness-110 hover:scale-[1.02] transition-all duration-200 ease-in-out rounded-md text-white font-semibold"
+            >
+              Đăng nhập
+            </button>
+          </form>
+
+          <div className="my-5 text-sm flex items-center gap-4">
+            <hr className="flex-grow border-white/30" />
+            <span className="text-white/70">Hoặc</span>
+            <hr className="flex-grow border-white/30" />
+          </div>
+
+          <GoogleLogin />
+
+          <div className="text-center text-sm mt-6">
+            Chưa có tài khoản?{" "}
+            <Link to={path.signUp} className="text-orange-300 hover:underline">
+              Đăng ký ngay
+            </Link>
+          </div>
+
+          {isResend && (
+            <div className="mt-4 text-yellow-300 text-center text-sm">
+              Nếu bạn muốn xác nhận OTP lại, hãy nhấn vào đây.
+            </div>
+          )}
         </div>
       </div>
     </div>
