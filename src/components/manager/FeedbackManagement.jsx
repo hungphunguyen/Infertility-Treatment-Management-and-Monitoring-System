@@ -32,8 +32,10 @@ const FeedbackManagement = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentId, setCurrentId] = useState(null);
   const [currentStatus, setCurrentStatus] = useState("");
+
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
+
   useEffect(() => {
     authService
       .getMyInfo()
@@ -116,7 +118,6 @@ const FeedbackManagement = () => {
     setSelectedFeedback(feedback);
     setDetailModalVisible(true);
   };
-
   return (
     <div>
       {/* 🔢 Box thống kê */}
@@ -209,16 +210,13 @@ const FeedbackManagement = () => {
                     </Tag>
                   </td>
 
-                  {/* <td className="px-4 py-3">
-                    {dayjs(item.submitDate).format("DD/MM/YYYY")}
-                  </td> */}
                   <td className="px-4 py-3">
                     <Button
                       type="primary"
                       size="small"
                       onClick={() => openDetailModal(item)}
                     >
-                      Chi tiết
+                      Xem
                     </Button>
                   </td>
                 </tr>
@@ -245,11 +243,7 @@ const FeedbackManagement = () => {
                 </Button>
                 <Button
                   key="approve"
-                  style={{
-                    backgroundColor: "#52c41a",
-                    color: "white",
-                    borderColor: "#52c41a",
-                  }}
+                  type="primary"
                   onClick={() =>
                     openApprovalModal(selectedFeedback.id, "APPROVED")
                   }
@@ -257,20 +251,7 @@ const FeedbackManagement = () => {
                   Duyệt
                 </Button>
               </>
-            ) : (
-              <Button
-                key="reject"
-                danger
-                onClick={() =>
-                  openApprovalModal(selectedFeedback.id, "REJECTED")
-                }
-              >
-                Từ chối
-              </Button>
-            ),
-            // <Button key="close" onClick={() => setDetailModalVisible(false)}>
-            //   Đóng
-            // </Button>,
+            ) : null,
           ]}
         >
           {selectedFeedback && (
@@ -286,16 +267,14 @@ const FeedbackManagement = () => {
                 <strong>Đánh giá:</strong>{" "}
                 <Rate disabled value={selectedFeedback.rating} />
               </p>
-              <div>
-                <strong>Bình luận:</strong>
-                <p className="text-gray-700 mt-1 whitespace-pre-line bg-gray-50 p-3 rounded border">
-                  {selectedFeedback.comment || "Không có"}
-                </p>
-              </div>
-
+              <p>
+                <strong>Bình luận:</strong> {selectedFeedback.comment}
+              </p>
               <p>
                 <strong>Ngày gửi:</strong>{" "}
-                {dayjs(selectedFeedback.submitDate).format("DD/MM/YYYY")}
+                {selectedFeedback.submitDate
+                  ? dayjs(selectedFeedback.submitDate).format("DD/MM/YYYY")
+                  : ""}
               </p>
               <p>
                 <strong>Trạng thái:</strong> {selectedFeedback.status}

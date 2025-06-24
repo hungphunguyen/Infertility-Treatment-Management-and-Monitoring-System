@@ -54,11 +54,11 @@ const DoctorDetailPage = () => {
   }, [id]);
 
   useEffect(() => {
-    const fetchFeedbacks = async () => {
+    const fetchFeedbacks = async (page = 0) => {
       if (!id) return;
       setLoadingFeedbacks(true);
       try {
-        const response = await doctorService.getDoctorFeedback(id, true);
+        const response = await doctorService.getDoctorFeedback(id, page, 0);
         if (response.data && response.data.code === 1000) {
           setFeedbacks(response.data.result);
         }

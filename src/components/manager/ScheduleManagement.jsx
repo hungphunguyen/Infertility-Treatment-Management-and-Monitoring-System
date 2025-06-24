@@ -116,7 +116,10 @@ const ScheduleManagement = () => {
     if (!selectedDoctor || !selectedMonth) return;
 
     try {
-      const res = await managerService.getWorkScheduleMonth(selectedDoctor.id);
+      const res = await managerService.getWorkScheduleYear(
+        selectedMonth,
+        selectedDoctor.id
+      );
 
       const allSchedule = res.data.result.schedules;
 

@@ -57,15 +57,14 @@ export const doctorService = {
       throw error;
     }
   },
-  getDoctorFeedback: async (doctorId, isApproval) => {
-    try {
-      const response = await http.get(
-        `feedback/for-doctor/${isApproval}/${doctorId}`
-      );
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  getDoctorFeedback: async (doctorId, page, size) => {
+    return http.get(`/v1/public/feedbacks`, {
+      params: {
+        doctorId,
+        page,
+        size,
+      },
+    });
   },
   getDashboardStatics: (doctorId) => {
     return http.get(`/doctors/dashboard/statics/${doctorId}`);
