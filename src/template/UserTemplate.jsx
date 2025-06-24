@@ -31,6 +31,7 @@ import ServicesIcons from "../components/ServicesIcons";
 import RecommendationSection from "../components/RecommendationSection";
 import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
+import { path } from '../common/path';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -135,7 +136,7 @@ const UserTemplate = () => {
                   Chăm Sóc Tận Tâm.
                 </h1>
                 <Button
-                  onClick={() => navigate("/our-staff")}
+                  onClick={() => navigate(path.ourStaff)}
                   className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
                   size="large"
                 >
@@ -293,11 +294,11 @@ const UserTemplate = () => {
   </div>
 ) : (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-    {doctors.slice(0, 3).map((doctor) => (
+    {doctors.map((doctor) => (
       <Card
         key={doctor.id}
         className="relative w-[280px] mx-auto mb-8 cursor-pointer group shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white"
-        onClick={() => navigate(`/doctor/${doctor.id}`)}
+        onClick={() => navigate(path.doctorDetail.replace(':id', doctor.id))}
         bodyStyle={{ padding: 0 }}
       >
         <div className="relative w-full max-w-sm rounded-lg overflow-hidden shadow-md group hover:scale-105 transition-transform duration-300">
@@ -343,7 +344,7 @@ const UserTemplate = () => {
 )}
           <div className="text-center mt-10">
             <Button
-              onClick={() => navigate("/our-staff")}
+              onClick={() => navigate(path.ourStaff)}
               className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-lg text-lg border-none"
               size="large"
             >

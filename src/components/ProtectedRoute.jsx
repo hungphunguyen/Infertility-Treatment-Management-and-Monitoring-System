@@ -1,16 +1,26 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Card, Button, Space, Typography, Divider, Modal } from 'antd';
 import { UserOutlined, LoginOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { path } from '../common/path';
+import { clearAuth } from '../redux/authSlice';
 
 const { Title, Paragraph } = Typography;
 
 const ProtectedRoute = ({ children }) => {
   const token = useSelector((state) => state.authSlice.token);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Đồng bộ Redux token với localStorage
+  useEffect(() => {
+    const localToken = localStorage.getItem('token');
+    if (!localToken && token) {
+      dispatch(clearAuth());
+    }
+  }, [token, dispatch]);
 
   // Nếu đã đăng nhập, hiển thị component con
   if (token) {
