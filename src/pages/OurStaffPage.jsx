@@ -15,31 +15,37 @@ import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 const { Title, Paragraph, Text } = Typography;
 
 const OurStaffPage = () => {
   const navigate = useNavigate();
-  const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // Fetch doctors data from API
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        setLoading(true);
-        const response = await doctorService.getDoctorForCard();
-        setDoctors(response.data.result);
-      } catch (error) {
-        console.error("Error fetching doctors:", error);
-        setDoctors([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchDoctor = async ({ pageParam = 0 }) => {
+    const res = await doctorService.getDoctorForCard(pageParam, 3);
+    console.log(res);
+    return res.data.result;
+  };
 
-    fetchDoctors();
-  }, []);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useInfiniteQuery({
+    queryFn: fetchDoctor,
+    getNextPageParam: (lastPage, pages) => {
+      // Nếu lastPage.last === true thì đã hết data (chuẩn theo Spring pagination)
+      return lastPage.last ? undefined : pages.length;
+    },
+  });
+
+  const doctors = data?.pages.flatMap((page) => page.content) || [];
 
   const handleDoctorClick = (doctorId) => {
     navigate(`/doctor/${doctorId}`);
@@ -131,6 +137,16 @@ const OurStaffPage = () => {
               </Card>
             ))}
           </div>
+          {hasNextPage && (
+            <div className="text-center mt-12">
+              <Button
+                onClick={() => fetchNextPage()}
+                loading={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
+              </Button>
+            </div>
+          )}
         </div>
         <Divider />
         <div className="my-12 text-center">

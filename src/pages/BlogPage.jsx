@@ -15,53 +15,34 @@ import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { blogService } from "../service/blog.service";
 import dayjs from "dayjs";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 const { Title, Paragraph } = Typography;
 
 const BlogPage = () => {
-  const [blogPosts, setBlogPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const fetchBlogs = async ({ pageParam = 0 }) => {
+    const res = await blogService.getBlogPublic("", pageParam, 3);
+    return res.data.result;
+  };
 
-  useEffect(() => {
-    const fetchApprovedBlogs = async (page = 0) => {
-      try {
-        setLoading(true);
-        const response = await blogService.getBlogPublic("", page, 3); // Fetch approved blogs
-        console.log(response);
-        if (response.data && response.data.result.content) {
-          setBlogPosts(response.data.result.content);
-        } else {
-          setBlogPosts([]);
-          message.warning("Không có bài viết nào được duyệt.");
-        }
-      } catch (err) {
-        console.error("Error fetching approved blogs:", err);
-        setError("Không thể tải bài viết. Vui lòng thử lại sau.");
-        message.error("Không thể tải bài viết.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useInfiniteQuery({
+    queryKey: ["blogs"],
+    queryFn: fetchBlogs,
+    getNextPageParam: (lastPage, pages) => {
+      // Nếu lastPage.last === true thì đã hết data (chuẩn theo Spring pagination)
+      return lastPage.last ? undefined : pages.length;
+    },
+  });
 
-    fetchApprovedBlogs();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Đang tải bài viết...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">
-        {error}
-      </div>
-    );
-  }
+  const blogPosts = data?.pages.flatMap((page) => page.content) || [];
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
@@ -235,6 +216,16 @@ const BlogPage = () => {
             </div>
           )}
         </div>
+        {hasNextPage && (
+          <div className="text-center mt-12">
+            <Button
+              onClick={() => fetchNextPage()}
+              loading={isFetchingNextPage}
+            >
+              {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
+            </Button>
+          </div>
+        )}
       </div>
       <UserFooter />
     </div>

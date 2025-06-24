@@ -8,7 +8,7 @@ export const blogService = {
 
   // Lấy blog theo id
   getBlogById: (id) => {
-    return http.get(`blogs/${id}`);
+    return http.get(`/v1/public/blogs/${id}`);
   },
 
   // Lấy blog theo status (trang public)

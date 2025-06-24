@@ -31,25 +31,22 @@ export const doctorService = {
     }
   },
 
-  // Lấy thông tin bác sĩ (alias cho getDoctorById)
-  getDoctorInfo: async (doctorId) => {
-    try {
-      const response = await http.get(`doctors/${doctorId}`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
   // Cập nhật thông tin bác sĩ
   updateDoctor: async (id, data) => {
     return http.put(`/doctors/${id}`, data);
   },
+
   getInfoDoctor: (id) => {
-    return http.get(`/doctors/${id}`);
+    return http.get(`v1/public/doctors/${id}`);
   },
 
-  getDoctorForCard: async () => {
-    return http.get("doctors/rating");
+  getDoctorForCard: async (page, size) => {
+    return http.get("v1/public/doctors", {
+      params: {
+        page,
+        size,
+      },
+    });
   },
   // Lấy danh sách rating của bác sĩ
   getDoctorRatings: async () => {
@@ -149,5 +146,9 @@ export const doctorService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  getDoctorToSelectSchedule: () => {
+    return http.get(`v1/doctors/select/options/schedule`);
   },
 };

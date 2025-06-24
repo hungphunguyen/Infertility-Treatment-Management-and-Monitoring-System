@@ -162,13 +162,13 @@ const UserHeader = () => {
     await authService
       .checkIntrospect(token.token)
       .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        if (err.response.data.code == 1006) {
+        if (!res.data.result.valid) {
           localStorage.removeItem("token");
           window.location.reload();
         }
+      })
+      .catch((err) => {
+        console.log(err);
       });
   };
 

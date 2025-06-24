@@ -65,7 +65,7 @@ const ScheduleManagement = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const doctors = await doctorService.getAllDoctors();
+        const doctors = await doctorService.getDoctorToSelectSchedule();
         setDoctorList(doctors.data.result);
       } catch (error) {
         message.error("Không thể tải danh sách bác sĩ");

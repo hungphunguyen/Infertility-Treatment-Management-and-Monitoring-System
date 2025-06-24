@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Typography, Card, Row, Col, Avatar, Spin, Alert, Button, List, Rate } from "antd";
+import {
+  Typography,
+  Card,
+  Row,
+  Col,
+  Avatar,
+  Spin,
+  Alert,
+  Button,
+  List,
+  Rate,
+} from "antd";
 import { UserOutlined, PhoneOutlined, MailOutlined } from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
@@ -25,7 +36,7 @@ const DoctorDetailPage = () => {
     const fetchDoctorInfo = async () => {
       try {
         setLoading(true);
-        const response = await doctorService.getDoctorInfo(id);
+        const response = await doctorService.getInfoDoctor(id);
         if (response.data && response.data.code === 1000) {
           setDoctor(response.data.result);
         } else {
@@ -58,22 +69,6 @@ const DoctorDetailPage = () => {
       }
     };
     fetchFeedbacks();
-  }, [id]);
-
-  useEffect(() => {
-    // Fetch doctor rating
-    const fetchDoctorRating = async () => {
-      try {
-        const res = await doctorService.getDoctorRatings();
-        if (res.data && res.data.code === 1000 && Array.isArray(res.data.result)) {
-          const found = res.data.result.find((d) => d.id === id);
-          setDoctorRating(found ? found.rate : null);
-        }
-      } catch (e) {
-        setDoctorRating(null);
-      }
-    };
-    if (id) fetchDoctorRating();
   }, [id]);
 
   if (loading) {
@@ -128,45 +123,99 @@ const DoctorDetailPage = () => {
               <div className="mt-4 text-center">
                 {doctorRating !== null && (
                   <>
-                    <Rate disabled allowHalf value={doctorRating} style={{ fontSize: 28 }} />
-                    <span className="ml-2 text-lg font-semibold text-gray-700">{doctorRating}</span>
-                    <div className="text-gray-500 text-sm mt-1">Đánh giá tổng quan</div>
+                    <Rate
+                      disabled
+                      allowHalf
+                      value={doctorRating}
+                      style={{ fontSize: 28 }}
+                    />
+                    <span className="ml-2 text-lg font-semibold text-gray-700">
+                      {doctorRating}
+                    </span>
+                    <div className="text-gray-500 text-sm mt-1">
+                      Đánh giá tổng quan
+                    </div>
                   </>
                 )}
               </div>
             </Col>
             <Col xs={24} md={14}>
-              <Title level={2} className="mb-2 text-orange-500">{doctor.fullName}</Title>
-              <div className="mb-2 flex items-center"><UserOutlined className="mr-2 text-orange-400" /> <span className="font-semibold mr-1">Chuyên khoa:</span> <span>{doctor.specialty || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><MailOutlined className="mr-2 text-orange-400" /> <span className="font-semibold mr-1">Email:</span> <span>{doctor.email || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><PhoneOutlined className="mr-2 text-orange-400" /> <span className="font-semibold mr-1">Số điện thoại:</span> <span>{doctor.phoneNumber || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">🎓</span> <span className="font-semibold mr-1">Bằng cấp:</span> <span>{doctor.qualifications || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">📅</span> <span className="font-semibold mr-1">Năm tốt nghiệp:</span> <span>{doctor.graduationYear || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">📍</span> <span className="font-semibold mr-1">Địa chỉ:</span> <span>{doctor.address || "Chưa cập nhật"}</span></div>
-              <div className="mb-2 flex items-center"><span className="mr-2 text-orange-400">💼</span> <span className="font-semibold mr-1">Kinh nghiệm:</span> <span>{doctor.experienceYears ? `${doctor.experienceYears} năm kinh nghiệm` : "Chưa cập nhật"}</span></div>
+              <Title level={2} className="mb-2 text-orange-500">
+                {doctor.fullName}
+              </Title>
+              <div className="mb-2 flex items-center">
+                <UserOutlined className="mr-2 text-orange-400" />{" "}
+                <span className="font-semibold mr-1">Chuyên khoa:</span>{" "}
+                <span>{doctor.specialty || "Chưa cập nhật"}</span>
+              </div>
+              <div className="mb-2 flex items-center">
+                <MailOutlined className="mr-2 text-orange-400" />{" "}
+                <span className="font-semibold mr-1">Email:</span>{" "}
+                <span>{doctor.email || "Chưa cập nhật"}</span>
+              </div>
+              <div className="mb-2 flex items-center">
+                <PhoneOutlined className="mr-2 text-orange-400" />{" "}
+                <span className="font-semibold mr-1">Số điện thoại:</span>{" "}
+                <span>{doctor.phoneNumber || "Chưa cập nhật"}</span>
+              </div>
+              <div className="mb-2 flex items-center">
+                <span className="mr-2 text-orange-400">🎓</span>{" "}
+                <span className="font-semibold mr-1">Bằng cấp:</span>{" "}
+                <span>{doctor.qualifications || "Chưa cập nhật"}</span>
+              </div>
+              <div className="mb-2 flex items-center">
+                <span className="mr-2 text-orange-400">📅</span>{" "}
+                <span className="font-semibold mr-1">Năm tốt nghiệp:</span>{" "}
+                <span>{doctor.graduationYear || "Chưa cập nhật"}</span>
+              </div>
+              <div className="mb-2 flex items-center">
+                <span className="mr-2 text-orange-400">📍</span>{" "}
+                <span className="font-semibold mr-1">Địa chỉ:</span>{" "}
+                <span>{doctor.address || "Chưa cập nhật"}</span>
+              </div>
+              <div className="mb-2 flex items-center">
+                <span className="mr-2 text-orange-400">💼</span>{" "}
+                <span className="font-semibold mr-1">Kinh nghiệm:</span>{" "}
+                <span>
+                  {doctor.experienceYears
+                    ? `${doctor.experienceYears} năm kinh nghiệm`
+                    : "Chưa cập nhật"}
+                </span>
+              </div>
             </Col>
-            <Col xs={24} md={4} className="flex flex-col items-center justify-center">
+            <Col
+              xs={24}
+              md={4}
+              className="flex flex-col items-center justify-center"
+            >
               <Button
                 type="primary"
                 size="large"
                 className="bg-[#ff8460] hover:bg-[#ff6b40] border-none shadow"
                 onClick={() => {
                   // Save doctor information to localStorage for later use
-                  localStorage.setItem('pendingDoctorSelection', JSON.stringify({
-                    selectedDoctor: doctor.id,
-                    doctorName: doctor.fullName,
-                    doctorRole: doctor.roleName?.description || "Bác sĩ chuyên khoa",
-                    doctorSpecialization: doctor.specialty || doctor.qualifications,
-                    from: `/doctor/${id}`
-                  }));
-                  
-                  navigate('/register-service', { 
-                    state: { 
+                  localStorage.setItem(
+                    "pendingDoctorSelection",
+                    JSON.stringify({
                       selectedDoctor: doctor.id,
                       doctorName: doctor.fullName,
-                      doctorRole: doctor.roleName?.description || "Bác sĩ chuyên khoa",
-                      doctorSpecialization: doctor.specialty || doctor.qualifications
-                    } 
+                      doctorRole:
+                        doctor.roleName?.description || "Bác sĩ chuyên khoa",
+                      doctorSpecialization:
+                        doctor.specialty || doctor.qualifications,
+                      from: `/doctor/${id}`,
+                    })
+                  );
+
+                  navigate("/register-service", {
+                    state: {
+                      selectedDoctor: doctor.id,
+                      doctorName: doctor.fullName,
+                      doctorRole:
+                        doctor.roleName?.description || "Bác sĩ chuyên khoa",
+                      doctorSpecialization:
+                        doctor.specialty || doctor.qualifications,
+                    },
                   });
                 }}
               >
@@ -181,8 +230,10 @@ const DoctorDetailPage = () => {
           ) : (
             <>
               <List
-                dataSource={showAllFeedbacks ? feedbacks : feedbacks.slice(0, 3)}
-                renderItem={item => (
+                dataSource={
+                  showAllFeedbacks ? feedbacks : feedbacks.slice(0, 3)
+                }
+                renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
                       avatar={<Avatar icon={<UserOutlined />} />}
@@ -191,7 +242,10 @@ const DoctorDetailPage = () => {
                         <>
                           <Rate disabled defaultValue={item.rating} />
                           <p>{item.comment}</p>
-                          <small>Ngày: {new Date(item.submitDate).toLocaleDateString()}</small>
+                          <small>
+                            Ngày:{" "}
+                            {new Date(item.submitDate).toLocaleDateString()}
+                          </small>
                         </>
                       }
                     />
@@ -212,4 +266,4 @@ const DoctorDetailPage = () => {
   );
 };
 
-export default DoctorDetailPage; 
+export default DoctorDetailPage;
