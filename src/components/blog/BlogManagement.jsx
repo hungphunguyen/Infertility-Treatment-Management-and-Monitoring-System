@@ -346,7 +346,7 @@ const BlogManagement = () => {
         token.token,
         { action: status, comment: commentText }
       );
-      if (response.data) {
+      if (response.data && response.data.result) {
         showNotification(
           `Bài viết đã được ${
             status === "APPROVED" ? "duyệt" : "từ chối"
