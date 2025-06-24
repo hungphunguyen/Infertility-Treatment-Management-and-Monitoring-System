@@ -296,53 +296,51 @@ const UserTemplate = () => {
               {doctors.slice(0, 3).map((doctor) => (
                 <Card
                   key={doctor.id}
-                  className="relative w-[280px] mx-auto mb-8 cursor-pointer group shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white"
+                  className="w-[250px] mx-auto mb-8 cursor-pointer shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white overflow-hidden"
                   onClick={() => navigate(`/doctor/${doctor.id}`)}
                   bodyStyle={{ padding: 0 }}
                 >
-                  <div className="relative w-full max-w-sm rounded-lg overflow-hidden shadow-md group hover:scale-105 transition-transform duration-300">
-                    <img
-                      src={doctor.avatarUrl}
-                      alt={doctor.fullName}
-                      className="w-full h-[350px] object-cover rounded-t-lg transition-shadow duration-300 group-hover:shadow-2xl"
-                    />
-                    <div className="absolute left-0 bottom-0 w-full bg-white bg-opacity-95 rounded-b-lg px-4 py-3 shadow-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                      <h3 className="text-lg font-semibold text-gray-800 text-center truncate">
-                        {doctor.fullName}
-                      </h3>
-                      <div className="mt-1 text-center space-y-1">
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Chuyên khoa:
-                          </span>{" "}
-                          {doctor.specialty}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Bằng cấp:
-                          </span>{" "}
-                          {doctor.qualifications}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Kinh nghiệm:
-                          </span>{" "}
-                          {doctor.experienceYears} năm
-                        </p>
-                      </div>
-                      <div className="mt-2 flex items-center justify-center">
-                        <StarRatings
-                          rating={doctor.rate}
-                          starRatedColor="#fadb14"
-                          numberOfStars={5}
-                          name="rating"
-                          starDimension="20px"
-                          starSpacing="2px"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">
-                          ({doctor.rate})
-                        </span>
-                      </div>
+                  <img
+                    src={doctor.avatarUrl}
+                    alt={doctor.fullName}
+                    className="w-full h-[280px] object-cover"
+                  />
+                  <div className="relative p-2 text-center -mt-8 bg-white">
+                    <h3 className="text-lg font-semibold text-gray-800 truncate">
+                      {doctor.fullName}
+                    </h3>
+                    <div className="mt-1">
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium text-gray-700">
+                          Chuyên khoa:
+                        </span>{" "}
+                        {doctor.specialty}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium text-gray-700">
+                          Bằng cấp:
+                        </span>{" "}
+                        {doctor.qualifications}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium text-gray-700">
+                          Kinh nghiệm:
+                        </span>{" "}
+                        {doctor.experienceYears} năm
+                      </p>
+                    </div>
+                    <div className="mt-2 flex items-center justify-center">
+                      <StarRatings
+                        rating={doctor.rate}
+                        starRatedColor="#fadb14"
+                        numberOfStars={5}
+                        name="rating"
+                        starDimension="16px"
+                        starSpacing="1px"
+                      />
+                      <span className="ml-2 text-sm text-gray-600">
+                        ({doctor.rate})
+                      </span>
                     </div>
                   </div>
                 </Card>

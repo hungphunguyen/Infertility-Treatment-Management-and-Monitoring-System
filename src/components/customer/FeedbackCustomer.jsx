@@ -34,8 +34,8 @@ const FeedbackCustomer = () => {
   }, []);
 
   useEffect(() => {
-    doctorService.getAllDoctors().then((res) => {
-      setDoctors(res.data.result);
+    doctorService.getDoctorForCard().then((res) => {
+      setDoctors(res.data.result.content);
     });
   }, []);
 
@@ -76,12 +76,13 @@ const FeedbackCustomer = () => {
     setDoctorMap(newMap);
   };
 
-  const getAllFeedBack = async () => {
+  const getAllFeedBack = async (page = 0) => {
     try {
-      const res = await customerService.getFeedbackCustomer(infoUser.id);
-      if (res?.data?.result) {
-        setFeedbacks(res.data.result);
-        getDoctorNames(res.data.result);
+      const res = await customerService.getAllFeedback(infoUser.id, page, 5);
+      console.log(res);
+      if (res?.data?.result?.content) {
+        setFeedbacks(res.data.result.content);
+        getDoctorNames(res.data.result.content);
       }
     } catch (error) {
       console.log(error);
@@ -376,7 +377,7 @@ const FeedbackCustomer = () => {
                     {
                       rating: selectedFeedback.rating,
                       comment: selectedFeedback.comment,
-                      recordId: selectedFeedback.recordId,
+                      recordId: selectedFeedback.id,
                     }
                   );
 
@@ -387,7 +388,7 @@ const FeedbackCustomer = () => {
                   console.error(err);
                   console.log(selectedFeedback.rating);
                   console.log(selectedFeedback.comment);
-                  console.log(selectedFeedback.recordId);
+                  console.log(selectedFeedback.id);
                   showNotification("Cập nhật thất bại", "error");
                 }
               }}

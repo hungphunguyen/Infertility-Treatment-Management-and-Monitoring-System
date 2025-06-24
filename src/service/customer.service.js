@@ -2,11 +2,18 @@ import { http } from "./config";
 
 export const customerService = {
   createFeedback: (data) => {
-    return http.post("/feedback", data);
+    return http.post("/v1/feedbacks", data);
   },
 
-  getFeedbackCustomer: (customerId) => {
-    return http.get(`/feedback/for-customer/${customerId}`);
+  getAllFeedback: (customerId, page, size) => {
+    return http.get("v1/feedbacks", {
+      params: {
+        customerId,
+
+        page,
+        size,
+      },
+    });
   },
 
   checkIsValid: (recordId) => {
@@ -14,7 +21,7 @@ export const customerService = {
   },
 
   updateFeedback: (id, data) => {
-    return http.put(`/feedback/update-feedback/${id}`, data);
+    return http.put(`/v1/feedbacks/${id}`, data);
   },
 
   uploadImg: (payload) => {

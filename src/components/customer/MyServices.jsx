@@ -76,21 +76,11 @@ const MyServices = () => {
           "First Record Full Structure:",
           JSON.stringify(records[0], null, 2)
         );
-
-        // Gọi API check cho từng record
-        const enrichedRecords = await Promise.all(
-          records.map(async (record) => {
-            console.log("👉 Before enrich:", record);
-            try {
-              const res = await customerService.checkIsValid(record.id);
-              console.log("checkIsValid", record.id, res.data.result);
-              return { ...record, canFeedback: res.data.result === true };
-            } catch (err) {
-              return { ...record, canFeedback: false }; // fallback nếu lỗi
-            }
-          })
-        );
-
+        // check trạng thái của record chỉ cho feedback khi đã hoàn thành
+        const enrichedRecords = records.map((record) => ({
+          ...record,
+          canFeedback: record.status === "COMPLETED", // chỉ cho feedback khi đã hoàn thành
+        }));
         setTreatmentRecords(enrichedRecords);
 
         // Tính toán thống kê
@@ -145,7 +135,6 @@ const MyServices = () => {
   };
 
   const handleOpenFeedbackForm = (record) => {
-    console.log(record);
     if (!record.canFeedback) return;
     navigate(path.customerFeedback, {
       state: {

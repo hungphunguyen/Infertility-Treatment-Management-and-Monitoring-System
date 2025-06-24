@@ -31,9 +31,9 @@ const UserManagement = () => {
       const res = await adminService.getUsers(isRemove, page, 5);
       setUsers(res.data.result.content);
       setTotalPages(res.data.result.totalPages);
-      console.log(res.data.result.totalPages);
+
       setCurrentPage(page);
-      console.log(page);
+
       setShowRemoved(isRemove); // để biết đang ở "tắt" hay "hoạt động"
       setIsFetched(true);
     } catch (err) {

@@ -60,7 +60,7 @@ const DoctorDetailPage = () => {
       try {
         const response = await doctorService.getDoctorFeedback(id, page, 0);
         if (response.data && response.data.code === 1000) {
-          setFeedbacks(response.data.result);
+          setFeedbacks(response.data.result.content);
         }
       } catch (error) {
         //

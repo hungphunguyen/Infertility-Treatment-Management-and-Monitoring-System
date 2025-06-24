@@ -21,7 +21,6 @@ const FeedbackManagement = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [infoUser, setInfoUser] = useState();
   const { showNotification } = useContext(NotificationContext);
-  const [doctorMap, setDoctorMap] = useState({});
   const [filters, setFilters] = useState({
     keyword: "",
     status: "",
@@ -35,7 +34,8 @@ const FeedbackManagement = () => {
 
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
-
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
   useEffect(() => {
     authService
       .getMyInfo()
@@ -45,34 +45,18 @@ const FeedbackManagement = () => {
       .catch((err) => {});
   }, []);
 
-  const getAllFeedBack = async () => {
+  const getAllFeedBack = async (page = 0) => {
     try {
-      const res = await managerService.getAllFeedback();
-      if (res?.data?.result) {
-        setFeedbacks(res.data.result);
-        getDoctorNames(res.data.result);
+      const res = await managerService.getAllFeedback(page, 5);
+      console.log(res);
+      if (res?.data?.result?.content) {
+        setFeedbacks(res.data.result.content);
+        setTotalPages(res.data.result.totalPages);
+        setCurrentPage(page);
       }
     } catch (error) {
       console.log(error);
     }
-  };
-
-  // format lại id doctor -> doctor name
-  const getDoctorNames = async (feedbackList) => {
-    const uniqueDoctorIds = [...new Set(feedbackList.map((fb) => fb.doctorId))];
-    const newMap = {};
-    await Promise.all(
-      uniqueDoctorIds.map(async (id) => {
-        try {
-          const res = await doctorService.getDoctorById(id);
-          newMap[id] = res?.data?.result?.fullName || "Không rõ";
-        } catch (err) {
-          newMap[id] = "Không rõ";
-        }
-      })
-    );
-
-    setDoctorMap(newMap);
   };
 
   useEffect(() => {
@@ -88,7 +72,7 @@ const FeedbackManagement = () => {
 
   // search
   const filteredFeedbacks = feedbacks.filter((item) => {
-    const doctorName = doctorMap[item.doctorId]?.toLowerCase() || "";
+    const doctorName = item.doctorFullName?.toLowerCase() || "";
     const customerName = item.customerName?.toLowerCase() || "";
 
     const matchKeyword =
@@ -118,6 +102,35 @@ const FeedbackManagement = () => {
     setSelectedFeedback(feedback);
     setDetailModalVisible(true);
   };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "APPROVED":
+        return "Đã chấp nhận";
+      case "REJECTED":
+        return "Đã từ chối";
+      case "HIDDEN":
+        return "Đã ẩn";
+      case "PENDING":
+      default:
+        return "Chờ duyệt";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "APPROVED":
+        return "green";
+      case "REJECTED":
+        return "red";
+      case "HIDDEN":
+        return "gray";
+      case "PENDING":
+      default:
+        return "orange";
+    }
+  };
+
   return (
     <div>
       {/* 🔢 Box thống kê */}
@@ -185,28 +198,16 @@ const FeedbackManagement = () => {
             <tbody className="divide-y divide-gray-200">
               {filteredFeedbacks.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">{item.customerName}</td>
+                  <td className="px-4 py-3">{item.customerFullName}</td>
                   <td className="px-4 py-3 text-gray-500">
-                    {doctorMap[item.doctorId] || "Đang tải..."}
+                    {item.doctorFullName || "..."}
                   </td>
                   <td className="px-4 py-3">
                     <Rate disabled value={item.rating} />
                   </td>
                   <td className="px-4 py-3">
-                    <Tag
-                      color={
-                        item.status === "APPROVED"
-                          ? "green"
-                          : item.status === "REJECTED"
-                          ? "red"
-                          : "orange"
-                      }
-                    >
-                      {item.status === "APPROVED"
-                        ? "Đã chấp nhận"
-                        : item.status === "REJECTED"
-                        ? "Đã từ chối"
-                        : "Chờ duyệt"}
+                    <Tag color={getStatusColor(item.status)}>
+                      {getStatusLabel(item.status)}
                     </Tag>
                   </td>
 
@@ -223,14 +224,46 @@ const FeedbackManagement = () => {
               ))}
             </tbody>
           </table>
+          <div className="flex justify-end mt-4">
+            <Button
+              disabled={currentPage === 0}
+              onClick={() => fetchUsers(showRemoved, currentPage - 1)}
+              className="mr-2"
+            >
+              Trang trước
+            </Button>
+            <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+              Trang {currentPage + 1} / {totalPages}
+            </span>
+            <Button
+              disabled={currentPage + 1 >= totalPages}
+              onClick={() => fetchUsers(showRemoved, currentPage + 1)}
+              className="ml-2"
+            >
+              Trang tiếp
+            </Button>
+          </div>
         </div>
         <Modal
           title="Chi tiết phản hồi"
           open={detailModalVisible}
           onCancel={() => setDetailModalVisible(false)}
           footer={[
-            selectedFeedback?.status === "PENDING" ||
-            selectedFeedback?.status === "REJECTED" ? (
+            // selectedFeedback?.status !== "HIDDEN" && (
+            <>
+              <Button
+                key="hide"
+                style={{
+                  backgroundColor: "#6c757d", // Bootstrap secondary
+                  borderColor: "#6c757d",
+                  color: "#fff",
+                }}
+                onClick={() => openApprovalModal(selectedFeedback.id, "HIDDEN")}
+              >
+                Ẩn
+              </Button>
+              {/* {selectedFeedback?.status === "PENDING" ||
+                selectedFeedback?.status === "REJECTED" ? ( */}
               <>
                 <Button
                   key="reject"
@@ -251,7 +284,9 @@ const FeedbackManagement = () => {
                   Duyệt
                 </Button>
               </>
-            ) : null,
+              {/* ) : null} */}
+            </>,
+            // ),
           ]}
         >
           {selectedFeedback && (
@@ -261,7 +296,7 @@ const FeedbackManagement = () => {
               </p>
               <p>
                 <strong>Bác sĩ:</strong>{" "}
-                {doctorMap[selectedFeedback.doctorId] || "Không rõ"}
+                {selectedFeedback.doctorFullName || "Không rõ"}
               </p>
               <p>
                 <strong>Đánh giá:</strong>{" "}
@@ -277,7 +312,8 @@ const FeedbackManagement = () => {
                   : ""}
               </p>
               <p>
-                <strong>Trạng thái:</strong> {selectedFeedback.status}
+                <strong>Trạng thái:</strong>{" "}
+                {getStatusLabel(selectedFeedback.status)}
               </p>
               <p>
                 <strong>Note:</strong> {selectedFeedback.note}
@@ -305,10 +341,8 @@ const FeedbackManagement = () => {
 
             try {
               await managerService.confirmFeedback(currentId, {
-                approveBy: infoUser.id,
                 note: noteRef.current || "",
                 status: currentStatus,
-                approved: true,
               });
 
               showNotification("Cập nhật phản hồi thành công", "success");

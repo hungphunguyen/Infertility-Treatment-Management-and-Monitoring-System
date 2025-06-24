@@ -35,10 +35,10 @@ export const adminService = {
   },
 
   adminStatisticsStatus: () => {
-    return http.get("v1/admin/statistics/users-by-status");
+    return http.get("v1/dashboard/admin/users-by-status");
   },
 
   adminStatisticsRole: () => {
-    return http.get("v1/admin/statistics/users-by-role");
+    return http.get("v1/dashboard/admin/users-by-role");
   },
 };

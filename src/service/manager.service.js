@@ -21,8 +21,13 @@ export const managerService = {
     return http.get(`treatment-service/${id}`);
   },
 
-  getAllFeedback: () => {
-    return http.get("feedback/get-all");
+  getAllFeedback: (page, size) => {
+    return http.get("v1/feedbacks", {
+      params: {
+        page,
+        size,
+      },
+    });
   },
 
   createWorkScheduleBulk: (payload) => {
@@ -78,10 +83,14 @@ export const managerService = {
   },
 
   confirmFeedback: (id, data) => {
-    return http.put(`feedback/${id}`, data);
+    return http.put(`/v1/feedbacks/${id}/status`, data);
   },
 
   getWorkScheduleStatics: () => {
     return http.get("managers/dashboard/work-schedules/statics/");
+  },
+
+  updateManager: (id, data) => {
+    return http.put(`v1/managers/${id}`, data);
   },
 };

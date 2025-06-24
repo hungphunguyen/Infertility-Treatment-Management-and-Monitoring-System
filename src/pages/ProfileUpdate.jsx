@@ -14,6 +14,7 @@ import DoctorSidebar from "../components/doctor/DoctorSidebar";
 import CustomerSidebar from "../components/customer/CustomerSidebar";
 import EducationTimeline from "../components/doctor/EducationTimeline";
 import SpecialtyTimeline from "../components/doctor/SpecialtyTimeline";
+import { managerService } from "../service/manager.service";
 
 const ProfileUpdate = () => {
   const navigate = useNavigate();
@@ -116,11 +117,11 @@ const ProfileUpdate = () => {
 
     return {
       fullName: userInfo?.fullName || "",
-      email: userInfo?.email || "",
       phoneNumber: userInfo?.phoneNumber || "",
       gender: userInfo?.gender || "",
       dateOfBirth: userInfo?.dateOfBirth || "",
       address: userInfo?.address || "",
+      email: userInfo?.email || "",
     };
   };
 
@@ -135,7 +136,6 @@ const ProfileUpdate = () => {
         }
         if (userInfo?.roleName.name === "DOCTOR") {
           try {
-            console.log(values);
             const res = await doctorService.updateDoctor(doctorInfo.id, values);
             setIsEditing(false);
 
@@ -145,6 +145,25 @@ const ProfileUpdate = () => {
               navigate("/");
             }, 1000);
           } catch (error) {
+            console.log(values);
+
+            console.log(error);
+            showNotification(error.response?.data?.message, "error");
+          }
+        }
+        if (userInfo?.roleName.name === "MANAGER") {
+          try {
+            const res = await managerService.updateManager(userInfo.id, values);
+            console.log(res);
+
+            setIsEditing(false);
+            showNotification("Cập nhật thông tin thành công", "success");
+            setTimeout(() => {
+              navigate("/");
+            }, 1000);
+          } catch (error) {
+            console.log(userInfo.id);
+            console.log(values);
             console.log(error);
             showNotification(error.response?.data?.message, "error");
           }
@@ -491,7 +510,7 @@ const ProfileUpdate = () => {
                             onClick={() => setIsEditing(false)}
                             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                           >
-                            <span>Đóng</span>
+                            <span>Hủy bỏ</span>
                           </button>
                         </div>
 
