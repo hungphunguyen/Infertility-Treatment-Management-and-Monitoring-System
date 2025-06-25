@@ -122,31 +122,70 @@ const PatientList = () => {
 
   const handleDetail = (record) => {
     treatmentService.getTreatmentRecordsByDoctor(doctorId).then((records) => {
-      const treatmentRecord = Array.isArray(records)
-        ? records.find(
+      // Tìm treatment record phù hợp nhất
+      let treatmentRecord = null;
+      
+      if (Array.isArray(records)) {
+        // Ưu tiên tìm theo purpose/service trước
+        treatmentRecord = records.find(
+          (r) =>
+            (r.customerId === record.customerId ||
+              r.customerName === record.customerName) &&
+            r.status !== "PENDING" &&
+            r.status !== "CANCELLED" &&
+            // Tìm theo purpose hoặc service name
+            (r.purpose === record.purpose ||
+             r.serviceName === record.serviceName ||
+             r.treatmentServiceName === record.purpose ||
+             r.treatmentServiceName === record.serviceName)
+        );
+        
+        // Nếu không tìm thấy theo purpose/service, tìm theo customer
+        if (!treatmentRecord) {
+          treatmentRecord = records.find(
             (r) =>
               (r.customerId === record.customerId ||
                 r.customerName === record.customerName) &&
               r.status !== "PENDING" &&
               r.status !== "CANCELLED"
-          )
-        : null;
+          );
+        }
+      }
+      
+      console.log('🔍 Treatment record tìm được:', treatmentRecord);
+      
       if (treatmentRecord) {
-        navigate("/doctor-dashboard/treatment-stages", {
-          state: {
-            patientInfo: {
-              customerId: treatmentRecord.customerId,
-              customerName: treatmentRecord.customerName,
-            },
-            treatmentData: treatmentRecord,
-            sourcePage: "patients"
-          },
+        // Gọi API lấy chi tiết treatment record (bao gồm các bước)
+        treatmentService.getTreatmentRecordById(treatmentRecord.id).then((detailRes) => {
+          const detail = detailRes?.data?.result;
+          console.log('📋 Treatment record chi tiết:', detail);
+          if (detail) {
+            navigate("/doctor-dashboard/treatment-stages", {
+              state: {
+                patientInfo: {
+                  customerId: detail.customerId,
+                  customerName: detail.customerName,
+                },
+                treatmentData: detail, // truyền treatment record chi tiết (có steps)
+                sourcePage: "patients",
+                appointmentData: record
+              },
+            });
+          } else {
+            message.error("Không lấy được chi tiết hồ sơ điều trị!");
+          }
+        }).catch((error) => {
+          console.error("Error fetching treatment record detail:", error);
+          message.error("Có lỗi xảy ra khi lấy chi tiết hồ sơ điều trị!");
         });
       } else {
         message.error(
           "Không tìm thấy hồ sơ điều trị hợp lệ cho bệnh nhân này!"
         );
       }
+    }).catch((error) => {
+      console.error("Error fetching treatment records:", error);
+      message.error("Có lỗi xảy ra khi tìm hồ sơ điều trị!");
     });
   };
 

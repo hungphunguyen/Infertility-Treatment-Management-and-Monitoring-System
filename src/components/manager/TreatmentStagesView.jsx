@@ -42,6 +42,12 @@ const TreatmentStagesView = () => {
     fetchData();
   }, [location.state, navigate, showNotification]);
 
+  useEffect(() => {
+    if (treatmentData) {
+      console.log('👀 treatmentData ở trang chi tiết:', treatmentData);
+    }
+  }, [treatmentData]);
+
   // Treatment record status (hồ sơ điều trị)
   const getTreatmentStatusColor = (status) => {
     switch (status?.toUpperCase()) {

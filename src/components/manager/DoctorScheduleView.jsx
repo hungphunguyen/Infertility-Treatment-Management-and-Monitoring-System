@@ -234,7 +234,6 @@ const DoctorScheduleView = () => {
           />
           <div>
             <div className="font-semibold">{record.doctorName}</div>
-            <div className="text-sm text-gray-500">{record.specialty}</div>
           </div>
         </div>
       ),
@@ -284,10 +283,6 @@ const DoctorScheduleView = () => {
         const stats = getDoctorStats(record.doctorName);
         return (
           <div className="w-full">
-            <div className="flex justify-between text-sm mb-1">
-              <span>Tiến độ</span>
-              <span>{stats.progress}%</span>
-            </div>
             <Progress
               percent={stats.progress}
               size="small"
@@ -374,39 +369,16 @@ const DoctorScheduleView = () => {
             <Statistic
               title={
                 <span style={{ color: "#faad14", fontWeight: 600 }}>
-                  Tỷ lệ khám
+                  Tổng bệnh nhân hôm nay
                 </span>
               }
-              value={
-                workStats && workStats.totalPatientsToday > 0
-                  ? Math.round(
-                      (workStats.completedPatientsToday /
-                        workStats.totalPatientsToday) *
-                        100
-                    )
-                  : 0
-              }
-              suffix="%"
-              prefix={<CalendarOutlined style={{ color: "#faad14" }} />}
+              value={todayAppointments.length}
+              prefix={<UserOutlined style={{ color: "#faad14" }} />}
               valueStyle={{ fontSize: 28 }}
             />
           </Card>
         </Col>
       </Row>
-
-      {/* Additional Stats */}
-      <Card className="mb-6 shadow-md">
-        <Row gutter={24}>
-          <Col span={24}>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {dayjs().format("DD/MM/YYYY")}
-              </div>
-              <div className="text-sm text-gray-500">Ngày hôm nay</div>
-            </div>
-          </Col>
-        </Row>
-      </Card>
 
       {/* Filters */}
       <Card className="mb-6 shadow-md">

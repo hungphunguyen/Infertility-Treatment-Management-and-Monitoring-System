@@ -483,37 +483,38 @@ const RegisterService = () => {
     setDoctorNotAvailable(false);
     setAvailableDoctors([]);
     setAvailabilityChecked(false);
-    
+
     if (!value || value === "") {
-      // If user selects "No doctor" option
       form.setFieldsValue({ doctor: null });
       setShowDoctorSchedule(false);
       setDoctorSchedule(null);
       return;
     }
-    
-    // Fetch doctor schedule when a doctor is selected, same logic as initial fetch
+
+    // Nếu đã chọn ngày và ca thì không hiển thị lịch làm việc nữa
+    const appointmentDate = form.getFieldValue('appointmentDate');
+    const shift = form.getFieldValue('shift');
+    if (appointmentDate && shift) {
+      setShowDoctorSchedule(false);
+      setDoctorSchedule(null);
+      return;
+    }
+
+    // Nếu chưa chọn đủ ngày và ca thì mới hiển thị lịch làm việc
     setScheduleLoading(true);
     setDoctorSchedule(null);
     setShowDoctorSchedule(false);
 
     try {
       const response = await doctorService.getDoctorScheduleById(value);
-      console.log("🔍 onDoctorChange - API Response:", response);
-      console.log("🔍 onDoctorChange - Response data:", response.data);
-      console.log("🔍 onDoctorChange - Response result:", response.data?.result);
-      
       if (response.data && response.data.result) {
-        console.log("✅ onDoctorChange - Setting doctor schedule:", response.data.result);
         setDoctorSchedule(response.data.result);
         setShowDoctorSchedule(true);
       } else {
-        console.log("❌ onDoctorChange - No schedule data found");
         setDoctorSchedule(null);
         setShowDoctorSchedule(false);
       }
     } catch (error) {
-      console.error("❌ onDoctorChange - Error fetching doctor schedule:", error);
       setDoctorSchedule(null);
       setShowDoctorSchedule(false);
     } finally {
@@ -730,14 +731,6 @@ const RegisterService = () => {
                 layout="vertical"
                 onFinish={onFinish}
                 scrollToFirstError
-                disabled={!isLoggedIn}
-                validateMessages={{
-                  required: '${label} là trường bắt buộc!',
-                  types: {
-                    email: '${label} không đúng định dạng!',
-                    number: '${label} phải là số!'
-                  }
-                }}
               >
                 <Title level={3} className="mb-6" style={{ color: '#333' }}>
                   👤 Thông tin Cá nhân
@@ -1194,7 +1187,10 @@ const RegisterService = () => {
                                                 </div>
                                                 {hasMorning && (
                                                   <button
-                                                    onClick={() => handleScheduleSelection(date, 'MORNING')}
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      handleScheduleSelection(date, 'MORNING');
+                                                    }}
                                                     style={{
                                                       background: '#52c41a',
                                                       color: 'white',
@@ -1229,7 +1225,10 @@ const RegisterService = () => {
                                                 </div>
                                                 {hasAfternoon && (
                                                   <button
-                                                    onClick={() => handleScheduleSelection(date, 'AFTERNOON')}
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      handleScheduleSelection(date, 'AFTERNOON');
+                                                    }}
                                                     style={{
                                                       background: '#fa8c16',
                                                       color: 'white',
@@ -1311,45 +1310,11 @@ const RegisterService = () => {
                   </Card>
                 )}
                 
-                
-
-                {/* Sau phần chọn ngày và ca, thêm lại UI đề cử bác sĩ mới: */}
-                {availabilityChecked && (
-                  <div className="my-4">
-                    {availableDoctors.length > 0 ? (
-                      <Card title="Đề cử bác sĩ phù hợp cho ngày và ca bạn chọn" bordered={false} className="shadow-md bg-blue-50">
-                        <List
-                          itemLayout="horizontal"
-                          dataSource={availableDoctors}
-                          renderItem={doctor => (
-                            <List.Item
-                              actions={[
-                                <Button
-                                  type={selectedDoctor === doctor.id ? 'primary' : 'default'}
-                                  size="small"
-                                  onClick={() => {
-                                    setSelectedDoctor(doctor.id);
-                                    form.setFieldsValue({ doctor: doctor.id });
-                                  }}
-                                >
-                                  {selectedDoctor === doctor.id ? 'Đã chọn' : 'Chọn'}
-                                </Button>
-                              ]}
-                            >
-                              <List.Item.Meta
-                                avatar={<Avatar src={doctor.avatarUrl || undefined} icon={<UserOutlined />} />}
-                                title={<span className="font-semibold text-blue-700">{doctor.fullName || 'Bác sĩ'}</span>}
-                                description={<span>{doctor.specialty || doctor.qualifications || 'Chuyên khoa'}</span>}
-                              />
-                            </List.Item>
-                          )}
-                        />
-                      </Card>
-                    ) : (
-                      <Alert message="Không có bác sĩ nào trống cho ngày và ca này. Vui lòng chọn ngày hoặc ca khác." type="info" showIcon />
-                    )}
-                  </div>
-                )}
+                <Form.Item>
+                  <Button type="primary" htmlType="submit" loading={loading} disabled={!isLoggedIn}>
+                    Gửi đăng ký
+                  </Button>
+                </Form.Item>
               </Form>
             </Card>
           </div>
