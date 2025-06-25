@@ -120,73 +120,90 @@ const PatientList = () => {
     );
   };
 
-  const handleDetail = (record) => {
-    treatmentService.getTreatmentRecordsByDoctor(doctorId).then((records) => {
-      // Tìm treatment record phù hợp nhất
-      let treatmentRecord = null;
+  const handleDetail = async (record) => {
+    try {
+      // Lấy tất cả treatment records của bác sĩ
+      const treatmentRecordsResponse = await treatmentService.getAllTreatmentRecordsByDoctor(doctorId);
+      const treatmentRecords = treatmentRecordsResponse?.data?.result || [];
       
-      if (Array.isArray(records)) {
-        // Ưu tiên tìm theo purpose/service trước
-        treatmentRecord = records.find(
+      console.log('🔍 Tất cả treatment records:', treatmentRecords);
+      console.log('📅 Appointment cần tìm:', record);
+      
+      // Tìm treatment record có step khớp với appointment
+      let matchedTreatmentRecord = null;
+      
+      for (const treatmentRecord of treatmentRecords) {
+        // Kiểm tra từng step trong treatment record
+        if (treatmentRecord.treatmentSteps && Array.isArray(treatmentRecord.treatmentSteps)) {
+          const matchingStep = treatmentRecord.treatmentSteps.find(step => {
+            // Khớp theo ngày và tên step
+            const dateMatch = step.scheduledDate === record.appointmentDate;
+            const nameMatch = step.name === record.purpose;
+            
+            console.log(`🔍 Kiểm tra step: ${step.name} (${step.scheduledDate}) vs appointment: ${record.purpose} (${record.appointmentDate})`);
+            console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}`);
+            
+            return dateMatch && nameMatch;
+          });
+          
+          if (matchingStep) {
+            matchedTreatmentRecord = treatmentRecord;
+            console.log('✅ Tìm thấy treatment record khớp:', matchedTreatmentRecord);
+            console.log('✅ Step khớp:', matchingStep);
+            break;
+          }
+        }
+      }
+      
+      // Nếu không tìm thấy theo step, tìm theo customer và service (fallback)
+      if (!matchedTreatmentRecord) {
+        console.log('⚠️ Không tìm thấy theo step, tìm theo customer và service...');
+        matchedTreatmentRecord = treatmentRecords.find(
           (r) =>
             (r.customerId === record.customerId ||
               r.customerName === record.customerName) &&
             r.status !== "PENDING" &&
             r.status !== "CANCELLED" &&
-            // Tìm theo purpose hoặc service name
             (r.purpose === record.purpose ||
              r.serviceName === record.serviceName ||
              r.treatmentServiceName === record.purpose ||
              r.treatmentServiceName === record.serviceName)
         );
-        
-        // Nếu không tìm thấy theo purpose/service, tìm theo customer
-        if (!treatmentRecord) {
-          treatmentRecord = records.find(
-            (r) =>
-              (r.customerId === record.customerId ||
-                r.customerName === record.customerName) &&
-              r.status !== "PENDING" &&
-              r.status !== "CANCELLED"
-          );
-        }
       }
       
-      console.log('🔍 Treatment record tìm được:', treatmentRecord);
+      console.log('🎯 Treatment record cuối cùng:', matchedTreatmentRecord);
       
-      if (treatmentRecord) {
+      if (matchedTreatmentRecord) {
         // Gọi API lấy chi tiết treatment record (bao gồm các bước)
-        treatmentService.getTreatmentRecordById(treatmentRecord.id).then((detailRes) => {
-          const detail = detailRes?.data?.result;
-          console.log('📋 Treatment record chi tiết:', detail);
-          if (detail) {
-            navigate("/doctor-dashboard/treatment-stages", {
-              state: {
-                patientInfo: {
-                  customerId: detail.customerId,
-                  customerName: detail.customerName,
-                },
-                treatmentData: detail, // truyền treatment record chi tiết (có steps)
-                sourcePage: "patients",
-                appointmentData: record
+        const detailRes = await treatmentService.getTreatmentRecordById(matchedTreatmentRecord.id);
+        const detail = detailRes?.data?.result;
+        
+        console.log('📋 Treatment record chi tiết:', detail);
+        
+        if (detail) {
+          navigate("/doctor-dashboard/treatment-stages", {
+            state: {
+              patientInfo: {
+                customerId: detail.customerId,
+                customerName: detail.customerName,
               },
-            });
-          } else {
-            message.error("Không lấy được chi tiết hồ sơ điều trị!");
-          }
-        }).catch((error) => {
-          console.error("Error fetching treatment record detail:", error);
-          message.error("Có lỗi xảy ra khi lấy chi tiết hồ sơ điều trị!");
-        });
+              treatmentData: detail, // truyền treatment record chi tiết (có steps)
+              sourcePage: "patients",
+              appointmentData: record
+            },
+          });
+        } else {
+          message.error("Không lấy được chi tiết hồ sơ điều trị!");
+        }
       } else {
         message.error(
           "Không tìm thấy hồ sơ điều trị hợp lệ cho bệnh nhân này!"
         );
       }
-    }).catch((error) => {
-      console.error("Error fetching treatment records:", error);
+    } catch (error) {
+      console.error("Error in handleDetail:", error);
       message.error("Có lỗi xảy ra khi tìm hồ sơ điều trị!");
-    });
+    }
   };
 
   const columns = [
