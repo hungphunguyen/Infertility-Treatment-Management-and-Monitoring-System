@@ -191,12 +191,6 @@ const PatientList = () => {
 
   const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      render: (id) => <Tag color="blue">{id}</Tag>,
-    },
-    {
       title: "Bệnh nhân",
       dataIndex: "customerName",
       key: "customerName",
@@ -362,9 +356,6 @@ const PatientList = () => {
       >
         {selectedPatient && (
           <Descriptions column={2} bordered>
-            <Descriptions.Item label="ID">
-              {selectedPatient.id}
-            </Descriptions.Item>
             <Descriptions.Item label="Họ tên">
               {selectedPatient.customerName}
             </Descriptions.Item>
