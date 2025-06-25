@@ -7,10 +7,15 @@ import { getLocgetlStorage } from "../utils/util";
 //   "http://18.183.187.237/infertility-system-api";
 
 export const doctorService = {
-  // Lấy danh sách tất cả bác sĩ
-  getAllDoctors: async () => {
+  // Lấy danh sách tất cả bác sĩ - UPDATED TO V1
+  getAllDoctors: async (page = 0, size = 100) => {
     try {
-      const response = await http.get("doctors");
+      const response = await http.get("v1/public/doctors", {
+        params: {
+          page,
+          size,
+        },
+      });
 
       // Log để debug
       console.log("📦 Doctor API Response:", response.data);

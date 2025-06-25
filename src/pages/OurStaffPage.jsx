@@ -41,8 +41,8 @@ const OurStaffPage = () => {
   } = useInfiniteQuery({
     queryFn: fetchDoctor,
     getNextPageParam: (lastPage, pages) => {
-      // Nếu lastPage.last === true thì đã hết data (chuẩn theo Spring pagination)
-      return lastPage.last ? undefined : pages.length;
+      // Kiểm tra xem còn trang tiếp theo không dựa trên totalPages
+      return lastPage.page < lastPage.totalPages - 1 ? pages.length : undefined;
     },
   });
 

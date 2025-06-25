@@ -34,7 +34,7 @@ const FeedbackCustomer = () => {
   }, []);
 
   useEffect(() => {
-    doctorService.getDoctorForCard().then((res) => {
+    doctorService.getDoctorForCard(0, 10).then((res) => {
       setDoctors(res.data.result.content);
     });
   }, []);
