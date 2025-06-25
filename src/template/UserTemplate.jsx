@@ -31,6 +31,7 @@ import ServicesIcons from "../components/ServicesIcons";
 import RecommendationSection from "../components/RecommendationSection";
 import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
+import { path } from '../common/path';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -135,7 +136,7 @@ const UserTemplate = () => {
                   Chăm Sóc Tận Tâm.
                 </h1>
                 <Button
-                  onClick={() => navigate("/our-staff")}
+                  onClick={() => navigate(path.ourStaff)}
                   className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
                   size="large"
                 >
@@ -349,7 +350,7 @@ const UserTemplate = () => {
           )}
           <div className="text-center mt-10">
             <Button
-              onClick={() => navigate("/our-staff")}
+              onClick={() => navigate(path.ourStaff)}
               className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-lg text-lg border-none"
               size="large"
             >

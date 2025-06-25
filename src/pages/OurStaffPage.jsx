@@ -16,6 +16,7 @@ import UserFooter from "../components/UserFooter";
 import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { path } from '../common/path';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -48,7 +49,7 @@ const OurStaffPage = () => {
   const doctors = data?.pages.flatMap((page) => page.content) || [];
 
   const handleDoctorClick = (doctorId) => {
-    navigate(`/doctor/${doctorId}`);
+    navigate(path.doctorDetail.replace(':id', doctorId));
   };
   return (
     <div className="w-full min-h-screen bg-[#f7f8fa]">

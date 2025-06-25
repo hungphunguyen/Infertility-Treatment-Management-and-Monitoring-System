@@ -28,6 +28,8 @@ const TreatmentStageDetails = () => {
   const { showNotification } = useContext(NotificationContext);
 
   const statusOptions = [
+    { value: 'PLANNED', label: 'Chờ xếp lịch' },
+    { value: 'CONFIRMED', label: 'Đã xác nhận' },
     { value: 'INPROGRESS', label: 'Đang thực hiện' },
     { value: 'COMPLETED', label: 'Hoàn thành' },
     { value: 'CANCELLED', label: 'Đã hủy' },
@@ -138,13 +140,36 @@ const TreatmentStageDetails = () => {
       case "CONFIRMED":
         return "Đã xác nhận";
       case "PLANNED":
-        return "Chờ thực hiện";
+        return "Chờ xếp lịch";
       case "COMPLETED":
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
+      default:
+        return status;
+    }
+  };
+
+  const getAppointmentStatusText = (status) => {
+    switch (status) {
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "INPROGRESS":
+        return "Đang thực hiện";
+      case "PLANNED":
+        return "Chờ xếp lịch";
+      case "CANCELLED":
+        return "Đã hủy";
+      case "PENDING_CHANGE":
+        return "Chờ duyệt đổi lịch";
+      case "REJECTED_CHANGE":
+        return "Từ chối đổi lịch";
+      case "REJECTED":
+        return "Đã từ chối";
       default:
         return status;
     }
@@ -167,13 +192,6 @@ const TreatmentStageDetails = () => {
           const updatedRecord = updatedResponse.find(record => record.id === treatmentData.id);
           if (updatedRecord) {
             setTreatmentData(updatedRecord);
-            if (values.status === 'COMPLETED') {
-              const currentStepIndex = updatedRecord.treatmentSteps.findIndex(step => step.id === editingStep.id);
-              if (currentStepIndex < updatedRecord.treatmentSteps.length - 1) {
-                setNextStep(updatedRecord.treatmentSteps[currentStepIndex + 1]);
-                setShowScheduleModal(true);
-              }
-            }
           }
         }
         setEditingStep(null);
@@ -367,9 +385,7 @@ const TreatmentStageDetails = () => {
                       <Tag icon={<MedicineBoxOutlined />} color="blue">
                         {treatmentData.treatmentServiceName}
                       </Tag>
-                      <Tag icon={<CalendarOutlined />} color="cyan">
-                        {dayjs(treatmentData.appointmentDate).format('DD/MM/YYYY')}
-                      </Tag>
+                      
                     </Space>
                   </div>
                 </Space>
@@ -442,7 +458,7 @@ const TreatmentStageDetails = () => {
             rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
           >
             <Select>
-              <Select.Option value="PLANNED">Chờ thực hiện</Select.Option>
+              <Select.Option value="PLANNED">Chờ xếp lịch</Select.Option>
               <Select.Option value="CONFIRMED">Đã xác nhận</Select.Option>
               <Select.Option value="COMPLETED">Hoàn thành</Select.Option>
               <Select.Option value="CANCELLED">Đã hủy</Select.Option>
@@ -499,14 +515,14 @@ const TreatmentStageDetails = () => {
                     <Col span={16}>
                       <Row gutter={[16, 8]}>
                         <Col span={12}>
-                          <div><b>Trạng thái:</b> <Tag color={app.status === 'CONFIRMED' ? 'blue' : app.status === 'COMPLETED' ? 'green' : app.status === 'CANCELLED' ? 'red' : 'orange'}>{app.status === 'CONFIRMED' ? 'Đã xác nhận' : app.status === 'COMPLETED' ? 'Hoàn thành' : app.status === 'INPROGRESS' ? 'Đang thực hiện' : app.status === 'PLANNED' ? 'Chờ thực hiện' : app.status}</Tag></div>
+                          <div><b>Trạng thái:</b> <Tag color={app.status === 'CONFIRMED' ? 'blue' : app.status === 'COMPLETED' ? 'green' : app.status === 'CANCELLED' ? 'red' : 'orange'}>{getAppointmentStatusText(app.status)}</Tag></div>
                           <div><b>Ngày hẹn:</b> {app.appointmentDate}</div>
                           <div><b>Ca khám:</b> {app.shift === 'MORNING' ? 'Sáng' : app.shift === 'AFTERNOON' ? 'Chiều' : app.shift}</div>
                         </Col>
                         <Col span={12}>
                           <div><b>Ghi chú:</b> {app.notes}</div>
                           <div><b>Bệnh nhân:</b> {app.customerName}</div>
-                          <div><b>Bước điều trị:</b> {scheduleStep?.name}</div>
+                          <div><b>Mục đích:</b> {scheduleStep?.name}</div>
                         </Col>
                       </Row>
                     </Col>

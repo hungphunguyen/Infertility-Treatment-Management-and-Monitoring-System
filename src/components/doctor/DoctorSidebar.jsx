@@ -59,7 +59,7 @@ const DoctorSidebar = ({
       key: "test-results",
       icon: <FileTextOutlined />,
       label: "Hồ Sơ Bệnh Nhân",
-      title: "Quản lý kết quả xét nghiệm",
+      title: "Quản lí hồ sơ bệnh nhân",
       path: path.doctorTestResults,
     },
     ,
@@ -218,9 +218,6 @@ const DoctorSidebar = ({
           }}
         >
           <Divider style={{ margin: "8px 0", borderColor: "#222" }} />
-          <Text type="secondary" style={{ fontSize: "11px", color: "#bfbfbf" }}>
-            Hệ thống quản lý bác sĩ
-          </Text>
         </div>
       )}
     </div>
