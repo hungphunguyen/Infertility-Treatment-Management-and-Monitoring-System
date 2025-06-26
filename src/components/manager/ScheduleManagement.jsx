@@ -120,19 +120,17 @@ const ScheduleManagement = () => {
         selectedMonth,
         selectedDoctor.id
       );
-
-      const allSchedule = res.data.result.schedules;
-
+      const allSchedule = res.data.result;
       const map = {};
-      Object.entries(allSchedule).forEach(([date, shift]) => {
+      for (const item of allSchedule) {
+        const date = item.workDate; // "2025-06-01"
         if (date.startsWith(selectedMonth)) {
-          map[date] = shift;
+          map[date] = item.shift;
         }
-      });
-
+      }
       setScheduleMap(map);
     } catch (err) {
-      console.error("Không thể lấy lịch tháng:", err);
+      console.error("Không thể lấy lịch tháng này:", err);
     }
   };
 

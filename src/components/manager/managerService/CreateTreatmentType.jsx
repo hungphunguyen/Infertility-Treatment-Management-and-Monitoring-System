@@ -3,28 +3,17 @@ import InputCustom from "../../Input/InputCustom";
 import { managerService } from "../../../service/manager.service";
 import { useFormik } from "formik";
 import { NotificationContext } from "../../../App";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { path } from "../../../common/path";
 
-const CreateTreatmentType = ({ onSuccess }) => {
+const CreateTreatmentType = ({ defaultValues, onNext }) => {
   const { showNotification } = useContext(NotificationContext);
+
   const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
     useFormik({
-      initialValues: {
-        name: "",
-        description: "",
-      },
+      initialValues: defaultValues,
       onSubmit: (values) => {
-        managerService
-          .createTreatType(values)
-          .then((res) => {
-            console.log(res);
-            showNotification("Tạo loại điều trị thành công", "success");
-            onSuccess(res.data.result.typeId);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        onNext(values);
       },
     });
 
@@ -62,7 +51,7 @@ const CreateTreatmentType = ({ onSuccess }) => {
               type="submit"
               className="inline-block w-full bg-blue-500 text-white py-2 px-5 rounded-md"
             >
-              Xác nhận
+              Tiếp tục
             </button>
             <Link
               to={path.managerServices}

@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import "../../index.scss";
-import { Popconfirm } from "antd";
+import { Button, Modal, Popconfirm } from "antd";
 const ServiceManagement = () => {
   const { showNotification } = useContext(NotificationContext);
   const [treatmentService, setTreatmentService] = useState([]);
@@ -19,11 +19,14 @@ const ServiceManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editedService, setEditedService] = useState(null);
   const navigate = useNavigate();
-
-  const fetchTreatmentService = async () => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fetchTreatmentService = async (page = 0) => {
     try {
-      const res = await managerService.getTreatmentService();
-      setTreatmentService(res.data.result);
+      const res = await managerService.getTreatmentService(page, 5);
+      setTreatmentService(res.data.result.content);
     } catch (error) {
       showNotification("Lỗi khi tải dịch vụ", "error");
     }
@@ -37,7 +40,7 @@ const ServiceManagement = () => {
     try {
       const service = treatmentService.find((service) => service.id === id);
 
-      if (!service.remove) {
+      if (!service.isRemove) {
         await managerService.deleteTreatmentService(id);
         showNotification("Dịch vụ đã được tắt", "success");
       } else {
@@ -110,6 +113,54 @@ const ServiceManagement = () => {
     setEditedService(null);
   };
 
+  const handleSelectFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setPreview(reader.result); // preview base64
+    };
+  };
+
+  // ✅ Handle Upload Img
+  const handleUploadImg = async () => {
+    if (!selectedFile || !selectedService?.id) return;
+    setUploadingImage(true); // 🔥 Start loading
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const res = await managerService.uploadImgService(
+        selectedService.id,
+        formData
+      );
+
+      showNotification("Upload avatar thành công", "success");
+
+      setTreatmentService((prev) => ({
+        ...prev,
+        ImgUrl: res.data.result.coverImageUrl,
+      }));
+      window.location.reload();
+      // Reset trạng thái
+      setSelectedFile(null);
+      setIsUploadModalOpen(false);
+      setPreview(null);
+    } catch (err) {
+      // showNotification(err.response.data.message, "error");
+      console.log(err);
+      console.log(formData);
+      console.log("id", selectedService.id);
+      console.log(selectedFile);
+    } finally {
+      setUploadingImage(false); // 🔥 End loading
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-4 flex justify-between items-center">
@@ -122,27 +173,28 @@ const ServiceManagement = () => {
             className="w-full p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <button
-          onClick={() => {
-            setTimeout(() => {
-              navigate(path.managerRenderCreateTreatmentService);
-            }, 500);
-          }}
-          className="bg-green-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600"
-        >
-          <PlusOutlined />
-          <span> Tạo Dịch Vụ</span>
-        </button>
+        <div className="">
+          <button
+            onClick={() => {
+              setTimeout(() => {
+                navigate(path.managerRenderCreateTreatmentService);
+              }, 500);
+            }}
+            className="bg-green-500 mx-3 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600"
+          >
+            <PlusOutlined />
+            <span> Tạo Dịch Vụ</span>
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
         <table className="min-w-full table-auto">
           <thead className="bg-gray-200 text-gray-600">
             <tr>
-              <th className="px-6 py-3 text-left">Mã dịch vụ</th>
+              <th className="px-6 py-3 text-left">Hình ảnh</th>
               <th className="px-6 py-3 text-left">Tên dịch vụ</th>
               <th className="px-6 py-3 text-left">Giá</th>
-              <th className="px-6 py-3 text-left">Thời gian</th>
-              <th className="px-6 py-3 text-left">Danh mục</th>
+              <th className="px-6 py-3 text-left">Thời gian điều trị</th>
               <th className="px-6 py-3 text-left">Trạng thái</th>
               <th className="px-6 py-3 text-left">Thao tác</th>
             </tr>
@@ -151,18 +203,19 @@ const ServiceManagement = () => {
             {filteredServices.length > 0 ? (
               filteredServices.map((service) => (
                 <tr key={service.id} className="border-t hover:bg-gray-50">
-                  <td className="px-6 py-4">{service.id}</td>
+                  <td className="px-6 py-4">
+                    <img src={service.coverImageUrl} alt="" />
+                  </td>
                   <td className="px-6 py-4">{service.name}</td>
                   <td className="px-6 py-4">
                     {service.price.toLocaleString()} VNĐ
                   </td>
                   <td className="px-6 py-4">{service.duration} tháng</td>
-                  <td className="px-6 py-4">{service.treatmentTypeName}</td>
                   <td className="px-6 py-4">
                     <label className="relative inline-block w-[110px] h-[36px] select-none">
                       <input
                         type="checkbox"
-                        checked={!service.remove}
+                        checked={!service.isRemove}
                         onChange={() => handleStatusChange(service.id)}
                         className="sr-only peer"
                       />
@@ -185,7 +238,7 @@ const ServiceManagement = () => {
       text-red-600 peer-checked:text-white
     "
                       >
-                        {service.remove ? "Tắt" : "Hoạt động"}
+                        {service.isRemove ? "Tắt" : "Hoạt động"}
                       </span>
 
                       {/* Toggle dot */}
@@ -207,6 +260,15 @@ const ServiceManagement = () => {
                         <EyeOutlined />
                         <span> Xem</span>
                       </button>
+                      <button
+                        className="bg-orange-500 text-white px-3 py-2 rounded-md hover:bg-orange-600"
+                        onClick={() => {
+                          setSelectedService(service); // giữ để lấy id
+                          setIsUploadModalOpen(true); // mở modal
+                        }}
+                      >
+                        🖼 Cập nhật hình
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -221,6 +283,54 @@ const ServiceManagement = () => {
           </tbody>
         </table>
       </div>
+      {/* Avatar Card */}
+      {isUploadModalOpen && (
+        <Modal
+          title={`Cập nhật ảnh cho service`}
+          open={isUploadModalOpen}
+          onCancel={() => {
+            setIsUploadModalOpen(false);
+            setSelectedFile(null);
+            setPreview(null);
+          }}
+          footer={null}
+          destroyOnClose
+        >
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-4">Ảnh service</h3>
+            <img
+              src={preview || selectedService?.image || "/default-blog.jpg"}
+              alt="Avatar Preview"
+              className="w-32 h-32 rounded-full object-cover border mx-auto mb-4"
+            />
+            <label
+              htmlFor="fileInput"
+              className="cursor-pointer bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 transition inline-block"
+            >
+              Chọn ảnh
+            </label>
+            <input
+              type="file"
+              id="fileInput"
+              onChange={handleSelectFile}
+              className="hidden"
+            />
+            <p className="text-sm text-gray-600 mt-2">
+              {selectedFile ? selectedFile.name : "Chưa chọn ảnh nào"}
+            </p>
+            <Button
+              type="primary"
+              loading={uploadingImage}
+              disabled={!selectedFile}
+              onClick={handleUploadImg}
+              className="mt-3"
+            >
+              {uploadingImage ? "Đang upload..." : "Lưu ảnh"}
+            </Button>
+          </div>
+        </Modal>
+      )}
+
       {/* Modal */}
       {isModalOpen && selectedService && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
@@ -229,17 +339,6 @@ const ServiceManagement = () => {
             <div className="flex gap-8">
               {/* Left Section: Display static info */}
               <div className="flex-1">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Mã dịch vụ
-                  </label>
-                  <input
-                    type="text"
-                    value={editedService.id}
-                    readOnly
-                    className="mt-1 p-2 w-full border rounded-md"
-                  />
-                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
                     Người tạo
@@ -253,7 +352,7 @@ const ServiceManagement = () => {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
-                    Thời gian
+                    Thời gian điều trị
                   </label>
                   <input
                     name="duration"
@@ -267,18 +366,6 @@ const ServiceManagement = () => {
 
               {/* Right Section: Editable fields */}
               <div className="flex-1">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Mã kiểu dịch vụ
-                  </label>
-                  <input
-                    type="text"
-                    name="treatmentTypeId"
-                    value={editedService.treatmentTypeId}
-                    onChange={handleEditChange}
-                    className="mt-1 p-2 w-full border rounded-md"
-                  />
-                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
                     Tên dịch vụ

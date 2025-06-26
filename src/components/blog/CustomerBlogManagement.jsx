@@ -261,7 +261,7 @@ const CustomerBlogManagement = () => {
 
     try {
       const res = await customerService.uploadImg(formData);
-      showNotification("Upload avatar thành công", "success");
+      showNotification("Upload ảnh thành công", "success");
 
       setSelectedBlog((prev) => ({
         ...prev,

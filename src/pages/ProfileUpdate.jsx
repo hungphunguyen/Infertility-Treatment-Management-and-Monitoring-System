@@ -79,10 +79,11 @@ const ProfileUpdate = () => {
     setUploadingImage(true); // 🔥 Start loading
     const formData = new FormData();
     formData.append("file", selectedFile);
-    formData.append("userId", userInfo.id);
 
     try {
-      const res = await authService.uploadAvatar(formData);
+      const res = await authService.uploadAvatar(userInfo.id, formData);
+      console.log(selectedFile);
+      console.log(res);
       showNotification("Upload avatar thành công", "success");
 
       setUserInfo((prev) => ({
@@ -94,6 +95,7 @@ const ProfileUpdate = () => {
       setPreview(null);
     } catch (err) {
       showNotification(err.response.data.message, "error");
+      console.log(err);
     } finally {
       setUploadingImage(false); // 🔥 End loading
     }

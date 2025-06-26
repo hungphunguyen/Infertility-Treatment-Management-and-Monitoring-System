@@ -86,12 +86,12 @@ const BlogManagement = () => {
     loadUserInfo();
   }, [token, showNotification]);
 
-  const fetchBlogs = async () => {
+  const fetchBlogs = async (page = 0) => {
     try {
       setLoading(true);
-      const response = await blogService.getAllBlogs();
+      const response = await blogService.getAllBlogs(page, 5);
       if (response.data) {
-        setBlogs(response.data.result);
+        setBlogs(response.data.result.content);
       }
     } catch (error) {
       showNotification("Không thể tải danh sách bài viết", "error");

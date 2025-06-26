@@ -3,7 +3,7 @@ import axios from "axios";
 //setup axios custom xử lí gọi API cho dự án
 const http = axios.create({
   baseURL:
-    "https://york-skirts-guided-spotlight.trycloudflare.com/infertility-system/api/", // domain
+    "https://where-guitars-results-discovered.trycloudflare.com/infertility-system/api/", // domain
   timeout: 30000,
   headers: {},
 });
