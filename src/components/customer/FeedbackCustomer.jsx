@@ -108,6 +108,9 @@ const FeedbackCustomer = () => {
         console.log(values);
 
         const res = await customerService.createFeedback(values);
+
+        getAllFeedBack();
+        // gắn get vô
         console.log(res);
         showNotification("Gửi phản hồi thành công!", "success");
       } catch (err) {

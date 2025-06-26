@@ -213,6 +213,7 @@ const UserHeader = () => {
           >
             Trang chủ
           </Link>
+
           <Link
             to={path.services}
             onClick={() => window.scrollTo(0, 0)}
@@ -245,6 +246,17 @@ const UserHeader = () => {
             }`}
           >
             Blogs
+          </Link>
+          <Link
+            to={path.appointment}
+            onClick={() => window.scrollTo(0, 0)}
+            className={`hover:text-orange-400 transition-colors ${
+              isActive(path.appointment)
+                ? "text-orange-400 font-bold text-2xl"
+                : "text-gray-600"
+            }`}
+          >
+            Đăng kí khám
           </Link>
           <Link
             to={path.contacts}
