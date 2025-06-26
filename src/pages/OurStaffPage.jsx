@@ -15,6 +15,7 @@ import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
+import { path } from '../common/path';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -42,7 +43,7 @@ const OurStaffPage = () => {
   }, []);
 
   const handleDoctorClick = (doctorId) => {
-    navigate(`/doctor/${doctorId}`);
+    navigate(path.doctorDetail.replace(':id', doctorId));
   };
   return (
     <div className="w-full min-h-screen bg-[#f7f8fa]">

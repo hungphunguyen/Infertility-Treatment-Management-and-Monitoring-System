@@ -11,10 +11,10 @@ export const path = {
   serviceDetail: "/service-detail/:serviceId",
   blog: "/blog",
   blogDetail: "/blog/:blogSlug",
-  ourStaff: "/our-staff",
+  ourStaff: "/doctor",
   features: "/features",
   contacts: "/contacts",
-  doctorDetail: "/doctor/:id",
+  doctorDetail: "/doctors/detail/:id",
   appointment: "/register-service",
   admin: "/admin",
 

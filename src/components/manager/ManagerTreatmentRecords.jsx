@@ -1,106 +1,83 @@
 import React, { useState, useEffect } from "react";
 import { 
   Card, Table, Button, Space, Tag, Modal, Descriptions, 
-  Row, Col, Input, Select, Typography, notification, Drawer,
-  Collapse
+  Row, Col, Input, Select, Typography, notification, Spin
 } from "antd";
 import {
   UserOutlined, EyeOutlined, DownOutlined, UpOutlined,
   CalendarOutlined, FileTextOutlined, MedicineBoxOutlined,
-  CheckOutlined, CloseOutlined
+  CheckOutlined, CloseOutlined, UserAddOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
-import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
+import { http } from "../../service/config";
 
 const { Search } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
-const { Panel } = Collapse;
 
-const TestResults = () => {
+const ManagerTreatmentRecords = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [records, setRecords] = useState([]);
-  const [doctorId, setDoctorId] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [expandedRows, setExpandedRows] = useState([]);
 
   useEffect(() => {
-    const fetchDoctorInfo = async () => {
-      try {
-        const res = await authService.getMyInfo();
-        const id = res?.data?.result?.id;
-        if (id) {
-          setDoctorId(id);
-        } else {
-          notification.error({
-            message: "Lỗi",
-            description: "Không thể lấy thông tin bác sĩ"
-          });
-        }
-      } catch (error) {
-        notification.error({
-          message: "Lỗi",
-          description: "Không thể lấy thông tin bác sĩ"
-        });
-      }
-    };
-    fetchDoctorInfo();
+    fetchRecords();
   }, []);
 
-  useEffect(() => {
-    if (!doctorId) return;
+  const fetchRecords = async () => {
+    try {
+      setLoading(true);
+      const response = await treatmentService.getTreatmentRecordsForManager();
+      if (response?.data?.code === 1000 && Array.isArray(response.data.result)) {
+        // Nhóm các records theo customerId
+        const groupedByCustomer = response.data.result.reduce((acc, record) => {
+          if (!acc[record.customerId]) {
+            acc[record.customerId] = [];
+          }
+          acc[record.customerId].push(record);
+          return acc;
+        }, {});
 
-    const fetchRecords = async () => {
-      try {
-        const result = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (result) {
-          // Nhóm các records theo customerId
-          const groupedByCustomer = result.reduce((acc, record) => {
-            if (!acc[record.customerId]) {
-              acc[record.customerId] = [];
-            }
-            acc[record.customerId].push(record);
-            return acc;
-          }, {});
-
-          // Chuyển đổi thành mảng và sắp xếp
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
-            // Sắp xếp treatments theo ngày tạo mới nhất
-            const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.createdDate) - new Date(a.createdDate)
-            );
-            
-            return {
-              key: customerId,
-              customerId: customerId,
-              customerName: sortedTreatments[0].customerName,
-              treatments: sortedTreatments.map(treatment => ({
-                ...treatment,
-                key: treatment.id
-              }))
-            };
-          });
-
-          setRecords(formattedRecords);
-        } else {
-          setRecords([]);
-        }
-      } catch (error) {
-        notification.error({
-          message: "Lỗi",
-          description: "Không thể lấy danh sách điều trị"
+        // Chuyển đổi thành mảng và sắp xếp
+        const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+          // Sắp xếp treatments theo ngày tạo mới nhất
+          const sortedTreatments = treatments.sort((a, b) => 
+            new Date(b.createdDate) - new Date(a.createdDate)
+          );
+          
+          return {
+            key: customerId,
+            customerId: customerId,
+            customerName: sortedTreatments[0].customerName,
+            treatments: sortedTreatments.map(treatment => ({
+              ...treatment,
+              key: treatment.id
+            }))
+          };
         });
+
+        setRecords(formattedRecords);
+      } else {
         setRecords([]);
       }
-    };
-
-    fetchRecords();
-  }, [doctorId]);
+    } catch (error) {
+      console.error("Error fetching records:", error);
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể lấy danh sách điều trị"
+      });
+      setRecords([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusTag = (status) => {
     const statusMap = {
@@ -113,14 +90,14 @@ const TestResults = () => {
   };
 
   const viewRecord = (record) => {
-    navigate("/doctor-dashboard/treatment-stages", {
+    navigate("/manager/treatment-stages-view", {
       state: {
         patientInfo: {
           customerId: record.customerId,
           customerName: record.customerName,
         },
         treatmentData: record,
-        sourcePage: "test-results"
+        sourcePage: "manager-treatment-records"
       },
     });
   };
@@ -134,34 +111,7 @@ const TestResults = () => {
           description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã chuyển sang trạng thái 'Đang điều trị'.`,
         });
         // Refresh the list
-        const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (updatedRecords) {
-          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
-            if (!acc[record.customerId]) {
-              acc[record.customerId] = [];
-            }
-            acc[record.customerId].push(record);
-            return acc;
-          }, {});
-
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
-            const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.createdDate) - new Date(a.createdDate)
-            );
-            
-            return {
-              key: customerId,
-              customerId: customerId,
-              customerName: sortedTreatments[0].customerName,
-              treatments: sortedTreatments.map(treatment => ({
-                ...treatment,
-                key: treatment.id
-              }))
-            };
-          });
-
-          setRecords(formattedRecords);
-        }
+        fetchRecords();
       } else {
         notification.error({
           message: "Duyệt hồ sơ thất bại!",
@@ -185,34 +135,7 @@ const TestResults = () => {
           description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã được hủy.`,
         });
         // Refresh the list
-        const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (updatedRecords) {
-          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
-            if (!acc[record.customerId]) {
-              acc[record.customerId] = [];
-            }
-            acc[record.customerId].push(record);
-            return acc;
-          }, {});
-
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
-            const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.createdDate) - new Date(a.createdDate)
-            );
-            
-            return {
-              key: customerId,
-              customerId: customerId,
-              customerName: sortedTreatments[0].customerName,
-              treatments: sortedTreatments.map(treatment => ({
-                ...treatment,
-                key: treatment.id
-              }))
-            };
-          });
-
-          setRecords(formattedRecords);
-        }
+        fetchRecords();
       } else {
         notification.error({
           message: "Hủy hồ sơ thất bại!",
@@ -237,6 +160,17 @@ const TestResults = () => {
           <Space>
             <MedicineBoxOutlined style={{ color: '#722ed1' }} />
             <Text strong>{text}</Text>
+          </Space>
+        )
+      },
+      {
+        title: 'Bác sĩ',
+        dataIndex: 'doctorName',
+        key: 'doctorName',
+        render: (text) => (
+          <Space>
+            <UserAddOutlined style={{ color: '#1890ff' }} />
+            <Text>{text}</Text>
           </Space>
         )
       },
@@ -353,7 +287,7 @@ const TestResults = () => {
         <Title level={3}>
           <Space>
             <FileTextOutlined />
-            Hồ sơ bệnh nhân 
+            Quản lý hồ sơ điều trị
           </Space>
         </Title>
 
@@ -382,29 +316,31 @@ const TestResults = () => {
           </Col>
         </Row>
 
-        <Table
-          dataSource={records.filter(record => {
-            const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || 
-              record.treatments.some(t => t.status === statusFilter);
-            return matchesSearch && matchesStatus;
-          })}
-          columns={columns}
-          expandable={{
-            expandedRowRender,
-            expandedRowKeys: expandedRows,
-            onExpand: (expanded, record) => {
-              const newExpandedRows = expanded
-                ? [...expandedRows, record.key]
-                : expandedRows.filter(key => key !== record.key);
-              setExpandedRows(newExpandedRows);
-            }
-          }}
-          pagination={{ pageSize: 10 }}
-        />
+        <Spin spinning={loading}>
+          <Table
+            dataSource={records.filter(record => {
+              const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase());
+              const matchesStatus = statusFilter === 'all' || 
+                record.treatments.some(t => t.status === statusFilter);
+              return matchesSearch && matchesStatus;
+            })}
+            columns={columns}
+            expandable={{
+              expandedRowRender,
+              expandedRowKeys: expandedRows,
+              onExpand: (expanded, record) => {
+                const newExpandedRows = expanded
+                  ? [...expandedRows, record.key]
+                  : expandedRows.filter(key => key !== record.key);
+                setExpandedRows(newExpandedRows);
+              }
+            }}
+            pagination={{ pageSize: 10 }}
+          />
+        </Spin>
       </Card>
     </div>
   );
 };
 
-export default TestResults; 
+export default ManagerTreatmentRecords; 

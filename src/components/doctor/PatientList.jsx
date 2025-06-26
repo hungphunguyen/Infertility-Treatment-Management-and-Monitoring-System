@@ -120,42 +120,93 @@ const PatientList = () => {
     );
   };
 
-  const handleDetail = (record) => {
-    treatmentService.getTreatmentRecordsByDoctor(doctorId).then((records) => {
-      const treatmentRecord = Array.isArray(records)
-        ? records.find(
-            (r) =>
-              (r.customerId === record.customerId ||
-                r.customerName === record.customerName) &&
-              r.status !== "PENDING" &&
-              r.status !== "CANCELLED"
-          )
-        : null;
-      if (treatmentRecord) {
-        navigate("/doctor-dashboard/treatment-stages", {
-          state: {
-            patientInfo: {
-              customerId: treatmentRecord.customerId,
-              customerName: treatmentRecord.customerName,
+  const handleDetail = async (record) => {
+    try {
+      // Lấy tất cả treatment records của bác sĩ
+      const treatmentRecordsResponse = await treatmentService.getAllTreatmentRecordsByDoctor(doctorId);
+      const treatmentRecords = treatmentRecordsResponse?.data?.result || [];
+      
+      console.log('🔍 Tất cả treatment records:', treatmentRecords);
+      console.log('📅 Appointment cần tìm:', record);
+      
+      // Tìm treatment record có step khớp với appointment
+      let matchedTreatmentRecord = null;
+      
+      for (const treatmentRecord of treatmentRecords) {
+        // Kiểm tra từng step trong treatment record
+        if (treatmentRecord.treatmentSteps && Array.isArray(treatmentRecord.treatmentSteps)) {
+          const matchingStep = treatmentRecord.treatmentSteps.find(step => {
+            // Khớp theo ngày và tên step
+            const dateMatch = step.scheduledDate === record.appointmentDate;
+            const nameMatch = step.name === record.purpose;
+            
+            console.log(`🔍 Kiểm tra step: ${step.name} (${step.scheduledDate}) vs appointment: ${record.purpose} (${record.appointmentDate})`);
+            console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}`);
+            
+            return dateMatch && nameMatch;
+          });
+          
+          if (matchingStep) {
+            matchedTreatmentRecord = treatmentRecord;
+            console.log('✅ Tìm thấy treatment record khớp:', matchedTreatmentRecord);
+            console.log('✅ Step khớp:', matchingStep);
+            break;
+          }
+        }
+      }
+      
+      // Nếu không tìm thấy theo step, tìm theo customer và service (fallback)
+      if (!matchedTreatmentRecord) {
+        console.log('⚠️ Không tìm thấy theo step, tìm theo customer và service...');
+        matchedTreatmentRecord = treatmentRecords.find(
+          (r) =>
+            (r.customerId === record.customerId ||
+              r.customerName === record.customerName) &&
+            r.status !== "PENDING" &&
+            r.status !== "CANCELLED" &&
+            (r.purpose === record.purpose ||
+             r.serviceName === record.serviceName ||
+             r.treatmentServiceName === record.purpose ||
+             r.treatmentServiceName === record.serviceName)
+        );
+      }
+      
+      console.log('🎯 Treatment record cuối cùng:', matchedTreatmentRecord);
+      
+      if (matchedTreatmentRecord) {
+        // Gọi API lấy chi tiết treatment record (bao gồm các bước)
+        const detailRes = await treatmentService.getTreatmentRecordById(matchedTreatmentRecord.id);
+        const detail = detailRes?.data?.result;
+        
+        console.log('📋 Treatment record chi tiết:', detail);
+        
+        if (detail) {
+          navigate("/doctor-dashboard/treatment-stages", {
+            state: {
+              patientInfo: {
+                customerId: detail.customerId,
+                customerName: detail.customerName,
+              },
+              treatmentData: detail, // truyền treatment record chi tiết (có steps)
+              sourcePage: "patients",
+              appointmentData: record
             },
-            treatmentData: treatmentRecord,
-          },
-        });
+          });
+        } else {
+          message.error("Không lấy được chi tiết hồ sơ điều trị!");
+        }
       } else {
         message.error(
           "Không tìm thấy hồ sơ điều trị hợp lệ cho bệnh nhân này!"
         );
       }
-    });
+    } catch (error) {
+      console.error("Error in handleDetail:", error);
+      message.error("Có lỗi xảy ra khi tìm hồ sơ điều trị!");
+    }
   };
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      render: (id) => <Tag color="blue">{id}</Tag>,
-    },
     {
       title: "Bệnh nhân",
       dataIndex: "customerName",
@@ -322,9 +373,6 @@ const PatientList = () => {
       >
         {selectedPatient && (
           <Descriptions column={2} bordered>
-            <Descriptions.Item label="ID">
-              {selectedPatient.id}
-            </Descriptions.Item>
             <Descriptions.Item label="Họ tên">
               {selectedPatient.customerName}
             </Descriptions.Item>

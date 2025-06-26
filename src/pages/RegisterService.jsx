@@ -58,6 +58,11 @@ function removeIncompleteWarning() {
   });
 }
 
+const MONTHS_VI = [
+  'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+  'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+];
+
 const RegisterService = () => {
   const { showNotification } = useContext(NotificationContext);
   const [form] = Form.useForm();
@@ -101,6 +106,8 @@ const RegisterService = () => {
   
   // Always ignore incomplete treatment warning
   const [ignoreIncompleteWarning, setIgnoreIncompleteWarning] = useState(true);
+  
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().month()); // Mặc định là tháng hiện tại
   
   // Add more aggressive DOM cleanup on mount and for every render
   useEffect(() => {
@@ -476,37 +483,38 @@ const RegisterService = () => {
     setDoctorNotAvailable(false);
     setAvailableDoctors([]);
     setAvailabilityChecked(false);
-    
+
     if (!value || value === "") {
-      // If user selects "No doctor" option
       form.setFieldsValue({ doctor: null });
       setShowDoctorSchedule(false);
       setDoctorSchedule(null);
       return;
     }
-    
-    // Fetch doctor schedule when a doctor is selected, same logic as initial fetch
+
+    // Nếu đã chọn ngày và ca thì không hiển thị lịch làm việc nữa
+    const appointmentDate = form.getFieldValue('appointmentDate');
+    const shift = form.getFieldValue('shift');
+    if (appointmentDate && shift) {
+      setShowDoctorSchedule(false);
+      setDoctorSchedule(null);
+      return;
+    }
+
+    // Nếu chưa chọn đủ ngày và ca thì mới hiển thị lịch làm việc
     setScheduleLoading(true);
     setDoctorSchedule(null);
     setShowDoctorSchedule(false);
 
     try {
       const response = await doctorService.getDoctorScheduleById(value);
-      console.log("🔍 onDoctorChange - API Response:", response);
-      console.log("🔍 onDoctorChange - Response data:", response.data);
-      console.log("🔍 onDoctorChange - Response result:", response.data?.result);
-      
       if (response.data && response.data.result) {
-        console.log("✅ onDoctorChange - Setting doctor schedule:", response.data.result);
         setDoctorSchedule(response.data.result);
         setShowDoctorSchedule(true);
       } else {
-        console.log("❌ onDoctorChange - No schedule data found");
         setDoctorSchedule(null);
         setShowDoctorSchedule(false);
       }
     } catch (error) {
-      console.error("❌ onDoctorChange - Error fetching doctor schedule:", error);
       setDoctorSchedule(null);
       setShowDoctorSchedule(false);
     } finally {
@@ -520,6 +528,10 @@ const RegisterService = () => {
       appointmentDate: dayjs(date),
       shift: shift.toLowerCase()
     });
+  };
+
+  const handleMonthChange = (value) => {
+    setSelectedMonth(value);
   };
 
   // Add a more comprehensive error handler that also shows more info to the user in this scenario
@@ -719,14 +731,6 @@ const RegisterService = () => {
                 layout="vertical"
                 onFinish={onFinish}
                 scrollToFirstError
-                disabled={!isLoggedIn}
-                validateMessages={{
-                  required: '${label} là trường bắt buộc!',
-                  types: {
-                    email: '${label} không đúng định dạng!',
-                    number: '${label} phải là số!'
-                  }
-                }}
               >
                 <Title level={3} className="mb-6" style={{ color: '#333' }}>
                   👤 Thông tin Cá nhân
@@ -963,185 +967,351 @@ const RegisterService = () => {
                 {showDoctorSchedule && doctorSchedule && (
                   <Card className="mb-4" style={{ backgroundColor: '#f9f9f9' }}>
                     <Title level={4}>🗓 Lịch làm việc của bác sĩ</Title>
+                    <div className="mb-4 flex items-center gap-4">
+                      <span>Xem lịch tháng:</span>
+                      <Select
+                        value={selectedMonth}
+                        onChange={handleMonthChange}
+                        style={{ width: 120 }}
+                      >
+                        {MONTHS_VI.map((m, idx) => (
+                          <Select.Option key={idx} value={idx}>{m}</Select.Option>
+                        ))}
+                      </Select>
+                      <span>{dayjs().year()}</span>
+                    </div>
                     {scheduleLoading ? (
                       <div className="flex items-center justify-center p-4">
                         <Spin size="large" />
                         <span className="ml-2">Đang tải lịch làm việc...</span>
                       </div>
                     ) : (
-                      <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
-                          <thead>
-                            <tr>
-                              <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Ngày</th>
-                              <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Ca sáng</th>
-                              <th style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center', backgroundColor: '#eee' }}>Ca chiều</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {Object.entries(doctorSchedule.schedules || {}).map(([date, shifts]) => (
-                              <tr key={date}>
-                                <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>
-                                  {dayjs(date).format('DD/MM/YYYY')}
-                                </td>
-                                <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>
-                                  {shifts.includes('MORNING') ? (
-                                    <Button 
-                                      type="primary" 
-                                      size="small"
-                                      onClick={() => handleScheduleSelection(date, 'MORNING')}
-                                    >
-                                      Chọn
-                                    </Button>
-                                  ) : (
-                                    <span style={{ color: '#ccc' }}>Nghỉ</span>
-                                  )}
-                                </td>
-                                <td style={{ border: '1px solid #ccc', padding: '10px', textAlign: 'center' }}>
-                                  {shifts.includes('AFTERNOON') ? (
-                                    <Button 
-                                      type="primary" 
-                                      size="small"
-                                      onClick={() => handleScheduleSelection(date, 'AFTERNOON')}
-                                    >
-                                      Chọn
-                                    </Button>
-                                  ) : (
-                                    <span style={{ color: '#ccc' }}>Nghỉ</span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div style={{ 
+                        background: '#fff', 
+                        borderRadius: 16, 
+                        padding: 20,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        overflowX: 'auto'
+                      }}>
+                        {(() => {
+                          const dates = Object.keys(doctorSchedule.schedules || {}).sort();
+                          const months = {};
+                          dates.forEach(date => {
+                            const d = dayjs(date);
+                            if (d.month() === selectedMonth) {
+                              const monthKey = d.format('YYYY-MM');
+                              if (!months[monthKey]) months[monthKey] = [];
+                              months[monthKey].push(date);
+                            }
+                          });
+                          return Object.entries(months).map(([monthKey, monthDates]) => {
+                            const [year, month] = monthKey.split('-');
+                            const monthName = dayjs(monthKey + '-01').format('MMMM YYYY');
+                            
+                            // Generate calendar grid for this month
+                            const firstDate = new Date(year, month - 1, 1);
+                            const totalDays = new Date(year, month, 0).getDate();
+                            const firstDay = firstDate.getDay(); // 0=Sunday, 1=Monday, etc.
+                            const offset = firstDay === 0 ? 6 : firstDay - 1; // Convert to Monday = 0
+                            
+                            const calendar = [];
+                            let day = 1;
+                            for (let i = 0; i < 6 && day <= totalDays; i++) {
+                              const week = [];
+                              for (let j = 0; j < 7; j++) {
+                                if ((i === 0 && j < offset) || day > totalDays) {
+                                  week.push(null);
+                                } else {
+                                  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                                  week.push(dateStr);
+                                  day++;
+                                }
+                              }
+                              calendar.push(week);
+                            }
+                            
+                            return (
+                              <div key={monthKey} style={{ marginBottom: 30 }}>
+                                <h3 style={{ 
+                                  textAlign: 'center', 
+                                  color: '#1890ff', 
+                                  fontSize: 18, 
+                                  fontWeight: 'bold',
+                                  marginBottom: 16,
+                                  textTransform: 'capitalize'
+                                }}>
+                                  📅 {monthName}
+                                </h3>
+                                
+                                <table style={{ 
+                                  width: '100%', 
+                                  borderCollapse: 'separate', 
+                                  borderSpacing: 4,
+                                  minWidth: 600
+                                }}>
+                                  <thead>
+                                    <tr>
+                                      <th style={{ 
+                                        border: 'none', 
+                                        padding: 12, 
+                                        background: '#f0f8ff', 
+                                        textAlign: 'center', 
+                                        fontWeight: 700, 
+                                        fontSize: 14, 
+                                        color: '#1890ff',
+                                        borderRadius: 8
+                                      }}>Thứ 2</th>
+                                      <th style={{ 
+                                        border: 'none', 
+                                        padding: 12, 
+                                        background: '#f0f8ff', 
+                                        textAlign: 'center', 
+                                        fontWeight: 700, 
+                                        fontSize: 14, 
+                                        color: '#1890ff',
+                                        borderRadius: 8
+                                      }}>Thứ 3</th>
+                                      <th style={{ 
+                                        border: 'none', 
+                                        padding: 12, 
+                                        background: '#f0f8ff', 
+                                        textAlign: 'center', 
+                                        fontWeight: 700, 
+                                        fontSize: 14, 
+                                        color: '#1890ff',
+                                        borderRadius: 8
+                                      }}>Thứ 4</th>
+                                      <th style={{ 
+                                        border: 'none', 
+                                        padding: 12, 
+                                        background: '#f0f8ff', 
+                                        textAlign: 'center', 
+                                        fontWeight: 700, 
+                                        fontSize: 14, 
+                                        color: '#1890ff',
+                                        borderRadius: 8
+                                      }}>Thứ 5</th>
+                                      <th style={{ 
+                                        border: 'none', 
+                                        padding: 12, 
+                                        background: '#f0f8ff', 
+                                        textAlign: 'center', 
+                                        fontWeight: 700, 
+                                        fontSize: 14, 
+                                        color: '#1890ff',
+                                        borderRadius: 8
+                                      }}>Thứ 6</th>
+                                      <th style={{ 
+                                        border: 'none', 
+                                        padding: 12, 
+                                        background: '#f0f8ff', 
+                                        textAlign: 'center', 
+                                        fontWeight: 700, 
+                                        fontSize: 14, 
+                                        color: '#1890ff',
+                                        borderRadius: 8
+                                      }}>Thứ 7</th>
+                                      <th style={{ 
+                                        border: 'none', 
+                                        padding: 12, 
+                                        background: '#f0f8ff', 
+                                        textAlign: 'center', 
+                                        fontWeight: 700, 
+                                        fontSize: 14, 
+                                        color: '#1890ff',
+                                        borderRadius: 8
+                                      }}>Chủ nhật</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {calendar.map((week, weekIndex) => (
+                                      <tr key={weekIndex}>
+                                        {week.map((date, dayIndex) => {
+                                          if (!date) {
+                                            return (
+                                              <td key={dayIndex} style={{
+                                                border: '2px solid #f0f0f0',
+                                                height: 80,
+                                                minWidth: 80,
+                                                textAlign: 'center',
+                                                verticalAlign: 'middle',
+                                                background: '#fafafa',
+                                                borderRadius: 8
+                                              }}>
+                                                {/* Empty cell */}
+                                              </td>
+                                            );
+                                          }
+                                          
+                                          const shifts = doctorSchedule.schedules[date];
+                                          const hasMorning = shifts && shifts.includes('MORNING');
+                                          const hasAfternoon = shifts && shifts.includes('AFTERNOON');
+                                          const isToday = date === dayjs().format('YYYY-MM-DD');
+                                          
+                                          return (
+                                            <td key={dayIndex} style={{
+                                              border: '2px solid #e8e8e8',
+                                              height: 80,
+                                              minWidth: 80,
+                                              textAlign: 'center',
+                                              verticalAlign: 'middle',
+                                              background: isToday ? '#e6f7ff' : '#fff',
+                                              borderRadius: 8,
+                                              padding: 4,
+                                              position: 'relative'
+                                            }}>
+                                              {/* Date number */}
+                                              <div style={{
+                                                fontSize: 12,
+                                                fontWeight: 'bold',
+                                                color: isToday ? '#1890ff' : '#666',
+                                                marginBottom: 4
+                                              }}>
+                                                {dayjs(date).format('DD')}
+                                              </div>
+                                              
+                                              {/* Morning shift */}
+                                              <div style={{
+                                                marginBottom: 2,
+                                                padding: 2,
+                                                borderRadius: 4,
+                                                background: hasMorning ? '#f6ffed' : '#f5f5f5',
+                                                border: hasMorning ? '1px solid #52c41a' : '1px solid #d9d9d9',
+                                                fontSize: 10
+                                              }}>
+                                                <div style={{
+                                                  color: hasMorning ? '#52c41a' : '#999',
+                                                  fontWeight: 'bold'
+                                                }}>
+                                                  Sáng
+                                                </div>
+                                                {hasMorning && (
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      handleScheduleSelection(date, 'MORNING');
+                                                    }}
+                                                    style={{
+                                                      background: '#52c41a',
+                                                      color: 'white',
+                                                      border: 'none',
+                                                      borderRadius: 3,
+                                                      padding: '2px 6px',
+                                                      fontSize: 9,
+                                                      fontWeight: 'bold',
+                                                      cursor: 'pointer',
+                                                      width: '100%',
+                                                      marginTop: 2
+                                                    }}
+                                                  >
+                                                    Chọn
+                                                  </button>
+                                                )}
+                                              </div>
+                                              
+                                              {/* Afternoon shift */}
+                                              <div style={{
+                                                padding: 2,
+                                                borderRadius: 4,
+                                                background: hasAfternoon ? '#fff7e6' : '#f5f5f5',
+                                                border: hasAfternoon ? '1px solid #fa8c16' : '1px solid #d9d9d9',
+                                                fontSize: 10
+                                              }}>
+                                                <div style={{
+                                                  color: hasAfternoon ? '#fa8c16' : '#999',
+                                                  fontWeight: 'bold'
+                                                }}>
+                                                  Chiều
+                                                </div>
+                                                {hasAfternoon && (
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.preventDefault();
+                                                      handleScheduleSelection(date, 'AFTERNOON');
+                                                    }}
+                                                    style={{
+                                                      background: '#fa8c16',
+                                                      color: 'white',
+                                                      border: 'none',
+                                                      borderRadius: 3,
+                                                      padding: '2px 6px',
+                                                      fontSize: 9,
+                                                      fontWeight: 'bold',
+                                                      cursor: 'pointer',
+                                                      width: '100%',
+                                                      marginTop: 2
+                                                    }}
+                                                  >
+                                                    Chọn
+                                                  </button>
+                                                )}
+                                              </div>
+                                              
+                                              {/* Full day indicator */}
+                                              {hasMorning && hasAfternoon && (
+                                                <div style={{
+                                                  position: 'absolute',
+                                                  top: 2,
+                                                  right: 2,
+                                                  background: '#722ed1',
+                                                  color: 'white',
+                                                  padding: '1px 3px',
+                                                  borderRadius: 2,
+                                                  fontSize: 8,
+                                                  fontWeight: 'bold'
+                                                }}>
+                                                  Cả ngày
+                                                </div>
+                                              )}
+                                            </td>
+                                          );
+                                        })}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            );
+                          });
+                        })()}
+                        
+                        {/* Legend */}
+                        <div style={{
+                          marginTop: 16,
+                          padding: 12,
+                          background: '#f0f8ff',
+                          borderRadius: 8,
+                          border: '1px solid #d6e4ff'
+                        }}>
+                          <div style={{ fontWeight: 'bold', marginBottom: 6, color: '#1890ff', fontSize: 12 }}>
+                            📋 Chú thích:
+                          </div>
+                          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ width: 12, height: 12, background: '#f6ffed', border: '1px solid #52c41a', borderRadius: 2 }}></div>
+                              <span style={{ fontSize: 11 }}>Ca sáng</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ width: 12, height: 12, background: '#fff7e6', border: '1px solid #fa8c16', borderRadius: 2 }}></div>
+                              <span style={{ fontSize: 11 }}>Ca chiều</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ width: 12, height: 12, background: '#f5f5f5', border: '1px solid #d9d9d9', borderRadius: 2 }}></div>
+                              <span style={{ fontSize: 11 }}>Nghỉ</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div style={{ width: 12, height: 12, background: '#e6f7ff', border: '1px solid #1890ff', borderRadius: 2 }}></div>
+                              <span style={{ fontSize: 11 }}>Hôm nay</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </Card>
                 )}
                 
-                {/* Available Doctors Section - Only show when no doctor is selected */}
-                {!selectedDoctor && (availabilityChecked || doctorNotAvailable) && (
-                  <div className="mt-4 mb-4">
-                    <Card 
-                      title={
-                        <div className="flex items-center">
-                          <CheckCircleOutlined style={{ color: '#52c41a', marginRight: '8px' }} />
-                          <span>
-                            {doctorNotAvailable && unavailableDoctor 
-                              ? `Bác sĩ ${unavailableDoctor.name} không có lịch - Vui lòng chọn bác sĩ khác` 
-                              : "Bác sĩ có lịch trống"}
-                          </span>
-                          {checkingAvailability && <Spin size="small" className="ml-2" />}
-                        </div>
-                      }
-                      size="small"
-                      className={doctorNotAvailable ? "bg-blue-50 border-blue-200" : "bg-green-50"}
-                    >
-                      {availableDoctors.length > 0 ? (
-                        <List
-                          itemLayout="horizontal"
-                          dataSource={availableDoctors}
-                          renderItem={doctor => (
-                            <List.Item
-                              actions={[
-                                <Button 
-                                  type={doctorNotAvailable ? "primary" : "default"}
-                                  size="small"
-                                  onClick={() => {
-                                    // Update the selected doctor
-                                    setSelectedDoctor(doctor.id);
-                                    form.setFieldsValue({ doctor: doctor.id });
-                                    
-                                    // Store information about the newly selected doctor
-                                    setNewlySelectedDoctor({
-                                      id: doctor.id,
-                                      name: doctor.fullName || "Bác sĩ",
-                                      specialty: doctor.specialty || doctor.qualifications || "Chuyên khoa"
-                                    });
-                                    
-                                    setDoctorNotAvailable(false);
-                                    
-                                    // Scroll to the doctor field to show the selection
-                                    form.scrollToField('doctor');
-                                    
-                                    // Hide available doctors list after selection since doctor is available
-                                    setAvailabilityChecked(false);
-                                  }}
-                                >
-                                  Chọn
-                                </Button>
-                              ]}
-                            >
-                              <List.Item.Meta
-                                avatar={<Avatar src={doctor.avatarUrl || "https://via.placeholder.com/40"} />}
-                                title={
-                                  <div className="flex items-center">
-                                    <span className="font-medium">{doctor.fullName || "Bác sĩ"}</span>
-                                    {selectedDoctor === doctor.id && (
-                                      <span className="ml-2 text-green-500 text-xs font-bold">✓ Đã chọn</span>
-                                    )}
-                                  </div>
-                                }
-                                description={
-                                  <div>
-                                    <div>{doctor.specialty || doctor.qualifications || "Chuyên khoa"}</div>
-                                    <div className="text-xs text-gray-500">
-                                      {doctor.experienceYears ? `${doctor.experienceYears} năm kinh nghiệm` : ''}
-                                      {doctor.graduationYear ? ` • Tốt nghiệp năm ${doctor.graduationYear}` : ''}
-                                    </div>
-                                  </div>
-                                }
-                              />
-                            </List.Item>
-                          )}
-                        />
-                      ) : (
-                        <Alert
-                          message="Không có bác sĩ nào có lịch trống vào ngày và ca đã chọn"
-                          description="Vui lòng chọn ngày hoặc ca khám khác."
-                          type="info"
-                          showIcon
-                        />
-                      )}
-                    </Card>
-                  </div>
-                )}
-                
-                <Divider />
-                
                 <Form.Item>
-                  <Button 
-                    type="primary" 
-                    htmlType="submit" 
-                    loading={loading}
-                    size="large"
-                    block
-                    style={{ 
-                      backgroundColor: '#1976d2', 
-                      borderColor: '#1976d2',
-                      height: '48px',
-                      fontSize: '16px',
-                      fontWeight: 'bold'
-                    }}
-                    onClick={() => {
-                      // Force form validation before submission
-                      form.validateFields()
-                        .then(values => {
-                          // Instead of form.submit() which might not trigger onFinish
-                          // Call onFinish directly with validated values
-                          onFinish(values);
-                        })
-                        .catch(error => {
-                          console.log("Validation error:", error);
-                          // Show validation errors to the user
-                          if (error.errorFields && error.errorFields.length > 0) {
-                            const firstError = error.errorFields[0];
-                            showNotification(firstError.errors[0], "error");
-                            form.scrollToField(firstError.name[0]);
-                          }
-                        });
-                    }}
-                  >
+                  <Button type="primary" htmlType="submit" loading={loading} disabled={!isLoggedIn}>
                     Gửi đăng ký
                   </Button>
                 </Form.Item>
@@ -1150,7 +1320,7 @@ const RegisterService = () => {
           </div>
         </div>
       </div>
-      
+
       <UserFooter />
     </div>
   );

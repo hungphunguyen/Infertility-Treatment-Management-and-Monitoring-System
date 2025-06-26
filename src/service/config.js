@@ -2,7 +2,7 @@ import axios from "axios";
 
 //setup axios custom xử lí gọi API cho dự án
 const http = axios.create({
-  baseURL: "http://18.183.103.22/infertility-system-api/", // domain
+  baseURL: "http://52.69.253.149/infertility-system-api/", // domain
   timeout: 30000,
   headers: {},
 });

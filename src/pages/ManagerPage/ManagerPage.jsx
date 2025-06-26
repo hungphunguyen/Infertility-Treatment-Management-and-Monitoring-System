@@ -10,6 +10,8 @@ import DoctorScheduleView from "../../components/manager/DoctorScheduleView";
 import TodayExaminations from "../../components/manager/TodayExaminations";
 import FeedbackManagement from "../../components/manager/FeedbackManagement";
 import ServiceManagement from "../../components/manager/ServiceManagement";
+import ManagerTreatmentRecords from "../../components/manager/ManagerTreatmentRecords";
+import TreatmentStagesView from "../../components/manager/TreatmentStagesView";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
 import UpdateProfile from "../../components/customer/UpdateProfile";
@@ -81,6 +83,10 @@ const ManagerPage = () => {
       setSelectedMenu("blog");
     } else if (pathname.includes("/update-profile")) {
       setSelectedMenu("update-profile");
+    } else if (pathname.includes("/treatment-records")) {
+      setSelectedMenu("treatment-records");
+    } else if (pathname.includes("/treatment-stages")) {
+      setSelectedMenu("treatment-stages");
     } else {
       // Default to report if no match
       setSelectedMenu("report");
@@ -113,6 +119,10 @@ const ManagerPage = () => {
         return "Cập nhật thông tin cá nhân";
       case "blog-approval":
         return "Duyệt Bài Viết";
+      case "treatment-records":
+        return "Quản Lý Lịch Điều Trị";
+      case "treatment-stages":
+        return "Quản Lý Các Giai Đoạn Điều Trị";
       default:
         return "Dashboard";
     }
@@ -191,6 +201,8 @@ const ManagerPage = () => {
             <Route path="services" element={<ServiceManagement />} />
             <Route path="blog-management" element={<BlogManagement />} />
             <Route path="blog-approval" element={<BlogApproval />} />
+            <Route path="treatment-records" element={<ManagerTreatmentRecords />} />
+            <Route path="treatment-stages-view" element={<TreatmentStagesView />} />
           </Routes>
         </Content>
       </Layout>

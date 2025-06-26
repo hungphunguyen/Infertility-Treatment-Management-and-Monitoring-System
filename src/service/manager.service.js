@@ -84,4 +84,8 @@ export const managerService = {
   getWorkScheduleStatics: () => {
     return http.get("managers/dashboard/work-schedules/statics/");
   },
+
+  getWorkScheduleByMonthDoctor: (yearMonth, doctorId) => {
+    return http.get(`work-schedule/${yearMonth}/${doctorId}`);
+  },
 };
