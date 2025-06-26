@@ -20,19 +20,10 @@ const ServicesPage = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Gọi API lấy danh sách dịch vụ không bị xóa
-      const response = await serviceService.getAllNonRemovedServices();
-      
-      if (response && response.data && response.data.result) {
-        // Kiểm tra nếu result là mảng
-        if (Array.isArray(response.data.result)) {
-          setServices(response.data.result);
-        } 
-        // Nếu result là object đơn lẻ
-        else if (typeof response.data.result === 'object') {
-          setServices([response.data.result]);
-        }
+      // Gọi API mới lấy danh sách dịch vụ public
+      const response = await serviceService.getPublicServices({ page: 0, size: 20 });
+      if (response && response.data && response.data.result && Array.isArray(response.data.result.content)) {
+        setServices(response.data.result.content);
       } else {
         setServices([]);
         setError("Không tìm thấy dữ liệu dịch vụ từ API");

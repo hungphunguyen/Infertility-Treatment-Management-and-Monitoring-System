@@ -75,50 +75,21 @@ const ServiceDetailPage = () => {
         navigate('/services');
         return;
       }
-      
       try {
         setLoading(true);
-        const response = await serviceService.getServiceById(serviceId);
-        console.log("Service details response:", response);
-        
+        // Gọi API mới lấy chi tiết dịch vụ public
+        const response = await serviceService.getPublicServiceById(serviceId);
         if (response && response.data && response.data.result) {
           const serviceData = response.data.result;
           setService(serviceData);
-          
-          // Lấy lợi ích dựa trên ID dịch vụ
-          setBenefits(getBenefitsByServiceId(serviceData.id));
-          
-          // Nếu có loại điều trị, tìm giai đoạn điều trị
-          if (serviceData.treatmentTypeId) {
-            try {
-              const stagesResponse = await serviceService.getTreatmentStagesByTypeId(serviceData.treatmentTypeId);
-              if (stagesResponse && stagesResponse.data && stagesResponse.data.result) {
-                console.log("Treatment stages:", stagesResponse.data.result);
-                
-                // Lấy dữ liệu giai đoạn và sắp xếp theo orderIndex
-                let stagesData = Array.isArray(stagesResponse.data.result) 
-                  ? stagesResponse.data.result 
-                  : [stagesResponse.data.result];
-                
-                // Sắp xếp giai đoạn theo orderIndex
-                stagesData = stagesData.sort((a, b) => {
-                  // Nếu orderIndex tồn tại, sắp xếp theo đó, nếu không thì sắp xếp theo id
-                  const orderA = a.orderIndex !== undefined ? a.orderIndex : a.id;
-                  const orderB = b.orderIndex !== undefined ? b.orderIndex : b.id;
-                  return orderA - orderB;
-                });
-                
-                setStages(stagesData);
-              }
-            } catch (stagesError) {
-              console.error("Error fetching treatment stages:", stagesError);
-              // Không set lỗi vì không muốn ảnh hưởng đến hiển thị dịch vụ
-            }
+          setBenefits(getBenefitsByServiceId(serviceData.serviceId));
+          // Giai đoạn điều trị lấy từ serviceData.treatmentStageResponses
+          if (Array.isArray(serviceData.treatmentStageResponses)) {
+            setStages(serviceData.treatmentStageResponses.sort((a, b) => a.orderIndex - b.orderIndex));
+          } else {
+            setStages([]);
           }
-          
-          // Lấy danh sách bác sĩ
-          fetchDoctors();
-          
+          // Không cần fetchDoctors ở đây nếu không cần
         } else {
           setError("Không tìm thấy thông tin dịch vụ");
         }
@@ -129,7 +100,6 @@ const ServiceDetailPage = () => {
         setLoading(false);
       }
     };
-
     fetchServiceDetails();
   }, [serviceId, navigate]);
 
@@ -290,7 +260,7 @@ const ServiceDetailPage = () => {
               <span className="mx-2">{'>'}</span>
               <span className="mx-2">DỊCH VỤ</span>
               <span className="mx-2">{'>'}</span>
-              <span className="mx-2">{service.name.toUpperCase()}</span>
+              <span className="mx-2">{service.name ? service.name.toUpperCase() : ''}</span>
             </div>
           </div>
         </div>
@@ -368,7 +338,7 @@ const ServiceDetailPage = () => {
                   Đăng ký dịch vụ
                 </Title>
                 <Paragraph className="mb-6">
-                  Bạn muốn tìm hiểu thêm về {service.name.toLowerCase()}? 
+                  Bạn muốn tìm hiểu thêm về {service.name ? service.name.toLowerCase() : ''}? 
                   Đặt lịch tư vấn với một trong những chuyên gia của chúng tôi để thảo luận 
                   về tình huống và nhu cầu cụ thể của bạn.
                 </Paragraph>
