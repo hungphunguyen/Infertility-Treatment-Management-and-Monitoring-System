@@ -138,11 +138,9 @@ const ServiceManagement = () => {
         <table className="min-w-full table-auto">
           <thead className="bg-gray-200 text-gray-600">
             <tr>
-              <th className="px-6 py-3 text-left">Mã dịch vụ</th>
               <th className="px-6 py-3 text-left">Tên dịch vụ</th>
               <th className="px-6 py-3 text-left">Giá</th>
-              <th className="px-6 py-3 text-left">Thời gian</th>
-              <th className="px-6 py-3 text-left">Danh mục</th>
+              <th className="px-6 py-3 text-left">Thời gian thực hiện</th>
               <th className="px-6 py-3 text-left">Trạng thái</th>
               <th className="px-6 py-3 text-left">Thao tác</th>
             </tr>
@@ -151,13 +149,11 @@ const ServiceManagement = () => {
             {filteredServices.length > 0 ? (
               filteredServices.map((service) => (
                 <tr key={service.id} className="border-t hover:bg-gray-50">
-                  <td className="px-6 py-4">{service.id}</td>
                   <td className="px-6 py-4">{service.name}</td>
                   <td className="px-6 py-4">
                     {service.price.toLocaleString()} VNĐ
                   </td>
                   <td className="px-6 py-4">{service.duration} tháng</td>
-                  <td className="px-6 py-4">{service.treatmentTypeName}</td>
                   <td className="px-6 py-4">
                     <label className="relative inline-block w-[110px] h-[36px] select-none">
                       <input
@@ -231,17 +227,6 @@ const ServiceManagement = () => {
               <div className="flex-1">
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
-                    Mã dịch vụ
-                  </label>
-                  <input
-                    type="text"
-                    value={editedService.id}
-                    readOnly
-                    className="mt-1 p-2 w-full border rounded-md"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
                     Người tạo
                   </label>
                   <input
@@ -253,7 +238,7 @@ const ServiceManagement = () => {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
-                    Thời gian
+                    Thời gian thực hiện
                   </label>
                   <input
                     name="duration"
@@ -267,18 +252,6 @@ const ServiceManagement = () => {
 
               {/* Right Section: Editable fields */}
               <div className="flex-1">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Mã kiểu dịch vụ
-                  </label>
-                  <input
-                    type="text"
-                    name="treatmentTypeId"
-                    value={editedService.treatmentTypeId}
-                    onChange={handleEditChange}
-                    className="mt-1 p-2 w-full border rounded-md"
-                  />
-                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
                     Tên dịch vụ
