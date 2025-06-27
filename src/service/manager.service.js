@@ -9,8 +9,13 @@ export const managerService = {
     return http.get(`v1/work-schedules/${yearMonth}/${doctorId}`);
   },
 
-  getTreatmentType: () => {
-    return http.get("treatment-type");
+  getTreatmentTypePagination: (page, size) => {
+    return http.get(`v1/treatment-types`, {
+      params: {
+        page,
+        size,
+      },
+    });
   },
 
   getTreatmentService: (page, size) => {
@@ -20,6 +25,10 @@ export const managerService = {
         size,
       },
     });
+  },
+
+  getTreatmentStages: (typeId) => {
+    return http.get(`v1/treatment-stages/${typeId}/find-by-type`);
   },
 
   getTreatmentServiceDetail: (id) => {
@@ -63,6 +72,10 @@ export const managerService = {
     return http.put(`v1/treatment-services/${id}`, data);
   },
 
+  updateTreatmentType: (id, data) => {
+    return http.put(`v1/treatment-types/${id}`, data);
+  },
+
   deleteTreatmentService: (id) => {
     return http.delete(`v1/treatment-services/${id}`);
   },
@@ -96,6 +109,6 @@ export const managerService = {
   },
 
   uploadImgService: (id, formData) => {
-    return http.post(`/v1/treatment-services/${id}ỏ/upload-image`, formData);
+    return http.post(`/v1/treatment-services/${id}/upload-image`, formData);
   },
 };

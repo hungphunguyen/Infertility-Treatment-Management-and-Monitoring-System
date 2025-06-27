@@ -41,6 +41,8 @@ const RenderCreateTreatment = () => {
       nextStep();
     } catch (err) {
       console.error("Lỗi tạo loại điều trị:", err);
+      showNotification("Lỗi tạo loại điều trị", "error");
+      console.log(treatmentData);
     }
   };
   return (

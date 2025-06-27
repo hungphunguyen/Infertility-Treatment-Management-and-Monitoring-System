@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import "../../index.scss";
-import { Button, Modal, Popconfirm } from "antd";
+import { Button, Image, Modal, Popconfirm } from "antd";
 const ServiceManagement = () => {
   const { showNotification } = useContext(NotificationContext);
   const [treatmentService, setTreatmentService] = useState([]);
@@ -23,6 +23,11 @@ const ServiceManagement = () => {
   const [preview, setPreview] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [treatmentType, setTreatmentType] = useState([]);
+  const [isTreatmentTypeModalOpen, setIsTreatmentTypeModalOpen] =
+    useState(false);
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [treatmentStages, setTreatmentStages] = useState([]);
   const fetchTreatmentService = async (page = 0) => {
     try {
       const res = await managerService.getTreatmentService(page, 5);
@@ -32,8 +37,32 @@ const ServiceManagement = () => {
     }
   };
 
+  const fetchTreatmentType = async (page = 0) => {
+    try {
+      const res = await managerService.getTreatmentTypePagination(page, 2);
+      setTreatmentType(res.data.result.content || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchTreatmentStage = async (typeId) => {
+    try {
+      const res = await managerService.getTreatmentStages(typeId);
+      setTreatmentStages(res.data.result || []);
+    } catch (error) {
+      showNotification("Lỗi khi lấy liệu trình", "error");
+    }
+  };
+
+  const handleViewTreatmentStage = async (typeId) => {
+    setSelectedTypeId(typeId);
+    await fetchTreatmentStage(typeId);
+  };
+
   useEffect(() => {
     fetchTreatmentService();
+    fetchTreatmentType();
   }, []);
 
   const handleStatusChange = async (id) => {
@@ -139,13 +168,13 @@ const ServiceManagement = () => {
         formData
       );
 
-      showNotification("Upload avatar thành công", "success");
-
       setTreatmentService((prev) => ({
         ...prev,
         ImgUrl: res.data.result.coverImageUrl,
       }));
       window.location.reload();
+      showNotification("Upload hình thành công", "success");
+
       // Reset trạng thái
       setSelectedFile(null);
       setIsUploadModalOpen(false);
@@ -173,14 +202,22 @@ const ServiceManagement = () => {
             className="w-full p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="">
+        <div className="flex gap-3">
+          <button
+            onClick={() => setIsTreatmentTypeModalOpen(true)}
+            className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-blue-600"
+          >
+            <EyeOutlined />
+            <span> Xem phương pháp điều trị</span>
+          </button>
+
           <button
             onClick={() => {
               setTimeout(() => {
                 navigate(path.managerRenderCreateTreatmentService);
               }, 500);
             }}
-            className="bg-green-500 mx-3 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600"
+            className="bg-green-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600"
           >
             <PlusOutlined />
             <span> Tạo Dịch Vụ</span>
@@ -204,7 +241,14 @@ const ServiceManagement = () => {
               filteredServices.map((service) => (
                 <tr key={service.id} className="border-t hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <img src={service.coverImageUrl} alt="" />
+                    {/* <img src={service.coverImageUrl} alt="" /> */}
+                    <Image
+                      width={60}
+                      height={40}
+                      src={service.coverImageUrl || "/images/default-blog.jpg"}
+                      fallback="/images/default-blog.jpg"
+                      style={{ objectFit: "cover", borderRadius: "4px" }}
+                    />
                   </td>
                   <td className="px-6 py-4">{service.name}</td>
                   <td className="px-6 py-4">
@@ -267,7 +311,7 @@ const ServiceManagement = () => {
                           setIsUploadModalOpen(true); // mở modal
                         }}
                       >
-                        🖼 Cập nhật hình
+                        Cập nhật hình
                       </button>
                     </div>
                   </td>
@@ -283,6 +327,97 @@ const ServiceManagement = () => {
           </tbody>
         </table>
       </div>
+      {/* hiển thị các treatmentType ở đây */}
+      {isTreatmentTypeModalOpen && (
+        <Modal
+          title="Danh sách phương pháp điều trị"
+          open={isTreatmentTypeModalOpen}
+          onCancel={() => {
+            setIsTreatmentTypeModalOpen(false);
+            setSelectedTypeId(null);
+            setTreatmentStages([]);
+          }}
+          footer={null}
+          width={1000} // 👈 hoặc 90vw
+          style={{ top: 20 }} // 👈 tránh sát trên quá
+          bodyStyle={{ maxHeight: "75vh", overflowY: "auto" }}
+        >
+          {treatmentType.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">
+              Không có phương pháp điều trị nào.
+            </p>
+          ) : (
+            <table className="min-w-full table-auto border border-gray-200 rounded-md overflow-hidden">
+              <thead className="bg-blue-100 text-blue-800">
+                <tr>
+                  <th className="text-left px-4 py-2 w-1/4">Tên phương pháp</th>
+                  <th className="text-left px-4 py-2">Mô tả</th>
+                  <th className="text-left px-4 py-2 w-40">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white text-gray-800">
+                {treatmentType
+                  .filter(
+                    (item) => !selectedTypeId || item.id === selectedTypeId
+                  )
+                  .map((item) => (
+                    <React.Fragment key={item.id}>
+                      <tr className="border-t hover:bg-blue-50">
+                        <td className="px-4 py-3 font-semibold text-orange-700">
+                          {item.name}
+                        </td>
+                        <td className="px-4 py-3 whitespace-pre-line">
+                          {item.description}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleViewTreatmentStage(item.id)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                          >
+                            Xem liệu trình
+                          </button>
+                        </td>
+                      </tr>
+
+                      {selectedTypeId === item.id &&
+                        treatmentStages.length > 0 && (
+                          <tr className="bg-blue-50">
+                            <td colSpan={3} className="px-4 pb-3 pt-0">
+                              <div className="mt-2">
+                                <h5 className="font-semibold mb-2 text-gray-700">
+                                  Các liệu trình:
+                                </h5>
+                                <ul className="list-disc pl-6 text-sm text-gray-800 space-y-1">
+                                  {treatmentStages.map((stage) => (
+                                    <li key={stage.id}>
+                                      <span className="font-medium text-blue-700">
+                                        {stage.name}
+                                      </span>{" "}
+                                      – {stage.description}
+                                    </li>
+                                  ))}
+                                </ul>
+                                <button
+                                  onClick={() => {
+                                    setSelectedTypeId(null);
+                                    setTreatmentStages([]);
+                                  }}
+                                  className="mt-2 text-sm underline text-blue-600"
+                                >
+                                  ← Quay lại danh sách phương pháp
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                    </React.Fragment>
+                  ))}
+              </tbody>
+            </table>
+          )}
+        </Modal>
+      )}
+
       {/* Avatar Card */}
       {isUploadModalOpen && (
         <Modal
