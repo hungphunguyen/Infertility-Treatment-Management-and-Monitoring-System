@@ -11,7 +11,7 @@ export const authService = {
     return http.post("v1/auth/login/google", data); // đường dẫn endpoint để hoàn thành request url
   },
   getMyInfo: (token) => {
-    return http.get("user/myInfo");
+    return http.get("v1/users/myInfo");
   },
   signUp: (data) => {
     return http.post("v1/auth/sign-up", data); // đường dẫn endpoint để hoàn thành request url
@@ -40,9 +40,7 @@ export const authService = {
     return http.put(`user/update/${id}`, data);
   },
 
-  uploadAvatar: (payload) => {
-    return http.put(`user/upload-avatar`, payload, {
-      "Content-Type": "multipart/form-data",
-    });
+  uploadAvatar: (userId, payload) => {
+    return http.put(`v1/users/${userId}/upload-avatar`, payload);
   },
 };

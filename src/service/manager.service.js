@@ -9,19 +9,33 @@ export const managerService = {
   },
 
   getWorkScheduleYear: (yearMonth, doctorId) => {
-    return http.get(`/work-schedule/${yearMonth}/${doctorId}`);
+    return http.get(`v1/work-schedules/${yearMonth}/${doctorId}`);
   },
 
-  getTreatmentType: () => {
-    return http.get("treatment-type");
+  getTreatmentTypePagination: (page, size) => {
+    return http.get(`v1/treatment-types`, {
+      params: {
+        page,
+        size,
+      },
+    });
   },
 
-  getTreatmentService: () => {
-    return http.get("treatment-service");
+  getTreatmentService: (page, size) => {
+    return http.get("v1/treatment-services", {
+      params: {
+        page,
+        size,
+      },
+    });
+  },
+
+  getTreatmentStages: (typeId) => {
+    return http.get(`v1/treatment-stages/${typeId}/find-by-type`);
   },
 
   getTreatmentServiceDetail: (id) => {
-    return http.get(`treatment-service/${id}`);
+    return http.get(`v1/treatment-services/${id}`);
   },
 
   getAllFeedback: (page, size) => {
@@ -34,43 +48,43 @@ export const managerService = {
   },
 
   createWorkScheduleBulk: (payload) => {
-    return http.post("work-schedule/bulk-create", payload);
+    return http.post("v1/work-schedules/bulk-create", payload);
   },
 
   createWorkScheduleByDay: (data) => {
-    return http.post("work-schedule", data);
-  },
-
-  createTreatStage: (data) => {
-    return http.post("treatment-stages", data);
+    return http.post("v1/work-schedules", data);
   },
 
   createTreatType: (data) => {
-    return http.post("treatment-type", data);
+    return http.post("v1/treatment-types", data);
   },
 
   createTreatService: (data) => {
-    return http.post("treatment-service", data);
+    return http.post("v1/treatment-services", data);
   },
 
   deleteWorkSchedule: (date, doctorId) => {
-    return http.delete(`work-schedule/${date}/${doctorId}`);
+    return http.delete(`v1/work-schedules/${date}/${doctorId}`);
   },
 
   updateWorkSchedule: (doctorId, data) => {
-    return http.put(`work-schedule/${doctorId}`, data);
+    return http.put(`v1/work-schedules/${doctorId}`, data);
   },
 
   updateTreatmentService: (id, data) => {
-    return http.put(`treatment-service/${id}`, data);
+    return http.put(`v1/treatment-services/${id}`, data);
+  },
+
+  updateTreatmentType: (id, data) => {
+    return http.put(`v1/treatment-types/${id}`, data);
   },
 
   deleteTreatmentService: (id) => {
-    return http.delete(`treatment-service/${id}`);
+    return http.delete(`v1/treatment-services/${id}`);
   },
 
   restoreTreatmentService: (id) => {
-    return http.put(`treatment-service/restore/${id}`, null);
+    return http.put(`v1/treatment-services/${id}/restore`, null);
   },
 
   managerStatistic: () => {
@@ -95,5 +109,9 @@ export const managerService = {
 
   updateManager: (id, data) => {
     return http.put(`v1/managers/${id}`, data);
+  },
+
+  uploadImgService: (id, formData) => {
+    return http.post(`/v1/treatment-services/${id}/upload-image`, formData);
   },
 };

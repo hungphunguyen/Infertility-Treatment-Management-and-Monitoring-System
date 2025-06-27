@@ -2,8 +2,13 @@ import { http } from "./config";
 
 export const blogService = {
   // Lấy tất cả blog
-  getAllBlogs: () => {
-    return http.get("blogs");
+  getAllBlogs: (page, size) => {
+    return http.get("v1/blogs", {
+      params: {
+        page,
+        size,
+      },
+    });
   },
 
   // Lấy blog theo id

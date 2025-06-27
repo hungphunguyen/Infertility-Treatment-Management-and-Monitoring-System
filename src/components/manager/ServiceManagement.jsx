@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import "../../index.scss";
-import { Popconfirm } from "antd";
+import { Button, Image, Modal, Popconfirm } from "antd";
 const ServiceManagement = () => {
   const { showNotification } = useContext(NotificationContext);
   const [treatmentService, setTreatmentService] = useState([]);
@@ -19,25 +19,57 @@ const ServiceManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editedService, setEditedService] = useState(null);
   const navigate = useNavigate();
-
-  const fetchTreatmentService = async () => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [treatmentType, setTreatmentType] = useState([]);
+  const [isTreatmentTypeModalOpen, setIsTreatmentTypeModalOpen] =
+    useState(false);
+  const [selectedTypeId, setSelectedTypeId] = useState(null);
+  const [treatmentStages, setTreatmentStages] = useState([]);
+  const fetchTreatmentService = async (page = 0) => {
     try {
-      const res = await managerService.getTreatmentService();
-      setTreatmentService(res.data.result);
+      const res = await managerService.getTreatmentService(page, 5);
+      setTreatmentService(res.data.result.content);
     } catch (error) {
       showNotification("Lỗi khi tải dịch vụ", "error");
     }
   };
 
+  const fetchTreatmentType = async (page = 0) => {
+    try {
+      const res = await managerService.getTreatmentTypePagination(page, 2);
+      setTreatmentType(res.data.result.content || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const fetchTreatmentStage = async (typeId) => {
+    try {
+      const res = await managerService.getTreatmentStages(typeId);
+      setTreatmentStages(res.data.result || []);
+    } catch (error) {
+      showNotification("Lỗi khi lấy liệu trình", "error");
+    }
+  };
+
+  const handleViewTreatmentStage = async (typeId) => {
+    setSelectedTypeId(typeId);
+    await fetchTreatmentStage(typeId);
+  };
+
   useEffect(() => {
     fetchTreatmentService();
+    fetchTreatmentType();
   }, []);
 
   const handleStatusChange = async (id) => {
     try {
       const service = treatmentService.find((service) => service.id === id);
 
-      if (!service.remove) {
+      if (!service.isRemove) {
         await managerService.deleteTreatmentService(id);
         showNotification("Dịch vụ đã được tắt", "success");
       } else {
@@ -110,6 +142,54 @@ const ServiceManagement = () => {
     setEditedService(null);
   };
 
+  const handleSelectFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setPreview(reader.result); // preview base64
+    };
+  };
+
+  // ✅ Handle Upload Img
+  const handleUploadImg = async () => {
+    if (!selectedFile || !selectedService?.id) return;
+    setUploadingImage(true); // 🔥 Start loading
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    try {
+      const res = await managerService.uploadImgService(
+        selectedService.id,
+        formData
+      );
+
+      setTreatmentService((prev) => ({
+        ...prev,
+        ImgUrl: res.data.result.coverImageUrl,
+      }));
+      window.location.reload();
+      showNotification("Upload hình thành công", "success");
+
+      // Reset trạng thái
+      setSelectedFile(null);
+      setIsUploadModalOpen(false);
+      setPreview(null);
+    } catch (err) {
+      // showNotification(err.response.data.message, "error");
+      console.log(err);
+      console.log(formData);
+      console.log("id", selectedService.id);
+      console.log(selectedFile);
+    } finally {
+      setUploadingImage(false); // 🔥 End loading
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-4 flex justify-between items-center">
@@ -122,25 +202,36 @@ const ServiceManagement = () => {
             className="w-full p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <button
-          onClick={() => {
-            setTimeout(() => {
-              navigate(path.managerRenderCreateTreatmentService);
-            }, 500);
-          }}
-          className="bg-green-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600"
-        >
-          <PlusOutlined />
-          <span> Tạo Dịch Vụ</span>
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setIsTreatmentTypeModalOpen(true)}
+            className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-blue-600"
+          >
+            <EyeOutlined />
+            <span> Xem phương pháp điều trị</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setTimeout(() => {
+                navigate(path.managerRenderCreateTreatmentService);
+              }, 500);
+            }}
+            className="bg-green-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-green-600"
+          >
+            <PlusOutlined />
+            <span> Tạo Dịch Vụ</span>
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
         <table className="min-w-full table-auto">
           <thead className="bg-gray-200 text-gray-600">
             <tr>
+              <th className="px-6 py-3 text-left">Hình ảnh</th>
               <th className="px-6 py-3 text-left">Tên dịch vụ</th>
               <th className="px-6 py-3 text-left">Giá</th>
-              <th className="px-6 py-3 text-left">Thời gian thực hiện</th>
+              <th className="px-6 py-3 text-left">Thời gian điều trị</th>
               <th className="px-6 py-3 text-left">Trạng thái</th>
               <th className="px-6 py-3 text-left">Thao tác</th>
             </tr>
@@ -149,6 +240,16 @@ const ServiceManagement = () => {
             {filteredServices.length > 0 ? (
               filteredServices.map((service) => (
                 <tr key={service.id} className="border-t hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    {/* <img src={service.coverImageUrl} alt="" /> */}
+                    <Image
+                      width={60}
+                      height={40}
+                      src={service.coverImageUrl || "/images/default-blog.jpg"}
+                      fallback="/images/default-blog.jpg"
+                      style={{ objectFit: "cover", borderRadius: "4px" }}
+                    />
+                  </td>
                   <td className="px-6 py-4">{service.name}</td>
                   <td className="px-6 py-4">
                     {service.price.toLocaleString()} VNĐ
@@ -158,7 +259,7 @@ const ServiceManagement = () => {
                     <label className="relative inline-block w-[110px] h-[36px] select-none">
                       <input
                         type="checkbox"
-                        checked={!service.remove}
+                        checked={!service.isRemove}
                         onChange={() => handleStatusChange(service.id)}
                         className="sr-only peer"
                       />
@@ -181,7 +282,7 @@ const ServiceManagement = () => {
       text-red-600 peer-checked:text-white
     "
                       >
-                        {service.remove ? "Tắt" : "Hoạt động"}
+                        {service.isRemove ? "Tắt" : "Hoạt động"}
                       </span>
 
                       {/* Toggle dot */}
@@ -203,6 +304,15 @@ const ServiceManagement = () => {
                         <EyeOutlined />
                         <span> Xem</span>
                       </button>
+                      <button
+                        className="bg-orange-500 text-white px-3 py-2 rounded-md hover:bg-orange-600"
+                        onClick={() => {
+                          setSelectedService(service); // giữ để lấy id
+                          setIsUploadModalOpen(true); // mở modal
+                        }}
+                      >
+                        Cập nhật hình
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -217,6 +327,145 @@ const ServiceManagement = () => {
           </tbody>
         </table>
       </div>
+      {/* hiển thị các treatmentType ở đây */}
+      {isTreatmentTypeModalOpen && (
+        <Modal
+          title="Danh sách phương pháp điều trị"
+          open={isTreatmentTypeModalOpen}
+          onCancel={() => {
+            setIsTreatmentTypeModalOpen(false);
+            setSelectedTypeId(null);
+            setTreatmentStages([]);
+          }}
+          footer={null}
+          width={1000} // 👈 hoặc 90vw
+          style={{ top: 20 }} // 👈 tránh sát trên quá
+          bodyStyle={{ maxHeight: "75vh", overflowY: "auto" }}
+        >
+          {treatmentType.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">
+              Không có phương pháp điều trị nào.
+            </p>
+          ) : (
+            <table className="min-w-full table-auto border border-gray-200 rounded-md overflow-hidden">
+              <thead className="bg-blue-100 text-blue-800">
+                <tr>
+                  <th className="text-left px-4 py-2 w-1/4">Tên phương pháp</th>
+                  <th className="text-left px-4 py-2">Mô tả</th>
+                  <th className="text-left px-4 py-2 w-40">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white text-gray-800">
+                {treatmentType
+                  .filter(
+                    (item) => !selectedTypeId || item.id === selectedTypeId
+                  )
+                  .map((item) => (
+                    <React.Fragment key={item.id}>
+                      <tr className="border-t hover:bg-blue-50">
+                        <td className="px-4 py-3 font-semibold text-orange-700">
+                          {item.name}
+                        </td>
+                        <td className="px-4 py-3 whitespace-pre-line">
+                          {item.description}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleViewTreatmentStage(item.id)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                          >
+                            Xem liệu trình
+                          </button>
+                        </td>
+                      </tr>
+
+                      {selectedTypeId === item.id &&
+                        treatmentStages.length > 0 && (
+                          <tr className="bg-blue-50">
+                            <td colSpan={3} className="px-4 pb-3 pt-0">
+                              <div className="mt-2">
+                                <h5 className="font-semibold mb-2 text-gray-700">
+                                  Các liệu trình:
+                                </h5>
+                                <ul className="list-disc pl-6 text-sm text-gray-800 space-y-1">
+                                  {treatmentStages.map((stage) => (
+                                    <li key={stage.id}>
+                                      <span className="font-medium text-blue-700">
+                                        {stage.name}
+                                      </span>{" "}
+                                      – {stage.description}
+                                    </li>
+                                  ))}
+                                </ul>
+                                <button
+                                  onClick={() => {
+                                    setSelectedTypeId(null);
+                                    setTreatmentStages([]);
+                                  }}
+                                  className="mt-2 text-sm underline text-blue-600"
+                                >
+                                  ← Quay lại danh sách phương pháp
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                    </React.Fragment>
+                  ))}
+              </tbody>
+            </table>
+          )}
+        </Modal>
+      )}
+
+      {/* Avatar Card */}
+      {isUploadModalOpen && (
+        <Modal
+          title={`Cập nhật ảnh cho service`}
+          open={isUploadModalOpen}
+          onCancel={() => {
+            setIsUploadModalOpen(false);
+            setSelectedFile(null);
+            setPreview(null);
+          }}
+          footer={null}
+          destroyOnClose
+        >
+          <div className="text-center">
+            <h3 className="text-xl font-semibold mb-4">Ảnh service</h3>
+            <img
+              src={preview || selectedService?.image || "/default-blog.jpg"}
+              alt="Avatar Preview"
+              className="w-32 h-32 rounded-full object-cover border mx-auto mb-4"
+            />
+            <label
+              htmlFor="fileInput"
+              className="cursor-pointer bg-gray-200 px-4 py-1 rounded hover:bg-gray-300 transition inline-block"
+            >
+              Chọn ảnh
+            </label>
+            <input
+              type="file"
+              id="fileInput"
+              onChange={handleSelectFile}
+              className="hidden"
+            />
+            <p className="text-sm text-gray-600 mt-2">
+              {selectedFile ? selectedFile.name : "Chưa chọn ảnh nào"}
+            </p>
+            <Button
+              type="primary"
+              loading={uploadingImage}
+              disabled={!selectedFile}
+              onClick={handleUploadImg}
+              className="mt-3"
+            >
+              {uploadingImage ? "Đang upload..." : "Lưu ảnh"}
+            </Button>
+          </div>
+        </Modal>
+      )}
+
       {/* Modal */}
       {isModalOpen && selectedService && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
@@ -238,7 +487,7 @@ const ServiceManagement = () => {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700">
-                    Thời gian thực hiện
+                    Thời gian điều trị
                   </label>
                   <input
                     name="duration"

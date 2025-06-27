@@ -6,92 +6,57 @@ import { useFormik } from "formik";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import InputCustom from "../../Input/InputCustom";
 
-const CreateTreatmentService = () => {
+const CreateTreatmentService = ({ treatmentTypeId, onBack }) => {
   const { showNotification } = useContext(NotificationContext);
-  const [treatmentType, setTreatmentType] = useState([]);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const getTreatmentType = async () => {
-      try {
-        const res = await managerService.getTreatmentType();
-        setTreatmentType(res.data.result || []);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    getTreatmentType();
-  }, []);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      treatmentTypeId: treatmentType?.id || "",
+      treatmentTypeId,
       name: "",
       description: "",
       price: "",
       duration: "",
     },
-    onSubmit: (values) => {
-      if (!treatmentType) {
-        showNotification("Không có danh sách treatment type", "error");
-        return;
-      }
-      managerService
-        .createTreatService(values)
-        .then((res) => {
+    onSubmit: async (values) => {
+      try {
+        const res = await managerService.createService(values);
+        showNotification("Tạo dịch vụ thành công", "success");
+      } catch (error) {
+        managerService.createTreatService(values).then((res) => {
           console.log(res);
           showNotification("Tạo dịch vụ thành công", "success");
           setTimeout(() => {
             navigate(path.managerServices);
             window.location.reload();
           }, 1000);
-        })
-        .catch((err) => {
-          showNotification(err.response.data.message, "error");
-          console.log(err);
         });
+      }
     },
   });
 
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
     formik;
 
-  if (!treatmentType.length) {
-    return (
-      <p className="text-center mt-8">Đang tải dữ liệu loại điều trị...</p>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
       <h2 className="text-2xl font-bold mb-8 text-center">
         Tạo dịch vụ khám bệnh
       </h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1" htmlFor="typeId">
-            Chọn loại điều trị
-          </label>
-          <select
-            id="treatmentTypeId"
-            name="treatmentTypeId"
-            value={values.treatmentTypeId} // Formik sẽ lưu id
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className="w-full border px-3 py-2 rounded"
-          >
-            <option value="">-- Chọn loại điều trị --</option>
-            {treatmentType.map((type) => (
-              <option key={type.id} value={type.id}>
-                {type.name}
-              </option>
-            ))}
-          </select>
 
-          {touched.typeId && errors.typeId && (
-            <p className="text-sm text-red-500 mt-1">{errors.typeId}</p>
-          )}
+      <form onSubmit={handleSubmit}>
+        {/* Ẩn select, hoặc chỉ hiển thị tên loại điều trị nếu muốn confirm */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">
+            ID loại điều trị
+          </label>
+          <input
+            type="text"
+            disabled
+            className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-600"
+            value={values.treatmentTypeId}
+          />
         </div>
 
         <InputCustom

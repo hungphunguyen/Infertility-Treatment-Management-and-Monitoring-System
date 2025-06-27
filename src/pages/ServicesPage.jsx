@@ -100,12 +100,21 @@ const ServicesPage = () => {
                       onClick={() => navigate(`/service-detail/${service.id}`)}
                       bodyStyle={{ padding: 0 }}
                     >
-                      <div className="relative overflow-hidden">
-                        <img
-                          src={getServiceImage(service.treatmentTypeName)}
-                          alt={service.name}
-                          className="w-full h-64 object-cover transition-transform duration-500 hover:scale-110"
-                        />
+                      <div className="relative overflow-hidden w-full h-64">
+                        {service.coverImageUrl ? (
+                          <img
+                            src={service.coverImageUrl}
+                            alt={service.name}
+                            className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
+                            style={{ minHeight: '100%', minWidth: '100%' }}
+                            onError={(e) => {
+                              // Nếu hình từ API lỗi, ẩn hình đi
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-white"></div>
+                        )}
                       </div>
                       <div className="p-6">
                         <h3 className="text-2xl font-bold mb-3 text-gray-800">{service.name}</h3>
@@ -138,19 +147,6 @@ const ServicesPage = () => {
       <UserFooter />
     </div>
   );
-};
-
-// Hàm lấy hình ảnh dựa trên loại điều trị
-const getServiceImage = (treatmentType) => {
-  const imageMap = {
-    'IUI': '/images/features/pc6.jpg',
-    'IVF': '/images/features/pc4.jpg',
-    'Diagnostic Testing': '/images/features/pc9.jpg',
-    'Embryo Testing': '/images/features/pc11.jpg',
-    'Egg Freezing': '/images/features/pc12.jpg',
-  };
-  
-  return imageMap[treatmentType] || '/images/features/pc4.jpg';
 };
 
 export default ServicesPage;
