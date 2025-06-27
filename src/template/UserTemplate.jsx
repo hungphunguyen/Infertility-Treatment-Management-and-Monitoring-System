@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Carousel,
   Typography,
@@ -31,6 +31,9 @@ import ServicesIcons from "../components/ServicesIcons";
 import RecommendationSection from "../components/RecommendationSection";
 import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
+import { path } from "../common/path";
+import { NotificationContext } from "../App";
+import { useSelector } from "react-redux";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -38,6 +41,8 @@ const UserTemplate = () => {
   const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showNotification } = useContext(NotificationContext);
+  const token = useSelector((state) => state.authSlice.token);
 
   // Fetch doctors data from API
   useEffect(() => {
@@ -57,6 +62,48 @@ const UserTemplate = () => {
 
     fetchDoctors();
   }, []);
+
+  const handleBookAppointment = (e) => {
+    e.preventDefault();
+    
+    // Kiểm tra role
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+      return;
+    }
+
+    // Nếu có quyền thì chuyển hướng
+    navigate("/register-service");
+  };
+
+  const handleServicesClick = (e) => {
+    e.preventDefault();
+    
+    // Kiểm tra role
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+      return;
+    }
+
+    // Nếu có quyền thì chuyển hướng
+    navigate("/services");
+  };
+
+  const handleStaffClick = (e) => {
+    e.preventDefault();
+    
+    // Kiểm tra role
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+      return;
+    }
+
+    // Nếu có quyền thì chuyển hướng
+    navigate(path.ourStaff);
+  };
 
   return (
     <div className="min-h-screen bg-[#f7f8fa]">
@@ -85,7 +132,7 @@ const UserTemplate = () => {
                   Sứ Mệnh Của Chúng Tôi.
                 </h1>
                 <Button
-                  onClick={() => navigate("/register-service")}
+                  onClick={handleBookAppointment}
                   className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
                   size="large"
                 >
@@ -110,7 +157,7 @@ const UserTemplate = () => {
                   Gia Đình Hạnh Phúc.
                 </h1>
                 <Button
-                  onClick={() => navigate("/services")}
+                  onClick={handleServicesClick}
                   className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
                   size="large"
                 >
@@ -135,7 +182,7 @@ const UserTemplate = () => {
                   Chăm Sóc Tận Tâm.
                 </h1>
                 <Button
-                  onClick={() => navigate("/our-staff")}
+                  onClick={handleStaffClick}
                   className="bg-[#ff8460] hover:bg-[#ff6b40] text-white font-semibold py-4 px-10 rounded-full shadow-lg text-lg border-none"
                   size="large"
                 >
@@ -349,7 +396,7 @@ const UserTemplate = () => {
           )}
           <div className="text-center mt-10">
             <Button
-              onClick={() => navigate("/our-staff")}
+              onClick={() => navigate(path.ourStaff)}
               className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-lg text-lg border-none"
               size="large"
             >

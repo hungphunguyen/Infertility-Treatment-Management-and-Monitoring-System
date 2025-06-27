@@ -42,13 +42,6 @@ const DoctorSidebar = ({
       path: path.doctorDashboard,
     },
     {
-      key: "work-schedule",
-      icon: <CalendarOutlined />,
-      label: "Lịch Làm Việc",
-      title: "Xem lịch làm việc của tôi",
-      path: path.doctorWorkSchedule,
-    },
-    {
       key: "patients",
       icon: <TeamOutlined />,
       label: "Bệnh Nhân Hôm Nay",
@@ -59,7 +52,7 @@ const DoctorSidebar = ({
       key: "test-results",
       icon: <FileTextOutlined />,
       label: "Hồ Sơ Bệnh Nhân",
-      title: "Quản lý kết quả xét nghiệm",
+      title: "Quản lí hồ sơ bệnh nhân",
       path: path.doctorTestResults,
     },
     ,
@@ -98,13 +91,13 @@ const DoctorSidebar = ({
       })
       .catch((err) => {});
   }, [token]);
-  
+
   const handleLogout = () => {
     // Clear token and redirect to home page
     localStorage.removeItem("token");
     navigate("/");
   };
-  
+
   const checkLogin = () => {
     if (infoUser) {
       return (
@@ -201,7 +194,9 @@ const DoctorSidebar = ({
           }}
           onClick={handleLogout}
         >
-          {!collapsed && <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>}
+          {!collapsed && (
+            <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>
+          )}
         </Button>
       </div>
 
@@ -218,9 +213,6 @@ const DoctorSidebar = ({
           }}
         >
           <Divider style={{ margin: "8px 0", borderColor: "#222" }} />
-          <Text type="secondary" style={{ fontSize: "11px", color: "#bfbfbf" }}>
-            Hệ thống quản lý bác sĩ
-          </Text>
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Card,
   Table,
@@ -8,7 +8,6 @@ import {
   Col,
   Statistic,
   Spin,
-  message,
   Button,
 } from "antd";
 import {
@@ -26,10 +25,12 @@ import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
 import { customerService } from "../../service/customer.service";
 import { path } from "../../common/path";
+import { NotificationContext } from "../../App";
 
 const { Title, Text } = Typography;
 
 const MyServices = () => {
+  const { showNotification } = useContext(NotificationContext);
   const [loading, setLoading] = useState(true);
   const [treatmentRecords, setTreatmentRecords] = useState([]);
   const [statistics, setStatistics] = useState({
@@ -59,7 +60,7 @@ const MyServices = () => {
       console.log("User Info Response:", userResponse);
 
       if (!userResponse?.data?.result?.id) {
-        message.error("Không tìm thấy thông tin người dùng");
+        showNotification("Không tìm thấy thông tin người dùng", "error");
         return;
       }
 
@@ -97,7 +98,7 @@ const MyServices = () => {
       }
     } catch (error) {
       console.error("Error fetching treatment records:", error);
-      message.error("Có lỗi xảy ra khi tải dữ liệu");
+      showNotification("Có lỗi xảy ra khi tải dữ liệu", "error");
     } finally {
       setLoading(false);
     }
@@ -123,12 +124,17 @@ const MyServices = () => {
     setCancelLoading((l) => ({ ...l, [record.id]: true }));
     try {
       await treatmentService.cancelTreatmentRecord(record.id, userId);
-      message.success("Yêu cầu hủy hồ sơ điều trị đã được gửi.");
+      showNotification("Hủy hồ sơ điều trị thành công.", "success");
       fetchTreatmentRecords();
     } catch (err) {
-      message.error(
-        err?.response?.data?.message || "Không thể hủy hồ sơ điều trị này."
-      );
+      const errorMessage = err?.response?.data?.message || "Không thể hủy hồ sơ điều trị này.";
+      if (errorMessage.includes("in progress")) {
+        showNotification("Hủy thất bại do bạn đang trong quá trình điều trị.", "error");
+      } else if (errorMessage.includes("completed")) {
+        showNotification("Hủy thất bại do dịch vụ đã hoàn thành.", "error");
+      } else {
+        showNotification(errorMessage, "error");
+      }
     } finally {
       setCancelLoading((l) => ({ ...l, [record.id]: false }));
     }
@@ -241,7 +247,7 @@ const MyServices = () => {
           }}
           disabled={!userId || record.status === "Cancelled"}
         >
-          Hủy tuyến trình
+          Hủy dịch vụ
         </Button>
       ),
     },

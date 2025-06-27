@@ -176,7 +176,7 @@ const CustomerBlogManagement = () => {
           status: "DRAFT",
         });
         if (response.data) {
-          showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
+          showNotification("Bài viết đã được lưu !", "success");
           setIsModalVisible(false);
           form.resetFields();
           fetchMyBlogs(currentUser.id);
@@ -192,6 +192,7 @@ const CustomerBlogManagement = () => {
         const updatedBlogData = {
           ...selectedBlog,
           ...values,
+          status: "DRAFT",
         };
         await blogService.updateBlog(
           selectedBlog.id,
@@ -199,28 +200,7 @@ const CustomerBlogManagement = () => {
           updatedBlogData,
           token.token
         );
-        if (selectedBlog.status === "DRAFT") {
-          const submitResponse = await blogService.submitBlog(
-            selectedBlog.id,
-            currentUser.id,
-            token.token,
-            {
-              title: updatedBlogData.title,
-              content: updatedBlogData.content,
-              sourceReference: updatedBlogData.sourceReference,
-            }
-          );
-          if (submitResponse.data?.result?.status === "PENDING_REVIEW") {
-            showNotification(
-              "Bài viết đã được gửi duyệt thành công!",
-              "success"
-            );
-          } else {
-            showNotification("Không thể gửi bài viết đi duyệt", "error");
-          }
-        } else {
-          showNotification("Bài viết đã được cập nhật!", "success");
-        }
+        showNotification("Bài viết đã được lưu !", "success");
         setIsModalVisible(false);
         form.resetFields();
         fetchMyBlogs(currentUser.id);
@@ -228,6 +208,35 @@ const CustomerBlogManagement = () => {
     } catch (error) {
       console.error("Lỗi khi xử lý bài viết:", error);
       showNotification("Xử lý bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSendForReview = async () => {
+    setActionLoading(true);
+    try {
+      if (!selectedBlog || !currentUser || !currentUser.id) {
+        showNotification("Không thể gửi duyệt. Thông tin không đầy đủ.", "error");
+        return;
+      }
+      const values = form.getFieldsValue();
+      await blogService.submitBlog(
+        selectedBlog.id,
+        currentUser.id,
+        token.token,
+        {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+        }
+      );
+      showNotification("Bài viết đã được gửi duyệt thành công!", "success");
+      setIsModalVisible(false);
+      form.resetFields();
+      fetchMyBlogs(currentUser.id);
+    } catch (error) {
+      showNotification("Gửi duyệt bài viết thất bại", "error");
     } finally {
       setActionLoading(false);
     }
@@ -520,6 +529,16 @@ const CustomerBlogManagement = () => {
                 >
                   Lưu
                 </Button>,
+                modalType === "edit" && selectedBlog?.status === "DRAFT" && (
+                  <Button
+                    key="submitReview"
+                    type="primary"
+                    onClick={handleSendForReview}
+                    loading={actionLoading}
+                  >
+                    Gửi duyệt
+                  </Button>
+                ),
               ]
         }
         width={800}

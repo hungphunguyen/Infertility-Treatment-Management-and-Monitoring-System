@@ -159,22 +159,22 @@ const DoctorDetailPage = () => {
                 <span>{doctor.phoneNumber || "Chưa cập nhật"}</span>
               </div>
               <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400">🎓</span>{" "}
+                <span className="mr-2 text-orange-400"></span>{" "}
                 <span className="font-semibold mr-1">Bằng cấp:</span>{" "}
                 <span>{doctor.qualifications || "Chưa cập nhật"}</span>
               </div>
               <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400">📅</span>{" "}
+                <span className="mr-2 text-orange-400"></span>{" "}
                 <span className="font-semibold mr-1">Năm tốt nghiệp:</span>{" "}
                 <span>{doctor.graduationYear || "Chưa cập nhật"}</span>
               </div>
               <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400">📍</span>{" "}
+                <span className="mr-2 text-orange-400"></span>{" "}
                 <span className="font-semibold mr-1">Địa chỉ:</span>{" "}
                 <span>{doctor.address || "Chưa cập nhật"}</span>
               </div>
               <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400">💼</span>{" "}
+                <span className="mr-2 text-orange-400"></span>{" "}
                 <span className="font-semibold mr-1">Kinh nghiệm:</span>{" "}
                 <span>
                   {doctor.experienceYears
@@ -192,21 +192,7 @@ const DoctorDetailPage = () => {
                 type="primary"
                 size="large"
                 className="bg-[#ff8460] hover:bg-[#ff6b40] border-none shadow"
-                onClick={() => {
-                  // Save doctor information to localStorage for later use
-                  localStorage.setItem(
-                    "pendingDoctorSelection",
-                    JSON.stringify({
-                      selectedDoctor: doctor.id,
-                      doctorName: doctor.fullName,
-                      doctorRole:
-                        doctor.roleName?.description || "Bác sĩ chuyên khoa",
-                      doctorSpecialization:
-                        doctor.specialty || doctor.qualifications,
-                      from: `/doctor/${id}`,
-                    })
-                  );
-
+                onClick={() =>
                   navigate("/register-service", {
                     state: {
                       selectedDoctor: doctor.id,
@@ -216,8 +202,8 @@ const DoctorDetailPage = () => {
                       doctorSpecialization:
                         doctor.specialty || doctor.qualifications,
                     },
-                  });
-                }}
+                  })
+                }
               >
                 Đặt lịch khám
               </Button>

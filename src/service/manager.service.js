@@ -4,6 +4,9 @@ export const managerService = {
   getWorkScheduleMonth: (id) => {
     return http.get(`work-schedule/this-month/${id}`);
   },
+  getWorkScheduleYear: (yearMonth, doctorId) => {
+    return http.get(`/work-schedule/${yearMonth}/${doctorId}`);
+  },
 
   getWorkScheduleYear: (yearMonth, doctorId) => {
     return http.get(`v1/work-schedules/${yearMonth}/${doctorId}`);
@@ -110,5 +113,8 @@ export const managerService = {
 
   uploadImgService: (id, formData) => {
     return http.post(`/v1/treatment-services/${id}/upload-image`, formData);
+  },
+  getWorkScheduleByMonthDoctor: (yearMonth, doctorId) => {
+    return http.get(`work-schedule/${yearMonth}/${doctorId}`);
   },
 };

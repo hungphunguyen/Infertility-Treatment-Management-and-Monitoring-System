@@ -395,7 +395,7 @@ const TreatmentProgress = () => {
 
           {phase.activities.length > 0 && (
             <div style={{ marginTop: 16 }}>
-              <Text strong>Các hoạt động:</Text>
+              <Text strong>Lịch hẹn:</Text>
               <Timeline 
                 style={{ marginTop: 16 }}
                 items={phase.activities.map((activity, index) => ({
@@ -583,87 +583,6 @@ const TreatmentProgress = () => {
         expandIconPosition="end"
         items={renderPhases()}
       />
-    </Card>
-  );
-
-  const renderTreatmentTips = () => (
-    <Card 
-      title={
-        <Space>
-          <InfoCircleOutlined style={{ color: '#1890ff' }} />
-          <span>Lưu ý trong quá trình điều trị</span>
-        </Space>
-      }
-      style={{ 
-        marginTop: 24,
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        transition: 'all 0.3s ease'
-      }}
-      hoverable
-    >
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
-          <Card 
-            type="inner" 
-            title={
-              <Space>
-                <MedicineBoxOutlined style={{ color: '#52c41a' }} />
-                <span>Dinh dưỡng</span>
-              </Space>
-            }
-            style={{ borderRadius: '8px' }}
-            hoverable
-          >
-            <ul style={{ paddingLeft: 16 }}>
-              <li>Đảm bảo đủ folate và vitamin D</li>
-              <li>Bổ sung DHA và axit folic</li>
-              <li>Tránh đồ uống có cồn và caffeine</li>
-              <li>Duy trì cân nặng phù hợp</li>
-            </ul>
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card 
-            type="inner" 
-            title={
-              <Space>
-                <HeartOutlined style={{ color: '#1890ff' }} />
-                <span>Chăm sóc sức khỏe</span>
-              </Space>
-            }
-            style={{ borderRadius: '8px' }}
-            hoverable
-          >
-            <ul style={{ paddingLeft: 16 }}>
-              <li>Tập thể dục nhẹ nhàng đều đặn</li>
-              <li>Tránh các hoạt động nặng</li>
-              <li>Ngủ đủ giấc</li>
-              <li>Quản lý stress</li>
-            </ul>
-          </Card>
-        </Col>
-        <Col xs={24} md={8}>
-          <Card 
-            type="inner" 
-            title={
-              <Space>
-                <ClockCircleOutlined style={{ color: '#faad14' }} />
-                <span>Sau thủ thuật</span>
-              </Space>
-            }
-            style={{ borderRadius: '8px' }}
-            hoverable
-          >
-            <ul style={{ paddingLeft: 16 }}>
-              <li>Nghỉ ngơi sau lấy trứng và chuyển phôi</li>
-              <li>Tránh quan hệ tình dục trong thời gian được hướng dẫn</li>
-              <li>Uống thuốc theo đúng chỉ định</li>
-              <li>Báo cáo bất thường cho bác sĩ</li>
-            </ul>
-          </Card>
-        </Col>
-      </Row>
     </Card>
   );
 
@@ -856,7 +775,6 @@ const TreatmentProgress = () => {
 
       {renderTreatmentOverview()}
       {renderTreatmentProgress()}
-      {renderTreatmentTips()}
 
       <Modal
         open={modalOpen}
@@ -914,17 +832,23 @@ const TreatmentProgress = () => {
                   dataIndex: 'status',
                   key: 'status',
                   render: (status) => {
-                    switch (status) {
+                    switch ((status || '').toUpperCase()) {
                       case 'CONFIRMED':
-                        return <Tag color="green">Đã xác nhận</Tag>;
+                        return <Tag color="#1890ff">Đã xác nhận</Tag>;
                       case 'PENDING':
                         return <Tag color="orange">Đang chờ</Tag>;
-                      case 'REJECTED':
-                        return <Tag color="red">Đã từ chối</Tag>;
                       case 'PENDING_CHANGE':
-                        return <Tag color="blue">Chờ duyệt đổi lịch</Tag>;
+                        return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
                       case 'REJECTED_CHANGE':
                         return <Tag color="red">Từ chối đổi lịch</Tag>;
+                      case 'REJECTED':
+                        return <Tag color="red">Đã từ chối</Tag>;
+                      case 'COMPLETED':
+                        return <Tag color="green">Đã hoàn thành</Tag>;
+                      case 'CANCELLED':
+                        return <Tag color="error">Đã hủy</Tag>;
+                      case 'INPROGRESS':
+                        return <Tag color="#1890ff">Đang thực hiện</Tag>;
                       default:
                         return <Tag color="default">{status}</Tag>;
                     }

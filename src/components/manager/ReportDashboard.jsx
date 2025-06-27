@@ -123,7 +123,7 @@ const ReportDashboard = () => {
       key: "name",
     },
     {
-      title: "Số lượng",
+      title: "Tổng số lượng đăng kí",
       dataIndex: "totalUses",
       key: "totalUses",
     },
@@ -262,14 +262,6 @@ const ReportDashboard = () => {
                   strokeWidth={3}
                   dot={{ r: 4 }}
                 />
-                <Line
-                  type="monotone"
-                  dataKey="appointments"
-                  name="Lịch hẹn"
-                  stroke="#82ca9d"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
               </LineChart>
             </ResponsiveContainer>
           </Card>
@@ -279,7 +271,7 @@ const ReportDashboard = () => {
       {/* Bảng Top Dịch Vụ */}
       <Row style={{ marginTop: 32 }}>
         <Col span={24}>
-          <Card title="Top Dịch Vụ Theo Doanh Thu">
+          <Card title="Doanh thu theo dịch vụ">
             <Table
               columns={serviceColumns}
               dataSource={topServices}

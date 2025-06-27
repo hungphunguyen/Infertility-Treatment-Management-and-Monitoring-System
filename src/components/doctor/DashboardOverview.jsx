@@ -32,11 +32,13 @@ import { managerService } from "../../service/manager.service";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { doctorService } from "../../service/doctor.service";
+import 'dayjs/locale/vi';
+dayjs.locale('vi');
 
 const { Title, Text } = Typography;
 const shiftMap = {
-  MORNING: { color: "green", text: "Ca sáng" },
-  AFTERNOON: { color: "orange", text: "Ca chiều" },
+  MORNING: { color: "green", text: "Sáng" },
+  AFTERNOON: { color: "orange", text: "Chiều" },
   FULL_DAY: { color: "purple", text: "Cả ngày" },
   NONE: { color: "default", text: "Nghỉ" },
   undefined: { color: "default", text: "Nghỉ" },
@@ -96,17 +98,10 @@ const DashboardOverview = () => {
     if (!doctorId) return;
     setLoadingSchedule(true);
     managerService
-      .getWorkScheduleMonth(doctorId)
+      .getWorkScheduleByMonthDoctor(selectedMonth, doctorId)
       .then((res) => {
         if (res.data && res.data.result && res.data.result.schedules) {
-          const allSchedule = res.data.result.schedules;
-          const map = {};
-          Object.entries(allSchedule).forEach(([date, shift]) => {
-            if (date.startsWith(selectedMonth)) {
-              map[date] = shift;
-            }
-          });
-          setSchedule(map);
+          setSchedule(res.data.result.schedules);
         } else {
           setSchedule({});
         }
@@ -198,16 +193,17 @@ const DashboardOverview = () => {
       ),
     },
     {
-      title: "Ngày khám",
-      dataIndex: "appointmentDate",
-      key: "appointmentDate",
-      render: (date) => dayjs(date).format("DD/MM/YYYY"),
-    },
-    {
       title: "Ca khám",
       dataIndex: "shift",
       key: "shift",
-      render: (shift) => shiftMap[shift]?.text || shift,
+      render: (shift) => {
+        const shiftColorMap = {
+          MORNING: "blue",
+          AFTERNOON: "orange", 
+          FULL_DAY: "purple"
+        };
+        return <Tag color={shiftColorMap[shift] || "default"}>{shiftMap[shift]?.text || shift}</Tag>;
+      },
     },
     {
       title: "Trạng thái",
@@ -272,7 +268,7 @@ const DashboardOverview = () => {
 
       <Row gutter={[24, 24]}>
         {/* Today's Appointments */}
-        <Col xs={24} lg={14}>
+        <Col xs={24} lg={12}>
           <Card
             title={
               <Space>
@@ -295,36 +291,37 @@ const DashboardOverview = () => {
         </Col>
 
         {/* Weekly Schedule */}
-        <Col xs={24} lg={10}>
+        <Col xs={24} lg={12}>
           <Card
             title={
-              <Space>
-                <MedicineBoxOutlined />
-                <span>Lịch Làm Việc Tháng Này</span>
-              </Space>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                <Space>
+                  <MedicineBoxOutlined />
+                  <span>Lịch Làm Việc</span>
+                </Space>
+                <div style={{
+                  background: '#faf6ff',
+                  border: '1.5px solid #b37feb',
+                  borderRadius: 8,
+                  padding: '4px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  minWidth: 150
+                }}>
+                  <DatePicker
+                    picker="month"
+                    value={dayjs(selectedMonth + "-01")}
+                    onChange={(d) => setSelectedMonth(d.format("YYYY-MM"))}
+                    allowClear={false}
+                    format="[Tháng] MM/YYYY"
+                    size="middle"
+                    style={{ fontWeight: 600, fontSize: 16, minWidth: 120, background: 'transparent', border: 'none' }}
+                    dropdownClassName="ant-picker-dropdown-vi"
+                  />
+                </div>
+              </div>
             }
           >
-            <div
-              style={{
-                marginBottom: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 16,
-              }}
-            >
-              <CalendarOutlined
-                style={{ fontSize: 22, marginRight: 8, color: "#722ed1" }}
-              />
-              <DatePicker
-                picker="month"
-                value={dayjs(selectedMonth + "-01")}
-                onChange={(d) => setSelectedMonth(d.format("YYYY-MM"))}
-                allowClear={false}
-                format="MM/YYYY"
-                size="middle"
-                style={{ fontWeight: 600, fontSize: 16 }}
-              />
-            </div>
             {loadingSchedule ? (
               <Spin tip="Đang tải lịch làm việc...">
                 <div style={{ minHeight: 200 }} />

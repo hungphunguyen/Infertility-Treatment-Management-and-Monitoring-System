@@ -54,15 +54,18 @@ const DoctorDashboard = () => {
     const pathname = location.pathname;
     if (pathname.includes("/change-requests")) {
       setSelectedMenuItem("change-requests");
-    } else if (pathname.includes("/work-schedule")) {
-      setSelectedMenuItem("work-schedule");
     } else if (pathname.includes("/dashboard")) {
       setSelectedMenuItem("dashboard");
-    } else if (
-      pathname.includes("/patients") ||
-      pathname.includes("/treatment-stages")
-    ) {
+    } else if (pathname.includes("/patients")) {
       setSelectedMenuItem("patients");
+    } else if (pathname.includes("/treatment-stages")) {
+      // Check if we came from test-results or patients page using location state
+      const sourcePage = location.state?.sourcePage;
+      if (sourcePage === "test-results" || sourcePage === "patients") {
+        setSelectedMenuItem("test-results");
+      } else {
+        setSelectedMenuItem("patients");
+      }
     } else if (pathname.includes("/test-results")) {
       setSelectedMenuItem("test-results");
     } else if (pathname.includes("/create-blog")) {
@@ -72,10 +75,9 @@ const DoctorDashboard = () => {
     } else if (pathname.includes("/profile")) {
       setSelectedMenuItem("profile");
     } else {
-      setSelectedMenuItem("dashboard");
-      if (pathname === "/doctor-dashboard") {
-        navigate(path.doctorDashboard);
-      }
+      // if (pathname === "/doctor-dashboard") {
+      // navigate(path.pageNotFound);
+      // }
     }
   }, [location, navigate]);
 
@@ -86,15 +88,13 @@ const DoctorDashboard = () => {
       case "patients":
         return "Danh Sách Bệnh Nhân";
       case "test-results":
-        return "Quản Lý Kết Quả Xét Nghiệm";
+        return "Quản lí hồ sơ bệnh nhân ";
       case "create-blog":
         return "Tạo Bài Viết Mới";
       case "my-blogs":
         return "Bài Viết Của Tôi";
       case "profile":
         return "Hồ Sơ Bác Sĩ";
-      case "work-schedule":
-        return "Lịch Làm Việc";
       case "treatment-stages":
         return "Chi Tiết Giai Đoạn Điều Trị";
       case "change-requests":
@@ -163,7 +163,6 @@ const DoctorDashboard = () => {
           <Title level={3} style={{ margin: 0, color: "#1890ff" }}>
             {getPageTitle()}
           </Title>
-          <div style={{ color: "#666" }}>Chào mừng, BS. Nguyễn Văn A</div>
         </Header>
 
         <Content
@@ -179,7 +178,6 @@ const DoctorDashboard = () => {
             <Route path="patients" element={<PatientList />} />
             <Route path="test-results" element={<TestResults />} />
             <Route path="profile" element={<DoctorProfile />} />
-            <Route path="work-schedule" element={<DoctorWorkSchedule />} />
             <Route
               path="treatment-stages"
               element={<TreatmentStageDetails />}
