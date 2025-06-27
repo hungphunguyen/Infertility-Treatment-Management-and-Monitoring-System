@@ -845,11 +845,6 @@ const RegisterService = () => {
             <h1 className="text-5xl font-bold text-white mb-4">
               📋 Đăng Ký Dịch Vụ Điều Trị Hiếm Muộn
             </h1>
-            <div className="flex items-center justify-center text-white">
-              <span className="mx-2">TRANG CHỦ</span>
-              <span className="mx-2">{">"}</span>
-              <span className="mx-2">ĐĂNG KÝ DỊCH VỤ</span>
-            </div>
           </div>
         </div>
       </div>
