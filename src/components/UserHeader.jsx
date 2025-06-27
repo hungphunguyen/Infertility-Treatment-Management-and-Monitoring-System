@@ -29,8 +29,6 @@ const UserHeader = () => {
       .getMyInfo(token.token)
       .then((res) => {
         setInfoUser(res.data.result);
-        // Lưu thông tin user vào localStorage để sử dụng cho role check
-        localStorage.setItem('userInfo', JSON.stringify(res.data.result));
         console.log(res.data.result.avatarUrl);
         if (
           !res.data.result.phoneNumber &&
@@ -72,11 +70,14 @@ const UserHeader = () => {
 
   const handleAppointmentClick = (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra role
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
-      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    if (userInfo.roleName && userInfo.roleName.name !== "CUSTOMER") {
+      showNotification(
+        "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+        "error"
+      );
       return;
     }
 
