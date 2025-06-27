@@ -7,10 +7,15 @@ import { getLocgetlStorage } from "../utils/util";
 //   "http://18.183.187.237/infertility-system-api";
 
 export const doctorService = {
-  // Lấy danh sách tất cả bác sĩ
-  getAllDoctors: async () => {
+  // Lấy danh sách tất cả bác sĩ - UPDATED TO V1
+  getAllDoctors: async (page = 0, size = 100) => {
     try {
-      const response = await http.get("doctors");
+      const response = await http.get("v1/public/doctors", {
+        params: {
+          page,
+          size,
+        },
+      });
 
       // Log để debug
       console.log("📦 Doctor API Response:", response.data);
@@ -98,10 +103,10 @@ export const doctorService = {
       throw error;
     }
   },
-  // Lấy danh sách bác sĩ có lịch trống theo ngày và ca
+  // Lấy danh sách bác sĩ có lịch trống theo ngày và ca - UPDATED TO V1
   getAvailableDoctors: async (date, shift) => {
     try {
-      const response = await http.get("doctors/available", {
+      const response = await http.get("v1/doctors/available", {
         params: {
           date: date,
           shift: shift,
@@ -113,10 +118,10 @@ export const doctorService = {
     }
   },
 
-  // Lấy lịch làm việc của bác sĩ theo doctorId
+  // Lấy lịch làm việc của bác sĩ theo doctorId - UPDATED TO V1
   getDoctorScheduleById: async (doctorId) => {
     try {
-      const response = await http.get(`doctors/schedules/${doctorId}`);
+      const response = await http.get(`v1/doctors/schedules/${doctorId}`);
       return response;
     } catch (error) {
       throw error;

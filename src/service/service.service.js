@@ -141,5 +141,28 @@ export const serviceService = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Lấy danh sách dịch vụ public (API mới)
+  getPublicServices: async ({ page = 0, size = 10, name = '' } = {}) => {
+    try {
+      const url = "v1/public/services";
+      const params = { page, size, name };
+      const response = await http.get(url, { params });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy chi tiết dịch vụ public theo id (API mới)
+  getPublicServiceById: async (id) => {
+    try {
+      const url = `v1/public/services/${id}`;
+      const response = await http.get(url);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   }
 }; 

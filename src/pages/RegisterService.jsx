@@ -318,12 +318,12 @@ const RegisterService = () => {
     try {
       setDoctorsLoading(true);
       const response = await doctorService.getAllDoctors();
-
+      
       if (response && response.data && response.data.result) {
-        let doctorsData = Array.isArray(response.data.result)
-          ? response.data.result
+        let doctorsData = Array.isArray(response.data.result) 
+          ? response.data.result 
           : [response.data.result];
-
+        
         // Map API data to the format needed for Select options
         const mappedDoctors = doctorsData.map((doctor) => ({
           value: doctor.id,
@@ -514,12 +514,12 @@ const RegisterService = () => {
   const fetchOriginalDoctors = async () => {
     try {
       const response = await doctorService.getAllDoctors();
-
+      
       if (response && response.data && response.data.result) {
-        let doctorsData = Array.isArray(response.data.result)
-          ? response.data.result
+        let doctorsData = Array.isArray(response.data.result) 
+          ? response.data.result 
           : [response.data.result];
-
+        
         // Map API data to the format needed for Select options
         const mappedDoctors = doctorsData.map((doctor) => ({
           value: doctor.id,

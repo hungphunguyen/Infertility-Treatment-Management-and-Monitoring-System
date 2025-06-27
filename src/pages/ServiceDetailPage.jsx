@@ -19,6 +19,7 @@ import {
   TeamOutlined,
   RightCircleOutlined,
   UserOutlined,
+  MedicineBoxOutlined,
 } from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
@@ -99,12 +100,12 @@ const ServiceDetailPage = () => {
         navigate("/services");
         return;
       }
-
       try {
         setLoading(true);
-        const response = await serviceService.getServiceById(serviceId);
+        setError(null);
+        // Gọi API public mới
+        const response = await serviceService.getPublicServiceById(serviceId);
         console.log("Service details response:", response);
-
         if (response && response.data && response.data.result) {
           const serviceData = response.data.result;
           setService(serviceData);
@@ -148,20 +149,15 @@ const ServiceDetailPage = () => {
               // Không set lỗi vì không muốn ảnh hưởng đến hiển thị dịch vụ
             }
           }
-
-          // Lấy danh sách bác sĩ
-          fetchDoctors();
         } else {
           setError("Không tìm thấy thông tin dịch vụ");
         }
       } catch (err) {
-        console.error("Error fetching service details:", err);
         setError(`Lỗi khi tải thông tin dịch vụ: ${err.message}`);
       } finally {
         setLoading(false);
       }
     };
-
     fetchServiceDetails();
   }, [serviceId, navigate]);
 
@@ -183,51 +179,6 @@ const ServiceDetailPage = () => {
     };
     fetchType();
   }, [service]);
-
-  // Lấy danh sách bác sĩ từ API
-  const fetchDoctors = async () => {
-    try {
-      setLoadingDoctors(true);
-      const response = await doctorService.getAllDoctors();
-
-      if (
-        response &&
-        response.data &&
-        response.data.result &&
-        Array.isArray(response.data.result)
-      ) {
-        console.log("Doctors data:", response.data.result);
-
-        // Lấy 3 bác sĩ đầu tiên
-        const doctorsData = response.data.result.slice(0, 3);
-
-        // Map dữ liệu bác sĩ sang định dạng phù hợp
-        const mappedDoctors = doctorsData.map((doctor) => ({
-          id: doctor.id,
-          name: doctor.fullName || "Bác sĩ",
-          title: doctor.roleName?.description || "Bác sĩ chuyên khoa",
-          image: doctor.avatarUrl || "/images/doctors/default-doctor.png",
-          specialties: doctor.qualifications
-            ? [doctor.qualifications]
-            : ["Chuyên khoa Sản phụ khoa"],
-          experience: `${doctor.experienceYears || 0} năm kinh nghiệm`,
-          description: doctor.qualifications || "Chuyên gia điều trị hiếm muộn",
-          rating: 4.5,
-          value: `dr_${doctor.id}`,
-        }));
-
-        setSpecialists(mappedDoctors);
-      } else {
-        console.warn("No doctors found or invalid response format");
-        setSpecialists([]);
-      }
-    } catch (error) {
-      console.error("Error fetching doctors:", error);
-      setSpecialists([]);
-    } finally {
-      setLoadingDoctors(false);
-    }
-  };
 
   const handleBookAppointment = (e) => {
     e.preventDefault();
@@ -345,7 +296,7 @@ const ServiceDetailPage = () => {
       </div>
 
       {/* Service Description Section */}
-      <div className="py-16 bg-white">
+      <div className="py-16 bg-gradient-to-br from-[#fff7f3] to-[#ffe5db]">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <Title level={2} className="mb-2">
@@ -357,80 +308,65 @@ const ServiceDetailPage = () => {
           </div>
 
           <Row gutter={[32, 32]}>
+            {/* Bên trái: Giới thiệu + Tuyến trình điều trị */}
             <Col xs={24} lg={16}>
-              <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <Title level={3} className="mb-6">
                   Giới thiệu về {service.name}
                 </Title>
+                {/* Ảnh dịch vụ từ API nếu có */}
+                {service.coverImageUrl && (
+                  <div className="mb-6 flex justify-center">
+                    <img
+                      src={service.coverImageUrl}
+                      alt={service.name}
+                      className="max-h-64 rounded-lg shadow"
+                      style={{ maxWidth: '100%', objectFit: 'cover' }}
+                      onError={e => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
+                )}
                 <Paragraph className="text-gray-700 mb-4">
                   {typeDescription ||
                     service.description ||
                     "Không có mô tả chi tiết cho dịch vụ này."}
                 </Paragraph>
-
-                {treatmentProcess.length > 0 && (
-                  <>
-                    <Divider />
-                    <Title level={4} className="mb-4">
-                      Quy trình Điều trị
-                    </Title>
-                    <List
-                      dataSource={treatmentProcess}
-                      renderItem={(item, index) => (
-                        <List.Item>
-                          <Space align="start">
-                            <div className="flex items-center justify-center bg-[#ff8460] text-white rounded-full w-6 h-6 font-bold mt-1">
-                              {index + 1}
-                            </div>
-                            <div>
-                              <Text strong>
-                                {typeof item === "object" ? item.name : item}
-                              </Text>
-                              {typeof item === "object" && item.description && (
-                                <div className="ml-1 mt-1 text-gray-600">
-                                  <Text>{item.description}</Text>
-                                </div>
-                              )}
-                            </div>
-                          </Space>
-                        </List.Item>
-                      )}
-                    />
-                  </>
-                )}
+              </div>
+              {/* Tuyến trình điều trị */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <Title level={3} className="text-[#ff8460] font-bold mb-8 text-center tracking-wide flex items-center gap-2">
+                  <span><CalendarOutlined /></span> Tuyến trình điều trị
+                </Title>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {service.treatmentStageResponses && service.treatmentStageResponses.length > 0 ? (
+                    service.treatmentStageResponses.map((stage) => (
+                      <div key={stage.id} className="bg-[#fff7f3] rounded-xl shadow border-l-4 border-[#ff8460] p-4 flex items-center gap-4 hover:shadow-lg transition-all">
+                        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-[#ff8460] to-[#ff6b40] text-white text-xl font-bold shadow">
+                          {stage.orderIndex}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-[#ff6b40] font-semibold text-base mb-1">{stage.name}</div>
+                          <Tag color="#ff8460" className="rounded-full px-3 py-0.5 text-xs font-bold bg-[#fff3ed] border-none">Khoảng ngày: {stage.expectedDayRange}</Tag>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 text-center text-gray-500">Chưa có dữ liệu các bước điều trị.</div>
+                  )}
+                </div>
               </div>
             </Col>
-
+            {/* Bên phải: Đăng ký dịch vụ + Tại sao chọn chúng tôi */}
             <Col xs={24} lg={8}>
-              {/* Lợi ích */}
-              <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
-                <Title level={4} className="mb-4 flex items-center">
-                  <CheckCircleOutlined className="mr-2 text-[#ff8460]" />
-                  Lợi ích
-                </Title>
-                <List
-                  dataSource={benefits}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <Space>
-                        <CheckCircleOutlined className="text-[#ff8460]" />
-                        <Text>{item}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              </div>
-
-              {/* Đăng ký dịch vụ */}
               <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-8">
                 <Title level={4} className="mb-6 flex items-center">
                   <CalendarOutlined className="mr-2 text-[#ff8460]" />
                   Đăng ký dịch vụ
                 </Title>
                 <Paragraph className="mb-6">
-                  Bạn muốn tìm hiểu thêm về {service.name.toLowerCase()}? Đặt
-                  lịch tư vấn với một trong những chuyên gia của chúng tôi để
-                  thảo luận về tình huống và nhu cầu cụ thể của bạn.
+                  Bạn muốn tìm hiểu thêm về {service.name ? service.name.toLowerCase() : ''}? 
+                  Đặt lịch tư vấn với một trong những chuyên gia của chúng tôi để thảo luận 
+                  về tình huống và nhu cầu cụ thể của bạn.
                 </Paragraph>
                 <div className="mb-4">
                   <Text strong>Giá dịch vụ: </Text>
@@ -456,7 +392,6 @@ const ServiceDetailPage = () => {
                 </Button>
               </div>
 
-              {/* Tại sao chọn chúng tôi */}
               <div className="bg-gray-50 p-6 rounded-lg shadow-md">
                 <Title level={4} className="mb-4 flex items-center">
                   <TeamOutlined className="mr-2 text-[#ff8460]" />
