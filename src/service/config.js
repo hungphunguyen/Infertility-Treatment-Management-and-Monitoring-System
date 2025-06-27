@@ -3,7 +3,7 @@ import axios from "axios";
 //setup axios custom xử lí gọi API cho dự án
 const http = axios.create({
   baseURL:
-    "https://lancaster-hit-anniversary-starsmerchant.trycloudflare.com/infertility-system/api/", // domain
+    "https://deviation-announces-boxing-challenged.trycloudflare.com/infertility-system/api/", // domain
   timeout: 30000,
   headers: {},
 });
