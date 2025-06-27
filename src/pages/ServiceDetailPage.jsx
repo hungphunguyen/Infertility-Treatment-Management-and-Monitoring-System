@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Typography, Row, Col, Card, Button, Divider, List, Tag, Space, Spin, Alert } from "antd";
 import { CalendarOutlined, CheckCircleOutlined, TeamOutlined, RightCircleOutlined, UserOutlined } from "@ant-design/icons";
@@ -6,6 +6,8 @@ import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { serviceService } from "../service/service.service";
 import { doctorService } from "../service/doctor.service";
+import { NotificationContext } from "../App";
+import { useSelector } from "react-redux";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -67,6 +69,8 @@ const ServiceDetailPage = () => {
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [benefits, setBenefits] = useState([]);
   const [typeDescription, setTypeDescription] = useState("");
+  const { showNotification } = useContext(NotificationContext);
+  const token = useSelector((state) => state.authSlice.token);
   
   // Lấy thông tin dịch vụ và giai đoạn điều trị
   useEffect(() => {
@@ -190,7 +194,17 @@ const ServiceDetailPage = () => {
     }
   };
 
-  const handleBookAppointment = () => {
+  const handleBookAppointment = (e) => {
+    e.preventDefault();
+    
+    // Kiểm tra role
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+      return;
+    }
+
+    // Nếu có quyền thì chuyển hướng
     navigate('/register-service', { 
       state: { 
         selectedService: service.id,
