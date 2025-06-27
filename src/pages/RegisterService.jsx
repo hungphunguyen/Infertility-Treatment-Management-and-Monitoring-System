@@ -629,22 +629,10 @@ const RegisterService = () => {
     // Scroll lên phần "🗓 Thông tin Đặt lịch"
     setTimeout(() => {
       // Tìm element chứa text "Thông tin Đặt lịch"
-      const elements = document.querySelectorAll('*');
-      let appointmentElement = null;
-      
-      for (let element of elements) {
-        if (element.textContent && element.textContent.includes('Thông tin Đặt lịch')) {
-          appointmentElement = element;
-          break;
-        }
-      }
-      
-      if (appointmentElement) {
-        appointmentElement.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
-        });
-      }
+      document.getElementById("appointment-section")?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
     }, 300);
   };
 
@@ -854,37 +842,50 @@ const RegisterService = () => {
 
   // Thêm useEffect để kiểm tra lại khi currentUser thay đổi
   useEffect(() => {
-    if (currentUser && currentUser.roleName && currentUser.roleName.name !== 'CUSTOMER') {
+    if (
+      currentUser &&
+      currentUser.roleName &&
+      currentUser.roleName.name !== "CUSTOMER"
+    ) {
       if (!roleChecked) {
-        showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+        showNotification(
+          "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+          "error"
+        );
         setRoleChecked(true);
       }
-      navigate('/');
+      navigate("/");
     }
   }, [currentUser, navigate, showNotification, roleChecked]);
 
   // Kiểm tra role ngay khi component mount (từ localStorage)
   useEffect(() => {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    if (userInfo.roleName && userInfo.roleName.name !== "CUSTOMER") {
       if (!roleChecked) {
-        showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+        showNotification(
+          "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+          "error"
+        );
         setRoleChecked(true);
       }
-      navigate('/');
+      navigate("/");
     }
   }, [navigate, showNotification, roleChecked]);
 
   // Kiểm tra role khi token thay đổi
   useEffect(() => {
     if (token) {
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-      if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+      if (userInfo.roleName && userInfo.roleName.name !== "CUSTOMER") {
         if (!roleChecked) {
-          showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+          showNotification(
+            "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+            "error"
+          );
           setRoleChecked(true);
         }
-        navigate('/');
+        navigate("/");
       }
     }
   }, [token, navigate, showNotification, roleChecked]);
@@ -1071,7 +1072,12 @@ const RegisterService = () => {
 
                 <Divider />
 
-                <Title level={3} className="mb-6" style={{ color: "#333" }}>
+                <Title
+                  id="appointment-section"
+                  level={3}
+                  className="mb-6"
+                  style={{ color: "#333" }}
+                >
                   🗓 Thông tin Đặt lịch
                 </Title>
 
