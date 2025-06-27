@@ -406,4 +406,24 @@ export const treatmentService = {
       throw error;
     }
   },
+
+  // Lấy tất cả treatment records của một bác sĩ
+  getAllTreatmentRecordsByDoctor: async (doctorId) => {
+    try {
+      const response = await http.get(`treatment-records/find-all/doctor/${doctorId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy tất cả appointments của một bác sĩ
+  getAllAppointmentsByDoctor: async (doctorId) => {
+    try {
+      const response = await http.get(`appointments/get-all-for-doctor/${doctorId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

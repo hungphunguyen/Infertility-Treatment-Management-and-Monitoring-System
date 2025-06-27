@@ -98,17 +98,10 @@ const DashboardOverview = () => {
     if (!doctorId) return;
     setLoadingSchedule(true);
     managerService
-      .getWorkScheduleMonth(doctorId)
+      .getWorkScheduleByMonthDoctor(selectedMonth, doctorId)
       .then((res) => {
         if (res.data && res.data.result && res.data.result.schedules) {
-          const allSchedule = res.data.result.schedules;
-          const map = {};
-          Object.entries(allSchedule).forEach(([date, shift]) => {
-            if (date.startsWith(selectedMonth)) {
-              map[date] = shift;
-            }
-          });
-          setSchedule(map);
+          setSchedule(res.data.result.schedules);
         } else {
           setSchedule({});
         }

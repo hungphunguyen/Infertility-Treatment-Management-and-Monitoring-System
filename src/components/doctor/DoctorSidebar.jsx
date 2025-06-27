@@ -42,13 +42,6 @@ const DoctorSidebar = ({
       path: path.doctorDashboard,
     },
     {
-      key: "work-schedule",
-      icon: <CalendarOutlined />,
-      label: "Lịch Làm Việc",
-      title: "Xem lịch làm việc của tôi",
-      path: path.doctorWorkSchedule,
-    },
-    {
       key: "patients",
       icon: <TeamOutlined />,
       label: "Bệnh Nhân Hôm Nay",
@@ -98,13 +91,13 @@ const DoctorSidebar = ({
       })
       .catch((err) => {});
   }, [token]);
-  
+
   const handleLogout = () => {
     // Clear token and redirect to home page
     localStorage.removeItem("token");
     navigate("/");
   };
-  
+
   const checkLogin = () => {
     if (infoUser) {
       return (
@@ -201,7 +194,9 @@ const DoctorSidebar = ({
           }}
           onClick={handleLogout}
         >
-          {!collapsed && <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>}
+          {!collapsed && (
+            <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>
+          )}
         </Button>
       </div>
 

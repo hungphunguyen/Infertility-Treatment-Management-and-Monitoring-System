@@ -29,6 +29,8 @@ const UserHeader = () => {
       .getMyInfo(token.token)
       .then((res) => {
         setInfoUser(res.data.result);
+        // Lưu thông tin user vào localStorage để sử dụng cho role check
+        localStorage.setItem('userInfo', JSON.stringify(res.data.result));
         console.log(res.data.result.avatarUrl);
         if (
           !res.data.result.phoneNumber &&
@@ -60,11 +62,26 @@ const UserHeader = () => {
       // Xử lý logout
       dispatch(clearAuth());
       localStorage.removeItem("token");
+      localStorage.removeItem("userInfo"); // Xóa thông tin user
       // Clear user info immediately
       setInfoUser(null);
       // Chuyển hướng về trang chủ thay vì reload
       navigate(path.homePage);
     }
+  };
+
+  const handleAppointmentClick = (e) => {
+    e.preventDefault();
+    
+    // Kiểm tra role
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+      return;
+    }
+
+    // Nếu có quyền thì chuyển hướng
+    navigate(path.appointment);
   };
 
   const accountMenu = (
@@ -213,6 +230,7 @@ const UserHeader = () => {
           >
             Trang chủ
           </Link>
+
           <Link
             to={path.services}
             onClick={() => window.scrollTo(0, 0)}
@@ -245,6 +263,17 @@ const UserHeader = () => {
             }`}
           >
             Blogs
+          </Link>
+          <Link
+            to={path.appointment}
+            onClick={handleAppointmentClick}
+            className={`hover:text-orange-400 transition-colors ${
+              isActive(path.appointment)
+                ? "text-orange-400 font-bold text-2xl"
+                : "text-gray-600"
+            }`}
+          >
+            Đăng kí khám
           </Link>
           <Link
             to={path.contacts}

@@ -54,8 +54,6 @@ const DoctorDashboard = () => {
     const pathname = location.pathname;
     if (pathname.includes("/change-requests")) {
       setSelectedMenuItem("change-requests");
-    } else if (pathname.includes("/work-schedule")) {
-      setSelectedMenuItem("work-schedule");
     } else if (pathname.includes("/dashboard")) {
       setSelectedMenuItem("dashboard");
     } else if (pathname.includes("/patients")) {
@@ -77,10 +75,9 @@ const DoctorDashboard = () => {
     } else if (pathname.includes("/profile")) {
       setSelectedMenuItem("profile");
     } else {
-      setSelectedMenuItem("dashboard");
-      if (pathname === "/doctor-dashboard") {
-        navigate(path.doctorDashboard);
-      }
+      // if (pathname === "/doctor-dashboard") {
+      // navigate(path.pageNotFound);
+      // }
     }
   }, [location, navigate]);
 
@@ -98,8 +95,6 @@ const DoctorDashboard = () => {
         return "Bài Viết Của Tôi";
       case "profile":
         return "Hồ Sơ Bác Sĩ";
-      case "work-schedule":
-        return "Lịch Làm Việc";
       case "treatment-stages":
         return "Chi Tiết Giai Đoạn Điều Trị";
       case "change-requests":
@@ -183,7 +178,6 @@ const DoctorDashboard = () => {
             <Route path="patients" element={<PatientList />} />
             <Route path="test-results" element={<TestResults />} />
             <Route path="profile" element={<DoctorProfile />} />
-            <Route path="work-schedule" element={<DoctorWorkSchedule />} />
             <Route
               path="treatment-stages"
               element={<TreatmentStageDetails />}
