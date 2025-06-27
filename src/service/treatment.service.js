@@ -1,7 +1,6 @@
 import { http } from "./config";
 import axios from "axios";
 
-
 export const treatmentService = {
   getTreatmentRecordsForManager: async () => {
     try {
@@ -235,6 +234,20 @@ export const treatmentService = {
     }
   },
 
+  getAppointmentBycustomer: (customerId, page, size) => {
+    return http.get(`v1/appointments`, {
+      params: {
+        customerId,
+        page,
+        size,
+      },
+    });
+  },
+
+  getAppointmentBycustomerDetail: (appointmentId) => {
+    return http.get(`v1/appointments/${appointmentId}`);
+  },
+
   getDoctorAppointmentsByDate: async (doctorId, date) => {
     try {
       const response = await http.get(
@@ -410,7 +423,9 @@ export const treatmentService = {
   // Lấy tất cả treatment records của một bác sĩ
   getAllTreatmentRecordsByDoctor: async (doctorId) => {
     try {
-      const response = await http.get(`treatment-records/find-all/doctor/${doctorId}`);
+      const response = await http.get(
+        `treatment-records/find-all/doctor/${doctorId}`
+      );
       return response;
     } catch (error) {
       throw error;
@@ -420,7 +435,9 @@ export const treatmentService = {
   // Lấy tất cả appointments của một bác sĩ
   getAllAppointmentsByDoctor: async (doctorId) => {
     try {
-      const response = await http.get(`appointments/get-all-for-doctor/${doctorId}`);
+      const response = await http.get(
+        `appointments/get-all-for-doctor/${doctorId}`
+      );
       return response;
     } catch (error) {
       throw error;

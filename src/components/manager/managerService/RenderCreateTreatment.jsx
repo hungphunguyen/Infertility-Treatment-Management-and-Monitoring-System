@@ -7,13 +7,14 @@ import ManagerSidebar from "../ManagerSidebar";
 
 import Step1 from "./CreateTreatmentType";
 import Step2 from "./CreateTreatmentStage";
-import Step3 from "./CreateTreatmentService";
 import { managerService } from "../../../service/manager.service";
 import { NotificationContext } from "../../../App";
+import { useNavigate } from "react-router-dom";
+import { path } from "../../../common/path";
 
 const RenderCreateTreatment = () => {
   const { showNotification } = useContext(NotificationContext);
-
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [treatmentData, setTreatmentData] = useState({
     name: "",
@@ -36,9 +37,8 @@ const RenderCreateTreatment = () => {
   const submitTreatmentAndStages = async () => {
     try {
       const res = await managerService.createTreatType(treatmentData);
-      const id = res.data.result.id || res.data.result.typeId;
-      setCreatedTypeId(id);
-      nextStep();
+      showNotification("Tạo liệu trình điều trị thành công!", "success");
+      navigate(path.managerServices);
     } catch (err) {
       console.error("Lỗi tạo loại điều trị:", err);
       showNotification("Lỗi tạo loại điều trị", "error");
@@ -57,9 +57,6 @@ const RenderCreateTreatment = () => {
           onBack={prevStep}
           onSubmit={submitTreatmentAndStages}
         />
-      )}
-      {step === 3 && (
-        <Step3 treatmentTypeId={createdTypeId} onBack={prevStep} />
       )}
     </>
   );

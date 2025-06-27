@@ -21,6 +21,10 @@ export const managerService = {
     });
   },
 
+  getAllTreatmentType: () => {
+    return http.get(`v1/treatment-types`);
+  },
+
   getTreatmentService: (page, size) => {
     return http.get("v1/treatment-services", {
       params: {

@@ -6,14 +6,27 @@ import { useFormik } from "formik";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import InputCustom from "../../Input/InputCustom";
 
-const CreateTreatmentService = ({ treatmentTypeId, onBack }) => {
+const CreateTreatmentService = () => {
   const { showNotification } = useContext(NotificationContext);
   const navigate = useNavigate();
+  const [treatmentType, setTreatmentType] = useState([]);
+
+  useEffect(() => {
+    const fetchTreatmentType = async (page = 0) => {
+      try {
+        const res = await managerService.getAllTreatmentType();
+        setTreatmentType(res.data.result.content || []);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchTreatmentType();
+  }, []);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      treatmentTypeId,
+      treatmentTypeId: "",
       name: "",
       description: "",
       price: "",
@@ -41,22 +54,33 @@ const CreateTreatmentService = ({ treatmentTypeId, onBack }) => {
 
   return (
     <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
-      <h2 className="text-2xl font-bold mb-8 text-center">
-        Tạo dịch vụ khám bệnh
-      </h2>
+      <h2 className="text-2xl font-bold mb-8 text-center">Tạo dịch vụ</h2>
 
       <form onSubmit={handleSubmit}>
         {/* Ẩn select, hoặc chỉ hiển thị tên loại điều trị nếu muốn confirm */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">
-            ID loại điều trị
+            Loại điều trị
           </label>
-          <input
-            type="text"
-            disabled
-            className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-600"
+          <select
+            name="treatmentTypeId"
             value={values.treatmentTypeId}
-          />
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full border px-3 py-2 rounded"
+          >
+            <option value="">-- Chọn loại điều trị --</option>
+            {treatmentType.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+          {touched.treatmentTypeId && errors.treatmentTypeId && (
+            <div className="text-red-500 text-sm mt-1">
+              {errors.treatmentTypeId}
+            </div>
+          )}
         </div>
 
         <InputCustom

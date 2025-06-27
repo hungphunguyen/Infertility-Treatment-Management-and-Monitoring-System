@@ -3,7 +3,7 @@ import InputCustom from "../../Input/InputCustom";
 import { managerService } from "../../../service/manager.service";
 import { NotificationContext } from "../../../App";
 import { useFormik } from "formik";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { path } from "../../../common/path";
 
 const CreateTreatmentStage = ({
@@ -20,6 +20,7 @@ const CreateTreatmentStage = ({
   );
 
   const { showNotification } = useContext(NotificationContext);
+  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -40,6 +41,7 @@ const CreateTreatmentStage = ({
         expectedDayRange: values.expectedDayRange,
         orderIndex: Number(values.orderIndex),
       };
+
       const updated = [...treatmentStagesList, stage];
       setTreatmentStagesList(updated);
       onStagesChange(updated); // 👈 truyền lại wrapper
