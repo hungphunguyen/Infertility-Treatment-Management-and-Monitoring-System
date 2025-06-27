@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Card, Button, Space, Typography, Divider, Modal } from 'antd';
-import { UserOutlined, LoginOutlined, UserAddOutlined } from '@ant-design/icons';
+import { UserOutlined, LoginOutlined, UserAddOutlined, CloseOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { path } from '../common/path';
 import { clearAuth } from '../redux/authSlice';
@@ -40,6 +40,11 @@ const ProtectedRoute = ({ children }) => {
     navigate(path.signUp);
   };
 
+  const handleClose = () => {
+    // Chuyển về trang chủ khi bấm nút X
+    navigate('/');
+  };
+
   // Nếu chưa đăng nhập, hiển thị modal yêu cầu đăng nhập
   return (
     <>
@@ -65,7 +70,7 @@ const ProtectedRoute = ({ children }) => {
         }}
       >
         <Card 
-          className="shadow-lg text-center" 
+          className="shadow-lg text-center relative" 
           style={{ 
             backgroundColor: '#fff', 
             borderRadius: '12px',
@@ -75,6 +80,28 @@ const ProtectedRoute = ({ children }) => {
             overflow: 'auto'
           }}
         >
+          {/* Nút đóng */}
+          <Button
+            type="text"
+            icon={<CloseOutlined />}
+            onClick={handleClose}
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              zIndex: 1,
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: 'none',
+              backgroundColor: 'rgba(0, 0, 0, 0.1)',
+              color: '#666'
+            }}
+          />
+
           <div className="mb-6">
             <UserOutlined style={{ fontSize: '64px', color: '#1890ff', marginBottom: '16px' }} />
             <Title level={2} style={{ color: '#333', marginBottom: '8px' }}>

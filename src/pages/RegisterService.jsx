@@ -148,6 +148,9 @@ const RegisterService = () => {
 
   const [selectedMonth, setSelectedMonth] = useState(dayjs().month()); // Mặc định là tháng hiện tại
 
+  // Thêm state để đảm bảo chỉ hiện thông báo một lần
+  const [roleChecked, setRoleChecked] = useState(false);
+
   // Add more aggressive DOM cleanup on mount and for every render
   useEffect(() => {
     // Remove immediately
@@ -622,6 +625,27 @@ const RegisterService = () => {
       appointmentDate: dayjs(date),
       shift: shift.toLowerCase(),
     });
+
+    // Scroll lên phần "🗓 Thông tin Đặt lịch"
+    setTimeout(() => {
+      // Tìm element chứa text "Thông tin Đặt lịch"
+      const elements = document.querySelectorAll('*');
+      let appointmentElement = null;
+      
+      for (let element of elements) {
+        if (element.textContent && element.textContent.includes('Thông tin Đặt lịch')) {
+          appointmentElement = element;
+          break;
+        }
+      }
+      
+      if (appointmentElement) {
+        appointmentElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }
+    }, 300);
   };
 
   const handleMonthChange = (value) => {
@@ -827,6 +851,43 @@ const RegisterService = () => {
   };
 
   const isLoggedIn = !!token;
+
+  // Thêm useEffect để kiểm tra lại khi currentUser thay đổi
+  useEffect(() => {
+    if (currentUser && currentUser.roleName && currentUser.roleName.name !== 'CUSTOMER') {
+      if (!roleChecked) {
+        showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+        setRoleChecked(true);
+      }
+      navigate('/');
+    }
+  }, [currentUser, navigate, showNotification, roleChecked]);
+
+  // Kiểm tra role ngay khi component mount (từ localStorage)
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+      if (!roleChecked) {
+        showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+        setRoleChecked(true);
+      }
+      navigate('/');
+    }
+  }, [navigate, showNotification, roleChecked]);
+
+  // Kiểm tra role khi token thay đổi
+  useEffect(() => {
+    if (token) {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
+        if (!roleChecked) {
+          showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+          setRoleChecked(true);
+        }
+        navigate('/');
+      }
+    }
+  }, [token, navigate, showNotification, roleChecked]);
 
   return (
     <div className="min-h-screen">
