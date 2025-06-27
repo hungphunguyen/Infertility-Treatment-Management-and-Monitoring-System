@@ -14,7 +14,7 @@ import { NotificationContext } from "../../../App";
 const RenderCreateTreatment = () => {
   const { showNotification } = useContext(NotificationContext);
 
-  const [step, setStep] = useState(3);
+  const [step, setStep] = useState(1);
   const [treatmentData, setTreatmentData] = useState({
     name: "",
     description: "",

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import InputCustom from "../../Input/InputCustom";
 import { managerService } from "../../../service/manager.service";
 import { useFormik } from "formik";
@@ -8,7 +8,9 @@ import { path } from "../../../common/path";
 
 const CreateTreatmentType = ({ defaultValues, onNext }) => {
   const { showNotification } = useContext(NotificationContext);
-
+  const [treatmentType, setTreatmentType] = useState([]);
+  const [isReuse, setIsReuse] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
   const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
     useFormik({
       initialValues: defaultValues,
@@ -17,12 +19,37 @@ const CreateTreatmentType = ({ defaultValues, onNext }) => {
       },
     });
 
+  useEffect(() => {
+    const fetchTreatmentType = () => {
+      try {
+        const res = managerService.getTreatmentType();
+        setTreatmentType(res.data.result.content || []);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchTreatmentType();
+  }, []);
+
+  useEffect(() => {
+    if (selectedId) {
+      const selected = treatmentType.find((item) => item.id === selectedId);
+      if (selected) {
+        formik.setValues({
+          name: selected.name,
+          description: selected.description,
+        });
+      }
+    }
+  }, [selectedId]);
+
   return (
     <div className="">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
         <h2 className="text-2xl font-bold mb-8 text-center">
           Tạo phương pháp điều trị
         </h2>
+
         <form className="space-y-5" onSubmit={handleSubmit}>
           {/* name of type */}
           <InputCustom
