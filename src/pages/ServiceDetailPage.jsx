@@ -1,7 +1,25 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Typography, Row, Col, Card, Button, Divider, List, Tag, Space, Spin, Alert } from "antd";
-import { CalendarOutlined, CheckCircleOutlined, TeamOutlined, RightCircleOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  Typography,
+  Row,
+  Col,
+  Card,
+  Button,
+  Divider,
+  List,
+  Tag,
+  Space,
+  Spin,
+  Alert,
+} from "antd";
+import {
+  CalendarOutlined,
+  CheckCircleOutlined,
+  TeamOutlined,
+  RightCircleOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { serviceService } from "../service/service.service";
@@ -14,14 +32,14 @@ const { Title, Paragraph, Text } = Typography;
 // Hàm lấy hình ảnh dựa trên loại điều trị
 const getServiceImage = (treatmentType) => {
   const imageMap = {
-    'IUI': '/images/features/pc6.jpg',
-    'IVF': '/images/features/pc4.jpg',
-    'Diagnostic Testing': '/images/features/pc9.jpg',
-    'Embryo Testing': '/images/features/pc11.jpg',
-    'Egg Freezing': '/images/features/pc12.jpg',
+    IUI: "/images/features/pc6.jpg",
+    IVF: "/images/features/pc4.jpg",
+    "Diagnostic Testing": "/images/features/pc9.jpg",
+    "Embryo Testing": "/images/features/pc11.jpg",
+    "Egg Freezing": "/images/features/pc12.jpg",
   };
-  
-  return imageMap[treatmentType] || '/images/features/pc4.jpg';
+
+  return imageMap[treatmentType] || "/images/features/pc4.jpg";
 };
 
 // Danh sách lợi ích dựa trên ID dịch vụ
@@ -35,7 +53,7 @@ const getBenefitsByServiceId = (serviceId) => {
       "Có thể kết hợp với kích thích rụng trứng nhẹ",
       "Thời gian điều trị ngắn, ít ảnh hưởng đến cuộc sống",
       "Tỷ lệ thành công cao với các trường hợp vô sinh nhẹ",
-      "Phù hợp với các trường hợp vô sinh do yếu tố cổ tử cung"
+      "Phù hợp với các trường hợp vô sinh do yếu tố cổ tử cung",
     ],
     // IVF - ID 2
     2: [
@@ -45,17 +63,19 @@ const getBenefitsByServiceId = (serviceId) => {
       "Có thể đông lạnh phôi thừa để sử dụng sau này",
       "Kiểm soát được số lượng phôi chuyển để giảm nguy cơ đa thai",
       "Giải pháp hiệu quả cho các trường hợp tắc ống dẫn trứng",
-      "Phù hợp với các trường hợp vô sinh nam nặng"
-    ]
+      "Phù hợp với các trường hợp vô sinh nam nặng",
+    ],
   };
-  
-  return benefitsMap[serviceId] || [
-    "Đánh giá toàn diện của tình trạng sinh sản",
-    "Tư vấn cá nhân hóa với chuyên gia",
-    "Kế hoạch điều trị phù hợp với nhu cầu của bạn",
-    "Sử dụng công nghệ và thiết bị hiện đại",
-    "Hỗ trợ tâm lý trong suốt quá trình điều trị"
-  ];
+
+  return (
+    benefitsMap[serviceId] || [
+      "Đánh giá toàn diện của tình trạng sinh sản",
+      "Tư vấn cá nhân hóa với chuyên gia",
+      "Kế hoạch điều trị phù hợp với nhu cầu của bạn",
+      "Sử dụng công nghệ và thiết bị hiện đại",
+      "Hỗ trợ tâm lý trong suốt quá trình điều trị",
+    ]
+  );
 };
 
 const ServiceDetailPage = () => {
@@ -71,47 +91,56 @@ const ServiceDetailPage = () => {
   const [typeDescription, setTypeDescription] = useState("");
   const { showNotification } = useContext(NotificationContext);
   const token = useSelector((state) => state.authSlice.token);
-  
+
   // Lấy thông tin dịch vụ và giai đoạn điều trị
   useEffect(() => {
     const fetchServiceDetails = async () => {
       if (!serviceId) {
-        navigate('/services');
+        navigate("/services");
         return;
       }
-      
+
       try {
         setLoading(true);
         const response = await serviceService.getServiceById(serviceId);
         console.log("Service details response:", response);
-        
+
         if (response && response.data && response.data.result) {
           const serviceData = response.data.result;
           setService(serviceData);
-          
+
           // Lấy lợi ích dựa trên ID dịch vụ
           setBenefits(getBenefitsByServiceId(serviceData.id));
-          
+
           // Nếu có loại điều trị, tìm giai đoạn điều trị
           if (serviceData.treatmentTypeId) {
             try {
-              const stagesResponse = await serviceService.getTreatmentStagesByTypeId(serviceData.treatmentTypeId);
-              if (stagesResponse && stagesResponse.data && stagesResponse.data.result) {
+              const stagesResponse =
+                await serviceService.getTreatmentStagesByTypeId(
+                  serviceData.treatmentTypeId
+                );
+              if (
+                stagesResponse &&
+                stagesResponse.data &&
+                stagesResponse.data.result
+              ) {
                 console.log("Treatment stages:", stagesResponse.data.result);
-                
+
                 // Lấy dữ liệu giai đoạn và sắp xếp theo orderIndex
-                let stagesData = Array.isArray(stagesResponse.data.result) 
-                  ? stagesResponse.data.result 
+                let stagesData = Array.isArray(stagesResponse.data.result)
+                  ? stagesResponse.data.result
                   : [stagesResponse.data.result];
-                
+
                 // Sắp xếp giai đoạn theo orderIndex
                 stagesData = stagesData.sort((a, b) => {
                   // Nếu orderIndex tồn tại, sắp xếp theo đó, nếu không thì sắp xếp theo id
-                  const orderA = a.orderIndex !== undefined ? a.orderIndex : a.id;
-                  const orderB = b.orderIndex !== undefined ? b.orderIndex : b.id;
+                  const orderA =
+                    a.orderIndex !== undefined ? a.orderIndex : a.id;
+                  const orderB =
+                    b.orderIndex !== undefined ? b.orderIndex : b.id;
                   return orderA - orderB;
                 });
-                
+
                 setStages(stagesData);
               }
             } catch (stagesError) {
@@ -119,10 +148,9 @@ const ServiceDetailPage = () => {
               // Không set lỗi vì không muốn ảnh hưởng đến hiển thị dịch vụ
             }
           }
-          
+
           // Lấy danh sách bác sĩ
           fetchDoctors();
-          
         } else {
           setError("Không tìm thấy thông tin dịch vụ");
         }
@@ -161,26 +189,33 @@ const ServiceDetailPage = () => {
     try {
       setLoadingDoctors(true);
       const response = await doctorService.getAllDoctors();
-      
-      if (response && response.data && response.data.result && Array.isArray(response.data.result)) {
+
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        Array.isArray(response.data.result)
+      ) {
         console.log("Doctors data:", response.data.result);
-        
+
         // Lấy 3 bác sĩ đầu tiên
         const doctorsData = response.data.result.slice(0, 3);
-        
+
         // Map dữ liệu bác sĩ sang định dạng phù hợp
-        const mappedDoctors = doctorsData.map(doctor => ({
+        const mappedDoctors = doctorsData.map((doctor) => ({
           id: doctor.id,
           name: doctor.fullName || "Bác sĩ",
           title: doctor.roleName?.description || "Bác sĩ chuyên khoa",
           image: doctor.avatarUrl || "/images/doctors/default-doctor.png",
-          specialties: doctor.qualifications ? [doctor.qualifications] : ["Chuyên khoa Sản phụ khoa"],
+          specialties: doctor.qualifications
+            ? [doctor.qualifications]
+            : ["Chuyên khoa Sản phụ khoa"],
           experience: `${doctor.experienceYears || 0} năm kinh nghiệm`,
           description: doctor.qualifications || "Chuyên gia điều trị hiếm muộn",
           rating: 4.5,
-          value: `dr_${doctor.id}`
+          value: `dr_${doctor.id}`,
         }));
-        
+
         setSpecialists(mappedDoctors);
       } else {
         console.warn("No doctors found or invalid response format");
@@ -196,20 +231,23 @@ const ServiceDetailPage = () => {
 
   const handleBookAppointment = (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra role
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
-      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    if (userInfo.roleName && userInfo.roleName.name !== "CUSTOMER") {
+      showNotification(
+        "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+        "error"
+      );
       return;
     }
 
     // Nếu có quyền thì chuyển hướng
-    navigate('/register-service', { 
-      state: { 
+    navigate("/register-service", {
+      state: {
         selectedService: service.id,
-        serviceName: service.name
-      } 
+        serviceName: service.name,
+      },
     });
   };
 
@@ -241,9 +279,9 @@ const ServiceDetailPage = () => {
             className="mb-4"
           />
           <div className="text-center mt-4">
-            <Button 
-              type="primary" 
-              onClick={() => navigate('/services')}
+            <Button
+              type="primary"
+              onClick={() => navigate("/services")}
               className="bg-[#ff8460] hover:bg-[#ff6b40] border-none"
             >
               Quay lại trang Dịch Vụ
@@ -263,9 +301,9 @@ const ServiceDetailPage = () => {
           <div className="mb-4">
             <h2 className="text-2xl font-bold">Không tìm thấy dịch vụ</h2>
           </div>
-          <Button 
-            type="primary" 
-            onClick={() => navigate('/services')}
+          <Button
+            type="primary"
+            onClick={() => navigate("/services")}
             className="bg-[#ff8460] hover:bg-[#ff6b40] border-none"
           >
             Quay lại trang Dịch Vụ
@@ -277,35 +315,31 @@ const ServiceDetailPage = () => {
   }
 
   // Chuyển đổi các giai đoạn điều trị để hiển thị
-  const treatmentProcess = stages.length > 0 
-    ? stages.map(stage => ({
-        name: stage.name,
-        description: stage.description
-      }))
-    : [];
+  const treatmentProcess =
+    stages.length > 0
+      ? stages.map((stage) => ({
+          name: stage.name,
+          description: stage.description,
+        }))
+      : [];
 
   return (
     <div className="min-h-screen">
       <UserHeader />
-      
+
       {/* Hero Banner */}
       <div className="relative h-[400px] w-full overflow-hidden">
-        <img 
-          src={getServiceImage(service.treatmentTypeName)} 
-          alt={service.name} 
+        <img
+          src={getServiceImage(service.treatmentTypeName)}
+          alt={service.name}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4">{service.name}</h1>
-            <div className="flex items-center justify-center text-white">
-              <span className="mx-2">TRANG CHỦ</span>
-              <span className="mx-2">{'>'}</span>
-              <span className="mx-2">DỊCH VỤ</span>
-              <span className="mx-2">{'>'}</span>
-              <span className="mx-2">{service.name.toUpperCase()}</span>
-            </div>
+            <h1 className="text-5xl font-bold text-white mb-4">
+              {service.name}
+            </h1>
           </div>
         </div>
       </div>
@@ -314,22 +348,32 @@ const ServiceDetailPage = () => {
       <div className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <Title level={2} className="mb-2">{service.name}</Title>
-            <Text className="text-[#ff8460] text-lg">{service.treatmentTypeName}</Text>
+            <Title level={2} className="mb-2">
+              {service.name}
+            </Title>
+            <Text className="text-[#ff8460] text-lg">
+              {service.treatmentTypeName}
+            </Text>
           </div>
 
           <Row gutter={[32, 32]}>
             <Col xs={24} lg={16}>
               <div className="bg-white p-6 rounded-lg shadow-md">
-                <Title level={3} className="mb-6">Giới thiệu về {service.name}</Title>
+                <Title level={3} className="mb-6">
+                  Giới thiệu về {service.name}
+                </Title>
                 <Paragraph className="text-gray-700 mb-4">
-                  {typeDescription || service.description || "Không có mô tả chi tiết cho dịch vụ này."}
+                  {typeDescription ||
+                    service.description ||
+                    "Không có mô tả chi tiết cho dịch vụ này."}
                 </Paragraph>
 
                 {treatmentProcess.length > 0 && (
                   <>
                     <Divider />
-                    <Title level={4} className="mb-4">Quy trình Điều trị</Title>
+                    <Title level={4} className="mb-4">
+                      Quy trình Điều trị
+                    </Title>
                     <List
                       dataSource={treatmentProcess}
                       renderItem={(item, index) => (
@@ -339,8 +383,10 @@ const ServiceDetailPage = () => {
                               {index + 1}
                             </div>
                             <div>
-                              <Text strong>{typeof item === 'object' ? item.name : item}</Text>
-                              {typeof item === 'object' && item.description && (
+                              <Text strong>
+                                {typeof item === "object" ? item.name : item}
+                              </Text>
+                              {typeof item === "object" && item.description && (
                                 <div className="ml-1 mt-1 text-gray-600">
                                   <Text>{item.description}</Text>
                                 </div>
@@ -364,7 +410,7 @@ const ServiceDetailPage = () => {
                 </Title>
                 <List
                   dataSource={benefits}
-                  renderItem={item => (
+                  renderItem={(item) => (
                     <List.Item>
                       <Space>
                         <CheckCircleOutlined className="text-[#ff8460]" />
@@ -382,23 +428,26 @@ const ServiceDetailPage = () => {
                   Đăng ký dịch vụ
                 </Title>
                 <Paragraph className="mb-6">
-                  Bạn muốn tìm hiểu thêm về {service.name.toLowerCase()}? 
-                  Đặt lịch tư vấn với một trong những chuyên gia của chúng tôi để thảo luận 
-                  về tình huống và nhu cầu cụ thể của bạn.
+                  Bạn muốn tìm hiểu thêm về {service.name.toLowerCase()}? Đặt
+                  lịch tư vấn với một trong những chuyên gia của chúng tôi để
+                  thảo luận về tình huống và nhu cầu cụ thể của bạn.
                 </Paragraph>
                 <div className="mb-4">
                   <Text strong>Giá dịch vụ: </Text>
                   <Text className="text-[#ff8460] font-medium">
-                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(service.price)}
                   </Text>
                 </div>
                 <div className="mb-4">
                   <Text strong>Thời gian điều trị: </Text>
                   <Text>{service.duration} ngày</Text>
                 </div>
-                <Button 
-                  type="primary" 
-                  size="large" 
+                <Button
+                  type="primary"
+                  size="large"
                   block
                   onClick={handleBookAppointment}
                   className="bg-[#ff8460] hover:bg-[#ff6b40] border-none"
@@ -419,9 +468,9 @@ const ServiceDetailPage = () => {
                     "Cơ sở vật chất và công nghệ hiện đại",
                     "Kế hoạch điều trị cá nhân hóa cho mỗi bệnh nhân",
                     "Hỗ trợ toàn diện trong suốt hành trình của bạn",
-                    "Giá cả minh bạch và các lựa chọn tài chính"
+                    "Giá cả minh bạch và các lựa chọn tài chính",
                   ]}
-                  renderItem={item => (
+                  renderItem={(item) => (
                     <List.Item>
                       <Space>
                         <RightCircleOutlined className="text-[#ff8460]" />
