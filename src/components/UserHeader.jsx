@@ -125,7 +125,7 @@ const UserHeader = () => {
   const isActive = (pathname) => {
     if (
       pathname === path.ourStaff &&
-      location.pathname.startsWith("/doctor/")
+      (location.pathname.startsWith("/doctor/") || location.pathname.startsWith("/doctors/"))
     ) {
       return true;
     }
@@ -144,9 +144,39 @@ const UserHeader = () => {
   const checkUserLogin = () => {
     return infoUser ? (
       <Dropdown
-        overlay={accountMenu}
+        menu={{
+          items: [
+            ...(infoUser.roleName.name === "ADMIN" ? [{
+              key: "admin",
+              icon: <DashboardOutlined />,
+              label: <Link to={path.admin} style={{ color: "inherit" }}>Admin</Link>
+            }] : []),
+            ...(infoUser.roleName.name === "MANAGER" ? [{
+              key: "manager",
+              icon: <DashboardOutlined />,
+              label: <Link to={path.manager} style={{ color: "inherit" }}>Manager</Link>
+            }] : []),
+            ...(infoUser.roleName.name === "CUSTOMER" ? [{
+              key: "customer",
+              icon: <DashboardOutlined />,
+              label: <Link to={path.customer} style={{ color: "inherit" }}>Customer</Link>
+            }] : []),
+            ...(infoUser.roleName.name === "DOCTOR" ? [{
+              key: "doctor",
+              icon: <DashboardOutlined />,
+              label: <Link to={path.doctor} style={{ color: "inherit" }}>Doctor</Link>
+            }] : []),
+            {
+              key: "logout",
+              icon: <LogoutOutlined />,
+              label: "Đăng xuất",
+              danger: true
+            }
+          ]
+        }}
         trigger={["click"]}
         placement="bottomRight"
+        onClick={handleMenuClick}
       >
         <div className="flex items-center gap-2 select-none cursor-pointer ">
           <Avatar

@@ -72,13 +72,16 @@ export const serviceService = {
     }
   },
 
-  // Đăng ký dịch vụ điều trị
+  // Đăng ký dịch vụ điều trị - UPDATED TO V1
   registerTreatmentService: async (data) => {
     try {
       const token = getLocgetlStorage("token");
       
-      // Always add ignoreIncompleteWarning=true to bypass incomplete treatment warnings
-      let url = "treatment-service/register?ignoreIncompleteWarning=true";
+      console.log("🔍 Registering treatment service with data:", data);
+      console.log("🔍 Token:", token ? "Có token" : "Không có token");
+      
+      // Sử dụng API mới v1/treatment-records/register
+      let url = "v1/treatment-records/register";
       
       // Remove from request body to avoid duplication
       if (data.ignoreIncompleteWarning) {
@@ -86,14 +89,21 @@ export const serviceService = {
         data = cleanData;
       }
       
+      console.log("🔍 Final request data:", data);
+      console.log("🔍 Request URL:", url);
+      
       const response = await http.post(url, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+      
+      console.log("🔍 Registration response:", response.data);
       return response;
     } catch (error) {
+      console.error("❌ Error registering treatment service:", error);
+      console.error("❌ Error response:", error.response?.data);
       throw error;
     }
   },
