@@ -32,24 +32,44 @@ const AppointmentManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [searchText, setSearchText] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [stepId, setStepId] = useState("");
+  const [customerId, setCustomerId] = useState("");
+  const [doctorId, setDoctorId] = useState("");
+  const [date, setDate] = useState(null);
 
   useEffect(() => {
-    fetchAppointments();
-  }, []);
+    fetchAppointments(page, pageSize);
+    // eslint-disable-next-line
+  }, [page, pageSize, statusFilter, stepId, customerId, doctorId, date]);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = async (pageParam = 1, sizeParam = 10) => {
     try {
       setLoading(true);
-      const response = await http.get("/appointments/get-all");
-      if (response?.data?.result) {
-        const mapped = response.data.result.map((item) => ({
+      const response = await http.get("/api/v1/appointments", {
+        params: {
+          stepId: stepId || undefined,
+          customerId: customerId || undefined,
+          doctorId: doctorId || undefined,
+          date: date ? date.format("YYYY-MM-DD") : undefined,
+          status: statusFilter !== "all" ? statusFilter : undefined,
+          page: pageParam - 1,
+          size: sizeParam,
+        },
+      });
+      if (response?.data?.result?.content) {
+        const mapped = response.data.result.content.map((item) => ({
           ...item,
-          startDate: item.appointmentDate,
+          startDate: item.date,
           treatmentServiceName: item.purpose || item.serviceName,
           createdDate: item.createdAt,
+          appointmentDate: item.date,
         }));
         setAppointments(mapped);
         setFilteredAppointments(mapped);
+        setTotal(response.data.result.totalElements || 0);
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -134,13 +154,6 @@ const AppointmentManagement = () => {
 
   const columns = [
     {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      width: 80,
-      render: (id) => <Tag color="blue">{id}</Tag>
-    },
-    {
       title: "Bệnh nhân",
       dataIndex: "customerName",
       key: "customerName",
@@ -220,13 +233,41 @@ const AppointmentManagement = () => {
           </Space>
         </Title>
 
-        <Space style={{ marginBottom: 16 }}>
+        <Space style={{ marginBottom: 16, flexWrap: 'wrap' }}>
+          <Input
+            placeholder="Step ID"
+            value={stepId}
+            onChange={e => setStepId(e.target.value)}
+            style={{ width: 120 }}
+            allowClear
+          />
+          <Input
+            placeholder="Customer ID"
+            value={customerId}
+            onChange={e => setCustomerId(e.target.value)}
+            style={{ width: 120 }}
+            allowClear
+          />
+          <Input
+            placeholder="Doctor ID"
+            value={doctorId}
+            onChange={e => setDoctorId(e.target.value)}
+            style={{ width: 120 }}
+            allowClear
+          />
+          <DatePicker
+            placeholder="Ngày hẹn"
+            value={date}
+            onChange={setDate}
+            style={{ width: 140 }}
+            allowClear
+          />
           <Input.Search
             placeholder="Tìm kiếm khách hàng, bác sĩ, dịch vụ, mã lịch hẹn..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             allowClear
-            style={{ width: 300 }}
+            style={{ width: 220 }}
           />
           <Select
             style={{ width: 150 }}
@@ -258,6 +299,10 @@ const AppointmentManagement = () => {
               setSearchText("");
               setStatusFilter("all");
               setServiceFilter("all");
+              setStepId("");
+              setCustomerId("");
+              setDoctorId("");
+              setDate(null);
             }}
           >
             Đặt lại
@@ -271,9 +316,12 @@ const AppointmentManagement = () => {
             rowKey="id"
             scroll={{ x: 900 }}
             pagination={{
-              pageSize: 10,
+              current: page,
+              pageSize: pageSize,
+              total: total,
               showSizeChanger: false,
               showTotal: (total) => `Tổng số ${total} lịch hẹn`,
+              onChange: (newPage) => setPage(newPage),
             }}
           />
         </Spin>
