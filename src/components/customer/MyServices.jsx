@@ -57,7 +57,6 @@ const MyServices = () => {
     try {
       setLoading(true);
       const userResponse = await authService.getMyInfo();
-      console.log("User Info Response:", userResponse);
 
       if (!userResponse?.data?.result?.id) {
         showNotification("Không tìm thấy thông tin người dùng", "error");
@@ -65,33 +64,37 @@ const MyServices = () => {
       }
 
       const customerId = userResponse.data.result.id;
-      const response = await treatmentService.getTreatmentRecordsByCustomer(
-        customerId
-      );
-      console.log("Treatment Records Response:", response);
-      console.log("Treatment Records Data:", response?.data?.result);
+      
+      // Tạm thời cho phép sử dụng test data
+      if (!customerId) {
+        showNotification("ID người dùng không hợp lệ. Vui lòng đăng nhập lại.", "error");
+        return;
+      }
 
-      if (response?.data?.result) {
-        const records = response.data.result;
-        console.log(
-          "First Record Full Structure:",
-          JSON.stringify(records[0], null, 2)
-        );
-        // check trạng thái của record chỉ cho feedback khi đã hoàn thành
+      // Cảnh báo nếu đang sử dụng test data
+      // (Đã xóa thông báo demo, chỉ dùng dữ liệu thật)
+
+      const response = await treatmentService.getTreatmentRecords({
+        customerId: customerId,
+        page: 0,
+        size: 100
+      });
+
+      if (response?.data?.result?.content) {
+        const records = response.data.result.content;
         const enrichedRecords = records.map((record) => ({
           ...record,
-          canFeedback: record.status === "COMPLETED", // chỉ cho feedback khi đã hoàn thành
+          canFeedback: record.status === "COMPLETED",
         }));
         setTreatmentRecords(enrichedRecords);
 
-        // Tính toán thống kê
         const stats = {
           totalServices: records.length,
           cancelledServices: records.filter(
-            (r) => r.status === "Cancelled" || r.status === "CANCELLED"
+            (r) => r.status === "CANCELLED"
           ).length,
           inProgressServices: records.filter(
-            (r) => r.status === "InProgress" || r.status === "INPROGRESS"
+            (r) => r.status === "INPROGRESS"
           ).length,
         };
         setStatistics(stats);
@@ -123,7 +126,7 @@ const MyServices = () => {
     if (!userId) return;
     setCancelLoading((l) => ({ ...l, [record.id]: true }));
     try {
-      await treatmentService.cancelTreatmentRecord(record.id, userId);
+      await treatmentService.cancelTreatmentRecord(record.id);
       showNotification("Hủy hồ sơ điều trị thành công.", "success");
       fetchTreatmentRecords();
     } catch (err) {
@@ -147,13 +150,12 @@ const MyServices = () => {
         recordId: record.id,
         customerId: userId,
         doctorName: record.doctorName,
-        treatmentServiceName: record.treatmentServiceName,
+        treatmentServiceName: record.serviceName,
       },
     });
   };
 
   const handleViewTreatmentProgress = (record) => {
-    // Chuyển đến trang TreatmentProgress với thông tin dịch vụ cụ thể
     navigate(path.customerTreatment, {
       state: {
         treatmentRecord: record,
@@ -165,8 +167,8 @@ const MyServices = () => {
   const columns = [
     {
       title: "Gói điều trị",
-      dataIndex: "treatmentServiceName",
-      key: "treatmentServiceName",
+      dataIndex: "serviceName",
+      key: "serviceName",
       render: (text) => <span>{text || "N/A"}</span>,
     },
     {
@@ -194,23 +196,12 @@ const MyServices = () => {
       dataIndex: "progress",
       key: "progress",
       render: (_, record) => {
-        const totalSteps = record.treatmentSteps?.length || 0;
+        const totalSteps = record.totalSteps || 0;
+        const completedSteps = record.completedSteps || 0;
+        
         if (!totalSteps) return "0%";
-
-        const completedSteps =
-          record.treatmentSteps?.filter((step) => step.status === "COMPLETED")
-            .length || 0;
-        const progress = Math.round((completedSteps / totalSteps) * 100);
-
-        if (record.status === "CANCELLED") {
-          return "Đã hủy";
-        } else if (record.status === "COMPLETED") {
-          return "100%";
-        } else if (record.status === "INPROGRESS") {
-          return `${progress}%`;
-        } else {
-          return "0%";
-        }
+        const percentage = Math.round((completedSteps / totalSteps) * 100);
+        return `${completedSteps}/${totalSteps} (${percentage}%)`;
       },
     },
     {
@@ -291,7 +282,6 @@ const MyServices = () => {
         Dịch vụ của tôi
       </Title>
 
-      {/* Thống kê */}
       <Row gutter={32} style={{ marginBottom: 32, justifyContent: "center" }}>
         <Col xs={24} sm={8}>
           <Card
@@ -358,7 +348,6 @@ const MyServices = () => {
         </Col>
       </Row>
 
-      {/* Bảng dịch vụ */}
       <Card
         variant="outlined"
         style={{

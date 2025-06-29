@@ -58,9 +58,24 @@ const TestResults = () => {
     const fetchRecords = async () => {
       try {
         const result = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (result) {
+        
+        // Đảm bảo result là array
+        let treatmentRecords = [];
+        if (Array.isArray(result)) {
+          treatmentRecords = result;
+        } else if (result?.data?.result) {
+          if (Array.isArray(result.data.result)) {
+            treatmentRecords = result.data.result;
+          } else if (result.data.result.content && Array.isArray(result.data.result.content)) {
+            treatmentRecords = result.data.result.content;
+          }
+        }
+        
+        console.log('📋 Treatment Records from API:', treatmentRecords);
+        
+        if (treatmentRecords && treatmentRecords.length > 0) {
           // Nhóm các records theo customerId
-          const groupedByCustomer = result.reduce((acc, record) => {
+          const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
             if (!acc[record.customerId]) {
               acc[record.customerId] = [];
             }
@@ -86,11 +101,14 @@ const TestResults = () => {
             };
           });
 
+          console.log('✅ Formatted Records:', formattedRecords);
           setRecords(formattedRecords);
         } else {
+          console.log('⚠️ No treatment records found');
           setRecords([]);
         }
       } catch (error) {
+        console.error('❌ Error fetching records:', error);
         notification.error({
           message: "Lỗi",
           description: "Không thể lấy danh sách điều trị"

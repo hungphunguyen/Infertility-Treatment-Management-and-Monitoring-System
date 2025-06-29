@@ -37,6 +37,7 @@ import UserFooter from "../components/UserFooter";
 import { authService } from "../service/auth.service";
 import { serviceService } from "../service/service.service";
 import { doctorService } from "../service/doctor.service";
+import { treatmentService } from "../service/treatment.service";
 import { getLocgetlStorage } from "../utils/util";
 import dayjs from "dayjs";
 import { NotificationContext } from "../App";
@@ -783,8 +784,8 @@ const RegisterService = () => {
         showNotification("Đang xử lý đăng ký...", "info");
 
         try {
-          // Call the API directly
-          const response = await serviceService.registerTreatmentService(
+          // Call the API directly - sử dụng API mới từ treatmentService
+          const response = await treatmentService.registerTreatmentService(
             registerData
           );
 

@@ -88,7 +88,7 @@ const OurStaffPage = () => {
                 key={doctor.id}
                 className="w-[250px] mx-auto mb-8 cursor-pointer shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white overflow-hidden"
                 onClick={() => handleDoctorClick(doctor.id)}
-                bodyStyle={{ padding: 0 }}
+                styles={{ body: { padding: 0 } }}
               >
                 <img
                   src={doctor.avatarUrl}

@@ -340,7 +340,8 @@ const ServiceManagement = () => {
           footer={null}
           width={1000} // 👈 hoặc 90vw
           style={{ top: 20 }} // 👈 tránh sát trên quá
-          bodyStyle={{ maxHeight: "75vh", overflowY: "auto" }}
+          styles={{ body: { maxHeight: "75vh", overflowY: "auto" } }}
+          destroyOnHidden
         >
           {treatmentType.length === 0 ? (
             <p className="text-gray-500 text-center py-4">
@@ -429,7 +430,7 @@ const ServiceManagement = () => {
             setPreview(null);
           }}
           footer={null}
-          destroyOnClose
+          destroyOnHidden
         >
           <div className="text-center">
             <h3 className="text-xl font-semibold mb-4">Ảnh service</h3>

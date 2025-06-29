@@ -70,7 +70,7 @@ const CreateBlogPage = () => {
           return;
         }
 
-        const response = await blogService.createBlog(currentUser.id, {
+        const response = await blogService.createBlog({
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
@@ -106,7 +106,7 @@ const CreateBlogPage = () => {
         return;
       }
 
-      const response = await blogService.createBlog(currentUser.id, {
+      const response = await blogService.createBlog({
         title: values.title,
         content: values.content,
         sourceReference: values.sourceReference,

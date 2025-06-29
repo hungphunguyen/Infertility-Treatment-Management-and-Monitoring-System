@@ -60,35 +60,48 @@ const AppointmentSchedule = () => {
       }
       setUserInfo(userResponse.data.result);
 
-      // Lấy danh sách lịch hẹn thực tế của user
-      const appointmentsResponse = await treatmentService.getCustomerAppointments(userResponse.data.result.id);
-      console.log('Appointments Response:', appointmentsResponse);
+      // Lấy danh sách treatment records của user - sử dụng API mới từ treatmentService
+      const treatmentResponse = await treatmentService.getTreatmentRecords({
+        customerId: userResponse.data.result.id,
+        page: 0,
+        size: 100
+      });
+      console.log('Treatment Records Response:', treatmentResponse);
       
-      if (appointmentsResponse?.data?.code === 1000 && Array.isArray(appointmentsResponse.data.result)) {
-        // Chuyển đổi dữ liệu lịch hẹn
-        const mappedAppointments = appointmentsResponse.data.result.map(appointment => {
-          let status = 'pending';
-          if (appointment.status === 'COMPLETED') status = 'completed';
-          else if (appointment.status === 'INPROGRESS' || appointment.status === 'CONFIRMED') status = 'in-progress';
-          else if (appointment.status === 'PLANNED') status = 'not-started';
-          else if (appointment.status === 'CANCELLED') status = 'cancelled';
+      if (treatmentResponse?.data?.code === 1000 && treatmentResponse.data.result?.content) {
+        // Chuyển đổi treatment records thành appointments
+        const mappedAppointments = [];
+        
+        treatmentResponse.data.result.content.forEach(treatment => {
+          if (treatment.treatmentSteps) {
+            treatment.treatmentSteps.forEach(step => {
+              if (step.scheduledDate) {
+                let status = 'pending';
+                if (step.status === 'COMPLETED') status = 'completed';
+                else if (step.status === 'INPROGRESS' || step.status === 'CONFIRMED') status = 'in-progress';
+                else if (step.status === 'PLANNED') status = 'not-started';
+                else if (step.status === 'CANCELLED') status = 'cancelled';
 
-          return {
-            id: appointment.id,
-            title: appointment.purpose || appointment.serviceName,
-            date: appointment.appointmentDate,
-            time: appointment.shift === 'MORNING' ? '08:00' : '13:00',
-            doctor: appointment.doctorName,
-            department: "Khoa IVF",
-            location: "Phòng khám IVF",
-            status: status,
-            serviceId: appointment.id,
-            serviceStatus: appointment.status,
-            notes: appointment.notes || `Lịch hẹn ${appointment.purpose || appointment.serviceName}`,
-            contact: userResponse.data.result.phoneNumber,
-            preparationInstructions: "Không cần chuẩn bị đặc biệt",
-            isEstimated: false
-          };
+                mappedAppointments.push({
+                  id: step.id,
+                  title: step.name,
+                  date: step.scheduledDate,
+                  time: '08:00', // Default time
+                  doctor: treatment.doctorName,
+                  department: "Khoa IVF",
+                  location: "Phòng khám IVF",
+                  status: status,
+                  serviceId: treatment.id,
+                  serviceStatus: step.status,
+                  notes: step.notes || `Lịch hẹn ${step.name}`,
+                  contact: userResponse.data.result.phoneNumber,
+                  preparationInstructions: "Không cần chuẩn bị đặc biệt",
+                  isEstimated: false,
+                  treatmentName: treatment.serviceName
+                });
+              }
+            });
+          }
         });
 
         // Sắp xếp lịch hẹn theo ngày
@@ -112,7 +125,7 @@ const AppointmentSchedule = () => {
     const formattedDate = date.format("YYYY-MM-DD");
     return appointments.filter(appointment => 
       appointment.date === formattedDate && 
-      (appointment.serviceStatus === 'INPROGRESS' || appointment.serviceStatus === 'CONFIRMED')
+      (appointment.serviceStatus === 'INPROGRESS' || appointment.serviceStatus === 'CONFIRMED' || appointment.serviceStatus === 'PLANNED')
     );
   };
 
@@ -172,7 +185,7 @@ const AppointmentSchedule = () => {
 
   // Upcoming appointments list
   const upcomingAppointments = appointments
-    .filter(a => a.serviceStatus === 'INPROGRESS' || a.serviceStatus === 'CONFIRMED')
+    .filter(a => a.serviceStatus === 'INPROGRESS' || a.serviceStatus === 'CONFIRMED' || a.serviceStatus === 'PLANNED')
     .sort((a, b) => new Date(a.date + " " + a.time) - new Date(b.date + " " + b.time));
 
   const displayedAppointments = isExpanded ? upcomingAppointments : upcomingAppointments.slice(0, 3);
@@ -204,7 +217,7 @@ const AppointmentSchedule = () => {
   // Appointments by date
   const appointmentsByDate = {};
   appointments
-    .filter(app => app.serviceStatus === 'INPROGRESS' || app.serviceStatus === 'CONFIRMED')
+    .filter(app => app.serviceStatus === 'INPROGRESS' || app.serviceStatus === 'CONFIRMED' || app.serviceStatus === 'PLANNED')
     .forEach(app => {
       if (!appointmentsByDate[app.date]) appointmentsByDate[app.date] = [];
       appointmentsByDate[app.date].push(app);

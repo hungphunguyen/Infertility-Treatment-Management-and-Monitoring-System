@@ -43,6 +43,8 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 const TreatmentStageDetails = () => {
+  console.log('🚀 TreatmentStageDetails component loaded');
+  
   const [loading, setLoading] = useState(true);
   const [treatmentData, setTreatmentData] = useState(null);
   const [doctorId, setDoctorId] = useState(null);
@@ -61,6 +63,15 @@ const TreatmentStageDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
+  const dataLoadedRef = React.useRef(false);
+
+  // Debug log khi treatmentData thay đổi
+  useEffect(() => {
+    console.log('🔄 TreatmentData state changed:', treatmentData);
+    console.log('🔄 Has treatmentSteps?', !!treatmentData?.treatmentSteps);
+    console.log('🔄 Steps count:', treatmentData?.treatmentSteps?.length || 0);
+    console.log('🔄 Steps data:', treatmentData?.treatmentSteps);
+  }, [treatmentData]);
 
   const statusOptions = [
     { value: 'PLANNED', label: 'Chờ xếp lịch' },
@@ -91,49 +102,68 @@ const TreatmentStageDetails = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!doctorId) return;
+      if (!doctorId || dataLoadedRef.current) return;
+      
+      dataLoadedRef.current = true;
+      console.log('🚀 Starting to fetch treatment data...');
 
       try {
-        const { patientInfo, treatmentData: passedTreatmentData } = location.state || {};
+        const { patientInfo, treatmentData: passedTreatmentData, appointmentData } = location.state || {};
         if (!patientInfo) {
           showNotification("Không tìm thấy thông tin bệnh nhân", "warning");
           navigate(-1);
           return;
         }
 
-        if (passedTreatmentData) {
-          setTreatmentData(passedTreatmentData);
-          setLoading(false);
-          return;
-        }
+        console.log('📋 Received data from PatientList:', {
+          patientInfo,
+          treatmentData: passedTreatmentData,
+          appointmentData
+        });
 
-        const response = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (Array.isArray(response)) {
-          const activeTreatments = response
-            .filter(treatment => 
-              treatment.customerId === patientInfo.customerId && 
-              treatment.status !== 'CANCELLED'
-            )
-            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
-
-          if (activeTreatments.length === 0) {
-            showNotification("Không tìm thấy thông tin quy trình điều trị đang hoạt động", "warning");
+        // Chỉ sử dụng treatmentData được truyền từ PatientList
+        if (passedTreatmentData && passedTreatmentData.id) {
+          console.log('✅ Using treatmentData from PatientList:', passedTreatmentData.id);
+          
+          // Nếu đã có đủ steps thì dùng luôn
+          if (passedTreatmentData.treatmentSteps && passedTreatmentData.treatmentSteps.length > 0) {
+            console.log('✅ TreatmentData already has steps, using directly');
+            setTreatmentData(passedTreatmentData);
             setLoading(false);
             return;
+          } else {
+            // Gọi API lấy chi tiết để có steps
+            console.log('⚠️ TreatmentData missing steps, calling API to get details...');
+            const detailedResponse = await treatmentService.getTreatmentRecordById(passedTreatmentData.id);
+            const detailedData = detailedResponse?.data?.result;
+            if (detailedData) {
+              console.log('✅ Got detailed treatment data with steps');
+              setTreatmentData(detailedData);
+              setLoading(false);
+              return;
+            } else {
+              console.log('⚠️ API call failed, using passed treatmentData');
+              setTreatmentData(passedTreatmentData);
+              setLoading(false);
+              return;
+            }
           }
-
-          const latestTreatment = activeTreatments[0];
-          setTreatmentData(latestTreatment);
         }
+
+        // Nếu không có treatmentData từ PatientList, báo lỗi
+        console.log('❌ No treatmentData received from PatientList');
+        showNotification("Không nhận được dữ liệu điều trị từ danh sách bệnh nhân", "error");
+        navigate(-1);
+        
       } catch (error) {
+        console.error('❌ Error fetching treatment data:', error);
         showNotification("Không thể lấy thông tin điều trị", "error");
-      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [doctorId, location.state, navigate, showNotification]);
+  }, [doctorId]); // Chỉ phụ thuộc vào doctorId
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -197,27 +227,99 @@ const TreatmentStageDetails = () => {
   const handleUpdateStep = async (values) => {
     if (!editingStep) return;
 
+    console.log('🔍 handleUpdateStep called:', { editingStep, values });
+
     try {
-      const response = await treatmentService.updateTreatmentStep(editingStep.id, {
+      const updateData = {
         scheduledDate: values.scheduledDate?.format('YYYY-MM-DD'),
         actualDate: values.actualDate?.format('YYYY-MM-DD'),
         status: values.status,
         notes: values.notes
-      });
+      };
+      
+      console.log('🔍 Update data prepared:', updateData);
+      console.log('🔍 Calling updateTreatmentStep with id:', editingStep.id);
 
-      if (response?.code === 1000) {
-        const updatedResponse = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (Array.isArray(updatedResponse)) {
-          const updatedRecord = updatedResponse.find(record => record.id === treatmentData.id);
-          if (updatedRecord) {
-            setTreatmentData(updatedRecord);
+      const response = await treatmentService.updateTreatmentStep(editingStep.id, updateData);
+      
+      console.log('🔍 Update response:', response);
+      console.log('🔍 Response code:', response?.code || response?.data?.code);
+
+      if (response?.code === 1000 || response?.data?.code === 1000) {
+        console.log('✅ Update successful, refreshing data...');
+        
+        // Thử lấy treatment record với steps để refresh data
+        try {
+          const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
+          const detailedData = detailedResponse?.data?.result;
+          
+          console.log('🔍 Detailed response after update:', detailedResponse);
+          console.log('🔍 Detailed data after update:', detailedData);
+          
+          if (detailedData && detailedData.treatmentSteps) {
+            console.log('✅ Setting updated treatment data:', detailedData);
+            setTreatmentData(detailedData);
+          } else {
+            console.warn('❌ Treatment record không có steps sau khi update');
+            // Fallback to old method
+            const updatedResponse = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+            
+            // Đảm bảo updatedResponse là array
+            let treatmentRecords = [];
+            if (Array.isArray(updatedResponse)) {
+              treatmentRecords = updatedResponse;
+            } else if (updatedResponse?.data?.result) {
+              if (Array.isArray(updatedResponse.data.result)) {
+                treatmentRecords = updatedResponse.data.result;
+              } else if (updatedResponse.data.result.content && Array.isArray(updatedResponse.data.result.content)) {
+                treatmentRecords = updatedResponse.data.result.content;
+              }
+            }
+            
+            if (treatmentRecords && treatmentRecords.length > 0) {
+              const updatedRecord = treatmentRecords.find(record => record.id === treatmentData.id);
+              if (updatedRecord) {
+                console.log('✅ Setting updated record from list:', updatedRecord);
+                setTreatmentData(updatedRecord);
+              }
+            }
+          }
+        } catch (refreshError) {
+          console.warn('❌ Không thể refresh data:', refreshError);
+          // Fallback to old method
+          const updatedResponse = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+          
+          // Đảm bảo updatedResponse là array
+          let treatmentRecords = [];
+          if (Array.isArray(updatedResponse)) {
+            treatmentRecords = updatedResponse;
+          } else if (updatedResponse?.data?.result) {
+            if (Array.isArray(updatedResponse.data.result)) {
+              treatmentRecords = updatedResponse.data.result;
+            } else if (updatedResponse.data.result.content && Array.isArray(updatedResponse.data.result.content)) {
+              treatmentRecords = updatedResponse.data.result.content;
+            }
+          }
+          
+          if (treatmentRecords && treatmentRecords.length > 0) {
+            const updatedRecord = treatmentRecords.find(record => record.id === treatmentData.id);
+            if (updatedRecord) {
+              console.log('✅ Setting updated record from fallback:', updatedRecord);
+              setTreatmentData(updatedRecord);
+            }
           }
         }
+        
         setEditingStep(null);
         form.resetFields();
         showNotification("Cập nhật thành công", "success");
+      } else {
+        console.warn('❌ Update failed - invalid response code:', response?.code || response?.data?.code);
+        showNotification("Cập nhật thất bại", "error");
       }
     } catch (error) {
+      console.error('❌ Error updating step:', error);
+      console.error('❌ Error details:', error.response?.data);
       showNotification("Có lỗi khi cập nhật", "error");
     }
   };
@@ -231,7 +333,7 @@ const TreatmentStageDetails = () => {
 
     try {
       const response = await treatmentService.getAppointmentsByStepId(step.id);
-      setStepAppointments(response?.data?.result || []);
+      setStepAppointments(response?.data?.result?.content || []);
     } catch (error) {
       showNotification("Không thể lấy danh sách lịch hẹn", "error");
       setStepAppointments([]);
@@ -258,8 +360,8 @@ const TreatmentStageDetails = () => {
         setShowStepDetailModal(true);
         setLoadingAppointments(true);
         try {
-          const refreshed = await treatmentService.getAppointmentsByStepId(selectedStep.id);
-          setStepAppointments(refreshed?.data?.result || []);
+          const refreshed = await treatmentService.getAppointmentsByStepId(scheduleStep.id);
+          setStepAppointments(refreshed?.data?.result?.content || []);
         } catch (error) {
           setStepAppointments([]);
         } finally {
@@ -286,18 +388,85 @@ const TreatmentStageDetails = () => {
 
   const handleCompleteTreatment = async () => {
     try {
+      console.log('🔍 handleCompleteTreatment called:', { treatmentId: treatmentData.id, status: 'COMPLETED' });
+      
       const response = await treatmentService.updateTreatmentStatus(treatmentData.id, 'COMPLETED');
-      if (response?.data?.code === 1000) {
+      
+      console.log('🔍 Complete treatment response:', response);
+      console.log('🔍 Response code:', response?.code || response?.data?.code);
+      
+      if (response?.data?.code === 1000 || response?.code === 1000) {
+        console.log('✅ Treatment completed successfully, refreshing data...');
         showNotification("Hoàn thành điều trị thành công", "success");
-        const updatedResponse = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (Array.isArray(updatedResponse)) {
-          const updatedRecord = updatedResponse.find(record => record.id === treatmentData.id);
-          if (updatedRecord) {
-            setTreatmentData(updatedRecord);
+        
+        // Thử lấy treatment record với steps để refresh data
+        try {
+          const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
+          const detailedData = detailedResponse?.data?.result;
+          
+          console.log('🔍 Detailed response after completion:', detailedResponse);
+          console.log('🔍 Detailed data after completion:', detailedData);
+          
+          if (detailedData && detailedData.treatmentSteps) {
+            console.log('✅ Setting updated treatment data after completion:', detailedData);
+            setTreatmentData(detailedData);
+          } else {
+            console.warn('❌ Treatment record không có steps sau khi complete');
+            // Fallback to old method
+            const updatedResponse = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+            
+            // Đảm bảo updatedResponse là array
+            let treatmentRecords = [];
+            if (Array.isArray(updatedResponse)) {
+              treatmentRecords = updatedResponse;
+            } else if (updatedResponse?.data?.result) {
+              if (Array.isArray(updatedResponse.data.result)) {
+                treatmentRecords = updatedResponse.data.result;
+              } else if (updatedResponse.data.result.content && Array.isArray(updatedResponse.data.result.content)) {
+                treatmentRecords = updatedResponse.data.result.content;
+              }
+            }
+            
+            if (treatmentRecords && treatmentRecords.length > 0) {
+              const updatedRecord = treatmentRecords.find(record => record.id === treatmentData.id);
+              if (updatedRecord) {
+                console.log('✅ Setting updated record from list after completion:', updatedRecord);
+                setTreatmentData(updatedRecord);
+              }
+            }
+          }
+        } catch (refreshError) {
+          console.warn('❌ Không thể refresh data after completion:', refreshError);
+          // Fallback to old method
+          const updatedResponse = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+          
+          // Đảm bảo updatedResponse là array
+          let treatmentRecords = [];
+          if (Array.isArray(updatedResponse)) {
+            treatmentRecords = updatedResponse;
+          } else if (updatedResponse?.data?.result) {
+            if (Array.isArray(updatedResponse.data.result)) {
+              treatmentRecords = updatedResponse.data.result;
+            } else if (updatedResponse.data.result.content && Array.isArray(updatedResponse.data.result.content)) {
+              treatmentRecords = updatedResponse.data.result.content;
+            }
+          }
+          
+          if (treatmentRecords && treatmentRecords.length > 0) {
+            const updatedRecord = treatmentRecords.find(record => record.id === treatmentData.id);
+            if (updatedRecord) {
+              console.log('✅ Setting updated record from fallback after completion:', updatedRecord);
+              setTreatmentData(updatedRecord);
+            }
           }
         }
+      } else {
+        console.warn('❌ Treatment completion failed - invalid response code:', response?.code || response?.data?.code);
+        showNotification("Hoàn thành điều trị thất bại", "error");
       }
     } catch (error) {
+      console.error('❌ Error completing treatment:', error);
+      console.error('❌ Error details:', error.response?.data);
       showNotification("Có lỗi khi hoàn thành điều trị", "error");
     }
   };
@@ -313,14 +482,32 @@ const TreatmentStageDetails = () => {
   };
 
   const handleStepClick = async (step) => {
+    console.log('🎯 Step clicked:', step);
+    console.log('🎯 Step ID:', step.id);
     setSelectedStep(step);
     setShowStepDetailModal(true);
     setShowCreateAppointmentModal(false);
     setLoadingAppointments(true);
     try {
+      console.log('🔍 Calling getAppointmentsByStepId with stepId:', step.id);
       const response = await treatmentService.getAppointmentsByStepId(step.id);
-      setStepAppointments(response?.data?.result || []);
+      console.log('🔍 Appointments response:', response);
+      console.log('🔍 Appointments response.data:', response?.data);
+      console.log('🔍 Appointments response.data.result:', response?.data?.result);
+      console.log('🔍 Appointments response.data.result.content:', response?.data?.result?.content);
+      console.log('🔍 Appointments response.data.result type:', typeof response?.data?.result);
+      console.log('🔍 Is result array?', Array.isArray(response?.data?.result));
+      console.log('🔍 Is content array?', Array.isArray(response?.data?.result?.content));
+      
+      // Lấy content array từ paginated response
+      const appointments = response?.data?.result?.content || [];
+      console.log('🔍 Final appointments array:', appointments);
+      console.log('🔍 Appointments length:', appointments.length);
+      
+      setStepAppointments(appointments);
     } catch (error) {
+      console.error('❌ Error fetching appointments:', error);
+      console.error('❌ Error details:', error.response?.data);
       setStepAppointments([]);
     } finally {
       setLoadingAppointments(false);
@@ -331,6 +518,34 @@ const TreatmentStageDetails = () => {
     setShowStepDetailModal(false);
     setShowCreateAppointmentModal(true);
     scheduleForm.resetFields();
+  };
+
+  // Helper function to handle appointment status updates
+  const handleAppointmentStatusUpdate = async (appointmentId, newStatus, stepId) => {
+    try {
+      const res = await treatmentService.updateAppointmentStatus(appointmentId, newStatus);
+      if (res?.data?.code === 1000) {
+        showNotification('Cập nhật trạng thái thành công', 'success');
+        
+        // Update local state immediately
+        setStepAppointments(prev =>
+          Array.isArray(prev) ? prev.map(a =>
+            a.id === appointmentId ? { ...a, status: newStatus, showStatusSelect: false } : a
+          ) : []
+        );
+        
+        // Refresh data from server
+        if (stepId) {
+          const refreshed = await treatmentService.getAppointmentsByStepId(stepId);
+          setStepAppointments(refreshed?.data?.result?.content || []);
+        }
+      } else {
+        showNotification(res?.data?.message || 'Cập nhật thất bại', 'error');
+      }
+    } catch (err) {
+      console.error('Error updating appointment status:', err);
+      showNotification('Có lỗi khi cập nhật trạng thái', 'error');
+    }
   };
 
   if (loading) {
@@ -435,79 +650,89 @@ const TreatmentStageDetails = () => {
           </Card>
 
           {/* Timeline */}
-          <Card style={{ 
-            borderRadius: 14, 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            background: '#fff',
-            width: 800,
-            maxWidth: '98vw',
-            minWidth: 320,
-            marginBottom: '24px',
-            padding: '24px 0 8px 0'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '0 16px',
-              marginBottom: 24
-            }}>
-              {treatmentData.treatmentSteps?.map((step, index) => (
-                <div key={step.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Tooltip title={`Bước ${index + 1}: ${step.name}`}>
-                    <div
-                      onClick={() => handleStepClick(step)}
-                      style={{
-                        width: 54,
-                        height: 54,
-                        borderRadius: '50%',
-                        background: `linear-gradient(135deg, ${getStatusColor(step.status)} 0%, ${getStatusColor(step.status)}dd 100%)`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-                        transition: 'all 0.3s ease',
-                        position: 'relative',
-                        border: '3px solid white'
-                      }}
-                    >
-                      <ExperimentOutlined 
-                        style={{ 
-                          fontSize: 22, 
-                          color: 'white',
-                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
-                        }} 
-                      />
-                      <Badge 
-                        count={index + 1} 
-                        style={{ 
-                          position: 'absolute',
-                          top: -8,
-                          right: -8,
-                          backgroundColor: '#1890ff',
-                          color: 'white',
-                          fontSize: 11,
-                          fontWeight: 'bold'
-                        }}
-                      />
+          {(() => {
+            console.log('🎯 Rendering timeline...');
+            console.log('🎯 treatmentData:', treatmentData);
+            console.log('🎯 treatmentSteps:', treatmentData?.treatmentSteps);
+            console.log('🎯 Steps count:', treatmentData?.treatmentSteps?.length || 0);
+            console.log('🎯 Will render timeline?', !!treatmentData?.treatmentSteps?.length);
+            
+            return (
+              <Card style={{ 
+                borderRadius: 14, 
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                background: '#fff',
+                width: 800,
+                maxWidth: '98vw',
+                minWidth: 320,
+                marginBottom: '24px',
+                padding: '24px 0 8px 0'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '0 16px',
+                  marginBottom: 24
+                }}>
+                  {treatmentData.treatmentSteps?.map((step, index) => (
+                    <div key={step.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Tooltip title={`Bước ${index + 1}: ${step.name}`}>
+                        <div
+                          onClick={() => handleStepClick(step)}
+                          style={{
+                            width: 54,
+                            height: 54,
+                            borderRadius: '50%',
+                            background: `linear-gradient(135deg, ${getStatusColor(step.status)} 0%, ${getStatusColor(step.status)}dd 100%)`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                            transition: 'all 0.3s ease',
+                            position: 'relative',
+                            border: '3px solid white'
+                          }}
+                        >
+                          <ExperimentOutlined 
+                            style={{ 
+                              fontSize: 22, 
+                              color: 'white',
+                              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+                            }} 
+                          />
+                          <Badge 
+                            count={index + 1} 
+                            style={{ 
+                              position: 'absolute',
+                              top: -8,
+                              right: -8,
+                              backgroundColor: '#1890ff',
+                              color: 'white',
+                              fontSize: 11,
+                              fontWeight: 'bold'
+                            }}
+                          />
+                        </div>
+                      </Tooltip>
+                      <div style={{ marginTop: 6 }}>
+                        {step.status === 'COMPLETED' && (
+                          <CheckOutlined style={{ color: '#52c41a', fontSize: 16 }} />
+                        )}
+                        {step.status === 'CANCELLED' && (
+                          <CloseOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
+                        )}
+                        {step.status === 'INPROGRESS' && (
+                          <ClockCircleOutlined style={{ color: '#fa8c16', fontSize: 16 }} />
+                        )}
+                      </div>
                     </div>
-                  </Tooltip>
-                  <div style={{ marginTop: 6 }}>
-                    {step.status === 'COMPLETED' && (
-                      <CheckOutlined style={{ color: '#52c41a', fontSize: 16 }} />
-                    )}
-                    {step.status === 'CANCELLED' && (
-                      <CloseOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
-                    )}
-                    {step.status === 'INPROGRESS' && (
-                      <ClockCircleOutlined style={{ color: '#fa8c16', fontSize: 16 }} />
-                    )}
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Card>
+              </Card>
+            );
+          })()}
 
           {/* Complete Treatment Button */}
           {isAllStepsCompleted() && treatmentData.status !== 'COMPLETED' && (
@@ -640,7 +865,7 @@ const TreatmentStageDetails = () => {
                   </div>
                 ) : (
                   <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 0 }}>
-                    {stepAppointments.map((app, idx) => (
+                    {Array.isArray(stepAppointments) && stepAppointments.map((app, idx) => (
                       <Card key={app.id} size="small" style={{
                         marginBottom: 8,
                         background: '#f6faff',
@@ -668,30 +893,17 @@ const TreatmentStageDetails = () => {
                               <Button
                                 type="primary"
                                 style={{ background: '#fa8c16', borderColor: '#fa8c16', color: '#fff' }}
-                                onClick={() => setStepAppointments(prev => prev.map((a, i) => i === idx ? { ...a, showStatusSelect: !a.showStatusSelect } : a))}
+                                onClick={() => setStepAppointments(prev => Array.isArray(prev) ? prev.map((a, i) => i === idx ? { ...a, showStatusSelect: !a.showStatusSelect } : a) : [])}
                               >
                                 Cập nhật trạng thái
                               </Button>
                               {app.showStatusSelect && (
                                 <Select
                                   style={{ width: 160 }}
-                                  value={app.status}
-                                  onChange={async (value) => {
-                                    try {
-                                      const res = await treatmentService.updateAppointmentStatus(app.id, value);
-                                      if (res?.data?.code === 1000) {
-                                        showNotification('Cập nhật trạng thái thành công', 'success');
-                                        const refreshed = await treatmentService.getAppointmentsByStepId(selectedStep.id);
-                                        setStepAppointments(refreshed?.data?.result || []);
-                                      } else {
-                                        showNotification(res?.data?.message || 'Cập nhật thất bại', 'error');
-                                      }
-                                    } catch (err) {
-                                      showNotification('Có lỗi khi cập nhật trạng thái', 'error');
-                                    }
-                                  }}
+                                  value={app.status || undefined}
+                                  onChange={(value) => handleAppointmentStatusUpdate(app.id, value, scheduleStep?.id)}
                                   options={statusOptions}
-                                  dropdownStyle={{ zIndex: 2000 }}
+                                  styles={{ popup: { root: { zIndex: 2000 } } }}
                                 />
                               )}
                             </Space>
@@ -831,7 +1043,7 @@ const TreatmentStageDetails = () => {
             </div>
           ) : (
             <div style={{ maxHeight: 300, overflowY: 'auto', marginBottom: 16 }}>
-              {stepAppointments.map((app, idx) => (
+              {Array.isArray(stepAppointments) && stepAppointments.map((app, idx) => (
                 <Card key={app.id} size="small" style={{ 
                   marginBottom: 8, 
                   background: '#f6faff', 
@@ -859,30 +1071,17 @@ const TreatmentStageDetails = () => {
                         <Button
                           type="primary"
                           style={{ background: '#fa8c16', borderColor: '#fa8c16', color: '#fff' }}
-                          onClick={() => setStepAppointments(prev => prev.map((a, i) => i === idx ? { ...a, showStatusSelect: !a.showStatusSelect } : a))}
+                          onClick={() => setStepAppointments(prev => Array.isArray(prev) ? prev.map((a, i) => i === idx ? { ...a, showStatusSelect: !a.showStatusSelect } : a) : [])}
                         >
                           Cập nhật trạng thái
                         </Button>
                         {app.showStatusSelect && (
                           <Select
                             style={{ width: 160 }}
-                            value={app.status}
-                            onChange={async (value) => {
-                              try {
-                                const res = await treatmentService.updateAppointmentStatus(app.id, value);
-                                if (res?.data?.code === 1000) {
-                                  showNotification('Cập nhật trạng thái thành công', 'success');
-                                  const refreshed = await treatmentService.getAppointmentsByStepId(scheduleStep.id);
-                                  setStepAppointments(refreshed?.data?.result || []);
-                                } else {
-                                  showNotification(res?.data?.message || 'Cập nhật thất bại', 'error');
-                                }
-                              } catch (err) {
-                                showNotification('Có lỗi khi cập nhật trạng thái', 'error');
-                              }
-                            }}
+                            value={app.status || undefined}
+                            onChange={(value) => handleAppointmentStatusUpdate(app.id, value, scheduleStep?.id)}
                             options={statusOptions}
-                            dropdownStyle={{ zIndex: 2000 }}
+                            styles={{ popup: { root: { zIndex: 2000 } } }}
                           />
                         )}
                       </Space>

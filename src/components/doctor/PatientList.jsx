@@ -68,10 +68,35 @@ const PatientList = () => {
           treatmentService.getDoctorAppointmentsByDate(doctorId, today),
           treatmentService.getTreatmentRecordsByDoctor(doctorId),
         ]);
-        const appointments = appointmentsRes?.data?.result || [];
-        const treatmentRecords = Array.isArray(treatmentRecordsRes)
-          ? treatmentRecordsRes
-          : [];
+        
+        // Đảm bảo appointments là array
+        let appointments = [];
+        if (appointmentsRes?.data?.result) {
+          if (Array.isArray(appointmentsRes.data.result)) {
+            appointments = appointmentsRes.data.result;
+          } else if (appointmentsRes.data.result.content && Array.isArray(appointmentsRes.data.result.content)) {
+            appointments = appointmentsRes.data.result.content;
+          } else {
+            console.warn('Appointments data format không đúng:', appointmentsRes.data.result);
+            appointments = [];
+          }
+        }
+        
+        // Đảm bảo treatmentRecords là array
+        let treatmentRecords = [];
+        if (Array.isArray(treatmentRecordsRes)) {
+          treatmentRecords = treatmentRecordsRes;
+        } else if (treatmentRecordsRes?.data?.result) {
+          if (Array.isArray(treatmentRecordsRes.data.result)) {
+            treatmentRecords = treatmentRecordsRes.data.result;
+          } else if (treatmentRecordsRes.data.result.content && Array.isArray(treatmentRecordsRes.data.result.content)) {
+            treatmentRecords = treatmentRecordsRes.data.result.content;
+          }
+        }
+        
+        console.log('📅 Appointments:', appointments);
+        console.log('📋 Treatment Records:', treatmentRecords);
+        
         // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ
         const filtered = appointments.filter((appt) => {
           return treatmentRecords.some(
@@ -82,6 +107,8 @@ const PatientList = () => {
               record.status !== "CANCELLED"
           );
         });
+        
+        console.log('✅ Filtered patients:', filtered);
         setPatients(filtered);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -122,26 +149,49 @@ const PatientList = () => {
 
   const handleDetail = async (record) => {
     try {
+      console.log('🔍 Bắt đầu tìm treatment record cho appointment:', record);
+      
       // Lấy tất cả treatment records của bác sĩ
       const treatmentRecordsResponse = await treatmentService.getAllTreatmentRecordsByDoctor(doctorId);
-      const treatmentRecords = treatmentRecordsResponse?.data?.result || [];
+      const treatmentRecords = treatmentRecordsResponse?.data?.result?.content || treatmentRecordsResponse?.data?.result || [];
       
       console.log('🔍 Tất cả treatment records:', treatmentRecords);
       console.log('📅 Appointment cần tìm:', record);
       
+      // Lọc treatment records theo customer trước
+      const customerTreatmentRecords = treatmentRecords.filter(
+        (r) =>
+          (record.customerId && r.customerId === record.customerId) ||
+          (record.customerName && r.customerName === record.customerName)
+      );
+      
+      console.log('🔍 Treatment records của customer:', customerTreatmentRecords);
+      
       // Tìm treatment record có step khớp với appointment
       let matchedTreatmentRecord = null;
       
-      for (const treatmentRecord of treatmentRecords) {
+      for (const treatmentRecord of customerTreatmentRecords) {
         // Kiểm tra từng step trong treatment record
         if (treatmentRecord.treatmentSteps && Array.isArray(treatmentRecord.treatmentSteps)) {
           const matchingStep = treatmentRecord.treatmentSteps.find(step => {
-            // Khớp theo ngày và tên step
+            // Khớp theo ngày
             const dateMatch = step.scheduledDate === record.appointmentDate;
-            const nameMatch = step.name === record.purpose;
+            
+            // Nếu appointment có purpose/service name thì match theo name
+            const hasPurpose = record.purpose || record.serviceName || record.treatmentServiceName;
+            let nameMatch = false;
+            
+            if (hasPurpose) {
+              nameMatch = step.name === record.purpose || 
+                         step.name === record.serviceName ||
+                         step.name === record.treatmentServiceName;
+            } else {
+              // Nếu không có purpose, chỉ match theo date
+              nameMatch = true;
+            }
             
             console.log(`🔍 Kiểm tra step: ${step.name} (${step.scheduledDate}) vs appointment: ${record.purpose} (${record.appointmentDate})`);
-            console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}`);
+            console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}, Has purpose: ${hasPurpose}`);
             
             return dateMatch && nameMatch;
           });
@@ -152,23 +202,126 @@ const PatientList = () => {
             console.log('✅ Step khớp:', matchingStep);
             break;
           }
+        } else {
+          // Nếu treatment record không có steps, gọi API lấy chi tiết
+          console.log(`⚠️ Treatment record ${treatmentRecord.id} không có treatmentSteps, gọi API lấy chi tiết...`);
+          try {
+            const detailRes = await treatmentService.getTreatmentRecordById(treatmentRecord.id);
+            const detailedRecord = detailRes?.data?.result;
+            
+            if (detailedRecord && detailedRecord.treatmentSteps && Array.isArray(detailedRecord.treatmentSteps)) {
+              console.log(`📋 Treatment record ${treatmentRecord.id} có ${detailedRecord.treatmentSteps.length} steps sau khi gọi API`);
+              
+              const matchingStep = detailedRecord.treatmentSteps.find(step => {
+                // Khớp theo ngày
+                const dateMatch = step.scheduledDate === record.appointmentDate;
+                
+                // Nếu appointment có purpose/service name thì match theo name
+                const hasPurpose = record.purpose || record.serviceName || record.treatmentServiceName;
+                let nameMatch = false;
+                
+                if (hasPurpose) {
+                  nameMatch = step.name === record.purpose || 
+                             step.name === record.serviceName ||
+                             step.name === record.treatmentServiceName;
+                } else {
+                  // Nếu không có purpose, chỉ match theo date
+                  nameMatch = true;
+                }
+                
+                console.log(`🔍 Kiểm tra step: ${step.name} (${step.scheduledDate}) vs appointment: ${record.purpose} (${record.appointmentDate})`);
+                console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}, Has purpose: ${hasPurpose}`);
+                
+                return dateMatch && nameMatch;
+              });
+              
+              if (matchingStep) {
+                matchedTreatmentRecord = detailedRecord;
+                console.log('✅ Tìm thấy treatment record khớp:', matchedTreatmentRecord);
+                console.log('✅ Step khớp:', matchingStep);
+                break;
+              }
+            }
+          } catch (error) {
+            console.error(`❌ Lỗi khi gọi API lấy chi tiết treatment record ${treatmentRecord.id}:`, error);
+          }
         }
       }
       
       // Nếu không tìm thấy theo step, tìm theo customer và service (fallback)
       if (!matchedTreatmentRecord) {
         console.log('⚠️ Không tìm thấy theo step, tìm theo customer và service...');
-        matchedTreatmentRecord = treatmentRecords.find(
-          (r) =>
-            (r.customerId === record.customerId ||
-              r.customerName === record.customerName) &&
-            r.status !== "PENDING" &&
-            r.status !== "CANCELLED" &&
-            (r.purpose === record.purpose ||
-             r.serviceName === record.serviceName ||
-             r.treatmentServiceName === record.purpose ||
-             r.treatmentServiceName === record.serviceName)
-        );
+        
+        if (customerTreatmentRecords.length > 0) {
+          // Nếu có nhiều records, cần logic phân biệt
+          if (customerTreatmentRecords.length === 1) {
+            // Chỉ có 1 record → dùng luôn
+            matchedTreatmentRecord = customerTreatmentRecords[0];
+            console.log('✅ Chỉ có 1 treatment record cho customer, dùng luôn:', matchedTreatmentRecord);
+          } else {
+            // Có nhiều records → cần logic phân biệt
+            console.log('⚠️ Có nhiều treatment records cho customer, cần logic phân biệt...');
+            
+            // Thử tìm theo service name nếu có
+            if (record.purpose || record.serviceName || record.treatmentServiceName) {
+              const serviceMatch = customerTreatmentRecords.find(r =>
+                r.purpose === record.purpose ||
+                r.serviceName === record.serviceName ||
+                r.treatmentServiceName === record.purpose ||
+                r.treatmentServiceName === record.serviceName
+              );
+              
+              if (serviceMatch) {
+                matchedTreatmentRecord = serviceMatch;
+                console.log('✅ Tìm thấy theo service match:', matchedTreatmentRecord);
+              }
+            }
+            
+            // Nếu vẫn không tìm thấy, thử logic phân biệt thông minh
+            if (!matchedTreatmentRecord) {
+              console.log('🔍 Thử logic phân biệt thông minh...');
+              
+              // 1. Thử tìm theo ngày gần nhất với appointment date
+              const appointmentDate = new Date(record.appointmentDate);
+              const sortedByDate = customerTreatmentRecords.sort((a, b) => {
+                const dateA = new Date(a.startDate || a.createdDate);
+                const dateB = new Date(b.startDate || b.createdDate);
+                const diffA = Math.abs(dateA - appointmentDate);
+                const diffB = Math.abs(dateB - appointmentDate);
+                return diffA - diffB;
+              });
+              
+              console.log('📅 Sắp xếp theo ngày gần nhất:', sortedByDate.map(r => ({ id: r.id, startDate: r.startDate, createdDate: r.createdDate })));
+              
+              // 2. Thử tìm theo status (ưu tiên INPROGRESS > CONFIRMED > COMPLETED)
+              const statusPriority = ['INPROGRESS', 'CONFIRMED', 'COMPLETED', 'PLANNED'];
+              let statusMatch = null;
+              
+              for (const status of statusPriority) {
+                statusMatch = customerTreatmentRecords.find(r => r.status === status);
+                if (statusMatch) {
+                  console.log(`✅ Tìm thấy theo status ${status}:`, statusMatch);
+                  break;
+                }
+              }
+              
+              // 3. Quyết định cuối cùng
+              if (statusMatch) {
+                matchedTreatmentRecord = statusMatch;
+                console.log('✅ Chọn theo status priority:', matchedTreatmentRecord);
+              } else if (sortedByDate.length > 0) {
+                matchedTreatmentRecord = sortedByDate[0];
+                console.log('✅ Chọn theo ngày gần nhất:', matchedTreatmentRecord);
+              } else {
+                // Cuối cùng mới báo lỗi
+                message.error(
+                  `Bệnh nhân ${record.customerName} có ${customerTreatmentRecords.length} hồ sơ điều trị. Không thể xác định hồ sơ nào tương ứng với lịch hẹn này!`
+                );
+                return;
+              }
+            }
+          }
+        }
       }
       
       console.log('🎯 Treatment record cuối cùng:', matchedTreatmentRecord);
@@ -256,11 +409,19 @@ const PatientList = () => {
     {
       title: "Dịch vụ",
       key: "serviceName",
-      render: (record) => (
-        <Tag color="purple">
-          {record.purpose || record.serviceName || "Chưa có"}
-        </Tag>
-      ),
+      render: (record) => {
+        // Hiển thị dịch vụ theo thứ tự ưu tiên
+        const serviceName = record.purpose || 
+                           record.serviceName || 
+                           record.treatmentServiceName ||
+                           record.treatmentService?.name ||
+                           "Chưa có";
+        return (
+          <Tag color="purple">
+            {serviceName}
+          </Tag>
+        );
+      },
     },
     {
       title: "Thao tác",
@@ -370,6 +531,7 @@ const PatientList = () => {
           </Button>,
         ]}
         width={800}
+        destroyOnHidden
       >
         {selectedPatient && (
           <Descriptions column={2} bordered>

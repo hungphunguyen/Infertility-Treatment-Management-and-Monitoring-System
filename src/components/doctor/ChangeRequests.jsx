@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Card, Table, Button, Tag, Modal, Input, message, Spin, Space, Typography, Descriptions } from 'antd';
-import { doctorService } from '../../service/doctor.service';
+import { treatmentService } from '../../service/treatment.service';
 import { authService } from '../../service/auth.service';
 import dayjs from 'dayjs';
 import { UserOutlined, CalendarOutlined, SyncOutlined, CheckCircleOutlined, CloseCircleOutlined, EditOutlined } from '@ant-design/icons';
@@ -36,10 +36,19 @@ const ChangeRequests = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await doctorService.getAppointmentsWithPendingChange(doctorId);
-      setRequests(res.data.result || []);
+      // Sử dụng API với fallback logic đã được thêm vào service
+      const res = await treatmentService.getDoctorChangeRequests(doctorId);
+      
+      if (res?.data?.result?.content) {
+        setRequests(res.data.result.content);
+      } else if (res?.data?.result) {
+        setRequests(res.data.result);
+      } else {
+        setRequests([]);
+      }
     } catch (err) {
       showNotification('Không thể tải yêu cầu đổi lịch!', 'error');
+      setRequests([]);
     } finally {
       setLoading(false);
     }
@@ -49,7 +58,8 @@ const ChangeRequests = () => {
     if (!selected) return;
     setActionLoading(true);
     try {
-      await doctorService.confirmAppointmentChange(selected.id, { status, notes });
+      // Sử dụng API với fallback logic đã được thêm vào service
+      await treatmentService.confirmAppointmentChange(selected.id, { status, notes });
       showNotification(status === 'CONFIRMED' ? 'Đã duyệt yêu cầu!' : 'Đã từ chối yêu cầu!', 'success');
       setModalVisible(false);
       fetchRequests();
@@ -142,6 +152,7 @@ const ChangeRequests = () => {
           onCancel={() => setModalVisible(false)}
           footer={null}
           centered
+          destroyOnHidden
         >
           {selected && (
             <div style={{ padding: 8 }}>

@@ -98,7 +98,7 @@ const ServicesPage = () => {
                     <Card
                       className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 cursor-pointer border-0 hover:scale-105"
                       onClick={() => navigate(`/service-detail/${service.id}`)}
-                      bodyStyle={{ padding: 0 }}
+                      styles={{ body: { padding: 0 } }}
                     >
                       <div className="relative overflow-hidden w-full h-72">
                         {service.coverImageUrl ? (
