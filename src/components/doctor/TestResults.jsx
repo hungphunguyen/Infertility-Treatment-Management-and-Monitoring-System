@@ -57,43 +57,49 @@ const TestResults = () => {
 
     const fetchRecords = async () => {
       try {
-        const result = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
+        // Sử dụng API mới v1/treatment-records
+        const result = await treatmentService.getTreatmentRecords({
+          doctorId: doctorId,
+          page: 0,
+          size: 100
+        });
         
-        // Đảm bảo result là array
+        console.log('📋 Treatment Records API response:', result);
+        
+        // Đảm bảo result là array từ content
         let treatmentRecords = [];
-        if (Array.isArray(result)) {
+        if (result?.data?.result?.content) {
+          treatmentRecords = result.data.result.content;
+        } else if (Array.isArray(result?.data?.result)) {
+          treatmentRecords = result.data.result;
+        } else if (Array.isArray(result)) {
           treatmentRecords = result;
-        } else if (result?.data?.result) {
-          if (Array.isArray(result.data.result)) {
-            treatmentRecords = result.data.result;
-          } else if (result.data.result.content && Array.isArray(result.data.result.content)) {
-            treatmentRecords = result.data.result.content;
-          }
         }
         
-        console.log('📋 Treatment Records from API:', treatmentRecords);
+        console.log('📋 Processed Treatment Records:', treatmentRecords);
         
         if (treatmentRecords && treatmentRecords.length > 0) {
-          // Nhóm các records theo customerId
+          // Nhóm các records theo customerName thay vì customerId
           const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
-            if (!acc[record.customerId]) {
-              acc[record.customerId] = [];
+            const customerName = record.customerName;
+            if (!acc[customerName]) {
+              acc[customerName] = [];
             }
-            acc[record.customerId].push(record);
+            acc[customerName].push(record);
             return acc;
           }, {});
 
           // Chuyển đổi thành mảng và sắp xếp
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
-            // Sắp xếp treatments theo ngày tạo mới nhất
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerName, treatments]) => {
+            // Sắp xếp treatments theo ngày bắt đầu mới nhất
             const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.createdDate) - new Date(a.createdDate)
+              new Date(b.startDate) - new Date(a.startDate)
             );
             
             return {
-              key: customerId,
-              customerId: customerId,
-              customerName: sortedTreatments[0].customerName,
+              key: customerName, // Sử dụng customerName làm key
+              customerId: sortedTreatments[0].customerId, // Lấy customerId từ treatment đầu tiên
+              customerName: customerName,
               treatments: sortedTreatments.map(treatment => ({
                 ...treatment,
                 key: treatment.id
@@ -151,26 +157,34 @@ const TestResults = () => {
           message: "Duyệt hồ sơ thành công!",
           description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã chuyển sang trạng thái 'Đang điều trị'.`,
         });
-        // Refresh the list
-        const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (updatedRecords) {
-          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
-            if (!acc[record.customerId]) {
-              acc[record.customerId] = [];
+        // Refresh the list using new API
+        const updatedRecords = await treatmentService.getTreatmentRecords({
+          doctorId: doctorId,
+          page: 0,
+          size: 100
+        });
+        
+        if (updatedRecords?.data?.result?.content) {
+          const treatmentRecords = updatedRecords.data.result.content;
+          
+          const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
+            const customerName = record.customerName;
+            if (!acc[customerName]) {
+              acc[customerName] = [];
             }
-            acc[record.customerId].push(record);
+            acc[customerName].push(record);
             return acc;
           }, {});
 
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerName, treatments]) => {
             const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.createdDate) - new Date(a.createdDate)
+              new Date(b.startDate) - new Date(a.startDate)
             );
             
             return {
-              key: customerId,
-              customerId: customerId,
-              customerName: sortedTreatments[0].customerName,
+              key: customerName,
+              customerId: sortedTreatments[0].customerId,
+              customerName: customerName,
               treatments: sortedTreatments.map(treatment => ({
                 ...treatment,
                 key: treatment.id
@@ -202,26 +216,34 @@ const TestResults = () => {
           message: "Hủy hồ sơ thành công!",
           description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã được hủy.`,
         });
-        // Refresh the list
-        const updatedRecords = await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-        if (updatedRecords) {
-          const groupedByCustomer = updatedRecords.reduce((acc, record) => {
-            if (!acc[record.customerId]) {
-              acc[record.customerId] = [];
+        // Refresh the list using new API
+        const updatedRecords = await treatmentService.getTreatmentRecords({
+          doctorId: doctorId,
+          page: 0,
+          size: 100
+        });
+        
+        if (updatedRecords?.data?.result?.content) {
+          const treatmentRecords = updatedRecords.data.result.content;
+          
+          const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
+            const customerName = record.customerName;
+            if (!acc[customerName]) {
+              acc[customerName] = [];
             }
-            acc[record.customerId].push(record);
+            acc[customerName].push(record);
             return acc;
           }, {});
 
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
+          const formattedRecords = Object.entries(groupedByCustomer).map(([customerName, treatments]) => {
             const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.createdDate) - new Date(a.createdDate)
+              new Date(b.startDate) - new Date(a.startDate)
             );
             
             return {
-              key: customerId,
-              customerId: customerId,
-              customerName: sortedTreatments[0].customerName,
+              key: customerName,
+              customerId: sortedTreatments[0].customerId,
+              customerName: customerName,
               treatments: sortedTreatments.map(treatment => ({
                 ...treatment,
                 key: treatment.id
@@ -249,8 +271,8 @@ const TestResults = () => {
     const columns = [
       {
         title: 'Dịch vụ',
-        dataIndex: 'treatmentServiceName',
-        key: 'treatmentServiceName',
+        dataIndex: 'serviceName',
+        key: 'serviceName',
         render: (text) => (
           <Space>
             <MedicineBoxOutlined style={{ color: '#722ed1' }} />
@@ -266,6 +288,17 @@ const TestResults = () => {
           <Space>
             <CalendarOutlined />
             {dayjs(date).format("DD/MM/YYYY")}
+          </Space>
+        )
+      },
+      {
+        title: 'Tiến độ',
+        key: 'progress',
+        render: (_, treatment) => (
+          <Space>
+            <Text type="secondary">
+              {treatment.completedSteps}/{treatment.totalSteps} bước
+            </Text>
           </Space>
         )
       },

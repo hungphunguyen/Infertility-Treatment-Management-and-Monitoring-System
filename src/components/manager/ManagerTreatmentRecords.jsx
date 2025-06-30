@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { 
   Card, Table, Button, Space, Tag, Modal, Descriptions, 
-  Row, Col, Input, Select, Typography, notification, Spin
+  Row, Col, Input, Select, Typography, notification, Spin,
+  Collapse, Statistic
 } from "antd";
 import {
   UserOutlined, EyeOutlined, DownOutlined, UpOutlined,
   CalendarOutlined, FileTextOutlined, MedicineBoxOutlined,
-  CheckOutlined, CloseOutlined, UserAddOutlined
+  CheckOutlined, CloseOutlined, UserAddOutlined,
+  TeamOutlined, CheckCircleOutlined, ClockCircleOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { useNavigate } from "react-router-dom";
-import { http } from "../../service/config";
 
 const { Search } = Input;
 const { Option } = Select;
 const { Title, Text } = Typography;
+const { Panel } = Collapse;
 
 const ManagerTreatmentRecords = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -26,6 +28,12 @@ const ManagerTreatmentRecords = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [expandedRows, setExpandedRows] = useState([]);
+  const [stats, setStats] = useState({
+    totalRecords: 0,
+    pendingRecords: 0,
+    inProgressRecords: 0,
+    completedRecords: 0
+  });
 
   useEffect(() => {
     fetchRecords();
@@ -34,28 +42,63 @@ const ManagerTreatmentRecords = () => {
   const fetchRecords = async () => {
     try {
       setLoading(true);
-      const response = await treatmentService.getTreatmentRecordsForManager();
-      if (response?.data?.code === 1000 && Array.isArray(response.data.result)) {
-        // Nhóm các records theo customerId
-        const groupedByCustomer = response.data.result.reduce((acc, record) => {
-          if (!acc[record.customerId]) {
-            acc[record.customerId] = [];
+      
+      // Sử dụng API mới v1/treatment-records với fallback
+      let treatmentRecords = [];
+      try {
+        const result = await treatmentService.getTreatmentRecords({
+          page: 0,
+          size: 1000
+        });
+        
+        console.log('📋 Treatment Records API response:', result);
+        
+        // Đảm bảo result là array từ content
+        if (result?.data?.result?.content) {
+          treatmentRecords = result.data.result.content;
+        } else if (Array.isArray(result?.data?.result)) {
+          treatmentRecords = result.data.result;
+        } else if (Array.isArray(result)) {
+          treatmentRecords = result;
+        }
+      } catch (error) {
+        console.warn('API mới không hoạt động, thử API cũ:', error);
+        // Fallback to old API
+        try {
+          const response = await treatmentService.getTreatmentRecordsForManager();
+          if (response?.data?.code === 1000 && Array.isArray(response.data.result)) {
+            treatmentRecords = response.data.result;
           }
-          acc[record.customerId].push(record);
+        } catch (fallbackError) {
+          console.error('Cả 2 API đều fail:', fallbackError);
+          treatmentRecords = [];
+        }
+      }
+      
+      console.log('📋 Processed Treatment Records:', treatmentRecords);
+      
+      if (treatmentRecords && treatmentRecords.length > 0) {
+        // Nhóm các records theo customerName thay vì customerId
+        const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
+          const customerName = record.customerName;
+          if (!acc[customerName]) {
+            acc[customerName] = [];
+          }
+          acc[customerName].push(record);
           return acc;
         }, {});
 
         // Chuyển đổi thành mảng và sắp xếp
-        const formattedRecords = Object.entries(groupedByCustomer).map(([customerId, treatments]) => {
-          // Sắp xếp treatments theo ngày tạo mới nhất
+        const formattedRecords = Object.entries(groupedByCustomer).map(([customerName, treatments]) => {
+          // Sắp xếp treatments theo ngày bắt đầu mới nhất
           const sortedTreatments = treatments.sort((a, b) => 
-            new Date(b.createdDate) - new Date(a.createdDate)
+            new Date(b.startDate || b.createdDate) - new Date(a.startDate || a.createdDate)
           );
           
           return {
-            key: customerId,
-            customerId: customerId,
-            customerName: sortedTreatments[0].customerName,
+            key: customerName, // Sử dụng customerName làm key
+            customerId: sortedTreatments[0].customerId, // Lấy customerId từ treatment đầu tiên
+            customerName: customerName,
             treatments: sortedTreatments.map(treatment => ({
               ...treatment,
               key: treatment.id
@@ -63,12 +106,33 @@ const ManagerTreatmentRecords = () => {
           };
         });
 
+        console.log('✅ Formatted Records:', formattedRecords);
         setRecords(formattedRecords);
+
+        // Calculate statistics
+        const totalRecords = treatmentRecords.length;
+        const pendingRecords = treatmentRecords.filter(r => r.status === 'PENDING').length;
+        const inProgressRecords = treatmentRecords.filter(r => r.status === 'INPROGRESS').length;
+        const completedRecords = treatmentRecords.filter(r => r.status === 'COMPLETED').length;
+
+        setStats({
+          totalRecords,
+          pendingRecords,
+          inProgressRecords,
+          completedRecords
+        });
       } else {
+        console.log('⚠️ No treatment records found');
         setRecords([]);
+        setStats({
+          totalRecords: 0,
+          pendingRecords: 0,
+          inProgressRecords: 0,
+          completedRecords: 0
+        });
       }
     } catch (error) {
-      console.error("Error fetching records:", error);
+      console.error('❌ Error fetching records:', error);
       notification.error({
         message: "Lỗi",
         description: "Không thể lấy danh sách điều trị"
@@ -104,7 +168,7 @@ const ManagerTreatmentRecords = () => {
 
   const handleApprove = async (treatment) => {
     try {
-      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "INPROGRESS");
+      const response = await treatmentService.updateTreatmentStatus(treatment.id, "INPROGRESS");
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Duyệt hồ sơ thành công!",
@@ -128,7 +192,7 @@ const ManagerTreatmentRecords = () => {
 
   const handleCancel = async (treatment) => {
     try {
-      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "CANCELLED");
+      const response = await treatmentService.updateTreatmentStatus(treatment.id, "CANCELLED");
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Hủy hồ sơ thành công!",
@@ -198,27 +262,26 @@ const ManagerTreatmentRecords = () => {
           <Space>
             <Button
               type="primary"
-              size="small"
               icon={<EyeOutlined />}
+              size="small"
               onClick={() => viewRecord(treatment)}
             >
               Xem chi tiết
             </Button>
-            {treatment.status === "PENDING" && (
+            {treatment.status === 'PENDING' && (
               <>
                 <Button
                   type="primary"
-                  size="small"
                   icon={<CheckOutlined />}
+                  size="small"
                   onClick={() => handleApprove(treatment)}
-                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
                 >
                   Duyệt
                 </Button>
                 <Button
                   danger
-                  size="small"
                   icon={<CloseOutlined />}
+                  size="small"
                   onClick={() => handleCancel(treatment)}
                 >
                   Hủy
@@ -231,111 +294,246 @@ const ManagerTreatmentRecords = () => {
     ];
 
     return (
-      <Card bordered={false} style={{ marginBottom: 16 }}>
-        <Table
-          columns={columns}
-          dataSource={record.treatments}
-          pagination={false}
-          size="small"
-        />
-      </Card>
+      <Table
+        columns={columns}
+        dataSource={record.treatments}
+        pagination={false}
+        size="small"
+      />
     );
   };
 
   const columns = [
     {
-      title: "Bệnh nhân",
-      dataIndex: "customerName",
-      key: "customerName",
-      render: (name) => (
+      title: 'Bệnh nhân',
+      dataIndex: 'customerName',
+      key: 'customerName',
+      render: (text) => (
         <Space>
           <UserOutlined style={{ color: '#1890ff' }} />
-          <Text strong>{name}</Text>
+          <Text strong>{text}</Text>
         </Space>
       )
     },
     {
-      title: "Số dịch vụ",
-      key: "treatmentCount",
-      render: (_, record) => (
-        <Tag color="blue">{record.treatments.length} dịch vụ</Tag>
+      title: 'Số hồ sơ',
+      dataIndex: 'treatments',
+      key: 'treatmentCount',
+      render: (treatments) => (
+        <Tag color="blue">{treatments.length}</Tag>
       )
     },
     {
-      title: "Chi tiết",
-      key: "expand",
+      title: 'Hồ sơ mới nhất',
+      dataIndex: 'treatments',
+      key: 'latestTreatment',
+      render: (treatments) => {
+        const latest = treatments[0];
+        return (
+          <Space direction="vertical" size="small">
+            <Text strong>{latest.treatmentServiceName}</Text>
+            <Text type="secondary">{latest.doctorName}</Text>
+            <Text type="secondary">{dayjs(latest.startDate || latest.createdDate).format("DD/MM/YYYY")}</Text>
+          </Space>
+        );
+      }
+    },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'treatments',
+      key: 'status',
+      render: (treatments) => {
+        const latest = treatments[0];
+        return getStatusTag(latest.status);
+      }
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
       render: (_, record) => (
-        <Button
-          type="text"
-          icon={expandedRows.includes(record.key) ? <UpOutlined /> : <DownOutlined />}
-          onClick={() => {
-            const newExpandedRows = expandedRows.includes(record.key)
-              ? expandedRows.filter(key => key !== record.key)
-              : [...expandedRows, record.key];
-            setExpandedRows(newExpandedRows);
-          }}
-        >
-          {expandedRows.includes(record.key) ? 'Thu gọn' : 'Xem thêm'}
-        </Button>
+        <Space>
+          <Button
+            type="primary"
+            icon={<EyeOutlined />}
+            onClick={() => viewRecord(record.treatments[0])}
+          >
+            Xem chi tiết
+          </Button>
+          <Button
+            icon={expandedRows.includes(record.key) ? <UpOutlined /> : <DownOutlined />}
+            onClick={() => {
+              if (expandedRows.includes(record.key)) {
+                setExpandedRows(expandedRows.filter(key => key !== record.key));
+              } else {
+                setExpandedRows([...expandedRows, record.key]);
+              }
+            }}
+          >
+            {expandedRows.includes(record.key) ? 'Thu gọn' : 'Mở rộng'}
+          </Button>
+        </Space>
       )
     }
   ];
 
+  const filteredRecords = records.filter(record => {
+    const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase());
+    const matchesStatus = statusFilter === "all" || 
+      record.treatments.some(treatment => treatment.status === statusFilter);
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: "24px" }}>
+      {/* Statistics Section */}
+      <Row gutter={24} style={{ marginBottom: 24 }}>
+        <Col span={6}>
+          <Card
+            variant="bordered"
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
+            <Statistic
+              title={
+                <span style={{ color: "#1890ff", fontWeight: 600 }}>
+                  Tổng hồ sơ điều trị
+                </span>
+              }
+              value={stats.totalRecords}
+              prefix={<FileTextOutlined style={{ color: "#1890ff" }} />}
+              valueStyle={{ fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card
+            variant="bordered"
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
+            <Statistic
+              title={
+                <span style={{ color: "#faad14", fontWeight: 600 }}>
+                  Chờ xử lý
+                </span>
+              }
+              value={stats.pendingRecords}
+              prefix={<ClockCircleOutlined style={{ color: "#faad14" }} />}
+              valueStyle={{ fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card
+            variant="bordered"
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
+            <Statistic
+              title={
+                <span style={{ color: "#1890ff", fontWeight: 600 }}>
+                  Đang điều trị
+                </span>
+              }
+              value={stats.inProgressRecords}
+              prefix={<TeamOutlined style={{ color: "#1890ff" }} />}
+              valueStyle={{ fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card
+            variant="bordered"
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+            }}
+          >
+            <Statistic
+              title={
+                <span style={{ color: "#52c41a", fontWeight: 600 }}>
+                  Hoàn thành
+                </span>
+              }
+              value={stats.completedRecords}
+              prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
+              valueStyle={{ fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
       <Card>
-        <Title level={3}>
+        <Title level={4}>
           <Space>
             <FileTextOutlined />
             Quản lý hồ sơ điều trị
           </Space>
         </Title>
 
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={12} md={8}>
-            <Search
-              placeholder="Tìm kiếm theo tên bệnh nhân"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: '100%' }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8}>
-            <Select
-              style={{ width: '100%' }}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="Lọc theo trạng thái"
-            >
-              <Option value="all">Tất cả trạng thái</Option>
-              <Option value="PENDING">Đang chờ xử lý</Option>
-              <Option value="INPROGRESS">Đang điều trị</Option>
-              <Option value="COMPLETED">Hoàn thành</Option>
-              <Option value="CANCELLED">Đã hủy</Option>
-            </Select>
-          </Col>
-        </Row>
+        <Space style={{ marginBottom: 16 }}>
+          <Search
+            placeholder="Tìm kiếm theo tên bệnh nhân..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: 300 }}
+          />
+          <Select
+            style={{ width: 150 }}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: "all", label: "Tất cả trạng thái" },
+              { value: "PENDING", label: "Chờ xử lý" },
+              { value: "INPROGRESS", label: "Đang điều trị" },
+              { value: "COMPLETED", label: "Hoàn thành" },
+              { value: "CANCELLED", label: "Đã hủy" },
+            ]}
+          />
+          <Button
+            onClick={() => {
+              setSearchText("");
+              setStatusFilter("all");
+            }}
+          >
+            Đặt lại
+          </Button>
+          <Button
+            type="primary"
+            onClick={fetchRecords}
+            icon={<FileTextOutlined />}
+          >
+            Làm mới
+          </Button>
+        </Space>
 
         <Spin spinning={loading}>
           <Table
-            dataSource={records.filter(record => {
-              const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase());
-              const matchesStatus = statusFilter === 'all' || 
-                record.treatments.some(t => t.status === statusFilter);
-              return matchesSearch && matchesStatus;
-            })}
             columns={columns}
+            dataSource={filteredRecords}
             expandable={{
               expandedRowRender,
               expandedRowKeys: expandedRows,
               onExpand: (expanded, record) => {
-                const newExpandedRows = expanded
-                  ? [...expandedRows, record.key]
-                  : expandedRows.filter(key => key !== record.key);
-                setExpandedRows(newExpandedRows);
+                if (expanded) {
+                  setExpandedRows([...expandedRows, record.key]);
+                } else {
+                  setExpandedRows(expandedRows.filter(key => key !== record.key));
+                }
               }
             }}
-            pagination={{ pageSize: 10 }}
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Tổng số ${total} bệnh nhân`,
+            }}
           />
         </Spin>
       </Card>

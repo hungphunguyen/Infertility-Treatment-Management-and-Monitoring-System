@@ -105,7 +105,7 @@ export const blogService = {
   // Cập nhật trạng thái blog
   updateBlogStatus: async (id, data) => {
     try {
-      const response = await http.post(`v1/blogs/${id}/updateStatus`, data, {
+      const response = await http.put(`v1/blogs/${id}/updateStatus`, data, {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
@@ -154,7 +154,7 @@ export const blogService = {
   // Ẩn blog
   hideBlog: async (id) => {
     try {
-      const response = await http.post(`v1/blogs/${id}/hidden`);
+      const response = await http.put(`v1/blogs/${id}/hidden`);
       return response;
     } catch (error) {
       console.error("Error hiding blog:", error);

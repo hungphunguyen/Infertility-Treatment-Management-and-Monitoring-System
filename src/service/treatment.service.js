@@ -568,22 +568,13 @@ export const treatmentService = {
     }
   },
 
+  // Xác nhận thay đổi lịch hẹn - API mới
   confirmAppointmentChange: async (appointmentId, data) => {
     try {
       // Thử API mới trước
       try {
-        const response = await http.put(`v1/appointments/${appointmentId}/status`, data, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
-        return response;
-      } catch (newApiError) {
-        console.warn('API mới không hoạt động, thử API cũ:', newApiError);
-        // Fallback to old API
-        const oldResponse = await http.put(
-          `/appointments/confirm-appointment/${appointmentId}`,
+        const response = await http.put(
+          `v1/appointments/${appointmentId}/status`,
           data,
           {
             headers: {
@@ -592,10 +583,26 @@ export const treatmentService = {
             },
           }
         );
+        console.log('✅ New API success:', response);
+        return response;
+      } catch (newApiError) {
+        console.warn('❌ New API failed, trying old API:', newApiError);
+        // Fallback to old API
+        const oldResponse = await http.put(
+          `appointments/confirm-appointment/${appointmentId}`,
+          data,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
+        console.log('✅ Old API success:', oldResponse);
         return oldResponse;
       }
     } catch (error) {
-      console.error("Error confirming appointment change:", error);
+      console.error("❌ Error confirming appointment change:", error);
       throw error;
     }
   },
@@ -653,16 +660,13 @@ export const treatmentService = {
   getTreatmentRecords: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.customerId) queryParams.append('customerId', params.customerId);
       if (params.doctorId) queryParams.append('doctorId', params.doctorId);
       if (params.status) queryParams.append('status', params.status);
       if (params.page !== undefined) queryParams.append('page', params.page);
       if (params.size !== undefined) queryParams.append('size', params.size);
-
       // Thử API mới trước
       const url = `v1/treatment-records?${queryParams.toString()}`;
-      
       try {
         const response = await http.get(url);
         return response;
@@ -719,7 +723,6 @@ export const treatmentService = {
   getAppointments: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.stepId) queryParams.append('stepId', params.stepId);
       if (params.customerId) queryParams.append('customerId', params.customerId);
       if (params.doctorId) queryParams.append('doctorId', params.doctorId);
@@ -727,7 +730,6 @@ export const treatmentService = {
       if (params.status) queryParams.append('status', params.status);
       if (params.page !== undefined) queryParams.append('page', params.page);
       if (params.size !== undefined) queryParams.append('size', params.size);
-
       const url = `v1/appointments?${queryParams.toString()}`;
       const response = await http.get(url);
       return response;
@@ -759,12 +761,10 @@ export const treatmentService = {
   getTreatmentServices: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page !== undefined) queryParams.append('page', params.page);
       if (params.size !== undefined) queryParams.append('size', params.size);
       if (params.name) queryParams.append('name', params.name);
       if (params.typeId) queryParams.append('typeId', params.typeId);
-
       const url = `v1/treatment-services?${queryParams.toString()}`;
       const response = await http.get(url);
       return response;
@@ -778,11 +778,9 @@ export const treatmentService = {
   getTreatmentTypes: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params.page !== undefined) queryParams.append('page', params.page);
       if (params.size !== undefined) queryParams.append('size', params.size);
       if (params.name) queryParams.append('name', params.name);
-
       const url = `v1/treatment-types?${queryParams.toString()}`;
       const response = await http.get(url);
       return response;
@@ -855,7 +853,7 @@ export const treatmentService = {
     }
   },
 
-  // Lấy work schedule của doctor - API mới
+  // Lấy lịch làm việc của bác sĩ - API mới
   getDoctorWorkSchedule: async (doctorId, date) => {
     try {
       const response = await http.get(`v1/doctors/${doctorId}/work-schedule?date=${date}`);
@@ -865,4 +863,26 @@ export const treatmentService = {
       throw error;
     }
   },
+
+  // Lấy thống kê tổng quan lịch làm việc của bác sĩ hôm nay (manager dashboard)
+  getManagerWorkScheduleStatistics: async () => {
+    try {
+      const response = await http.get('v1/dashboard/manager/work-schedules/statistics');
+      return response;
+    } catch (error) {
+      console.error('Error fetching manager work schedule statistics:', error);
+      throw error;
+    }
+  },
+
+  // Lấy danh sách bác sĩ làm việc hôm nay (manager dashboard)
+  getManagerDoctorsToday: async () => {
+    try {
+      const response = await http.get('v1/dashboard/manager/work-schedules/doctor-today');
+      return response;
+    } catch (error) {
+      console.error('Error fetching manager doctors today:', error);
+      throw error;
+    }
+  }
 };

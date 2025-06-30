@@ -149,210 +149,28 @@ const PatientList = () => {
 
   const handleDetail = async (record) => {
     try {
-      console.log('🔍 Bắt đầu tìm treatment record cho appointment:', record);
-      
-      // Lấy tất cả treatment records của bác sĩ
-      const treatmentRecordsResponse = await treatmentService.getAllTreatmentRecordsByDoctor(doctorId);
-      const treatmentRecords = treatmentRecordsResponse?.data?.result?.content || treatmentRecordsResponse?.data?.result || [];
-      
-      console.log('🔍 Tất cả treatment records:', treatmentRecords);
-      console.log('📅 Appointment cần tìm:', record);
-      
-      // Lọc treatment records theo customer trước
-      const customerTreatmentRecords = treatmentRecords.filter(
-        (r) =>
-          (record.customerId && r.customerId === record.customerId) ||
-          (record.customerName && r.customerName === record.customerName)
-      );
-      
-      console.log('🔍 Treatment records của customer:', customerTreatmentRecords);
-      
-      // Tìm treatment record có step khớp với appointment
-      let matchedTreatmentRecord = null;
-      
-      for (const treatmentRecord of customerTreatmentRecords) {
-        // Kiểm tra từng step trong treatment record
-        if (treatmentRecord.treatmentSteps && Array.isArray(treatmentRecord.treatmentSteps)) {
-          const matchingStep = treatmentRecord.treatmentSteps.find(step => {
-            // Khớp theo ngày
-            const dateMatch = step.scheduledDate === record.appointmentDate;
-            
-            // Nếu appointment có purpose/service name thì match theo name
-            const hasPurpose = record.purpose || record.serviceName || record.treatmentServiceName;
-            let nameMatch = false;
-            
-            if (hasPurpose) {
-              nameMatch = step.name === record.purpose || 
-                         step.name === record.serviceName ||
-                         step.name === record.treatmentServiceName;
-            } else {
-              // Nếu không có purpose, chỉ match theo date
-              nameMatch = true;
-            }
-            
-            console.log(`🔍 Kiểm tra step: ${step.name} (${step.scheduledDate}) vs appointment: ${record.purpose} (${record.appointmentDate})`);
-            console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}, Has purpose: ${hasPurpose}`);
-            
-            return dateMatch && nameMatch;
-          });
-          
-          if (matchingStep) {
-            matchedTreatmentRecord = treatmentRecord;
-            console.log('✅ Tìm thấy treatment record khớp:', matchedTreatmentRecord);
-            console.log('✅ Step khớp:', matchingStep);
-            break;
-          }
-        } else {
-          // Nếu treatment record không có steps, gọi API lấy chi tiết
-          console.log(`⚠️ Treatment record ${treatmentRecord.id} không có treatmentSteps, gọi API lấy chi tiết...`);
-          try {
-            const detailRes = await treatmentService.getTreatmentRecordById(treatmentRecord.id);
-            const detailedRecord = detailRes?.data?.result;
-            
-            if (detailedRecord && detailedRecord.treatmentSteps && Array.isArray(detailedRecord.treatmentSteps)) {
-              console.log(`📋 Treatment record ${treatmentRecord.id} có ${detailedRecord.treatmentSteps.length} steps sau khi gọi API`);
-              
-              const matchingStep = detailedRecord.treatmentSteps.find(step => {
-                // Khớp theo ngày
-                const dateMatch = step.scheduledDate === record.appointmentDate;
-                
-                // Nếu appointment có purpose/service name thì match theo name
-                const hasPurpose = record.purpose || record.serviceName || record.treatmentServiceName;
-                let nameMatch = false;
-                
-                if (hasPurpose) {
-                  nameMatch = step.name === record.purpose || 
-                             step.name === record.serviceName ||
-                             step.name === record.treatmentServiceName;
-                } else {
-                  // Nếu không có purpose, chỉ match theo date
-                  nameMatch = true;
-                }
-                
-                console.log(`🔍 Kiểm tra step: ${step.name} (${step.scheduledDate}) vs appointment: ${record.purpose} (${record.appointmentDate})`);
-                console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}, Has purpose: ${hasPurpose}`);
-                
-                return dateMatch && nameMatch;
-              });
-              
-              if (matchingStep) {
-                matchedTreatmentRecord = detailedRecord;
-                console.log('✅ Tìm thấy treatment record khớp:', matchedTreatmentRecord);
-                console.log('✅ Step khớp:', matchingStep);
-                break;
-              }
-            }
-          } catch (error) {
-            console.error(`❌ Lỗi khi gọi API lấy chi tiết treatment record ${treatmentRecord.id}:`, error);
-          }
-        }
+      if (!record.recordId) {
+        message.error("Không tìm thấy recordId cho lịch hẹn này!");
+        return;
       }
-      
-      // Nếu không tìm thấy theo step, tìm theo customer và service (fallback)
-      if (!matchedTreatmentRecord) {
-        console.log('⚠️ Không tìm thấy theo step, tìm theo customer và service...');
-        
-        if (customerTreatmentRecords.length > 0) {
-          // Nếu có nhiều records, cần logic phân biệt
-          if (customerTreatmentRecords.length === 1) {
-            // Chỉ có 1 record → dùng luôn
-            matchedTreatmentRecord = customerTreatmentRecords[0];
-            console.log('✅ Chỉ có 1 treatment record cho customer, dùng luôn:', matchedTreatmentRecord);
-          } else {
-            // Có nhiều records → cần logic phân biệt
-            console.log('⚠️ Có nhiều treatment records cho customer, cần logic phân biệt...');
-            
-            // Thử tìm theo service name nếu có
-            if (record.purpose || record.serviceName || record.treatmentServiceName) {
-              const serviceMatch = customerTreatmentRecords.find(r =>
-                r.purpose === record.purpose ||
-                r.serviceName === record.serviceName ||
-                r.treatmentServiceName === record.purpose ||
-                r.treatmentServiceName === record.serviceName
-              );
-              
-              if (serviceMatch) {
-                matchedTreatmentRecord = serviceMatch;
-                console.log('✅ Tìm thấy theo service match:', matchedTreatmentRecord);
-              }
-            }
-            
-            // Nếu vẫn không tìm thấy, thử logic phân biệt thông minh
-            if (!matchedTreatmentRecord) {
-              console.log('🔍 Thử logic phân biệt thông minh...');
-              
-              // 1. Thử tìm theo ngày gần nhất với appointment date
-              const appointmentDate = new Date(record.appointmentDate);
-              const sortedByDate = customerTreatmentRecords.sort((a, b) => {
-                const dateA = new Date(a.startDate || a.createdDate);
-                const dateB = new Date(b.startDate || b.createdDate);
-                const diffA = Math.abs(dateA - appointmentDate);
-                const diffB = Math.abs(dateB - appointmentDate);
-                return diffA - diffB;
-              });
-              
-              console.log('📅 Sắp xếp theo ngày gần nhất:', sortedByDate.map(r => ({ id: r.id, startDate: r.startDate, createdDate: r.createdDate })));
-              
-              // 2. Thử tìm theo status (ưu tiên INPROGRESS > CONFIRMED > COMPLETED)
-              const statusPriority = ['INPROGRESS', 'CONFIRMED', 'COMPLETED', 'PLANNED'];
-              let statusMatch = null;
-              
-              for (const status of statusPriority) {
-                statusMatch = customerTreatmentRecords.find(r => r.status === status);
-                if (statusMatch) {
-                  console.log(`✅ Tìm thấy theo status ${status}:`, statusMatch);
-                  break;
-                }
-              }
-              
-              // 3. Quyết định cuối cùng
-              if (statusMatch) {
-                matchedTreatmentRecord = statusMatch;
-                console.log('✅ Chọn theo status priority:', matchedTreatmentRecord);
-              } else if (sortedByDate.length > 0) {
-                matchedTreatmentRecord = sortedByDate[0];
-                console.log('✅ Chọn theo ngày gần nhất:', matchedTreatmentRecord);
-              } else {
-                // Cuối cùng mới báo lỗi
-                message.error(
-                  `Bệnh nhân ${record.customerName} có ${customerTreatmentRecords.length} hồ sơ điều trị. Không thể xác định hồ sơ nào tương ứng với lịch hẹn này!`
-                );
-                return;
-              }
-            }
-          }
-        }
+      // Lấy chi tiết treatment record theo recordId
+      const detailRes = await treatmentService.getTreatmentRecordById(record.recordId);
+      const detail = detailRes?.data?.result;
+      if (!detail) {
+        message.error("Không lấy được chi tiết hồ sơ điều trị!");
+        return;
       }
-      
-      console.log('🎯 Treatment record cuối cùng:', matchedTreatmentRecord);
-      
-      if (matchedTreatmentRecord) {
-        // Gọi API lấy chi tiết treatment record (bao gồm các bước)
-        const detailRes = await treatmentService.getTreatmentRecordById(matchedTreatmentRecord.id);
-        const detail = detailRes?.data?.result;
-        
-        console.log('📋 Treatment record chi tiết:', detail);
-        
-        if (detail) {
-          navigate("/doctor-dashboard/treatment-stages", {
-            state: {
-              patientInfo: {
-                customerId: detail.customerId,
-                customerName: detail.customerName,
-              },
-              treatmentData: detail, // truyền treatment record chi tiết (có steps)
-              sourcePage: "patients",
-              appointmentData: record
-            },
-          });
-        } else {
-          message.error("Không lấy được chi tiết hồ sơ điều trị!");
-        }
-      } else {
-        message.error(
-          "Không tìm thấy hồ sơ điều trị hợp lệ cho bệnh nhân này!"
-        );
-      }
+      navigate("/doctor-dashboard/treatment-stages", {
+        state: {
+          patientInfo: {
+            customerId: detail.customerId,
+            customerName: detail.customerName,
+          },
+          treatmentData: detail,
+          sourcePage: "patients",
+          appointmentData: record
+        },
+      });
     } catch (error) {
       console.error("Error in handleDetail:", error);
       message.error("Có lỗi xảy ra khi tìm hồ sơ điều trị!");

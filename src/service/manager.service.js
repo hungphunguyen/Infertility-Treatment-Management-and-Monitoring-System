@@ -103,15 +103,19 @@ export const managerService = {
     return http.put(`/v1/feedbacks/${id}/status`, data);
   },
 
-  getWorkScheduleStatics: () => {
-    return http.get("managers/dashboard/work-schedules/statics/");
-  },
-
   updateManager: (id, data) => {
     return http.put(`v1/managers/${id}`, data);
   },
 
   uploadImgService: (id, formData) => {
     return http.post(`/v1/treatment-services/${id}/upload-image`, formData);
+  },
+
+  getManagerWorkScheduleStatistics: () => {
+    return require('./treatment.service').treatmentService.getManagerWorkScheduleStatistics();
+  },
+
+  getManagerDoctorsToday: () => {
+    return require('./treatment.service').treatmentService.getManagerDoctorsToday();
   },
 };
