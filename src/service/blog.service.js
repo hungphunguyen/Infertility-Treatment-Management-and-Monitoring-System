@@ -42,9 +42,12 @@ export const blogService = {
   },
 
   // Upload/cập nhật ảnh blog (API mới)
-  uploadBlogImage: (blogId, fileString) => {
-    // fileString là chuỗi base64 hoặc url ảnh, truyền vào query/body theo API
-    return http.put(`/v1/blogs/${blogId}/image`, { file: fileString });
+  uploadBlogImage: (blogId, formData) => {
+    return http.put(`/v1/blogs/${blogId}/image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
   },
 
   // Gửi blog chờ duyệt (API mới)
@@ -53,20 +56,12 @@ export const blogService = {
     return http.post(`/v1/blogs/${blogId}/submit`, data);
   },
 
-  // Duyệt blog (approve)
-  approveBlog: (blogId, managerId, token, requestData) => {
-    return http.post(`blogs/${blogId}/${managerId}`, requestData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-  },
-
   // Cập nhật trạng thái blog (API mới)
   updateBlogStatus: (blogId, status, comment) => {
-    // status: trạng thái mới, comment: lý do hoặc ghi chú
-    return http.post(`/v1/blogs/${blogId}/updateStatus`, { status, comment });
+    return http.put(`/v1/blogs/${blogId}/updateStatus`, { 
+      status: status,
+      comment: comment || "" 
+    });
   },
 
   deleteBlog: (blogId, token) => {

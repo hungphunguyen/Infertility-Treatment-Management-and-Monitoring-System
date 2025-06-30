@@ -25,7 +25,7 @@ const AppointmentManagement = () => {
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(4);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [date, setDate] = useState(null);
@@ -44,7 +44,7 @@ const AppointmentManagement = () => {
       if (date) params.date = date.format("YYYY-MM-DD");
       // Nếu có thêm stepId, customerId, doctorId thì kiểm tra và thêm tương tự
 
-      const res = await http.get("/api/v1/appointments", { params });
+      const res = await http.get("v1/appointments", { params });
       if (res?.data?.result?.content) {
         setAppointments(res.data.result.content);
         setTotalPages(res.data.result.totalPages);

@@ -188,9 +188,21 @@ const DoctorBlogManagement = () => {
     try {
       if (!selectedBlog) {
         showNotification("Không thể gửi duyệt. Thông tin không đầy đủ.", "error");
+        setActionLoading(false);
         return;
       }
       const values = form.getFieldsValue();
+      if (!values.title || !values.content || !values.sourceReference) {
+        showNotification("Vui lòng nhập đầy đủ tiêu đề, nội dung và nguồn tham khảo!", "error");
+        setActionLoading(false);
+        return;
+      }
+      console.log("Submit blog:", {
+        id: selectedBlog.id,
+        title: values.title,
+        content: values.content,
+        sourceReference: values.sourceReference
+      });
       await blogService.submitBlog(selectedBlog.id, {
         title: values.title,
         content: values.content,
@@ -231,25 +243,21 @@ const DoctorBlogManagement = () => {
 
     const formData = new FormData();
     formData.append("file", selectedFile);
-    formData.append("userId", selectedBlog.id);
 
     try {
-      const res = await customerService.uploadImg(formData);
-      showNotification("Upload avatar thành công", "success");
-
+      await blogService.uploadBlogImage(selectedBlog.id, formData);
+      showNotification("Upload ảnh thành công", "success");
       setSelectedBlog((prev) => ({
         ...prev,
-        coverImageUrl: res.data.result.coverImageUrl,
+        coverImageUrl: URL.createObjectURL(selectedFile),
       }));
       window.location.reload();
-      // Reset trạng thái
       setSelectedFile(null);
       setIsUploadModalOpen(false);
       setPreview(null);
     } catch (err) {
-      showNotification(err.response.data.message, "error");
+      showNotification("Upload ảnh thất bại", "error");
       console.log(err);
-      console.log(formData);
     } finally {
       setUploadingImage(false); // 🔥 End loading
     }

@@ -66,10 +66,11 @@ const BlogPage = () => {
       {/* Blog Content */}
       <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          {blogPosts.length > 0 ? (
+          {/* Lọc blogPosts chỉ lấy status APPROVED */}
+          {blogPosts.filter(post => post.status === "APPROVED").length > 0 ? (
             <>
               <Row gutter={[32, 60]}>
-                {blogPosts.slice(0, 3).map((post) => (
+                {blogPosts.filter(post => post.status === "APPROVED").slice(0, 3).map((post) => (
                   <Col xs={24} md={8} key={post.id}>
                     <Card
                       hoverable
@@ -211,9 +212,7 @@ const BlogPage = () => {
               )}
             </>
           ) : (
-            <div className="text-center text-gray-500">
-              Không có bài viết nào để hiển thị.
-            </div>
+            <div className="text-center text-gray-500 text-lg py-10">Chưa có bài viết nào được duyệt.</div>
           )}
         </div>
         {hasNextPage && (
