@@ -2,8 +2,7 @@ import axios from "axios";
 
 //setup axios custom xử lí gọi API cho dự án
 const http = axios.create({
-  baseURL:
-    "https://proceeding-by-reporter-automatically.trycloudflare.com/infertility-system/api/", // domain
+  baseURL: "https://techleaf.pro/infertility-system/api/", // domain
   timeout: 30000,
   headers: {},
 });
@@ -12,6 +11,9 @@ const http = axios.create({
 http.interceptors.request.use(
   function (config) {
     // Do something before request is sent
+    if (config.skipAuth) {
+      return config;
+    }
     // lay token tu local
     const token = localStorage.getItem("token");
     if (token) {

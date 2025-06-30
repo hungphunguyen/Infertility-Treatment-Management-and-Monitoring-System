@@ -43,9 +43,9 @@ export default function GoogleLogin() {
 
   const handleCredentialResponse = async (response) => {
     const idToken = response.credential;
-
+    console.log(idToken);
     try {
-      const res = await authService.signInByGoogle({ idToken });
+      const res = await authService.signInByGoogle(idToken, "GOOGLE");
       const data = res.data.result;
 
       if (data.token) {
@@ -60,6 +60,7 @@ export default function GoogleLogin() {
       }
     } catch (error) {
       showNotification(error.response.data.message, "error");
+      console.log(error);
     }
   };
 

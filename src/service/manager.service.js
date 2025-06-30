@@ -4,9 +4,6 @@ export const managerService = {
   getWorkScheduleMonth: (id) => {
     return http.get(`work-schedule/this-month/${id}`);
   },
-  getWorkScheduleYear: (yearMonth, doctorId) => {
-    return http.get(`/work-schedule/${yearMonth}/${doctorId}`);
-  },
 
   getWorkScheduleYear: (yearMonth, doctorId) => {
     return http.get(`v1/work-schedules/${yearMonth}/${doctorId}`);
@@ -91,20 +88,20 @@ export const managerService = {
     return http.put(`v1/treatment-services/${id}/restore`, null);
   },
 
-  managerStatistic: () => {
-    return http.get("managers/dashboard/statistic");
+  getManagerStatistic: () => {
+    return http.get("v1/dashboard/manager/revenue/overview");
   },
 
-  managerChart: () => {
-    return http.get("managers/dashboard/chart");
+  getManagerChart: () => {
+    return http.get("v1/dashboard/manager/revenue/chart");
   },
 
-  managerDashboardService: () => {
-    return http.get("managers/dashboard/service");
+  getManagerDashboardService: () => {
+    return http.get("v1/dashboard/manager/revenue/service");
   },
 
   confirmFeedback: (id, data) => {
-    return http.put(`/v1/feedbacks/${id}/status`, data);
+    return http.put(`v1/feedbacks/${id}/status`, data);
   },
 
   getWorkScheduleStatics: () => {

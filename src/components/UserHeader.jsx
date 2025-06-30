@@ -12,7 +12,7 @@ import {
   DashboardOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import { clearAuth } from "../redux/authSlice";
+import { clearAuth, setToken } from "../redux/authSlice";
 
 const UserHeader = () => {
   const token = useSelector((state) => state.authSlice);
@@ -47,10 +47,18 @@ const UserHeader = () => {
   }, [token]);
 
   useEffect(() => {
-    if (token?.token) {
+    const loginFlag = localStorage.getItem("loginJustNow");
+    if (token?.token && loginFlag === "true") {
+      checkRefreshToken();
+      localStorage.removeItem("loginJustNow");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (token.token) {
       checkIntrospect();
     }
-  }, [token]);
+  }, []);
 
   const handleMenuClick = ({ key }) => {
     if (key === "update") {
@@ -177,19 +185,27 @@ const UserHeader = () => {
   };
 
   const checkIntrospect = async () => {
-    await authService
-      .checkIntrospect(token.token)
-      .then((res) => {
-        if (!res.data.result.valid) {
-          localStorage.removeItem("token");
-          window.location.reload();
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const res = await authService.checkIntrospect(token.token);
+    try {
+      if (!res.data.result.valid) {
+        console.log(res);
+        localStorage.removeItem("token");
+        window.location.reload();
+      }
+    } catch (error) {}
   };
+  const checkRefreshToken = async () => {
+    try {
+      const res = await authService.refreshToken(token.token);
 
+      if (res.data.result.token) {
+        dispatch(setToken(res.data.result.token)); //  Cập nhật Redux
+        localStorage.setItem("token", JSON.stringify(res.data.result.token)); //  Ghi đè vào localStorage
+      }
+    } catch (error) {
+      console.error("Failed to refresh token:", error);
+    }
+  };
   return (
     <header
       style={{ borderBottom: "1px solid #f2f2f2" }}
@@ -213,7 +229,7 @@ const UserHeader = () => {
               NewLife
             </div>
             <div className="text-gray-600 text-sm font-medium">
-              Bệnh viện Sinh sản
+              Bệnh viện Hỗ Trỡ Sinh sản
             </div>
           </div>
         </div>

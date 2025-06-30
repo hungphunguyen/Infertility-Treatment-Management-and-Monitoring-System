@@ -37,8 +37,8 @@ export const doctorService = {
   },
 
   // Cập nhật thông tin bác sĩ
-  updateDoctor: async (id, data) => {
-    return http.put(`/doctors/${id}`, data);
+  updateDoctor: (doctorId, data) => {
+    return http.put(`v1/doctors/${doctorId}`, data);
   },
 
   getInfoDoctor: (id) => {

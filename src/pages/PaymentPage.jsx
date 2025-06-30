@@ -7,7 +7,7 @@ import { NotificationContext } from "../App";
 const PaymentPage = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [infoUser, setInfoUser] = useState();
-  const [treatmentList, setTreatmentList] = useState([]);
+  const [paymentList, setPaymentList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedTreatment, setSelectedTreatment] = useState(null);
   const { showNotification } = useContext(NotificationContext);
@@ -26,24 +26,25 @@ const PaymentPage = () => {
 
   // hien thi danh sach record cua customer
   useEffect(() => {
-    if (infoUser?.id) {
-      treatmentService
-        .getTreatmentRecordsByCustomer(infoUser.id)
-        .then((res) => {
-          setTreatmentList(res.data.result);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  }, [infoUser]);
+    const fetchPaymentInfo = async () => {
+      try {
+        const res = await customerService.getPaymentInfo();
+        setPaymentList(res.data.result.content);
+        console.log(res);
+      } catch (err) {
+        console.error("Lỗi lấy danh sách thanh toán:", err);
+      }
+    };
+
+    fetchPaymentInfo();
+  }, []);
 
   // hien thi thong bao khi thanh toan momo
   useEffect(() => {
-    if (showModal && selectedTreatment?.id) {
+    if (showModal && selectedTreatment?.recordId) {
       intervalRef.current = setInterval(() => {
         customerService
-          .paymentNotificationForCustomer(selectedTreatment.id)
+          .paymentNotificationForCustomer(selectedTreatment.recordId)
           .then((res) => {
             const { code, result } = res.data;
 
@@ -134,8 +135,8 @@ const PaymentPage = () => {
   };
 
   const handleCloseModal = () => {
-    if (selectedTreatment?.id) {
-      handleMoMoCancel(selectedTreatment.id);
+    if (selectedTreatment?.recordId) {
+      handleMoMoCancel(selectedTreatment.recordId);
     }
     setShowModal(false);
     setQrCodeUrl("");
@@ -144,7 +145,7 @@ const PaymentPage = () => {
   };
   // hàm xử lí count dow cho thanh toán momo
   useEffect(() => {
-    if (showModal && selectedTreatment?.id) {
+    if (showModal && selectedTreatment?.recordId) {
       countdownIntervalRef.current = setInterval(() => {
         setCountdown((prev) => {
           const next = prev - 1;
@@ -155,7 +156,7 @@ const PaymentPage = () => {
 
             // ✅ Check: chỉ reload khi cooldown đã xong
             if (reloadCooldown <= 0) {
-              handleMoMoReload(selectedTreatment.id, selectedTreatment);
+              handleMoMoReload(selectedTreatment.recordId, selectedTreatment);
               setReloadCooldown(30); // Reset cooldown luôn ở đây
             }
 
@@ -202,49 +203,54 @@ const PaymentPage = () => {
     <div className="max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4"> Danh sách dịch vụ của bạn</h2>
 
-      {treatmentList.length === 0 ? (
+      {paymentList.length === 0 ? (
         <p className="text-gray-600">Không có dịch vụ nào.</p>
       ) : (
         <div className="space-y-4">
-          {treatmentList.map((treatment) => (
+          {paymentList.map((payment) => (
             <div
-              key={treatment.id}
+              key={payment.recordId}
               className="bg-white shadow-sm border rounded-lg p-4 flex flex-col md:flex-row md:justify-between items-start md:items-center"
             >
               <div className="text-sm space-y-1">
                 <p>
                   <strong className="text-gray-700">Dịch vụ:</strong>{" "}
-                  {treatment.treatmentServiceName}
+                  {payment.treatmentServiceName}
                 </p>
                 <p>
                   <strong className="text-gray-700">Bác sĩ:</strong>{" "}
-                  {treatment.doctorName}
+                  {payment.doctorName}
                 </p>
                 <p>
-                  <strong className="text-gray-700">Ngày bắt đầu:</strong>{" "}
-                  {treatment.startDate}
+                  <strong className="text-gray-700">Số tiền</strong>{" "}
+                  {payment.price}
                 </p>
                 <p>
                   <strong className="text-gray-700">Trạng thái:</strong>{" "}
-                  {treatment.status}
+                  {payment.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
                 </p>
               </div>
 
               <div className="mt-3 md:mt-0">
-                {treatment.status === "CANCELLED" ? (
-                  <button disabled className="...">
-                    Đã huỷ
+                {payment.isPaid ? (
+                  <button
+                    disabled
+                    className="bg-green-500 text-white py-3 px-2 rounded"
+                  >
+                    Đã Thanh Toán
                   </button>
                 ) : (
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleMomoPayment(treatment.id, treatment)}
+                      onClick={() =>
+                        handleMomoPayment(payment.recordId, payment)
+                      }
                       className="bg-pink-600 text-white font-semibold py-2 px-4 rounded hover:bg-pink-700 transition"
                     >
                       Thanh toán MoMo
                     </button>
                     <button
-                      onClick={() => handleVnpayPayment(treatment.id)}
+                      onClick={() => handleVnpayPayment(payment.recordId)}
                       className="bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
                     >
                       Thanh toán VNPAY
@@ -300,7 +306,10 @@ const PaymentPage = () => {
             <div className="mt-5 flex justify-between">
               <button
                 onClick={() =>
-                  handleMoMoReload(selectedTreatment.id, selectedTreatment)
+                  handleMoMoReload(
+                    selectedTreatment.recordId,
+                    selectedTreatment
+                  )
                 }
                 disabled={reloadCooldown > 0}
                 className={`px-4 py-2 rounded text-white transition ${

@@ -34,7 +34,7 @@ const { RangePicker } = DatePicker;
 const ReportDashboard = () => {
   const [statistics, setStatistics] = useState({
     totalRevenue: 0,
-    totalAppointments: 0,
+    totalRevenueThisMonth: null,
     totalCustomersTreated: 0,
   });
 
@@ -46,60 +46,54 @@ const ReportDashboard = () => {
   useEffect(() => {
     const renderData = async () => {
       try {
-        const res1 = await managerService.managerStatistic();
-        const res2 = await managerService.managerChart();
-        const res3 = await managerService.managerDashboardService();
+        const res1 = await managerService.getManagerStatistic();
+        const res2 = await managerService.getManagerChart();
+        const res3 = await managerService.getManagerDashboardService();
 
         if (res1?.data?.result) {
           setStatistics({
-            totalRevenue: res1.data.result.totalRevenue,
-            totalAppointments: res1.data.result.totalAppointments,
-            totalCustomersTreated: res1.data.result.totalCustomersTreated,
+            totalRevenue: res1.data.result.totalRevenue ?? 0,
+            totalRevenueThisMonth:
+              res1.data.result.totalRevenueThisMonth ?? null,
+            totalCustomersTreated: res1.data.result.totalCustomersTreated ?? 0,
           });
         }
 
         if (res2?.data?.result) {
           const parsedChartData = res2.data.result.map((item) => {
-            const monthNumber = new Date(item.month).getMonth() + 1;
+            const monthNumber = new Date(item.month + "-01").getMonth() + 1; // fix để parse từ YYYY-MM
             return {
               month: `T${monthNumber}`,
               revenue: Number(item.totalRevenue),
-              appointments: Number(item.totalTreatmentServiceInMonth),
             };
           });
+
           setChartData(parsedChartData);
 
-          // Tính giá trị doanh thu lớn nhất
           const maxRevenue = Math.max(
             0,
             ...parsedChartData.map((d) => d.revenue)
           );
-
-          // Lấy đơn vị phù hợp
           const { unit, divider } = getYAxisUnit(maxRevenue);
 
-          // Lưu lại để dùng khi render
           setYAxisUnit(unit);
           setYAxisDivider(divider);
         }
 
         if (res3?.data?.result) {
           const totalRevenueAllServices = res3.data.result.reduce(
-            (acc, item) => acc + item.totalRevenue,
+            (acc, item) => acc + (item.totalRevenue ?? 0), // xử lý null
             0
-          ); // cộng tổng tất cả doanh thu của dịch vụ
+          );
 
-          const servicesWithRatio = res3.data.result.map((item, index) => ({
+          const formattedServices = res3.data.result.map((item, index) => ({
             key: index,
-            name: item.name,
-            totalUses: item.totalUses,
-            totalRevenue: item.totalRevenue,
-            ratio: Math.round(
-              (item.totalRevenue / totalRevenueAllServices) * 100
-            ), // tính phần trăm của từng dịch vụ khi map ra
+            name: item.serviceName,
+            totalRecords: item.totalRecords,
+            totalSuccessfulPayments: item.totalSuccessfulPayments,
+            totalRevenue: item.totalRevenue ?? 0,
           }));
-
-          setTopServices(servicesWithRatio);
+          setTopServices(formattedServices);
         }
       } catch (error) {
         console.error(error);
@@ -111,9 +105,8 @@ const ReportDashboard = () => {
   }, []);
 
   const formatCurrency = (value) => {
-    if (value) {
-      return value.toLocaleString("vi-VN") + " VNĐ";
-    }
+    if (!value || isNaN(value)) return "0 VNĐ";
+    return Number(value).toLocaleString("vi-VN") + " VNĐ";
   };
 
   const serviceColumns = [
@@ -123,21 +116,20 @@ const ReportDashboard = () => {
       key: "name",
     },
     {
-      title: "Tổng số lượng đăng kí",
-      dataIndex: "totalUses",
-      key: "totalUses",
+      title: "Tổng số lượt",
+      dataIndex: "totalRecords",
+      key: "totalRecords",
     },
     {
-      title: "Doanh thu",
+      title: "Lượt thanh toán thành công",
+      dataIndex: "totalSuccessfulPayments",
+      key: "totalSuccessfulPayments",
+    },
+    {
+      title: "Tổng doanh thu",
       dataIndex: "totalRevenue",
       key: "totalRevenue",
       render: (value) => formatCurrency(value),
-    },
-    {
-      title: "Tỷ lệ",
-      dataIndex: "ratio",
-      key: "ratio",
-      render: (value) => <Tag color="green">{value}%</Tag>,
     },
   ];
 
@@ -179,10 +171,13 @@ const ReportDashboard = () => {
         <Col span={8}>
           <Card>
             <Statistic
-              title="Số Lịch Hẹn"
-              value={statistics.totalAppointments}
-              prefix={<CalendarOutlined />}
-              valueStyle={{ color: "blue" }}
+              title="Doanh Thu Tháng Này"
+              value={statistics.totalRevenueThisMonth}
+              prefix={<RiseOutlined />}
+              valueStyle={{ color: "orange" }}
+              formatter={(value) =>
+                value != null ? formatCurrency(value) : "Chưa có"
+              }
             />
           </Card>
         </Col>
@@ -232,22 +227,15 @@ const ReportDashboard = () => {
                         <p>
                           <strong>{label}</strong>
                         </p>
-                        {payload.map((entry, index) => {
-                          const isRevenue = entry.dataKey === "revenue";
-                          return (
-                            <p
-                              key={index}
-                              style={{ color: entry.color, margin: 0 }}
-                            >
-                              {entry.name} :{" "}
-                              {isRevenue
-                                ? `${entry.value.toLocaleString("vi-VN")} VNĐ`
-                                : `${entry.value.toLocaleString(
-                                    "vi-VN"
-                                  )} lịch hẹn`}
-                            </p>
-                          );
-                        })}
+                        {payload.map((entry, index) => (
+                          <p
+                            key={index}
+                            style={{ color: entry.color, margin: 0 }}
+                          >
+                            {entry.name}: {entry.value.toLocaleString("vi-VN")}{" "}
+                            VNĐ
+                          </p>
+                        ))}
                       </div>
                     );
                   }}
