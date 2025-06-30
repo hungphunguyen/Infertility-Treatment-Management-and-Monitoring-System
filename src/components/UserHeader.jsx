@@ -169,13 +169,13 @@ const UserHeader = () => {
     ) : (
       <div className="flex gap-3">
         <Link
-          to={path.signIn}
+          to={path.testLogin}
           className="py-2 px-4 font-medium border border-orange-500 rounded-md hover:bg-orange-500 hover:text-white duration-300"
         >
           Đăng nhập
         </Link>
         <Link
-          to={path.signUp}
+          to={"/dang-nhap?mode=register"}
           className="py-2 px-4 font-medium border border-lime-300 rounded-md hover:bg-lime-300 hover:text-white duration-300"
         >
           Đăng ký

@@ -199,6 +199,20 @@ const PaymentPage = () => {
     }
   }, []);
 
+  // hàm map tiếng việt của status record
+  const mapRecordStatusToVN = (status) => {
+    switch (status) {
+      case "CANCELLED":
+        return "Đã hủy";
+      case "INPROGRESS":
+        return "Đang điều trị";
+      case "COMPLETED":
+        return "Hoàn tất điều trị";
+      default:
+        return "Không xác định";
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4"> Danh sách dịch vụ của bạn</h2>
@@ -229,35 +243,44 @@ const PaymentPage = () => {
                   <strong className="text-gray-700">Trạng thái:</strong>{" "}
                   {payment.isPaid ? "Đã thanh toán" : "Chưa thanh toán"}
                 </p>
+                <p>
+                  <strong className="text-gray-700">
+                    Trạng thái điều trị:
+                  </strong>{" "}
+                  {mapRecordStatusToVN(payment.recordStatus)}
+                </p>
               </div>
 
-              <div className="mt-3 md:mt-0">
-                {payment.isPaid ? (
+              {payment.isPaid ? (
+                <button
+                  disabled
+                  className="bg-green-500 text-white py-3 px-2 rounded"
+                >
+                  Đã Thanh Toán
+                </button>
+              ) : payment.recordStatus !== "CANCELLED" ? (
+                <div className="flex gap-2">
                   <button
-                    disabled
-                    className="bg-green-500 text-white py-3 px-2 rounded"
+                    onClick={() => handleMomoPayment(payment.recordId, payment)}
+                    className="bg-pink-600 text-white font-semibold py-2 px-4 rounded hover:bg-pink-700 transition"
                   >
-                    Đã Thanh Toán
+                    Thanh toán MoMo
                   </button>
-                ) : (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() =>
-                        handleMomoPayment(payment.recordId, payment)
-                      }
-                      className="bg-pink-600 text-white font-semibold py-2 px-4 rounded hover:bg-pink-700 transition"
-                    >
-                      Thanh toán MoMo
-                    </button>
-                    <button
-                      onClick={() => handleVnpayPayment(payment.recordId)}
-                      className="bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
-                    >
-                      Thanh toán VNPAY
-                    </button>
-                  </div>
-                )}
-              </div>
+                  <button
+                    onClick={() => handleVnpayPayment(payment.recordId)}
+                    className="bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+                  >
+                    Thanh toán VNPAY
+                  </button>
+                </div>
+              ) : (
+                <button
+                  disabled
+                  className="bg-gray-400 text-white py-3 px-2 rounded"
+                >
+                  Đã hủy - Không thể thanh toán
+                </button>
+              )}
             </div>
           ))}
         </div>
