@@ -56,15 +56,10 @@ const ManagerSidebar = ({
     {
       key: "doctor-schedule",
       icon: <UserOutlined />,
-      label: "Lịch Bác Sĩ Hôm Nay",
+      label: "Lịch Khám Hôm Nay",
       path: "/manager/doctor-schedule",
     },
-    {
-      key: "today-exams",
-      icon: <ClockCircleOutlined />,
-      label: "Lịch Khám Hôm Nay",
-      path: "/manager/today-exams",
-    },
+
     {
       key: "feedback",
       icon: <MessageOutlined />,

@@ -13,9 +13,16 @@ import {
   Select,
   Typography,
   message,
-  Spin
+  Spin,
 } from "antd";
-import { UserOutlined, CalendarOutlined, ClockCircleOutlined, CheckCircleOutlined, ExclamationCircleOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { useNavigate } from "react-router-dom";
@@ -37,7 +44,10 @@ const TodayExaminations = () => {
       try {
         setLoading(true);
         const today = dayjs().format("YYYY-MM-DD");
-        const res = await treatmentService.getAppointments({ date: today, size: 100 });
+        const res = await treatmentService.getAppointments({
+          date: today,
+          size: 100,
+        });
         const data = res?.data?.result?.content || [];
         setAppointments(data);
       } catch (error) {
@@ -53,12 +63,17 @@ const TodayExaminations = () => {
   useEffect(() => {
     let filtered = appointments;
     if (statusFilter !== "all") {
-      filtered = filtered.filter(item => item.status === statusFilter);
+      filtered = filtered.filter((item) => item.status === statusFilter);
     }
     if (searchText) {
-      filtered = filtered.filter(item =>
-        (item.customerName && item.customerName.toLowerCase().includes(searchText.toLowerCase())) ||
-        (item.doctorName && item.doctorName.toLowerCase().includes(searchText.toLowerCase()))
+      filtered = filtered.filter(
+        (item) =>
+          (item.customerName &&
+            item.customerName
+              .toLowerCase()
+              .includes(searchText.toLowerCase())) ||
+          (item.doctorName &&
+            item.doctorName.toLowerCase().includes(searchText.toLowerCase()))
       );
     }
     setFilteredData(filtered);
@@ -75,7 +90,9 @@ const TodayExaminations = () => {
       PENDING_CHANGE: { color: "gold", text: "Chờ duyệt đổi lịch" },
     };
     return (
-      <Tag color={statusMap[status]?.color}>{statusMap[status]?.text || status}</Tag>
+      <Tag color={statusMap[status]?.color}>
+        {statusMap[status]?.text || status}
+      </Tag>
     );
   };
 
@@ -86,7 +103,9 @@ const TodayExaminations = () => {
         return;
       }
       // Lấy chi tiết treatment record theo recordId
-      const detailRes = await treatmentService.getTreatmentRecordById(record.recordId);
+      const detailRes = await treatmentService.getTreatmentRecordById(
+        record.recordId
+      );
       const detail = detailRes?.data?.result;
       if (!detail) {
         message.error("Không lấy được chi tiết hồ sơ điều trị!");
@@ -100,7 +119,7 @@ const TodayExaminations = () => {
           },
           treatmentData: detail,
           sourcePage: "today-examinations",
-          appointmentData: record
+          appointmentData: record,
         },
       });
     } catch (error) {
@@ -115,11 +134,17 @@ const TodayExaminations = () => {
       key: "customerName",
       render: (name, record) => (
         <div style={{ display: "flex", alignItems: "center" }}>
-          <Avatar size={40} icon={<UserOutlined />} style={{ marginRight: 12, backgroundColor: "#1890ff" }} />
+          <Avatar
+            size={40}
+            icon={<UserOutlined />}
+            style={{ marginRight: 12, backgroundColor: "#1890ff" }}
+          />
           <div>
             <Text strong>{name}</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: "12px" }}>{record.customerEmail}</Text>
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              {record.customerEmail}
+            </Text>
           </div>
         </div>
       ),
@@ -146,7 +171,13 @@ const TodayExaminations = () => {
       dataIndex: "shift",
       key: "shift",
       render: (shift) => (
-        <Tag color="cyan">{shift === "MORNING" ? "Sáng" : shift === "AFTERNOON" ? "Chiều" : shift}</Tag>
+        <Tag color="cyan">
+          {shift === "MORNING"
+            ? "Sáng"
+            : shift === "AFTERNOON"
+            ? "Chiều"
+            : shift}
+        </Tag>
       ),
     },
     {
@@ -154,15 +185,6 @@ const TodayExaminations = () => {
       dataIndex: "status",
       key: "status",
       render: getStatusTag,
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      render: (_, record) => (
-        <Button type="primary" size="small" onClick={() => handleDetail(record)}>
-          Xem chi tiết
-        </Button>
-      ),
     },
   ];
 
@@ -174,7 +196,7 @@ const TodayExaminations = () => {
             <Search
               placeholder="Tìm kiếm bệnh nhân, bác sĩ..."
               value={searchText}
-              onChange={e => setSearchText(e.target.value)}
+              onChange={(e) => setSearchText(e.target.value)}
               prefix={<SearchOutlined />}
               allowClear
             />
@@ -207,4 +229,4 @@ const TodayExaminations = () => {
   );
 };
 
-export default TodayExaminations; 
+export default TodayExaminations;

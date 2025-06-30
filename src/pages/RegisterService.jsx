@@ -289,15 +289,25 @@ const RegisterService = () => {
     try {
       setServicesLoading(true);
       // Sử dụng API mới thay vì API cũ
-      const response = await serviceService.getPublicServices({ page: 0, size: 100 });
+      const response = await serviceService.getPublicServices({
+        page: 0,
+        size: 100,
+      });
 
-      if (response && response.data && response.data.result && response.data.result.content) {
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        response.data.result.content
+      ) {
         let servicesData = response.data.result.content;
 
         // Map API data to the format needed for Select options
         const mappedServices = servicesData.map((service) => ({
           value: service.id.toString(),
-          label: `${service.serviceName || service.name} - ${new Intl.NumberFormat("vi-VN", {
+          label: `${
+            service.serviceName || service.name
+          } - ${new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND",
           }).format(service.price)}`,
@@ -319,10 +329,15 @@ const RegisterService = () => {
     try {
       setDoctorsLoading(true);
       const response = await doctorService.getAllDoctors(0, 100); // Get first 100 doctors
-      
-      if (response && response.data && response.data.result && response.data.result.content) {
+
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        response.data.result.content
+      ) {
         let doctorsData = response.data.result.content;
-        
+
         // Map API data to the format needed for Select options
         const mappedDoctors = doctorsData.map((doctor) => ({
           value: doctor.id,
@@ -503,10 +518,15 @@ const RegisterService = () => {
   const fetchOriginalDoctors = async () => {
     try {
       const response = await doctorService.getAllDoctors(0, 100); // Get first 100 doctors
-      
-      if (response && response.data && response.data.result && response.data.result.content) {
+
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        response.data.result.content
+      ) {
         let doctorsData = response.data.result.content;
-        
+
         // Map API data to the format needed for Select options
         const mappedDoctors = doctorsData.map((doctor) => ({
           value: doctor.id,
@@ -1143,9 +1163,9 @@ const RegisterService = () => {
                     {doctorNotAvailable && (
                       <div className="text-blue-500 text-sm mb-2">
                         <span>
-                          Gợi ý: Thử chọn buổi khám khác hoặc chọn "Không
-                          chọn - Bác sĩ có sẵn" để hệ thống tự động phân bác sĩ
-                          có lịch trống.
+                          Gợi ý: Thử chọn buổi khám khác hoặc chọn "Không chọn -
+                          Bác sĩ có sẵn" để hệ thống tự động phân bác sĩ có lịch
+                          trống.
                         </span>
                       </div>
                     )}
@@ -1346,19 +1366,6 @@ const RegisterService = () => {
                                   key={monthKey}
                                   style={{ marginBottom: 30 }}
                                 >
-                                  <h3
-                                    style={{
-                                      textAlign: "center",
-                                      color: "#1890ff",
-                                      fontSize: 18,
-                                      fontWeight: "bold",
-                                      marginBottom: 16,
-                                      textTransform: "capitalize",
-                                    }}
-                                  >
-                                    {monthName}
-                                  </h3>
-
                                   <table
                                     style={{
                                       width: "100%",
@@ -1775,7 +1782,7 @@ const RegisterService = () => {
                   </Card>
                 )}
 
-                <Form.Item style={{ textAlign: 'center', marginTop: '40px' }}>
+                <Form.Item style={{ textAlign: "center", marginTop: "40px" }}>
                   <Button
                     type="primary"
                     htmlType="submit"
@@ -1783,12 +1790,12 @@ const RegisterService = () => {
                     disabled={!isLoggedIn}
                     size="large"
                     style={{
-                      height: '50px',
-                      fontSize: '16px',
-                      fontWeight: 'bold',
-                      padding: '0 40px',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)',
+                      height: "50px",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      padding: "0 40px",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
                     }}
                   >
                     Gửi đăng ký

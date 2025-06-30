@@ -85,17 +85,17 @@ const BlogManagement = () => {
     try {
       setLoading(true);
       console.log("Fetching all blogs with page:", page);
-      
+
       const response = await blogService.getAllBlogs({
         page: page,
-        size: 5
+        size: 5,
       });
-      
+
       console.log("getAllBlogs response:", response);
-      
+
       if (response.data && response.data.result?.content) {
         const allBlogs = response.data.result.content;
-        
+
         // Lấy chi tiết cho từng blog để có thông tin đầy đủ
         const blogsWithDetails = await Promise.all(
           allBlogs.map(async (blog) => {
@@ -103,14 +103,14 @@ const BlogManagement = () => {
               const detailResponse = await blogService.getBlogById(blog.id);
               return {
                 ...blog,
-                ...detailResponse.data.result
+                ...detailResponse.data.result,
               };
             } catch (error) {
               return blog;
             }
           })
         );
-        
+
         setBlogs(blogsWithDetails);
         console.log("Loaded", blogsWithDetails.length, "blogs");
       } else {
@@ -210,10 +210,7 @@ const BlogManagement = () => {
           ...selectedBlog,
           ...values,
         };
-        await blogService.updateBlog(
-          selectedBlog.id,
-          updatedBlogData
-        );
+        await blogService.updateBlog(selectedBlog.id, updatedBlogData);
         showNotification("Bài viết đã được cập nhật!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -261,14 +258,8 @@ const BlogManagement = () => {
           ...selectedBlog,
           ...values,
         };
-        await blogService.updateBlog(
-          selectedBlog.id,
-          updatedBlogData
-        );
-        await blogService.submitBlog(
-          selectedBlog.id,
-          updatedBlogData
-        );
+        await blogService.updateBlog(selectedBlog.id, updatedBlogData);
+        await blogService.submitBlog(selectedBlog.id, updatedBlogData);
         showNotification("Bài viết đã được gửi duyệt thành công!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -306,17 +297,17 @@ const BlogManagement = () => {
 
   const handleActionSubmit = async (values) => {
     if (!selectedBlog) return;
-    
+
     setActionLoading(true);
     try {
       const newStatus = actionType === "approve" ? "APPROVED" : "REJECTED";
       const comment = values.comment || "";
-      
+
       const response = await blogService.updateBlogStatus(selectedBlog.id, {
         status: newStatus,
-        comment: comment
+        comment: comment,
       });
-      
+
       if (response.data) {
         const actionText = actionType === "approve" ? "duyệt" : "từ chối";
         showNotification(`Đã ${actionText} bài viết thành công!`, "success");
@@ -355,7 +346,7 @@ const BlogManagement = () => {
       // Sử dụng updateStatus để chuyển từ HIDDEN về APPROVED
       await blogService.updateBlogStatus(blogId, {
         status: "APPROVED",
-        comment: "Hiện lại bài viết"
+        comment: "Hiện lại bài viết",
       });
       showNotification("Bài viết đã được hiện lại!", "success");
       fetchBlogs();
@@ -490,7 +481,6 @@ const BlogManagement = () => {
   return (
     <Card className="blog-management-card">
       <div className="flex justify-between items-center mb-4">
-        <Title level={4}>Quản lý bài viết</Title>
         <div className="flex gap-4">
           <Select
             defaultValue="all"
@@ -606,9 +596,7 @@ const BlogManagement = () => {
                   </p>
                 )}
                 {selectedBlog.note && (
-                  <p className="text-gray-600">
-                    Ghi chú: {selectedBlog.note}
-                  </p>
+                  <p className="text-gray-600">Ghi chú: {selectedBlog.note}</p>
                 )}
                 {selectedBlog.sourceReference && (
                   <p className="text-gray-600">
@@ -651,27 +639,17 @@ const BlogManagement = () => {
       </Modal>
 
       <Modal
-        title={
-          actionType === "approve"
-            ? "Duyệt bài viết"
-            : "Từ chối bài viết"
-        }
+        title={actionType === "approve" ? "Duyệt bài viết" : "Từ chối bài viết"}
         open={isActionModalVisible}
         onCancel={handleActionModalCancel}
         footer={null}
         destroyOnHidden
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleActionSubmit}
-        >
+        <Form form={form} layout="vertical" onFinish={handleActionSubmit}>
           <Form.Item
             name="comment"
             label={
-              actionType === "approve"
-                ? "Ghi chú (tùy chọn)"
-                : "Lý do từ chối"
+              actionType === "approve" ? "Ghi chú (tùy chọn)" : "Lý do từ chối"
             }
             rules={
               actionType === "reject"
@@ -679,17 +657,18 @@ const BlogManagement = () => {
                 : []
             }
           >
-            <TextArea rows={4} placeholder={
-              actionType === "approve"
-                ? "Nhập ghi chú nếu cần..."
-                : "Nhập lý do từ chối bài viết..."
-            } />
+            <TextArea
+              rows={4}
+              placeholder={
+                actionType === "approve"
+                  ? "Nhập ghi chú nếu cần..."
+                  : "Nhập lý do từ chối bài viết..."
+              }
+            />
           </Form.Item>
-          
+
           <div className="flex justify-end gap-2">
-            <Button onClick={handleActionModalCancel}>
-              Hủy
-            </Button>
+            <Button onClick={handleActionModalCancel}>Hủy</Button>
             <Button
               type="primary"
               onClick={() => form.submit()}
