@@ -87,12 +87,11 @@ const CustomerBlogManagement = () => {
   const fetchMyBlogs = async (authorId) => {
     try {
       setLoading(true);
-      const response = await blogService.getBlogsByAuthor(authorId);
-      if (response.data) {
-        setMyBlogs(response.data.result);
+      const response = await blogService.getAllBlogs({ authorId, page: 0, size: 20 });
+      if (response.data && response.data.result) {
+        setMyBlogs(response.data.result.content);
       }
     } catch (error) {
-      console.error("Error fetching my blogs:", error);
       showNotification("Không thể tải danh sách bài viết của bạn", "error");
     } finally {
       setLoading(false);
@@ -162,51 +161,29 @@ const CustomerBlogManagement = () => {
     setActionLoading(true);
     try {
       if (modalType === "create") {
-        if (!currentUser || !currentUser.id) {
-          showNotification(
-            "Không thể lấy thông tin người dùng để tạo bài viết.",
-            "error"
-          );
-          return;
-        }
-        const response = await blogService.createBlog(currentUser.id, {
+        const response = await blogService.createBlog({
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: "DRAFT",
         });
         if (response.data) {
-          showNotification("Bài viết đã được lưu !", "success");
+          showNotification("Bài viết đã được lưu!", "success");
           setIsModalVisible(false);
           form.resetFields();
           fetchMyBlogs(currentUser.id);
         }
       } else if (modalType === "edit") {
-        if (!selectedBlog || !currentUser || !currentUser.id) {
-          showNotification(
-            "Không thể cập nhật bài viết. Thông tin không đầy đủ.",
-            "error"
-          );
-          return;
-        }
-        const updatedBlogData = {
-          ...selectedBlog,
-          ...values,
-          status: "DRAFT",
-        };
-        await blogService.updateBlog(
-          selectedBlog.id,
-          currentUser.id,
-          updatedBlogData,
-          token.token
-        );
-        showNotification("Bài viết đã được lưu !", "success");
+        await blogService.updateBlog(selectedBlog.id, {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+        });
+        showNotification("Bài viết đã được lưu!", "success");
         setIsModalVisible(false);
         form.resetFields();
         fetchMyBlogs(currentUser.id);
       }
     } catch (error) {
-      console.error("Lỗi khi xử lý bài viết:", error);
       showNotification("Xử lý bài viết thất bại", "error");
     } finally {
       setActionLoading(false);
@@ -216,21 +193,16 @@ const CustomerBlogManagement = () => {
   const handleSendForReview = async () => {
     setActionLoading(true);
     try {
-      if (!selectedBlog || !currentUser || !currentUser.id) {
+      if (!selectedBlog) {
         showNotification("Không thể gửi duyệt. Thông tin không đầy đủ.", "error");
         return;
       }
       const values = form.getFieldsValue();
-      await blogService.submitBlog(
-        selectedBlog.id,
-        currentUser.id,
-        token.token,
-        {
-          title: values.title,
-          content: values.content,
-          sourceReference: values.sourceReference,
-        }
-      );
+      await blogService.submitBlog(selectedBlog.id, {
+        title: values.title,
+        content: values.content,
+        sourceReference: values.sourceReference,
+      });
       showNotification("Bài viết đã được gửi duyệt thành công!", "success");
       setIsModalVisible(false);
       form.resetFields();

@@ -21,9 +21,9 @@ const PublicBlogPage = () => {
   const fetchApprovedBlogs = async () => {
     try {
       setLoading(true);
-      const response = await blogService.getBlogsByStatus("APPROVED");
+      const response = await blogService.getAllBlogs({ status: 'APPROVED', page: 0, size: 20 });
       if (response.data && response.data.result) {
-        setBlogs(response.data.result);
+        setBlogs(response.data.result.content);
       }
     } catch (error) {
       console.error("Error fetching approved blogs:", error);

@@ -25,12 +25,11 @@ const BlogApproval = () => {
   const fetchPendingBlogs = async () => {
     try {
       setLoading(true);
-      const response = await blogService.getBlogsByStatus("pending");
-      if (response.data) {
-        setBlogs(response.data.result);
+      const response = await blogService.getAllBlogs({ status: 'PENDING_REVIEW', page: 0, size: 20 });
+      if (response.data && response.data.result) {
+        setBlogs(response.data.result.content);
       }
     } catch (error) {
-      console.error("Error fetching pending blogs:", error);
       showNotification("Không thể tải danh sách bài viết", "error");
     } finally {
       setLoading(false);
@@ -54,40 +53,17 @@ const BlogApproval = () => {
 
   const handleCommentSubmit = async () => {
     try {
-      if (!token?.token || !token?.infoUser?.id) {
-        showNotification("Không có thông tin người dùng quản lý.", "error");
-        return;
-      }
-
       const { blogId, status } = currentAction;
       if (!blogId || !status) {
         showNotification("Thông tin bài viết hoặc trạng thái không hợp lệ.", "error");
         return;
       }
-      console.log("Blog ID from currentAction:", blogId);
-      console.log("Manager ID from token:", token.infoUser.id);
-      console.log("Token:", token.token);
-      console.log("Request Body:", { action: status, comment: commentText });
-
-      const response = await blogService.approveBlog(
-        blogId,
-        token.infoUser.id,
-        token.token,
-        { action: status, comment: commentText }
-      );
-
-      if (response.data && response.data.result) {
-        showNotification(
-          `Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} thành công!`, "success"
-        );
-        setIsCommentModalVisible(false);
-        setCommentText(""); // Clear comment
-        fetchPendingBlogs(); // Refresh danh sách
-      } else {
-        showNotification("Thao tác thất bại.", "error");
-      }
+      await blogService.updateBlogStatus(blogId, status, commentText);
+      showNotification(`Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} thành công!`, "success");
+      setIsCommentModalVisible(false);
+      setCommentText("");
+      fetchPendingBlogs();
     } catch (error) {
-      console.error("Error processing blog action:", error);
       showNotification("Không thể thực hiện thao tác", "error");
     }
   };

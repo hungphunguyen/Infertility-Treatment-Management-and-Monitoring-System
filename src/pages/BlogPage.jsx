@@ -21,7 +21,7 @@ const { Title, Paragraph } = Typography;
 
 const BlogPage = () => {
   const fetchBlogs = async ({ pageParam = 0 }) => {
-    const res = await blogService.getBlogPublic("", pageParam, 3);
+    const res = await blogService.getAllBlogs({ status: 'APPROVED', page: pageParam, size: 3 });
     return res.data.result;
   };
 

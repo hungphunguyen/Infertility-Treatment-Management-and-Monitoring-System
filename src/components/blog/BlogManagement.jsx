@@ -86,11 +86,16 @@ const BlogManagement = () => {
     loadUserInfo();
   }, [token, showNotification]);
 
-  const fetchBlogs = async (page = 0) => {
+  const fetchBlogs = async (page = 0, status = statusFilter, keyword = searchText) => {
     try {
       setLoading(true);
-      const response = await blogService.getAllBlogs(page, 5);
-      if (response.data) {
+      const response = await blogService.getAllBlogs({
+        status: status !== 'all' ? status : undefined,
+        keyword: keyword || undefined,
+        page,
+        size: 10,
+      });
+      if (response.data && response.data.result) {
         setBlogs(response.data.result.content);
       }
     } catch (error) {
@@ -167,18 +172,10 @@ const BlogManagement = () => {
     setActionLoading(true);
     try {
       if (modalType === "create") {
-        if (!currentUser || !currentUser.id) {
-          showNotification(
-            "Không thể lấy thông tin người dùng để tạo bài viết.",
-            "error"
-          );
-          return;
-        }
-        const response = await blogService.createBlog(currentUser.id, {
+        const response = await blogService.createBlog({
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: "DRAFT",
         });
         if (response.data) {
           showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
@@ -187,23 +184,11 @@ const BlogManagement = () => {
           fetchBlogs();
         }
       } else if (modalType === "edit") {
-        if (!selectedBlog || !currentUser || !currentUser.id) {
-          showNotification(
-            "Không thể cập nhật bài viết. Thông tin không đầy đủ.",
-            "error"
-          );
-          return;
-        }
-        const updatedBlogData = {
-          ...selectedBlog,
-          ...values,
-        };
-        await blogService.updateBlog(
-          selectedBlog.id,
-          currentUser.id,
-          updatedBlogData,
-          token.token
-        );
+        await blogService.updateBlog(selectedBlog.id, {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+        });
         showNotification("Bài viết đã được cập nhật!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -219,50 +204,34 @@ const BlogManagement = () => {
   const handleSendForReview = async (values, isNewBlog) => {
     setActionLoading(true);
     try {
-      if (!currentUser || !currentUser.id) {
-        showNotification(
-          "Vui lòng đăng nhập để tạo hoặc gửi bài viết đi duyệt",
-          "error"
-        );
-        return;
-      }
       if (isNewBlog) {
-        const response = await blogService.createBlog(currentUser.id, {
+        const response = await blogService.createBlog({
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: "PENDING_REVIEW",
         });
         if (response.data) {
-          showNotification(
-            "Bài viết đã được gửi, chờ quản lý duyệt!",
-            "success"
-          );
+          await blogService.submitBlog(response.data.result.id, {
+            title: values.title,
+            content: values.content,
+            sourceReference: values.sourceReference,
+          });
+          showNotification("Bài viết đã được gửi, chờ quản lý duyệt!", "success");
           setIsModalVisible(false);
           form.resetFields();
           fetchBlogs();
         }
       } else {
-        if (!selectedBlog) {
-          showNotification("Không tìm thấy bài viết để gửi duyệt.", "error");
-          return;
-        }
-        const updatedBlogData = {
-          ...selectedBlog,
-          ...values,
-        };
-        await blogService.updateBlog(
-          selectedBlog.id,
-          currentUser.id,
-          updatedBlogData,
-          token.token
-        );
-        await blogService.submitBlog(
-          selectedBlog.id,
-          currentUser.id,
-          token.token,
-          updatedBlogData
-        );
+        await blogService.updateBlog(selectedBlog.id, {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+        });
+        await blogService.submitBlog(selectedBlog.id, {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+        });
         showNotification("Bài viết đã được gửi duyệt thành công!", "success");
         setIsModalVisible(false);
         form.resetFields();

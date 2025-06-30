@@ -69,19 +69,16 @@ const CreateBlogPage = () => {
           navigate("/sign-in");
           return;
         }
-
-        const response = await blogService.createBlog(currentUser.id, {
+        const response = await blogService.createBlog({
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
-          status: 'pending'
         });
         if (response.data) {
           showNotification("Bài viết đã được gửi, chờ quản lý duyệt!", "success");
           navigate(getDashboardPath(currentUser.role));
         }
       } catch (error) {
-        console.error("Blog create error:", error);
         if (error.response?.data?.message) {
           showNotification(error.response.data.message, "error");
         } else {
