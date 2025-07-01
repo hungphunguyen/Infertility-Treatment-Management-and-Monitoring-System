@@ -632,10 +632,8 @@ const RegisterService = () => {
       appointmentDate: dayjs(date),
       shift: shift.toLowerCase(),
     });
-
-    // Scroll lên phần "🗓 Thông tin Đặt lịch"
+    setCalendarRerender(prev => prev + 1);
     setTimeout(() => {
-      // Tìm element chứa text "Thông tin Đặt lịch"
       document.getElementById("appointment-section")?.scrollIntoView({
         behavior: "smooth",
         block: "center",
@@ -924,6 +922,60 @@ const RegisterService = () => {
     }
   }, [token, navigate, showNotification, roleChecked]);
 
+  // Thêm state ở đầu component:
+  const [calendarRerender, setCalendarRerender] = useState(0);
+
+  // Hàm renderCalendarTable dùng chung, style đồng bộ tuyệt đối
+  const renderCalendarTable = ({ calendar, renderCell, tableHeader }) => (
+    <table
+      style={{
+        width: "100%",
+        minWidth: 700,
+        tableLayout: "fixed",
+        borderCollapse: "separate",
+        borderSpacing: 4,
+        height: 480,
+        fontFamily: 'inherit',
+        fontSize: 14,
+        background: "#fff",
+        borderRadius: 16,
+        overflow: "hidden"
+      }}
+    >
+      <thead>
+        <tr>
+          {tableHeader.map((header, idx) => (
+            <th
+              key={idx}
+              style={{
+                border: "none",
+                padding: 12,
+                background: "#f0f8ff",
+                textAlign: "center",
+                fontWeight: 700,
+                fontSize: 14,
+                color: "#1890ff",
+                borderRadius: 8,
+                width: `${100 / 7}%`,
+                minWidth: 80,
+                maxWidth: 120
+              }}
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {calendar.map((week, weekIndex) => (
+          <tr key={weekIndex}>
+            {week.map((cell, dayIndex) => renderCell(cell, dayIndex, weekIndex))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
   return (
     <div className="min-h-screen">
       <UserHeader />
@@ -946,864 +998,262 @@ const RegisterService = () => {
       </div>
 
       <div className="py-20" style={{ backgroundColor: "#f0f4f8" }}>
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <Card
-              className="shadow-lg"
-              style={{ backgroundColor: "#fff", borderRadius: "8px" }}
+        <div className="w-full px-4" style={{ maxWidth: '100%' }}>
+          <Card className="shadow-lg" style={{ backgroundColor: "#fff", borderRadius: "12px", width: '100%' }}>
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={onFinish}
+              scrollToFirstError
             >
-              {!isLoggedIn && (
-                <Alert
-                  message="Vui lòng đăng nhập để đăng ký dịch vụ"
-                  type="warning"
-                  showIcon
-                  className="mb-4"
-                />
-              )}
-              <Form
-                form={form}
-                layout="vertical"
-                onFinish={onFinish}
-                scrollToFirstError
-              >
-                <Title level={3} className="mb-6" style={{ color: "#333" }}>
-                  Thông tin Cá nhân
-                  {userInfoLoading && (
-                    <span
-                      style={{
-                        fontSize: "14px",
-                        color: "#1890ff",
-                        marginLeft: "10px",
-                      }}
-                    >
-                      Đang tải thông tin...
-                    </span>
-                  )}
-                </Title>
-
-                <Row gutter={[16, 0]}>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="firstName"
-                      label="Họ và Tên"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Vui lòng nhập họ và tên của bạn",
-                        },
-                      ]}
-                    >
-                      <Input
-                        prefix={<UserOutlined />}
-                        placeholder="Họ và Tên"
-                        size="large"
-                        disabled={isLoggedIn}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="email"
-                      label="Email"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Vui lòng nhập email của bạn",
-                        },
-                        {
-                          type: "email",
-                          message: "Vui lòng nhập email hợp lệ",
-                        },
-                      ]}
-                    >
-                      <Input
-                        prefix={<MailOutlined />}
-                        placeholder="Địa chỉ Email"
-                        size="large"
-                        disabled={isLoggedIn}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={[16, 0]}>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="phone"
-                      label="Số điện thoại"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Vui lòng nhập số điện thoại của bạn",
-                        },
-                      ]}
-                    >
-                      <Input
-                        prefix={<PhoneOutlined />}
-                        placeholder="Số điện thoại"
-                        size="large"
-                        disabled={isLoggedIn}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="dateOfBirth"
-                      label="Ngày sinh"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Vui lòng chọn ngày sinh của bạn",
-                        },
-                      ]}
-                    >
-                      <DatePicker
-                        className="w-full"
-                        size="large"
-                        placeholder="Chọn ngày sinh"
-                        disabled={isLoggedIn}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={[16, 0]}>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="gender"
-                      label="Giới tính"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Vui lòng chọn giới tính của bạn",
-                        },
-                      ]}
-                    >
-                      <Radio.Group disabled={isLoggedIn}>
-                        <Radio value="female">Nữ</Radio>
-                        <Radio value="male">Nam</Radio>
-                        <Radio value="other">Khác</Radio>
-                      </Radio.Group>
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="address"
-                      label="Địa chỉ"
-                      rules={[
-                        { required: true, message: "Vui lòng nhập địa chỉ" },
-                      ]}
-                    >
-                      <Input
-                        prefix={<HomeOutlined />}
-                        placeholder="Địa chỉ thường trú"
-                        size="large"
-                        disabled={isLoggedIn}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Divider />
-
-                <Title
-                  id="appointment-section"
-                  level={3}
-                  className="mb-6"
-                  style={{ color: "#333" }}
-                >
-                  Thông tin Đặt lịch
-                </Title>
-
-                <Row gutter={[16, 0]}>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="appointmentDate"
-                      label="Ngày thăm khám ban đầu"
-                      rules={[
-                        { required: true, message: "Vui lòng chọn ngày khám" },
-                      ]}
-                    >
-                      <DatePicker
-                        className="w-full"
-                        size="large"
-                        placeholder="Chọn ngày khám"
-                        disabledDate={(current) =>
-                          current && current < dayjs().startOf("day")
-                        }
-                        onChange={onDateChange}
-                      />
-                    </Form.Item>
-                    {doctorNotAvailable && (
-                      <div className="text-red-500 text-sm mb-2">
-                        <span>
-                          Bác sĩ không có lịch trống vào ngày và ca này. Vui
-                          lòng chọn ngày hoặc ca khác.
-                        </span>
-                      </div>
+              <Row gutter={40} align="top">
+                {/* BÊN TRÁI: Thông tin cá nhân + Thông tin đặt lịch */}
+                <Col xs={24} md={13}>
+                  {/* Thông tin cá nhân */}
+                  <Title level={3} className="mb-6" style={{ color: "#333" }}>
+                    Thông tin Cá nhân
+                    {userInfoLoading && (
+                      <span style={{ fontSize: "14px", color: "#1890ff", marginLeft: "10px" }}>
+                        Đang tải thông tin...
+                      </span>
                     )}
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="shift"
-                      label="Buổi khám"
-                      rules={[
-                        { required: true, message: "Vui lòng chọn buổi khám" },
-                      ]}
-                    >
-                      <Select
-                        placeholder="-- Chọn buổi khám --"
-                        size="large"
-                        onChange={onShiftChange}
-                      >
-                        <Option value="morning">Sáng (08:00–12:00)</Option>
-                        <Option value="afternoon">Chiều (13:00–17:00)</Option>
-                      </Select>
-                    </Form.Item>
-                    {doctorNotAvailable && (
-                      <div className="text-blue-500 text-sm mb-2">
-                        <span>
-                          Gợi ý: Thử chọn buổi khám khác hoặc chọn "Không chọn -
-                          Bác sĩ có sẵn" để hệ thống tự động phân bác sĩ có lịch
-                          trống.
-                        </span>
-                      </div>
-                    )}
-                  </Col>
-                </Row>
-
-                <Row gutter={[16, 0]}>
-                  <Col xs={24} md={12}>
-                    <Form.Item
-                      name="cd1Date"
-                      label="Ngày đầu chu kì"
-                      tooltip="Thông tin quan trọng giúp bác sĩ lập kế hoạch điều trị hiệu quả"
-                      rules={[
-                        {
-                          required: false,
-                          message: "Vui lòng đầu chu kì nếu có",
-                        },
-                      ]}
-                    >
-                      <DatePicker
-                        className="w-full"
-                        size="large"
-                        placeholder="Chọn ngày đầu chu kỳ"
-                      />
-                    </Form.Item>
-                    <div className="text-gray-500 text-sm mt-1">
-                      <i>
-                        Thông tin này giúp bác sĩ xác định chu kỳ kinh nguyệt và
-                        lập kế hoạch điều trị phù hợp
-                      </i>
-                    </div>
-                  </Col>
-                </Row>
-
-                <Form.Item
-                  name="treatmentService"
-                  label="Gói dịch vụ điều trị"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn gói dịch vụ" },
-                  ]}
-                >
-                  {servicesLoading ? (
-                    <div className="flex items-center">
-                      <Spin size="small" className="mr-2" />
-                      <span>Đang tải danh sách dịch vụ...</span>
-                    </div>
-                  ) : (
-                    <Select placeholder="-- Chọn gói dịch vụ --" size="large">
-                      {treatmentServices.map((service) => (
-                        <Option key={service.value} value={service.value}>
-                          {service.label}
-                        </Option>
-                      ))}
-                    </Select>
-                  )}
-                </Form.Item>
-
-                <Form.Item
-                  name="doctor"
-                  label={
-                    initialSelectedDoctor
-                      ? "Bác sĩ đã chọn"
-                      : "Chỉ định bác sĩ điều trị (tùy chọn)"
-                  }
-                >
-                  {initialSelectedDoctor ? (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded">
-                      <Text strong className="text-green-700 text-lg">
-                        {doctorName ||
-                          doctors.find(
-                            (doc) => doc.value === initialSelectedDoctor
-                          )?.label ||
-                          "Bác sĩ đã được chỉ định"}
-                      </Text>
-
-                      {doctorRole && (
-                        <div className="mt-1 text-[#ff8460] font-medium">
-                          {doctorRole}
+                  </Title>
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="firstName" label="Họ và Tên" rules={[{ required: true, message: "Vui lòng nhập họ và tên của bạn" }]}> 
+                        <Input prefix={<UserOutlined />} placeholder="Họ và Tên" size="large" disabled={isLoggedIn} /> 
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="email" label="Email" rules={[{ required: true, message: "Vui lòng nhập email của bạn" }, { type: "email", message: "Vui lòng nhập email hợp lệ" }]}> 
+                        <Input prefix={<MailOutlined />} placeholder="Địa chỉ Email" size="large" disabled={isLoggedIn} /> 
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="phone" label="Số điện thoại" rules={[{ required: true, message: "Vui lòng nhập số điện thoại của bạn" }]}> 
+                        <Input prefix={<PhoneOutlined />} placeholder="Số điện thoại" size="large" disabled={isLoggedIn} /> 
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="dateOfBirth" label="Ngày sinh" rules={[{ required: true, message: "Vui lòng chọn ngày sinh của bạn" }]}> 
+                        <DatePicker className="w-full" size="large" placeholder="Chọn ngày sinh" disabled={isLoggedIn} /> 
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="gender" label="Giới tính" rules={[{ required: true, message: "Vui lòng chọn giới tính của bạn" }]}> 
+                        <Radio.Group disabled={isLoggedIn}> <Radio value="female">Nữ</Radio> <Radio value="male">Nam</Radio> <Radio value="other">Khác</Radio> </Radio.Group> 
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="address" label="Địa chỉ" rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}> 
+                        <Input prefix={<HomeOutlined />} placeholder="Địa chỉ thường trú" size="large" disabled={isLoggedIn} /> 
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Divider />
+                  {/* Thông tin đặt lịch */}
+                  <Title id="appointment-section" level={3} className="mb-6" style={{ color: "#333" }}>
+                    Thông tin Đặt lịch
+                  </Title>
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="appointmentDate" label="Ngày thăm khám ban đầu" rules={[{ required: true, message: "Vui lòng chọn ngày khám" }]}> 
+                        <DatePicker className="w-full" size="large" placeholder="Chọn ngày khám" disabledDate={(current) => current && current < dayjs().startOf("day")} onChange={onDateChange} />
+                      </Form.Item>
+                      {doctorNotAvailable && (<div className="text-red-500 text-sm mb-2"><span>Bác sĩ không có lịch trống vào ngày và ca này. Vui lòng chọn ngày hoặc ca khác.</span></div>)}
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="shift" label="Buổi khám" rules={[{ required: true, message: "Vui lòng chọn buổi khám" }]}> 
+                        <Select placeholder="-- Chọn buổi khám --" size="large" onChange={onShiftChange}> 
+                          <Option value="morning">Sáng (08:00–12:00)</Option> 
+                          <Option value="afternoon">Chiều (13:00–17:00)</Option> 
+                        </Select> 
+                      </Form.Item>
+                      {doctorNotAvailable && (<div className="text-blue-500 text-sm mb-2"><span>Gợi ý: Thử chọn buổi khám khác hoặc chọn "Không chọn - Bác sĩ có sẵn" để hệ thống tự động phân bác sĩ có lịch trống.</span></div>)}
+                    </Col>
+                  </Row>
+                  <Row gutter={[16, 0]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item name="cd1Date" label="Ngày đầu chu kì" tooltip="Thông tin quan trọng giúp bác sĩ lập kế hoạch điều trị hiệu quả" rules={[{ required: false, message: "Vui lòng đầu chu kì nếu có" }]}> <DatePicker className="w-full" size="large" placeholder="Chọn ngày đầu chu kỳ" /> </Form.Item>
+                      <div className="text-gray-500 text-sm mt-1"><i>Thông tin này giúp bác sĩ xác định chu kỳ kinh nguyệt và lập kế hoạch điều trị phù hợp</i></div>
+                    </Col>
+                  </Row>
+                  <Form.Item name="treatmentService" label="Gói dịch vụ điều trị" rules={[{ required: true, message: "Vui lòng chọn gói dịch vụ" }]}> {servicesLoading ? (<div className="flex items-center"><Spin size="small" className="mr-2" /><span>Đang tải danh sách dịch vụ...</span></div>) : (<Select placeholder="-- Chọn gói dịch vụ --" size="large">{treatmentServices.map((service) => (<Option key={service.value} value={service.value}>{service.label}</Option>))}</Select>)} </Form.Item>
+                  <Form.Item style={{ textAlign: "center", marginTop: "40px" }}>
+                    <Button type="primary" htmlType="submit" loading={loading} disabled={!isLoggedIn} size="large" style={{ height: "50px", fontSize: "16px", fontWeight: "bold", padding: "0 40px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)" }}>
+                      Xác nhận
+                    </Button>
+                  </Form.Item>
+                </Col>
+                {/* BÊN PHẢI: Chỉ định bác sĩ điều trị và lịch làm việc */}
+                <Col xs={24} md={11} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}>
+                  <div style={{ fontWeight: 700, fontSize: 22, color: '#333', marginBottom: 16 }}>
+                    {initialSelectedDoctor ? "Bác sĩ đã chọn" : "Chỉ định bác sĩ điều trị (tùy chọn)"}
+                  </div>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', paddingTop: 22 }}>
+                    <Form.Item name="doctor" label={false} style={{ width: '100%', marginBottom: 0 }}>
+                      {initialSelectedDoctor ? (
+                        <div className="p-4 bg-green-50 border border-green-200 rounded">
+                          <Text strong className="text-green-700 text-lg">
+                            {doctorName || doctors.find((doc) => doc.value === initialSelectedDoctor)?.label || "Bác sĩ đã được chỉ định"}
+                          </Text>
+                          {doctorRole && (<div className="mt-1 text-[#ff8460] font-medium">{doctorRole}</div>)}
+                          {doctorSpecialization && (<div className="mt-1 text-gray-700">{doctorSpecialization}</div>)}
                         </div>
+                      ) : doctorsLoading ? (
+                        <div className="flex items-center"><Spin size="small" className="mr-2" /><span>Đang tải danh sách bác sĩ...</span></div>
+                      ) : (
+                        <Select placeholder="-- Không chọn (hệ thống tự phân bác sĩ) --" size="large" onChange={onDoctorChange} style={{ height: 41 }}>{doctors.map((doctor) => (<Option key={doctor.value} value={doctor.value}>{doctor.label}</Option>))}</Select>
                       )}
-
-                      {doctorSpecialization && (
-                        <div className="mt-1 text-gray-700">
-                          {doctorSpecialization}
-                        </div>
-                      )}
-                    </div>
-                  ) : doctorsLoading ? (
-                    <div className="flex items-center">
-                      <Spin size="small" className="mr-2" />
-                      <span>Đang tải danh sách bác sĩ...</span>
-                    </div>
-                  ) : (
-                    <Select
-                      placeholder="-- Không chọn (hệ thống tự phân bác sĩ) --"
-                      size="large"
-                      onChange={onDoctorChange}
-                    >
-                      {doctors.map((doctor) => (
-                        <Option key={doctor.value} value={doctor.value}>
-                          {doctor.label}
-                        </Option>
-                      ))}
-                    </Select>
-                  )}
-                </Form.Item>
-
-                {/* Doctor Schedule */}
-                {showDoctorSchedule && doctorSchedule && (
-                  <Card className="mb-4" style={{ backgroundColor: "#f9f9f9" }}>
-                    <Title level={4}>Lịch làm việc của bác sĩ</Title>
-                    <div className="mb-4 flex items-center gap-4">
-                      <span>Xem lịch tháng:</span>
-                      <Select
-                        value={selectedMonth}
-                        onChange={handleMonthChange}
-                        style={{ width: 120 }}
-                      >
-                        {MONTHS_VI.map((m, idx) => (
-                          <Select.Option key={idx} value={idx}>
-                            {m}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                      <span>{dayjs().year()}</span>
-                    </div>
-                    {scheduleLoading ? (
-                      <div className="flex items-center justify-center p-4">
-                        <Spin size="large" />
-                        <span className="ml-2">Đang tải lịch làm việc...</span>
+                    </Form.Item>
+                  </div>
+                  {(!showDoctorSchedule || !doctorSchedule) && (
+                    <Card className="mb-4" style={{ backgroundColor: "#f9f9f9", marginTop: 32, borderRadius: 16, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+                      <Title level={4}>Lịch làm việc của bác sĩ</Title>
+                      <div className="mb-4 flex items-center gap-4">
+                        <span>Xem lịch tháng:</span>
+                        <Select value={selectedMonth} onChange={handleMonthChange} style={{ width: 120 }}>
+                          {MONTHS_VI.map((m, idx) => (
+                            <Select.Option key={idx} value={idx}>{m}</Select.Option>
+                          ))}
+                        </Select>
+                        <span>{dayjs().year()}</span>
                       </div>
-                    ) : (
-                      <div
-                        style={{
-                          background: "#fff",
-                          borderRadius: 16,
-                          padding: 20,
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                          overflowX: "auto",
-                        }}
-                      >
+                      <div style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", overflowX: "auto" }}>
                         {(() => {
-                          const dates = Object.keys(
-                            doctorSchedule.schedules || {}
-                          ).sort();
-                          const months = {};
-                          dates.forEach((date) => {
-                            const d = dayjs(date);
-                            if (d.month() === selectedMonth) {
-                              const monthKey = d.format("YYYY-MM");
-                              if (!months[monthKey]) months[monthKey] = [];
-                              months[monthKey].push(date);
-                            }
-                          });
-                          return Object.entries(months).map(
-                            ([monthKey, monthDates]) => {
-                              const [year, month] = monthKey.split("-");
-                              const monthName = dayjs(monthKey + "-01").format(
-                                "MMMM YYYY"
-                              );
-
-                              // Generate calendar grid for this month
-                              const firstDate = new Date(year, month - 1, 1);
-                              const totalDays = new Date(
-                                year,
-                                month,
-                                0
-                              ).getDate();
-                              const firstDay = firstDate.getDay(); // 0=Sunday, 1=Monday, etc.
-                              const offset = firstDay === 0 ? 6 : firstDay - 1; // Convert to Monday = 0
-
-                              const calendar = [];
-                              let day = 1;
-                              for (let i = 0; i < 6 && day <= totalDays; i++) {
-                                const week = [];
-                                for (let j = 0; j < 7; j++) {
-                                  if (
-                                    (i === 0 && j < offset) ||
-                                    day > totalDays
-                                  ) {
-                                    week.push(null);
-                                  } else {
-                                    const dateStr = `${year}-${String(
-                                      month
-                                    ).padStart(2, "0")}-${String(day).padStart(
-                                      2,
-                                      "0"
-                                    )}`;
-                                    week.push(dateStr);
-                                    day++;
-                                  }
-                                }
-                                calendar.push(week);
+                          const year = dayjs().year();
+                          const month = selectedMonth + 1;
+                          const firstDate = new Date(year, month - 1, 1);
+                          const totalDays = new Date(year, month, 0).getDate();
+                          const firstDay = firstDate.getDay();
+                          const offset = firstDay === 0 ? 6 : firstDay - 1;
+                          const calendar = [];
+                          let day = 1;
+                          for (let i = 0; i < 6 && day <= totalDays; i++) {
+                            const week = [];
+                            for (let j = 0; j < 7; j++) {
+                              if ((i === 0 && j < offset) || day > totalDays) {
+                                week.push(null);
+                              } else {
+                                week.push(day);
+                                day++;
                               }
-
-                              return (
-                                <div
-                                  key={monthKey}
-                                  style={{ marginBottom: 30 }}
-                                >
-                                  <table
-                                    style={{
-                                      width: "100%",
-                                      borderCollapse: "separate",
-                                      borderSpacing: 4,
-                                      minWidth: 600,
-                                    }}
-                                  >
-                                    <thead>
-                                      <tr>
-                                        <th
-                                          style={{
-                                            border: "none",
-                                            padding: 12,
-                                            background: "#f0f8ff",
-                                            textAlign: "center",
-                                            fontWeight: 700,
-                                            fontSize: 14,
-                                            color: "#1890ff",
-                                            borderRadius: 8,
-                                          }}
-                                        >
-                                          Thứ 2
-                                        </th>
-                                        <th
-                                          style={{
-                                            border: "none",
-                                            padding: 12,
-                                            background: "#f0f8ff",
-                                            textAlign: "center",
-                                            fontWeight: 700,
-                                            fontSize: 14,
-                                            color: "#1890ff",
-                                            borderRadius: 8,
-                                          }}
-                                        >
-                                          Thứ 3
-                                        </th>
-                                        <th
-                                          style={{
-                                            border: "none",
-                                            padding: 12,
-                                            background: "#f0f8ff",
-                                            textAlign: "center",
-                                            fontWeight: 700,
-                                            fontSize: 14,
-                                            color: "#1890ff",
-                                            borderRadius: 8,
-                                          }}
-                                        >
-                                          Thứ 4
-                                        </th>
-                                        <th
-                                          style={{
-                                            border: "none",
-                                            padding: 12,
-                                            background: "#f0f8ff",
-                                            textAlign: "center",
-                                            fontWeight: 700,
-                                            fontSize: 14,
-                                            color: "#1890ff",
-                                            borderRadius: 8,
-                                          }}
-                                        >
-                                          Thứ 5
-                                        </th>
-                                        <th
-                                          style={{
-                                            border: "none",
-                                            padding: 12,
-                                            background: "#f0f8ff",
-                                            textAlign: "center",
-                                            fontWeight: 700,
-                                            fontSize: 14,
-                                            color: "#1890ff",
-                                            borderRadius: 8,
-                                          }}
-                                        >
-                                          Thứ 6
-                                        </th>
-                                        <th
-                                          style={{
-                                            border: "none",
-                                            padding: 12,
-                                            background: "#f0f8ff",
-                                            textAlign: "center",
-                                            fontWeight: 700,
-                                            fontSize: 14,
-                                            color: "#1890ff",
-                                            borderRadius: 8,
-                                          }}
-                                        >
-                                          Thứ 7
-                                        </th>
-                                        <th
-                                          style={{
-                                            border: "none",
-                                            padding: 12,
-                                            background: "#f0f8ff",
-                                            textAlign: "center",
-                                            fontWeight: 700,
-                                            fontSize: 14,
-                                            color: "#1890ff",
-                                            borderRadius: 8,
-                                          }}
-                                        >
-                                          Chủ nhật
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {calendar.map((week, weekIndex) => (
-                                        <tr key={weekIndex}>
-                                          {week.map((date, dayIndex) => {
-                                            if (!date) {
-                                              return (
-                                                <td
-                                                  key={dayIndex}
-                                                  style={{
-                                                    border: "2px solid #f0f0f0",
-                                                    height: 80,
-                                                    minWidth: 80,
-                                                    textAlign: "center",
-                                                    verticalAlign: "middle",
-                                                    background: "#fafafa",
-                                                    borderRadius: 8,
-                                                  }}
-                                                >
-                                                  {/* Empty cell */}
-                                                </td>
-                                              );
-                                            }
-
-                                            const shifts =
-                                              doctorSchedule.schedules[date];
-                                            const hasMorning =
-                                              shifts &&
-                                              shifts.includes("MORNING");
-                                            const hasAfternoon =
-                                              shifts &&
-                                              shifts.includes("AFTERNOON");
-                                            const isToday =
-                                              date ===
-                                              dayjs().format("YYYY-MM-DD");
-
-                                            return (
-                                              <td
-                                                key={dayIndex}
-                                                style={{
-                                                  border: "2px solid #e8e8e8",
-                                                  height: 80,
-                                                  minWidth: 80,
-                                                  textAlign: "center",
-                                                  verticalAlign: "middle",
-                                                  background: isToday
-                                                    ? "#e6f7ff"
-                                                    : "#fff",
-                                                  borderRadius: 8,
-                                                  padding: 4,
-                                                  position: "relative",
-                                                }}
-                                              >
-                                                {/* Date number */}
-                                                <div
-                                                  style={{
-                                                    fontSize: 12,
-                                                    fontWeight: "bold",
-                                                    color: isToday
-                                                      ? "#1890ff"
-                                                      : "#666",
-                                                    marginBottom: 4,
-                                                  }}
-                                                >
-                                                  {dayjs(date).format("DD")}
-                                                </div>
-
-                                                {/* Morning shift */}
-                                                <div
-                                                  style={{
-                                                    marginBottom: 2,
-                                                    padding: 2,
-                                                    borderRadius: 4,
-                                                    background: hasMorning
-                                                      ? "#f6ffed"
-                                                      : "#f5f5f5",
-                                                    border: hasMorning
-                                                      ? "1px solid #52c41a"
-                                                      : "1px solid #d9d9d9",
-                                                    fontSize: 10,
-                                                  }}
-                                                >
-                                                  <div
-                                                    style={{
-                                                      color: hasMorning
-                                                        ? "#52c41a"
-                                                        : "#999",
-                                                      fontWeight: "bold",
-                                                    }}
-                                                  >
-                                                    Sáng
-                                                  </div>
-                                                  {hasMorning && (
-                                                    <button
-                                                      onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleScheduleSelection(
-                                                          date,
-                                                          "MORNING"
-                                                        );
-                                                      }}
-                                                      style={{
-                                                        background: "#52c41a",
-                                                        color: "white",
-                                                        border: "none",
-                                                        borderRadius: 3,
-                                                        padding: "2px 6px",
-                                                        fontSize: 9,
-                                                        fontWeight: "bold",
-                                                        cursor: "pointer",
-                                                        width: "100%",
-                                                        marginTop: 2,
-                                                      }}
-                                                    >
-                                                      Chọn
-                                                    </button>
-                                                  )}
-                                                </div>
-
-                                                {/* Afternoon shift */}
-                                                <div
-                                                  style={{
-                                                    padding: 2,
-                                                    borderRadius: 4,
-                                                    background: hasAfternoon
-                                                      ? "#fff7e6"
-                                                      : "#f5f5f5",
-                                                    border: hasAfternoon
-                                                      ? "1px solid #fa8c16"
-                                                      : "1px solid #d9d9d9",
-                                                    fontSize: 10,
-                                                  }}
-                                                >
-                                                  <div
-                                                    style={{
-                                                      color: hasAfternoon
-                                                        ? "#fa8c16"
-                                                        : "#999",
-                                                      fontWeight: "bold",
-                                                    }}
-                                                  >
-                                                    Chiều
-                                                  </div>
-                                                  {hasAfternoon && (
-                                                    <button
-                                                      onClick={(e) => {
-                                                        e.preventDefault();
-                                                        handleScheduleSelection(
-                                                          date,
-                                                          "AFTERNOON"
-                                                        );
-                                                      }}
-                                                      style={{
-                                                        background: "#fa8c16",
-                                                        color: "white",
-                                                        border: "none",
-                                                        borderRadius: 3,
-                                                        padding: "2px 6px",
-                                                        fontSize: 9,
-                                                        fontWeight: "bold",
-                                                        cursor: "pointer",
-                                                        width: "100%",
-                                                        marginTop: 2,
-                                                      }}
-                                                    >
-                                                      Chọn
-                                                    </button>
-                                                  )}
-                                                </div>
-
-                                                {/* Full day indicator */}
-                                                {hasMorning && hasAfternoon && (
-                                                  <div
-                                                    style={{
-                                                      position: "absolute",
-                                                      top: 2,
-                                                      right: 2,
-                                                      background: "#722ed1",
-                                                      color: "white",
-                                                      padding: "1px 3px",
-                                                      borderRadius: 2,
-                                                      fontSize: 8,
-                                                      fontWeight: "bold",
-                                                    }}
-                                                  >
-                                                    Cả ngày
-                                                  </div>
-                                                )}
-                                              </td>
-                                            );
-                                          })}
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              );
                             }
-                          );
+                            calendar.push(week);
+                          }
+                          const tableHeader = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
+                          return renderCalendarTable({
+                            calendar,
+                            tableHeader,
+                            renderCell: (date, dayIndex, weekIndex) => date ? (
+                              <td key={dayIndex} style={{ border: "1px solid #f0f0f0", height: 64, minWidth: 80, textAlign: "center", verticalAlign: "middle", background: "#fafafa", borderRadius: 8, padding: 4 }}>
+                                <div style={{ fontSize: 13, fontWeight: "bold", color: "#444", marginBottom: 4 }}>{String(date).padStart(2, '0')}</div>
+                                <div style={{ marginBottom: 2, padding: 0, borderRadius: 4, background: "#f5f5f5", fontSize: 11, color: "#bbb", fontWeight: "bold", textAlign: "center", height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>Sáng</div>
+                                <div style={{ padding: 0, borderRadius: 4, background: "#f5f5f5", fontSize: 11, color: "#bbb", fontWeight: "bold", textAlign: "center", height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>Chiều</div>
+                              </td>
+                            ) : (
+                              <td key={dayIndex} style={{ background: "none", border: "none", minWidth: 80, height: 64 }}></td>
+                            )
+                          });
                         })()}
-
-                        {/* Legend */}
-                        <div
-                          style={{
-                            marginTop: 16,
-                            padding: 12,
-                            background: "#f0f8ff",
-                            borderRadius: 8,
-                            border: "1px solid #d6e4ff",
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontWeight: "bold",
-                              marginBottom: 6,
-                              color: "#1890ff",
-                              fontSize: 12,
-                            }}
-                          >
-                            Chú thích:
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 16,
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: 12,
-                                  height: 12,
-                                  background: "#f6ffed",
-                                  border: "1px solid #52c41a",
-                                  borderRadius: 2,
-                                }}
-                              ></div>
-                              <span style={{ fontSize: 11 }}>Ca sáng</span>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: 12,
-                                  height: 12,
-                                  background: "#fff7e6",
-                                  border: "1px solid #fa8c16",
-                                  borderRadius: 2,
-                                }}
-                              ></div>
-                              <span style={{ fontSize: 11 }}>Ca chiều</span>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: 12,
-                                  height: 12,
-                                  background: "#f5f5f5",
-                                  border: "1px solid #d9d9d9",
-                                  borderRadius: 2,
-                                }}
-                              ></div>
-                              <span style={{ fontSize: 11 }}>Nghỉ</span>
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
-                            >
-                              <div
-                                style={{
-                                  width: 12,
-                                  height: 12,
-                                  background: "#e6f7ff",
-                                  border: "1px solid #1890ff",
-                                  borderRadius: 2,
-                                }}
-                              ></div>
-                              <span style={{ fontSize: 11 }}>Hôm nay</span>
-                            </div>
-                          </div>
-                        </div>
                       </div>
-                    )}
-                  </Card>
-                )}
-
-                <Form.Item style={{ textAlign: "center", marginTop: "40px" }}>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={loading}
-                    disabled={!isLoggedIn}
-                    size="large"
-                    style={{
-                      height: "50px",
-                      fontSize: "16px",
-                      fontWeight: "bold",
-                      padding: "0 40px",
-                      borderRadius: "8px",
-                      boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
-                    }}
-                  >
-                    Gửi đăng ký
-                  </Button>
-                </Form.Item>
-              </Form>
-            </Card>
-          </div>
+                    </Card>
+                  )}
+                  {showDoctorSchedule && doctorSchedule && (
+                    <Card className="mb-4" style={{ backgroundColor: "#f9f9f9", marginTop: 32, borderRadius: 16, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+                      <Title level={4}>Lịch làm việc của bác sĩ</Title>
+                      <div className="mb-4 flex items-center gap-4">
+                        <span>Xem lịch tháng:</span>
+                        <Select value={selectedMonth} onChange={handleMonthChange} style={{ width: 120 }}>
+                          {MONTHS_VI.map((m, idx) => (
+                            <Select.Option key={idx} value={idx}>{m}</Select.Option>
+                          ))}
+                        </Select>
+                        <span>{dayjs().year()}</span>
+                      </div>
+                      {scheduleLoading ? (
+                        <div className="flex items-center justify-center p-4">
+                          <Spin size="large" />
+                          <span className="ml-2">Đang tải lịch làm việc...</span>
+                        </div>
+                      ) : (
+                        <div key={calendarRerender} style={{ background: "#fff", borderRadius: 16, padding: 20, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", overflowX: "auto" }}>
+                          {(() => {
+                            const year = dayjs().year();
+                            const month = selectedMonth + 1;
+                            const firstDate = new Date(year, month - 1, 1);
+                            const totalDays = new Date(year, month, 0).getDate();
+                            const firstDay = firstDate.getDay();
+                            const offset = firstDay === 0 ? 6 : firstDay - 1;
+                            const calendar = [];
+                            let day = 1;
+                            for (let i = 0; i < 6 && day <= totalDays; i++) {
+                              const week = [];
+                              for (let j = 0; j < 7; j++) {
+                                if ((i === 0 && j < offset) || day > totalDays) {
+                                  week.push(null);
+                                } else {
+                                  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                                  week.push(dateStr);
+                                  day++;
+                                }
+                              }
+                              calendar.push(week);
+                            }
+                            const tableHeader = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ nhật"];
+                            return renderCalendarTable({
+                              calendar,
+                              tableHeader,
+                              renderCell: (date, dayIndex, weekIndex) => {
+                                if (!date) return <td key={dayIndex} style={{ background: "none", border: "none", minWidth: 80, height: 64 }}></td>;
+                                const shifts = doctorSchedule.schedules[date];
+                                const hasMorning = shifts && shifts.includes("MORNING");
+                                const hasAfternoon = shifts && shifts.includes("AFTERNOON");
+                                const isToday = date === dayjs().format("YYYY-MM-DD");
+                                const selectedDate = form.getFieldValue('appointmentDate');
+                                const selectedShift = form.getFieldValue('shift');
+                                const isSelectedMorning = selectedDate && dayjs(date).isSame(selectedDate, 'day') && selectedShift === 'morning';
+                                const isSelectedAfternoon = selectedDate && dayjs(date).isSame(selectedDate, 'day') && selectedShift === 'afternoon';
+                                return (
+                                  <td key={dayIndex} style={{ border: "1px solid #e8e8e8", height: 64, minWidth: 80, textAlign: "center", verticalAlign: "middle", background: isToday ? "#e6f7ff" : "#fff", borderRadius: 8, padding: 4, position: "relative" }}>
+                                    <div style={{ fontSize: 13, fontWeight: "bold", color: isToday ? "#1890ff" : "#666", marginBottom: 4 }}>{dayjs(date).format("DD")}</div>
+                                    <div style={{ marginBottom: 2, borderRadius: 4, background: hasMorning ? "#f6ffed" : "#f5f5f5", fontSize: 11, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                      {hasMorning ? (
+                                        <button
+                                          onClick={(e) => { e.preventDefault(); handleScheduleSelection(date, "MORNING"); }}
+                                          style={{ background: isSelectedMorning ? '#1890ff' : '#52c41a', color: isSelectedMorning ? '#fff' : 'white', border: 'none', borderRadius: 3, padding: 0, fontSize: 11, fontWeight: 'bold', cursor: 'pointer', width: '100%', height: 24, transition: 'background 0.2s, color 0.2s', margin: 0 }}
+                                        >Sáng</button>
+                                      ) : (
+                                        <div style={{ color: "#bbb", fontWeight: "bold", width: '100%', textAlign: 'center' }}>Sáng</div>
+                                      )}
+                                    </div>
+                                    <div style={{ borderRadius: 4, background: hasAfternoon ? "#fff7e6" : "#f5f5f5", fontSize: 11, height: 24, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                      {hasAfternoon ? (
+                                        <button
+                                          onClick={(e) => { e.preventDefault(); handleScheduleSelection(date, "AFTERNOON"); }}
+                                          style={{ background: isSelectedAfternoon ? '#1890ff' : '#fa8c16', color: isSelectedAfternoon ? '#fff' : 'white', border: 'none', borderRadius: 3, padding: 0, fontSize: 11, fontWeight: 'bold', cursor: 'pointer', width: '100%', height: 24, transition: 'background 0.2s, color 0.2s', margin: 0 }}
+                                        >Chiều</button>
+                                      ) : (
+                                        <div style={{ color: "#bbb", fontWeight: "bold", width: '100%', textAlign: 'center' }}>Chiều</div>
+                                      )}
+                                    </div>
+                                  </td>
+                                );
+                              }
+                            });
+                          })()}
+                        </div>
+                      )}
+                    </Card>
+                  )}
+                </Col>
+              </Row>
+            </Form>
+          </Card>
         </div>
       </div>
 
