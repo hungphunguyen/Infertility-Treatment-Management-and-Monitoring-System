@@ -18,7 +18,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { doctorService } from "../service/doctor.service";
 import { getLocgetlStorage } from "../utils/util";
 import { NotificationContext } from "../App";
-
+import { useInfiniteQuery } from "@tanstack/react-query";
 const { Title } = Typography;
 
 const DoctorDetailPage = () => {
@@ -27,9 +27,7 @@ const DoctorDetailPage = () => {
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [feedbacks, setFeedbacks] = useState([]);
-  const [loadingFeedbacks, setLoadingFeedbacks] = useState(false);
-  const [showAllFeedbacks, setShowAllFeedbacks] = useState(false);
+
   const [doctorRating, setDoctorRating] = useState(null);
 
   useEffect(() => {
@@ -56,20 +54,36 @@ const DoctorDetailPage = () => {
   useEffect(() => {
     const fetchFeedbacks = async (page = 0) => {
       if (!id) return;
-      setLoadingFeedbacks(true);
       try {
-        const response = await doctorService.getDoctorFeedback(id, page, 0);
+        const response = await doctorService.getDoctorFeedback(id, page, 5);
         if (response.data && response.data.code === 1000) {
-          setFeedbacks(response.data.result.content);
         }
       } catch (error) {
         //
-      } finally {
-        setLoadingFeedbacks(false);
       }
     };
     fetchFeedbacks();
   }, [id]);
+
+  const {
+    data: feedbackPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: loadingFeedbacks,
+    isError: errorFeedbacks,
+  } = useInfiniteQuery({
+    queryKey: ["doctor-feedbacks", id],
+    queryFn: async ({ pageParam = 0 }) => {
+      const res = await doctorService.getDoctorFeedback(id, pageParam, 1);
+      return res.data.result; // chuẩn định dạng Spring Boot pagination
+    },
+    enabled: !!id,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.last ? undefined : allPages.length,
+  });
+
+  const feedbacks = feedbackPages?.pages.flatMap((page) => page.content) || [];
 
   if (loading) {
     return (
@@ -281,11 +295,7 @@ const DoctorDetailPage = () => {
         <Card
           title={
             <span
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "600",
-                color: "#333",
-              }}
+              style={{ fontSize: "1.5rem", fontWeight: "600", color: "#333" }}
             >
               Đánh giá từ bệnh nhân
             </span>
@@ -300,13 +310,17 @@ const DoctorDetailPage = () => {
           }}
         >
           {loadingFeedbacks ? (
-            <Spin tip="Đang tải đánh giá..." />
+            <div className="text-center py-6">
+              <Spin tip="Đang tải đánh giá..." />
+            </div>
+          ) : feedbacks.length === 0 ? (
+            <div className="text-center text-gray-500 py-6">
+              Chưa có đánh giá nào từ bệnh nhân.
+            </div>
           ) : (
             <>
               <List
-                dataSource={
-                  showAllFeedbacks ? feedbacks : feedbacks.slice(0, 3)
-                }
+                dataSource={feedbacks}
                 renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
@@ -318,7 +332,9 @@ const DoctorDetailPage = () => {
                           <p>{item.comment}</p>
                           <small>
                             Ngày:{" "}
-                            {new Date(item.submitDate).toLocaleDateString()}
+                            {new Date(item.submitDate).toLocaleDateString(
+                              "vi-VN"
+                            )}
                           </small>
                         </>
                       }
@@ -326,10 +342,16 @@ const DoctorDetailPage = () => {
                   </List.Item>
                 )}
               />
-              {feedbacks.length > 3 && !showAllFeedbacks && (
-                <Button type="link" onClick={() => setShowAllFeedbacks(true)}>
-                  Xem thêm
-                </Button>
+              {hasNextPage && (
+                <div className="text-center mt-4">
+                  <Button
+                    type="primary"
+                    onClick={() => fetchNextPage()}
+                    loading={isFetchingNextPage}
+                  >
+                    {isFetchingNextPage ? "Đang tải..." : "Xem thêm đánh giá"}
+                  </Button>
+                </div>
               )}
             </>
           )}
