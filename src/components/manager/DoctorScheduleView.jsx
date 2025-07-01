@@ -17,26 +17,27 @@ import {
   Spin,
   Modal,
   Progress,
+  notification,
+  Divider,
 } from "antd";
 import {
   UserOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
   TeamOutlined,
   CalendarOutlined,
   PhoneOutlined,
   MailOutlined,
   EnvironmentOutlined,
   CalendarOutlined as CalendarIcon,
+  StarOutlined,
+  TrophyOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { doctorService } from "../../service/doctor.service";
 import { treatmentService } from "../../service/treatment.service";
-import { http } from "../../service/config";
-import { managerService } from "../../service/manager.service";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
 
@@ -50,190 +51,137 @@ const DoctorScheduleView = () => {
   const [doctorModalVisible, setDoctorModalVisible] = useState(false);
   const [doctorDetails, setDoctorDetails] = useState(null);
   const [loadingDoctorDetails, setLoadingDoctorDetails] = useState(false);
-  const [todayAppointments, setTodayAppointments] = useState([]);
-  const [workStats, setWorkStats] = useState(null);
+  const [workStats, setWorkStats] = useState({
+    totalDoctorsToday: 0,
+    totalPatientsToday: 0,
+    completedPatientsToday: 0,
+  });
 
-  // Fetch doctor schedules and today's appointments when component mounts
   useEffect(() => {
-    fetchData();
-    fetchTodayAppointments();
-    fetchWorkStats();
+    fetchManagerDashboardData();
   }, []);
 
-  const fetchTodayAppointments = async () => {
+  const fetchManagerDashboardData = async () => {
+    setLoading(true);
     try {
-      const response = await http.get("/appointments/get-all");
-      const today = dayjs().format("YYYY-MM-DD");
-      const filtered = response.data.result.filter(
-        (item) => item.appointmentDate === today
-      );
-      setTodayAppointments(filtered);
-    } catch (error) {
-      setTodayAppointments([]);
-    }
-  };
-
-  const fetchWorkStats = async () => {
-    try {
-      const res = await managerService.getWorkScheduleStatics();
-      if (res?.data?.result) {
-        setWorkStats(res.data.result);
-      }
-    } catch (error) {
-      setWorkStats(null);
-    }
-  };
-
-  const fetchDoctorsByShift = async (date, shift) => {
-    const response = await doctorService.getAvailableDoctors(date, shift);
-    return (response?.data?.result || []).map((doctor) => ({
-      ...doctor,
-      shift:
-        shift === "MORNING"
-          ? "Sáng"
-          : shift === "AFTERNOON"
-          ? "Chiều"
-          : "Cả ngày",
-      startTime:
-        shift === "MORNING"
-          ? "08:00"
-          : shift === "AFTERNOON"
-          ? "13:00"
-          : "08:00",
-      endTime:
-        shift === "MORNING"
-          ? "12:00"
-          : shift === "AFTERNOON"
-          ? "17:00"
-          : "17:00",
-      key: doctor.id,
-      doctorId: doctor.id,
-      doctorName: doctor.fullName,
-      specialty:
-        doctor.specialty ||
-        doctor.qualifications ||
-        doctor.roleName?.description ||
-        "Bác sĩ điều trị",
-      phone: doctor.phoneNumber,
-    }));
-  };
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const today = dayjs().format("YYYY-MM-DD");
-      let doctors = [];
-      if (shiftFilter === "all") {
-        // Gọi cả 3 ca, merge lại, loại trùng
-        const [morning, afternoon, fullDay] = await Promise.all([
-          fetchDoctorsByShift(today, "MORNING"),
-          fetchDoctorsByShift(today, "AFTERNOON"),
-          fetchDoctorsByShift(today, "FULL_DAY"),
-        ]);
-        // Merge, ưu tiên Cả ngày > Sáng/Chiều
-        const doctorMap = new Map();
-        fullDay.forEach((d) => doctorMap.set(d.doctorId, d));
-        morning.forEach((d) => {
-          if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d);
-        });
-        afternoon.forEach((d) => {
-          if (!doctorMap.has(d.doctorId)) doctorMap.set(d.doctorId, d);
-        });
-        doctors = Array.from(doctorMap.values());
+      // Fetch statistics using service
+      const statsRes =
+        await treatmentService.getManagerWorkScheduleStatistics();
+      if (statsRes?.data?.result) {
+        setWorkStats(statsRes.data.result);
       } else {
-        // Chỉ gọi đúng ca
-        const apiShift =
-          shiftFilter === "Sáng"
-            ? "MORNING"
-            : shiftFilter === "Chiều"
-            ? "AFTERNOON"
-            : "FULL_DAY";
-        doctors = await fetchDoctorsByShift(today, apiShift);
+        setWorkStats({
+          totalDoctorsToday: 0,
+          totalPatientsToday: 0,
+          completedPatientsToday: 0,
+        });
       }
-      setDoctorSchedules(doctors);
-      setFilteredData(doctors);
+
+      // Fetch today's doctors using service
+      const doctorsRes = await treatmentService.getManagerDoctorsToday();
+      if (doctorsRes?.data?.result) {
+        setDoctorSchedules(doctorsRes.data.result);
+        setFilteredData(doctorsRes.data.result);
+      } else {
+        setDoctorSchedules([]);
+        setFilteredData([]);
+      }
     } catch (error) {
-      console.log("Error fetching data:", error);
+      setWorkStats({
+        totalDoctorsToday: 0,
+        totalPatientsToday: 0,
+        completedPatientsToday: 0,
+      });
+      setDoctorSchedules([]);
+      setFilteredData([]);
+      notification.error({
+        message: "Lỗi tải dữ liệu",
+        description:
+          "Không thể tải thông tin bác sĩ và thống kê hôm nay. Vui lòng thử lại sau.",
+        duration: 5,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchDoctorDetails = async (doctorId) => {
-    try {
-      setLoadingDoctorDetails(true);
-      const response = await doctorService.getDoctorById(doctorId);
-      if (response?.data?.result) {
-        setDoctorDetails(response.data.result);
-      }
-    } catch (error) {
-      console.error("Error fetching doctor details:", error);
-    } finally {
-      setLoadingDoctorDetails(false);
-    }
-  };
-
-  const showDoctorDetails = async (doctorId) => {
-    setSelectedDoctor(doctorId);
+  // No doctor details API in new spec, so just show modal with available info
+  const showDoctorDetails = (doctor) => {
+    setSelectedDoctor(doctor);
     setDoctorModalVisible(true);
-    await fetchDoctorDetails(doctorId);
   };
 
   // Filter schedules
   useEffect(() => {
     let filtered = doctorSchedules;
-
     if (shiftFilter !== "all") {
       filtered = filtered.filter((item) => item.shift === shiftFilter);
     }
-
     if (searchText) {
-      filtered = filtered.filter(
-        (item) =>
-          item.doctorName.toLowerCase().includes(searchText.toLowerCase()) ||
-          item.specialty.toLowerCase().includes(searchText.toLowerCase())
+      filtered = filtered.filter((item) =>
+        item.doctorName.toLowerCase().includes(searchText.toLowerCase())
       );
     }
-
     setFilteredData(filtered);
   }, [shiftFilter, searchText, doctorSchedules]);
 
   const getShiftTag = (shift) => {
-    const shiftMap = {
-      Sáng: { color: "blue" },
-      Chiều: { color: "orange" },
-      "Cả ngày": { color: "purple" },
-    };
-    return <Tag color={shiftMap[shift]?.color}>{shift}</Tag>;
+    if (shift === "FULL_DAY")
+      return (
+        <Tag color="purple" icon={<CalendarOutlined />}>
+          Cả ngày
+        </Tag>
+      );
+    if (shift === "MORNING")
+      return (
+        <Tag color="blue" icon={<ClockCircleOutlined />}>
+          Sáng
+        </Tag>
+      );
+    if (shift === "AFTERNOON")
+      return (
+        <Tag color="orange" icon={<ClockCircleOutlined />}>
+          Chiều
+        </Tag>
+      );
+    return <Tag>{shift}</Tag>;
   };
 
-  const getDoctorStats = (doctorName) => {
-    const patients = todayAppointments.filter(
-      (a) => a.doctorName === doctorName
-    );
-    const total = patients.length;
-    const completed = patients.filter((a) => a.status === "COMPLETED").length;
-    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, progress };
+  const getProgressColor = (completed, total) => {
+    const percentage = total > 0 ? (completed / total) * 100 : 0;
+    if (percentage >= 80) return "#52c41a";
+    if (percentage >= 50) return "#faad14";
+    return "#ff4d4f";
   };
 
   const columns = [
     {
       title: "Bác sĩ",
       key: "doctor",
+      align: "center",
       render: (_, record) => (
         <div
-          className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded"
-          onClick={() => showDoctorDetails(record.doctorId)}
+          className="flex items-center cursor-pointer hover:bg-blue-50 p-3 rounded-lg transition-all duration-200"
+          onClick={() => showDoctorDetails(record)}
         >
           <Avatar
-            size={40}
+            size={48}
             icon={<UserOutlined />}
-            className="mr-3"
-            style={{ backgroundColor: "#1890ff" }}
+            className="mr-4 shadow-md"
+            style={{
+              backgroundColor: "#1890ff",
+              border: "3px solid #e6f7ff",
+            }}
+            src={record.avatarUrl}
           />
           <div>
-            <div className="font-semibold">{record.doctorName}</div>
+            <div className="font-bold text-lg text-gray-800">
+              {record.doctorName}
+            </div>
+            <div className="text-sm text-gray-500 flex items-center">
+              <StarOutlined style={{ color: "#faad14", marginRight: 4 }} />
+              Bác sĩ chuyên khoa
+            </div>
           </div>
         </div>
       ),
@@ -241,147 +189,195 @@ const DoctorScheduleView = () => {
     {
       title: "Ca làm việc",
       key: "shift",
-      render: (_, record) => {
-        const stats = getDoctorStats(record.doctorName);
-        let color = "blue";
-        if (record.shift === "Chiều") color = "orange";
-        if (record.shift === "Cả ngày") color = "purple";
-        return (
-          <div>
-            <div className="flex items-center space-x-2">
-              <Tag color={color}>{record.shift}</Tag>
-              <span className="text-sm text-gray-500">
-                {record.startTime} - {record.endTime}
-              </span>
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              {stats.total} bệnh nhân hôm nay
-            </div>
+      align: "center",
+      render: (_, record) => (
+        <div className="text-center">
+          {getShiftTag(record.shift)}
+          <div className="mt-2 text-xs text-gray-500">
+            {record.shift === "FULL_DAY"
+              ? "08:00 - 17:00"
+              : record.shift === "MORNING"
+              ? "08:00 - 12:00"
+              : "13:00 - 17:00"}
           </div>
-        );
-      },
+        </div>
+      ),
     },
     {
-      title: "Bệnh nhân",
-      key: "patients",
-      render: (_, record) => {
-        const stats = getDoctorStats(record.doctorName);
-        return (
-          <div>
-            <div className="font-semibold">
-              {stats.completed}/{stats.total}
-            </div>
-            <div className="text-sm text-gray-500">Đã khám/Tổng</div>
-          </div>
-        );
-      },
-    },
-    {
-      title: "Tiến độ",
+      title: "Tiến độ khám",
       key: "progress",
-      render: (_, record) => {
-        const stats = getDoctorStats(record.doctorName);
-        return (
-          <div className="w-full">
-            <Progress
-              percent={stats.progress}
-              size="small"
-              status={stats.progress === 100 ? "success" : "active"}
-            />
+      align: "center",
+      render: (_, record) => (
+        <div className="text-center">
+          <div className="font-bold text-lg">
+            {record.completedAppointments}/{record.totalAppointments}
           </div>
-        );
-      },
+          <div className="text-sm text-gray-500 mb-2">Đã khám/Tổng</div>
+          <Progress
+            percent={
+              record.totalAppointments > 0
+                ? Math.round(
+                    (record.completedAppointments / record.totalAppointments) *
+                      100
+                  )
+                : 0
+            }
+            size="small"
+            strokeColor={getProgressColor(
+              record.completedAppointments,
+              record.totalAppointments
+            )}
+            showInfo={false}
+          />
+        </div>
+      ),
     },
     {
       title: "Liên hệ",
-      dataIndex: "phone",
-      key: "phone",
+      dataIndex: "phoneNumber",
+      key: "phoneNumber",
+      align: "center",
       render: (phone) => (
-        <Tooltip title="Gọi điện">
-          <Button type="link" icon={<PhoneOutlined />} size="small">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Tooltip title={phone}>
+            <Button
+              type="primary"
+              icon={<PhoneOutlined />}
+              shape="circle"
+              size="large"
+              style={{
+                marginRight: 12,
+                boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
+              }}
+              onClick={() => window.open(`tel:${phone}`)}
+            />
+          </Tooltip>
+          <span style={{ fontWeight: 500, color: "#444", fontSize: 16 }}>
             {phone}
-          </Button>
-        </Tooltip>
+          </span>
+        </div>
       ),
     },
   ];
 
-  // Calculate statistics
-  const stats = {
-    totalDoctors: doctorSchedules.length,
-    totalPatients: todayAppointments.length,
-    completedPatients: todayAppointments.filter((a) => a.status === "COMPLETED")
-      .length,
-  };
-
   return (
-    <div>
-      {/* Statistics Section */}
-      <Row gutter={24} style={{ marginBottom: 24 }}>
+    <div
+      style={{
+        minHeight: "30vh",
+      }}
+    >
+      {/* Statistics */}
+      <Row gutter={24} style={{ marginBottom: 5 }}>
         <Col span={8}>
           <Card
-            bordered
             style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+              borderRadius: 16,
+              boxShadow: "0 8px 32px rgba(24,144,255,0.15)",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              border: "none",
             }}
+            bodyStyle={{ padding: "24px" }}
           >
             <Statistic
               title={
-                <span style={{ color: "#1890ff", fontWeight: 600 }}>
+                <span
+                  style={{
+                    color: "white",
+                    fontWeight: 600,
+                    fontSize: "1.1rem",
+                  }}
+                >
                   Tổng bác sĩ hôm nay
                 </span>
               }
               value={workStats ? workStats.totalDoctorsToday : 0}
-              prefix={<TeamOutlined style={{ color: "#1890ff" }} />}
-              valueStyle={{ fontSize: 28 }}
+              prefix={
+                <TeamOutlined style={{ color: "white", fontSize: "2rem" }} />
+              }
+              valueStyle={{ color: "white", fontSize: 36, fontWeight: "bold" }}
             />
           </Card>
         </Col>
         <Col span={8}>
           <Card
-            bordered
             style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+              borderRadius: 16,
+              boxShadow: "0 8px 32px rgba(82,196,26,0.15)",
+              background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+              border: "none",
             }}
+            bodyStyle={{ padding: "24px" }}
           >
             <Statistic
               title={
-                <span style={{ color: "#52c41a", fontWeight: 600 }}>
+                <span
+                  style={{
+                    color: "white",
+                    fontWeight: 600,
+                    fontSize: "1.1rem",
+                  }}
+                >
                   Bệnh nhân đã khám
                 </span>
               }
               value={workStats ? workStats.completedPatientsToday : 0}
-              prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
-              valueStyle={{ fontSize: 28 }}
+              prefix={
+                <CheckCircleOutlined
+                  style={{ color: "white", fontSize: "2rem" }}
+                />
+              }
+              valueStyle={{ color: "white", fontSize: 36, fontWeight: "bold" }}
             />
           </Card>
         </Col>
         <Col span={8}>
           <Card
-            bordered
             style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+              borderRadius: 16,
+              boxShadow: "0 8px 32px rgba(250,173,20,0.15)",
+              background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+              border: "none",
             }}
+            bodyStyle={{ padding: "24px" }}
           >
             <Statistic
               title={
-                <span style={{ color: "#faad14", fontWeight: 600 }}>
+                <span
+                  style={{
+                    color: "white",
+                    fontWeight: 600,
+                    fontSize: "1.1rem",
+                  }}
+                >
                   Tổng bệnh nhân hôm nay
                 </span>
               }
-              value={todayAppointments.length}
-              prefix={<UserOutlined style={{ color: "#faad14" }} />}
-              valueStyle={{ fontSize: 28 }}
+              value={workStats ? workStats.totalPatientsToday : 0}
+              prefix={
+                <UserOutlined style={{ color: "white", fontSize: "2rem" }} />
+              }
+              valueStyle={{ color: "white", fontSize: 36, fontWeight: "bold" }}
             />
           </Card>
         </Col>
       </Row>
 
       {/* Filters */}
-      <Card className="mb-6 shadow-md">
+      <Card
+        className="my-2"
+        style={{
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+          background: "rgba(255,255,255,0.95)",
+          backdropFilter: "blur(10px)",
+        }}
+      >
         <Row gutter={16} align="middle">
           <Col span={8}>
             <Select
@@ -389,26 +385,34 @@ const DoctorScheduleView = () => {
               onChange={setShiftFilter}
               style={{ width: "100%" }}
               size="large"
+              placeholder="Chọn ca làm việc"
             >
               <Option value="all">Tất cả ca</Option>
-              <Option value="Sáng">Ca sáng</Option>
-              <Option value="Chiều">Ca chiều</Option>
-              <Option value="Cả ngày">Cả ngày</Option>
+              <Option value="MORNING">Ca sáng</Option>
+              <Option value="AFTERNOON">Ca chiều</Option>
+              <Option value="FULL_DAY">Cả ngày</Option>
             </Select>
           </Col>
           <Col span={12}>
             <Search
-              placeholder="Tìm kiếm bác sĩ, chuyên khoa..."
+              placeholder="Tìm kiếm bác sĩ..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               size="large"
+              allowClear
             />
           </Col>
           <Col span={4} className="text-right">
             <Button
               type="primary"
-              onClick={fetchData}
+              onClick={fetchManagerDashboardData}
               icon={<CalendarOutlined />}
+              size="large"
+              style={{
+                borderRadius: 12,
+                height: 40,
+                boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
+              }}
             >
               Làm mới
             </Button>
@@ -417,102 +421,158 @@ const DoctorScheduleView = () => {
       </Card>
 
       {/* Schedule Table */}
-      <Card title="Lịch Làm Việc Bác Sĩ Hôm Nay" className="shadow-md">
+      <Card
+        className="shadow-lg"
+        style={{
+          borderRadius: 16,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
+          background: "rgba(255,255,255,0.95)",
+          backdropFilter: "blur(10px)",
+        }}
+      >
         <Table
           columns={columns}
           dataSource={filteredData}
           pagination={false}
           scroll={{ x: 1200 }}
           loading={loading}
+          locale={{
+            emptyText: loading ? (
+              ""
+            ) : (
+              <div className="text-center py-8">
+                <HeartOutlined
+                  style={{
+                    fontSize: "3rem",
+                    color: "#d9d9d9",
+                    marginBottom: 16,
+                  }}
+                />
+                <div className="text-gray-500 text-lg">
+                  Không có dữ liệu bác sĩ hôm nay
+                </div>
+                <div className="text-gray-400">
+                  Vui lòng thử lại sau hoặc liên hệ quản trị viên
+                </div>
+              </div>
+            ),
+          }}
+          rowClassName={() => "doctor-table-row"}
+          style={{ verticalAlign: "middle" }}
         />
+        <style>{`
+          .doctor-table-row .ant-table-cell {
+            vertical-align: middle !important;
+            padding-top: 20px !important;
+            padding-bottom: 20px !important;
+          }
+        `}</style>
       </Card>
 
       {/* Doctor Details Modal */}
       <Modal
-        title="Thông tin chi tiết bác sĩ"
+        title={
+          <div className="flex items-center">
+            <UserOutlined
+              style={{ fontSize: "1.5rem", color: "#1890ff", marginRight: 8 }}
+            />
+            <span style={{ fontSize: "1.3rem", fontWeight: "bold" }}>
+              Thông tin chi tiết bác sĩ
+            </span>
+          </div>
+        }
         open={doctorModalVisible}
         onCancel={() => setDoctorModalVisible(false)}
         footer={null}
         width={600}
+        style={{ borderRadius: 16 }}
       >
-        {loadingDoctorDetails ? (
-          <div className="flex justify-center items-center h-64">
-            <Spin size="large" />
-          </div>
-        ) : doctorDetails ? (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
+        {selectedDoctor ? (
+          <div className="space-y-6">
+            <div className="flex items-center space-x-6">
               <Avatar
-                size={64}
+                size={80}
                 icon={<UserOutlined />}
-                style={{ backgroundColor: "#1890ff" }}
+                style={{
+                  backgroundColor: "#1890ff",
+                  border: "4px solid #e6f7ff",
+                  boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
+                }}
+                src={selectedDoctor.avatarUrl}
               />
               <div>
-                <h3 className="text-xl font-bold">{doctorDetails.fullName}</h3>
-                <p className="text-gray-500">
-                  {doctorDetails.roleName?.description}
+                <h3 className="text-2xl font-bold text-gray-800">
+                  {selectedDoctor.doctorName}
+                </h3>
+                <p className="text-gray-500 flex items-center">
+                  <StarOutlined style={{ color: "#faad14", marginRight: 8 }} />
+                  Bác sĩ chuyên khoa
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center text-gray-600">
-                  <MailOutlined className="mr-2" />
-                  <span>{doctorDetails.email}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <PhoneOutlined className="mr-2" />
-                  <span>{doctorDetails.phoneNumber}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <EnvironmentOutlined className="mr-2" />
-                  <span>{doctorDetails.address}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <CalendarIcon className="mr-2" />
-                  <span>
-                    Ngày sinh:{" "}
-                    {dayjs(doctorDetails.dateOfBirth).format("DD/MM/YYYY")}
-                  </span>
-                </div>
-              </div>
+            <Divider />
 
-              <div className="space-y-2">
-                <div className="flex items-center text-gray-600">
-                  <span className="font-semibold mr-2">Giới tính:</span>
-                  <span>{doctorDetails.gender === "male" ? "Nam" : "Nữ"}</span>
+            <Row gutter={24}>
+              <Col span={12}>
+                <div className="space-y-4">
+                  <div className="flex items-center p-3 bg-blue-50 rounded-lg">
+                    <PhoneOutlined className="mr-3 text-blue-500 text-lg" />
+                    <div>
+                      <div className="font-semibold text-gray-800">
+                        Số điện thoại
+                      </div>
+                      <div className="text-gray-600">
+                        {selectedDoctor.phoneNumber}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                    <CalendarOutlined className="mr-3 text-green-500 text-lg" />
+                    <div>
+                      <div className="font-semibold text-gray-800">
+                        Ca làm việc
+                      </div>
+                      <div>{getShiftTag(selectedDoctor.shift)}</div>
+                    </div>
+                  </div>
                 </div>
-                {doctorDetails.qualifications && (
-                  <div className="flex items-center text-gray-600">
-                    <span className="font-semibold mr-2">Bằng cấp:</span>
-                    <span>{doctorDetails.qualifications}</span>
+              </Col>
+
+              <Col span={12}>
+                <div className="space-y-4">
+                  <div className="flex items-center p-3 bg-orange-50 rounded-lg">
+                    <TrophyOutlined className="mr-3 text-orange-500 text-lg" />
+                    <div>
+                      <div className="font-semibold text-gray-800">
+                        Tổng lịch hẹn
+                      </div>
+                      <div className="text-2xl font-bold text-orange-500">
+                        {selectedDoctor.totalAppointments}
+                      </div>
+                    </div>
                   </div>
-                )}
-                {doctorDetails.graduationYear && (
-                  <div className="flex items-center text-gray-600">
-                    <span className="font-semibold mr-2">Năm tốt nghiệp:</span>
-                    <span>{doctorDetails.graduationYear}</span>
+
+                  <div className="flex items-center p-3 bg-purple-50 rounded-lg">
+                    <CheckCircleOutlined className="mr-3 text-purple-500 text-lg" />
+                    <div>
+                      <div className="font-semibold text-gray-800">Đã khám</div>
+                      <div className="text-2xl font-bold text-purple-500">
+                        {selectedDoctor.completedAppointments}
+                      </div>
+                    </div>
                   </div>
-                )}
-                {doctorDetails.experienceYears && (
-                  <div className="flex items-center text-gray-600">
-                    <span className="font-semibold mr-2">Kinh nghiệm:</span>
-                    <span>{doctorDetails.experienceYears} năm</span>
-                  </div>
-                )}
-                {doctorDetails.specialty && (
-                  <div className="flex items-center text-gray-600">
-                    <span className="font-semibold mr-2">Chuyên khoa:</span>
-                    <span>{doctorDetails.specialty}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+                </div>
+              </Col>
+            </Row>
           </div>
         ) : (
-          <div className="text-center text-gray-500">
-            Không tìm thấy thông tin bác sĩ
+          <div className="text-center py-8">
+            <UserOutlined
+              style={{ fontSize: "3rem", color: "#d9d9d9", marginBottom: 16 }}
+            />
+            <div className="text-gray-500">Không tìm thấy thông tin bác sĩ</div>
           </div>
         )}
       </Modal>

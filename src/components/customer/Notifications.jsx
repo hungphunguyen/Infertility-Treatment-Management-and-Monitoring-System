@@ -285,6 +285,7 @@ const Notifications = () => {
             Xem chi tiết
           </Button>
         ]}
+        destroyOnHidden
       >
         {selectedNotification && (
           <div>

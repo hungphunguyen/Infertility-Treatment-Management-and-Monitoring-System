@@ -3,7 +3,7 @@ import { Card, Typography, Modal } from "antd";
 import { useFormik } from "formik";
 import InputCustom from "../Input/InputCustom";
 import { blogService } from "../../service/blog.service";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { NotificationContext } from "../../App";
 import * as yup from "yup";
 import { FileTextOutlined, CloseOutlined } from "@ant-design/icons";
@@ -14,7 +14,6 @@ const { Title } = Typography;
 
 const CreateBlogPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { showNotification } = useContext(NotificationContext);
   const token = useSelector((state) => state.authSlice);
   const [currentUser, setCurrentUser] = useState(null);
@@ -103,7 +102,7 @@ const CreateBlogPage = () => {
         return;
       }
 
-      const response = await blogService.createBlog(currentUser.id, {
+      const response = await blogService.createBlog({
         title: values.title,
         content: values.content,
         sourceReference: values.sourceReference,

@@ -10,14 +10,12 @@ import {
   Input,
   Modal,
   Form,
-  Popconfirm,
   Image,
   Avatar,
   Switch,
 } from "antd";
 import {
   EditOutlined,
-  DeleteOutlined,
   EyeOutlined,
   UserOutlined,
   CheckOutlined,
@@ -28,21 +26,20 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { blogService } from "../../service/blog.service";
-import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
-import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option = Select.Option } = Select;
 const { Search } = Input;
+const { TextArea } = Input;
 
 const statusMap = {
   PENDING_REVIEW: { color: "orange", text: "Chờ duyệt" },
   APPROVED: { color: "green", text: "Đã duyệt" },
   REJECTED: { color: "red", text: "Đã từ chối" },
   DRAFT: { color: "blue", text: "Bản nháp" },
-  hidden: { color: "red", text: "Đã ẩn" },
+  HIDDEN: { color: "gray", text: "Đã ẩn" },
   all: { color: "default", text: "Tất cả" },
 };
 
@@ -57,16 +54,10 @@ const BlogManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalType, setModalType] = useState(""); // create, edit, view
   const [form] = Form.useForm();
-  const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
   const [currentUser, setCurrentUser] = useState(null);
-  const [isCommentModalVisible, setIsCommentModalVisible] = useState(false);
-  const [currentAction, setCurrentAction] = useState({
-    blogId: null,
-    status: null,
-  });
-  const [commentText, setCommentText] = useState("");
-  const navigate = useNavigate();
+  const [isActionModalVisible, setIsActionModalVisible] = useState(false);
+  const [actionType, setActionType] = useState(""); // approve, reject
 
   useEffect(() => {
     fetchBlogs();
@@ -75,30 +66,53 @@ const BlogManagement = () => {
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
-        if (token?.token) {
-          const response = await authService.getMyInfo(token.token);
-          setCurrentUser(response.data.result);
-        }
+        const response = await authService.getMyInfo();
+        setCurrentUser(response.data.result);
       } catch (error) {
         showNotification("Không thể tải thông tin người dùng", "error");
       }
     };
     loadUserInfo();
-  }, [token, showNotification]);
+  }, [showNotification]);
 
   const fetchBlogs = async (page = 0, status = statusFilter, keyword = searchText) => {
     try {
       setLoading(true);
+      console.log("Fetching all blogs with page:", page);
+
       const response = await blogService.getAllBlogs({
-        status: status !== 'all' ? status : undefined,
-        keyword: keyword || undefined,
-        page,
-        size: 10,
+        page: page,
+        size: 5,
       });
-      if (response.data && response.data.result) {
-        setBlogs(response.data.result.content);
+
+      console.log("getAllBlogs response:", response);
+
+      if (response.data && response.data.result?.content) {
+        const allBlogs = response.data.result.content;
+
+        // Lấy chi tiết cho từng blog để có thông tin đầy đủ
+        const blogsWithDetails = await Promise.all(
+          allBlogs.map(async (blog) => {
+            try {
+              const detailResponse = await blogService.getBlogById(blog.id);
+              return {
+                ...blog,
+                ...detailResponse.data.result,
+              };
+            } catch (error) {
+              return blog;
+            }
+          })
+        );
+
+        setBlogs(blogsWithDetails);
+        console.log("Loaded", blogsWithDetails.length, "blogs");
+      } else {
+        console.log("No blogs found or invalid response structure");
+        setBlogs([]);
       }
     } catch (error) {
+      console.error("Error fetching blogs:", error);
       showNotification("Không thể tải danh sách bài viết", "error");
     } finally {
       setLoading(false);
@@ -130,48 +144,23 @@ const BlogManagement = () => {
     }
   };
 
-  const createBlog = () => {
-    setSelectedBlog(null);
-    setModalType("create");
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const editBlog = (blog) => {
-    setSelectedBlog(blog);
-    setModalType("edit");
-    form.setFieldsValue({
-      title: blog.title,
-      content: blog.content,
-      sourceReference: blog.sourceReference,
-      featured: blog.featured || false,
-    });
-    setIsModalVisible(true);
-  };
-
   const viewBlog = (blog) => {
     setSelectedBlog(blog);
     setModalType("view");
     setIsModalVisible(true);
   };
 
-  const handleDeleteBlog = async (blogId) => {
-    setActionLoading(true);
-    try {
-      await blogService.deleteBlog(blogId, token.token);
-      showNotification("Bài viết đã được xóa!", "success");
-      fetchBlogs();
-    } catch (error) {
-      showNotification("Xóa bài viết thất bại", "error");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleSubmit = async (values) => {
     setActionLoading(true);
     try {
       if (modalType === "create") {
+        if (!currentUser || !currentUser.id) {
+          showNotification(
+            "Không thể lấy thông tin người dùng để tạo bài viết.",
+            "error"
+          );
+          return;
+        }
         const response = await blogService.createBlog({
           title: values.title,
           content: values.content,
@@ -184,11 +173,18 @@ const BlogManagement = () => {
           fetchBlogs();
         }
       } else if (modalType === "edit") {
-        await blogService.updateBlog(selectedBlog.id, {
-          title: values.title,
-          content: values.content,
-          sourceReference: values.sourceReference,
-        });
+        if (!selectedBlog || !currentUser || !currentUser.id) {
+          showNotification(
+            "Không thể cập nhật bài viết. Thông tin không đầy đủ.",
+            "error"
+          );
+          return;
+        }
+        const updatedBlogData = {
+          ...selectedBlog,
+          ...values,
+        };
+        await blogService.updateBlog(selectedBlog.id, updatedBlogData);
         showNotification("Bài viết đã được cập nhật!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -222,16 +218,16 @@ const BlogManagement = () => {
           fetchBlogs();
         }
       } else {
-        await blogService.updateBlog(selectedBlog.id, {
-          title: values.title,
-          content: values.content,
-          sourceReference: values.sourceReference,
-        });
-        await blogService.submitBlog(selectedBlog.id, {
-          title: values.title,
-          content: values.content,
-          sourceReference: values.sourceReference,
-        });
+        if (!selectedBlog) {
+          showNotification("Không tìm thấy bài viết để gửi duyệt.", "error");
+          return;
+        }
+        const updatedBlogData = {
+          ...selectedBlog,
+          ...values,
+        };
+        await blogService.updateBlog(selectedBlog.id, updatedBlogData);
+        await blogService.submitBlog(selectedBlog.id, updatedBlogData);
         showNotification("Bài viết đã được gửi duyệt thành công!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -244,105 +240,90 @@ const BlogManagement = () => {
     }
   };
 
-  const handleStatusChange = async (blogId, currentStatus) => {
-    setActionLoading(true);
-    try {
-      if (!currentUser || !currentUser.id) {
-        showNotification(
-          "Không có thông tin người dùng để cập nhật trạng thái bài viết.",
-          "error"
-        );
-        return;
-      }
-      let newStatus;
-      let successMessage;
-      if (currentStatus === "APPROVED") {
-        newStatus = "hidden";
-        successMessage = "Bài viết đã được ẩn!";
-      } else if (currentStatus === "hidden") {
-        newStatus = "APPROVED";
-        successMessage = "Bài viết đã được hiện lại!";
-      } else {
-        showNotification("Không thể thay đổi trạng thái này.", "warning");
-        setActionLoading(false);
-        return;
-      }
-      await blogService.updateBlogStatus(
-        blogId,
-        newStatus,
-        token.token,
-        currentUser.id
-      );
-      showNotification(successMessage, "success");
-      fetchBlogs();
-    } catch (error) {
-      showNotification("Cập nhật trạng thái thất bại", "error");
-    } finally {
-      setActionLoading(false);
-    }
+  const handleApprove = (blog) => {
+    setSelectedBlog(blog);
+    setActionType("approve");
+    setIsActionModalVisible(true);
   };
 
-  const handleApprove = async (blogId) => {
-    setCurrentAction({ blogId, status: "APPROVED" });
-    setIsCommentModalVisible(true);
-  };
-
-  const handleReject = async (blogId) => {
-    setCurrentAction({ blogId, status: "REJECTED" });
-    setIsCommentModalVisible(true);
-  };
-
-  const handleCommentSubmit = async () => {
-    setActionLoading(true);
-    try {
-      if (!token?.token || !currentUser?.id) {
-        showNotification("Không có thông tin người dùng quản lý.", "error");
-        setActionLoading(false);
-        return;
-      }
-      const { blogId, status } = currentAction;
-      if (!blogId || !status) {
-        showNotification(
-          "Thông tin bài viết hoặc trạng thái không hợp lệ.",
-          "error"
-        );
-        setActionLoading(false);
-        return;
-      }
-      const response = await blogService.approveBlog(
-        blogId,
-        currentUser.id,
-        token.token,
-        { action: status, comment: commentText }
-      );
-      if (response.data && response.data.result) {
-        showNotification(
-          `Bài viết đã được ${
-            status === "APPROVED" ? "duyệt" : "từ chối"
-          } thành công!`,
-          "success"
-        );
-        setIsCommentModalVisible(false);
-        setCommentText("");
-        fetchBlogs();
-      } else {
-        showNotification("Thao tác thất bại.", "error");
-      }
-    } catch (error) {
-      showNotification("Không thể thực hiện thao tác", "error");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCommentModalCancel = () => {
-    setIsCommentModalVisible(false);
-    setCommentText("");
-    setCurrentAction({ blogId: null, status: null });
+  const handleReject = (blog) => {
+    setSelectedBlog(blog);
+    setActionType("reject");
+    setIsActionModalVisible(true);
   };
 
   const handleSearch = (value) => {
     setSearchText(value);
+  };
+
+  const handleActionModalCancel = () => {
+    setIsActionModalVisible(false);
+    setSelectedBlog(null);
+    setActionType("");
+    form.resetFields();
+  };
+
+  const handleActionSubmit = async (values) => {
+    if (!selectedBlog) return;
+
+    setActionLoading(true);
+    try {
+      const newStatus = actionType === "approve" ? "APPROVED" : "REJECTED";
+      const comment = values.comment || "";
+
+      const response = await blogService.updateBlogStatus(selectedBlog.id, {
+        status: newStatus,
+        comment: comment,
+      });
+
+      if (response.data) {
+        const actionText = actionType === "approve" ? "duyệt" : "từ chối";
+        showNotification(`Đã ${actionText} bài viết thành công!`, "success");
+        setIsActionModalVisible(false);
+        setSelectedBlog(null);
+        setActionType("");
+        form.resetFields();
+        fetchBlogs(); // Refresh danh sách
+      }
+    } catch (error) {
+      console.error("Error updating blog status:", error);
+      const actionText = actionType === "approve" ? "duyệt" : "từ chối";
+      showNotification(`Lỗi khi ${actionText} bài viết`, "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleHideBlog = async (blogId) => {
+    setActionLoading(true);
+    try {
+      await blogService.hideBlog(blogId);
+      showNotification("Bài viết đã được ẩn!", "success");
+      fetchBlogs();
+    } catch (error) {
+      console.error("Error hiding blog:", error);
+      showNotification("Ẩn bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUnhideBlog = async (blogId) => {
+    setActionLoading(true);
+    try {
+      // Sử dụng updateStatus để chuyển từ HIDDEN về APPROVED
+      await blogService.updateBlogStatus(blogId, {
+        status: "APPROVED",
+        comment: "Hiện lại bài viết",
+      });
+      showNotification("Bài viết đã được hiện lại!", "success");
+      fetchBlogs();
+    } catch (error) {
+      console.error("Error unhiding blog:", error);
+      showNotification("Hiện lại bài viết thất bại", "error");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const columns = [
@@ -366,7 +347,6 @@ const BlogManagement = () => {
       render: (text, record) => (
         <span
           className="font-medium cursor-pointer text-blue-600 hover:underline"
-          onClick={() => navigate(`/blog-detail/${record.id}`)}
         >
           {text}
         </span>
@@ -417,47 +397,46 @@ const BlogManagement = () => {
           </Space>
           <Space wrap>
             {record.status === "PENDING_REVIEW" && (
-              <Button
-                size="small"
-                type="primary"
-                icon={<CheckOutlined />}
-                onClick={() => handleApprove(record.id)}
-                loading={actionLoading}
-              >
-                Duyệt
-              </Button>
-            )}
-            {record.status === "PENDING_REVIEW" && (
-              <Button
-                size="small"
-                danger
-                icon={<CloseOutlined />}
-                onClick={() => handleReject(record.id)}
-                loading={actionLoading}
-              >
-                Từ chối
-              </Button>
+              <>
+                <Button
+                  size="small"
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  onClick={() => handleApprove(record)}
+                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                >
+                  Duyệt
+                </Button>
+                <Button
+                  size="small"
+                  danger
+                  icon={<CloseOutlined />}
+                  onClick={() => handleReject(record)}
+                >
+                  Từ chối
+                </Button>
+              </>
             )}
             {record.status === "APPROVED" && (
               <Button
                 size="small"
                 danger
                 icon={<EyeInvisibleOutlined />}
-                onClick={() => handleStatusChange(record.id, "APPROVED")}
+                onClick={() => handleHideBlog(record.id)}
                 loading={actionLoading}
               >
                 Ẩn
               </Button>
             )}
-            {record.status === "hidden" && (
+            {record.status === "HIDDEN" && (
               <Button
                 size="small"
                 type="primary"
                 icon={<EyeOutlined />}
-                onClick={() => handleStatusChange(record.id, "hidden")}
+                onClick={() => handleUnhideBlog(record.id)}
                 loading={actionLoading}
               >
-                Bỏ ẩn
+                Hiện lại
               </Button>
             )}
           </Space>
@@ -469,7 +448,6 @@ const BlogManagement = () => {
   return (
     <Card className="blog-management-card">
       <div className="flex justify-between items-center mb-4">
-        <Title level={4}>Quản lý bài viết</Title>
         <div className="flex gap-4">
           <Select
             defaultValue="all"
@@ -563,7 +541,7 @@ const BlogManagement = () => {
               ]
         }
         width={800}
-        destroyOnClose
+        destroyOnHidden
       >
         {modalType === "view" ? (
           selectedBlog && (
@@ -574,12 +552,24 @@ const BlogManagement = () => {
                   Tác giả: {selectedBlog.authorName}
                 </p>
                 <p className="text-gray-600">
-                  Ngày tạo:{" "}
-                  {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY HH:mm")}
+                  Ngày tạo: {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY")}
                 </p>
                 <p className="text-gray-600">
                   Trạng thái: {getStatusTag(selectedBlog.status)}
                 </p>
+                {selectedBlog.approvedByName && (
+                  <p className="text-gray-600">
+                    Người duyệt: {selectedBlog.approvedByName}
+                  </p>
+                )}
+                {selectedBlog.note && (
+                  <p className="text-gray-600">Ghi chú: {selectedBlog.note}</p>
+                )}
+                {selectedBlog.sourceReference && (
+                  <p className="text-gray-600">
+                    Tham chiếu: {selectedBlog.sourceReference}
+                  </p>
+                )}
               </div>
               <div
                 className="prose max-w-none"
@@ -616,23 +606,50 @@ const BlogManagement = () => {
       </Modal>
 
       <Modal
-        title={`Thêm bình luận cho bài viết ${
-          currentAction.status === "APPROVED" ? "duyệt" : "từ chối"
-        }`}
-        open={isCommentModalVisible}
-        onOk={handleCommentSubmit}
-        onCancel={handleCommentModalCancel}
-        okText="Gửi"
-        cancelText="Hủy"
-        confirmLoading={actionLoading}
-        destroyOnClose
+        title={actionType === "approve" ? "Duyệt bài viết" : "Từ chối bài viết"}
+        open={isActionModalVisible}
+        onCancel={handleActionModalCancel}
+        footer={null}
+        destroyOnHidden
       >
-        <Input.TextArea
-          rows={4}
-          placeholder="Nhập bình luận của bạn (ví dụ: Bài viết đạt yêu cầu; Nội dung cần sửa đổi)..."
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-        />
+        <Form form={form} layout="vertical" onFinish={handleActionSubmit}>
+          <Form.Item
+            name="comment"
+            label={
+              actionType === "approve" ? "Ghi chú (tùy chọn)" : "Lý do từ chối"
+            }
+            rules={
+              actionType === "reject"
+                ? [{ required: true, message: "Vui lòng nhập lý do từ chối!" }]
+                : []
+            }
+          >
+            <TextArea
+              rows={4}
+              placeholder={
+                actionType === "approve"
+                  ? "Nhập ghi chú nếu cần..."
+                  : "Nhập lý do từ chối bài viết..."
+              }
+            />
+          </Form.Item>
+
+          <div className="flex justify-end gap-2">
+            <Button onClick={handleActionModalCancel}>Hủy</Button>
+            <Button
+              type="primary"
+              onClick={() => form.submit()}
+              loading={actionLoading}
+              style={
+                actionType === "reject"
+                  ? { backgroundColor: "#ff4d4f", borderColor: "#ff4d4f" }
+                  : { backgroundColor: "#52c41a", borderColor: "#52c41a" }
+              }
+            >
+              {actionType === "approve" ? "Duyệt" : "Từ chối"}
+            </Button>
+          </div>
+        </Form>
       </Modal>
     </Card>
   );

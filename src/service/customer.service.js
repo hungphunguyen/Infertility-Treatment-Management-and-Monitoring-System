@@ -16,12 +16,16 @@ export const customerService = {
     });
   },
 
+  getFeedbackInfoToCreate: (treatmentRecordId) => {
+    return http.get(`v1/feedbacks/${treatmentRecordId}/get-info-to-feedback`);
+  },
+
   checkIsValid: (recordId) => {
     return http.get(`/feedback/isValidToFeedback/${recordId}`);
   },
 
   updateFeedback: (id, data) => {
-    return http.put(`/v1/feedbacks/${id}`, data);
+    return http.put(`v1/feedbacks/${id}`, data);
   },
 
   uploadImg: (payload) => {
@@ -30,23 +34,32 @@ export const customerService = {
     });
   },
 
+  getPaymentInfo: (page, size) => {
+    return http.get(`v1/payments/info`, {
+      params: {
+        page,
+        size,
+      },
+    });
+  },
+
   paymentForCustomer: (recordId) => {
-    return http.post(`/payment/momo/create/${recordId}`);
+    return http.post(`v1/payments/momo/create/${recordId}`);
   },
 
   paymentNotificationForCustomer: (recordId) => {
-    return http.get(`/payment/result/${recordId}`);
+    return http.get(`v1/payments/result/${recordId}`);
   },
 
   paymentVnpayForCustomer: (recordId) => {
-    return http.post(`/payment/vnpay/create/${recordId}`);
+    return http.post(`v1/payments/vnpay/create/${recordId}`);
   },
 
   paymentReloadForCustomer: (recordId) => {
-    return http.post(`/payment/momo/reload/${recordId}`);
+    return http.post(`v1/payments/momo/reload/${recordId}`);
   },
 
   paymentCancelForCustomer: (recordId) => {
-    return http.delete(`/payment/cancelled/${recordId}`);
+    return http.delete(`v1/payments/cancelled/${recordId}`);
   },
 };

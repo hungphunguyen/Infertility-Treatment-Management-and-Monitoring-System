@@ -15,13 +15,11 @@ import { useLocation } from "react-router-dom";
 const FeedbackCustomer = () => {
   const [infoUser, setInfoUser] = useState();
   const { showNotification } = useContext(NotificationContext);
-  const [service, setService] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
-  const [doctorMap, setDoctorMap] = useState({});
-
-  const [treatment, setTreatment] = useState([]);
-  const [doctors, setDoctors] = useState([]);
+  const [feedbackInfo, setFeedbackInfo] = useState(null);
   const { state } = useLocation();
+  // const recordId =
+  //   state?.recordId || sessionStorage.getItem("feedback_record_id");
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   useEffect(() => {
@@ -33,56 +31,12 @@ const FeedbackCustomer = () => {
       .catch((err) => {});
   }, []);
 
-  useEffect(() => {
-    doctorService.getDoctorForCard(0, 10).then((res) => {
-      setDoctors(res.data.result.content);
-    });
-  }, []);
-
-  useEffect(() => {
-    serviceService
-      .getAllNonRemovedServices()
-      .then((res) => {
-        console.log(res.data.result);
-        setService(res.data.result);
-      })
-      .catch((err) => {});
-  }, []);
-
-  useEffect(() => {
-    if (infoUser?.id) {
-      treatmentService
-        .getTreatmentRecordsByCustomer(infoUser.id)
-        .then((res) => setTreatment(res.data.result))
-        .catch((err) => console.log(err));
-    }
-  }, [infoUser]);
-
-  // format lại id doctor -> doctor name
-  const getDoctorNames = async (feedbackList) => {
-    const uniqueDoctorIds = [...new Set(feedbackList.map((fb) => fb.doctorId))];
-    const newMap = {};
-    await Promise.all(
-      uniqueDoctorIds.map(async (id) => {
-        try {
-          const res = await doctorService.getDoctorById(id);
-          newMap[id] = res?.data?.result?.fullName || "Không rõ";
-        } catch (err) {
-          newMap[id] = "Không rõ";
-        }
-      })
-    );
-
-    setDoctorMap(newMap);
-  };
-
   const getAllFeedBack = async (page = 0) => {
     try {
       const res = await customerService.getAllFeedback(infoUser.id, page, 5);
-      console.log(res);
       if (res?.data?.result?.content) {
         setFeedbacks(res.data.result.content);
-        getDoctorNames(res.data.result.content);
+        // getDoctorNames(res.data.result.content);
       }
     } catch (error) {
       console.log(error);
@@ -94,6 +48,7 @@ const FeedbackCustomer = () => {
       getAllFeedBack();
     }
   }, [infoUser]);
+
   // tạo feedback
   const formik = useFormik({
     initialValues: {
@@ -128,52 +83,38 @@ const FeedbackCustomer = () => {
     setFieldValue,
   } = formik;
 
-  useEffect(() => {
-    const isReady =
-      state &&
-      state.recordId &&
-      state.customerId &&
-      state.doctorName &&
-      state.treatmentServiceName &&
-      doctors.length &&
-      service.length;
+  useEffect(async () => {
+    const id = state?.recordId || sessionStorage.getItem("feedback_record_id");
+    if (!id) return;
+    sessionStorage.setItem("feedback_record_id", id);
+    try {
+      const res = await customerService.getFeedbackInfoToCreate(id);
+      console.log(res);
+      const { doctorId, customerId, serviceId, doctorFullName, serviceName } =
+        res.data.result;
+      // Lưu đầy đủ info vào state để render UI
+      setFeedbackInfo({
+        recordId: id,
+        doctorId,
+        customerId,
+        serviceId,
+        doctorFullName,
+        serviceName,
+      });
 
-    if (isReady) {
-      const normalize = (str) => (str || "").trim().toLowerCase();
-
-      const matchedDoctor = doctors.find(
-        (doc) => normalize(doc.fullName) === normalize(state.doctorName)
-      );
-
-      const matchedService = service.find(
-        (sv) => normalize(sv.name) === normalize(state.treatmentServiceName)
-      );
-
-      setFieldValue("recordId", state.recordId);
-      setFieldValue("customerId", state.customerId);
-      setFieldValue("doctorId", matchedDoctor?.id || "");
-      setFieldValue("serviceId", matchedService?.id || "");
-
-      console.log("🧾 Trying to map service name:", state.treatmentServiceName);
-      console.log("🎯 Found matchedService:", matchedService);
-
-      if (!matchedDoctor || !matchedService) {
-        console.warn("⚠️ Không map được doctor/service từ state:", {
-          state,
-          matchedDoctor,
-          matchedService,
-          allServiceNames: service.map((s) => s.name),
-        });
-      }
+      // Gán cho Formik
+      setFieldValue("recordId", id);
+      setFieldValue("doctorId", doctorId);
+      setFieldValue("customerId", customerId);
+      setFieldValue("serviceId", Number(serviceId));
+    } catch (error) {
+      showNotification(error?.response?.data?.message, "error");
     }
-  }, [state, doctors, service, setFieldValue]);
-
-  const getRecordCode = (id) =>
-    treatment.find((rec) => rec.id === id)?.code || `Hồ sơ ${id}`;
+  }, [state, setFieldValue]);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {state ? (
+      {feedbackInfo ? (
         <Card bordered className="shadow-md border rounded-xl bg-white">
           <div className="flex items-center gap-3 mb-4">
             <UserAddOutlined className="text-blue-500 text-2xl" />
@@ -187,17 +128,15 @@ const FeedbackCustomer = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-md mb-6 text-sm font-medium">
             <p>
               <span className="text-gray-600">👨‍⚕️ Bác sĩ:</span>{" "}
-              <span className="text-black">{state.doctorName}</span>
+              <span className="text-black">{feedbackInfo.doctorFullName}</span>
             </p>
             <p>
               <span className="text-gray-600">💉 Dịch vụ:</span>{" "}
-              <span className="text-black">{state.treatmentServiceName}</span>
+              <span className="text-black">{feedbackInfo.serviceName}</span>
             </p>
             <p>
               <span className="text-gray-600">📁 Hồ sơ:</span>{" "}
-              <span className="text-black">
-                {getRecordCode(state.recordId)}
-              </span>
+              <span className="text-black">{feedbackInfo.recordId}</span>
             </p>
           </div>
 
@@ -252,7 +191,7 @@ const FeedbackCustomer = () => {
         </Card>
       ) : (
         <div className="text-center text-gray-500 italic py-6">
-          ⚠️ Vui lòng chọn một dịch vụ điều trị để gửi phản hồi.
+          Vui lòng chọn một dịch vụ điều trị để gửi phản hồi.
         </div>
       )}
       <div className="mt-10">
@@ -276,8 +215,8 @@ const FeedbackCustomer = () => {
               {feedbacks.map((fb, index) => (
                 <tr key={fb.id} className="border-t hover:bg-gray-50">
                   <td className="py-2 px-3">{index + 1}</td>
-                  <td className="py-2 px-3">{infoUser?.fullName || "..."}</td>
-                  <td className="py-2 px-3">{doctorMap[fb.doctorId]}</td>
+                  <td className="py-2 px-3">{fb.customerFullName}</td>
+                  <td className="py-2 px-3">{fb.doctorFullName}</td>
                   <td className="py-2 px-3">
                     <Rate disabled defaultValue={fb.rating} />
                   </td>

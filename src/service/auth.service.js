@@ -7,10 +7,12 @@ export const authService = {
   signIn: (data) => {
     return http.post("v1/auth/login", data); // đường dẫn endpoint để hoàn thành request url
   },
-  signInByGoogle: (data) => {
-    return http.post("v1/auth/login/google", data); // đường dẫn endpoint để hoàn thành request url
+  signInByGoogle: (accessToken, provider, data) => {
+    return http.post(`v1/auth/login/${accessToken}`, null, {
+      params: { provider },
+    }); // đường dẫn endpoint để hoàn thành request url
   },
-  getMyInfo: (token) => {
+  getMyInfo: () => {
     return http.get("v1/users/myInfo");
   },
   signUp: (data) => {
@@ -30,14 +32,25 @@ export const authService = {
   },
   checkIntrospect: (data) => {
     return http.post("v1/auth/introspect", data, {
+      skipAuth: true,
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
     });
   },
-  updateUser: (id, data) => {
-    return http.put(`user/update/${id}`, data);
+
+  refreshToken: (data) => {
+    return http.post(`v1/auth/refresh-token`, data, {
+      skipAuth: true,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+  },
+  updateUser: (userId, data) => {
+    return http.put(`v1/users/${userId}`, data);
   },
 
   uploadAvatar: (userId, payload) => {

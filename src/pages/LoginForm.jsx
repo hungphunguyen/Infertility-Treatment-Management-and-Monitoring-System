@@ -65,7 +65,7 @@ const LoginForm = ({ switchToRegister }) => {
       }),
     });
   return (
-    <div className="bg-orange-50 w-full h-full px-8 py-10 text-gray-800 ">
+    <div className="bg-white w-full h-full px-8 py-10 text-gray-800 ">
       {/* Header logo + text */}
       {/* Form đăng nhập y hệt LoginPage.jsx */}
       {/* Left animation */}
@@ -73,16 +73,23 @@ const LoginForm = ({ switchToRegister }) => {
       {/* Right form */}
       <div className="w-full px-8 py-12 text-gray-800 flex flex-col justify-center">
         <div className="text-center mb-6">
-          <div className="w-20 h-20 bg-white rounded-full mx-auto flex items-center justify-center mb-2 ring-2 ring-orange-400 shadow-lg">
-            <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-              <img
-                src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
-                alt="Logo"
-                className="w-10 h-10 object-contain"
-              />
-            </div>
+          <div className="flex justify-center">
+            <Link to={path.homePage}>
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center ring-2 ring-orange-400 shadow-lg">
+                <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
+                  <img
+                    src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
+                    alt="Logo"
+                    className="w-10 h-10 object-contain"
+                  />
+                </div>
+              </div>
+            </Link>
           </div>
-          <h2 className="text-2xl font-bold">Chào mừng đến đây</h2>
+
+          <h2 className="text-2xl text-orange-500 font-bold">
+            Chào mừng đến đây
+          </h2>
           <p className="text-sm text-gray-500">
             Vui lòng đăng nhập để tiếp tục
           </p>

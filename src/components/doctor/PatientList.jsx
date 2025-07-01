@@ -68,10 +68,35 @@ const PatientList = () => {
           treatmentService.getDoctorAppointmentsByDate(doctorId, today),
           treatmentService.getTreatmentRecordsByDoctor(doctorId),
         ]);
-        const appointments = appointmentsRes?.data?.result || [];
-        const treatmentRecords = Array.isArray(treatmentRecordsRes)
-          ? treatmentRecordsRes
-          : [];
+        
+        // Đảm bảo appointments là array
+        let appointments = [];
+        if (appointmentsRes?.data?.result) {
+          if (Array.isArray(appointmentsRes.data.result)) {
+            appointments = appointmentsRes.data.result;
+          } else if (appointmentsRes.data.result.content && Array.isArray(appointmentsRes.data.result.content)) {
+            appointments = appointmentsRes.data.result.content;
+          } else {
+            console.warn('Appointments data format không đúng:', appointmentsRes.data.result);
+            appointments = [];
+          }
+        }
+        
+        // Đảm bảo treatmentRecords là array
+        let treatmentRecords = [];
+        if (Array.isArray(treatmentRecordsRes)) {
+          treatmentRecords = treatmentRecordsRes;
+        } else if (treatmentRecordsRes?.data?.result) {
+          if (Array.isArray(treatmentRecordsRes.data.result)) {
+            treatmentRecords = treatmentRecordsRes.data.result;
+          } else if (treatmentRecordsRes.data.result.content && Array.isArray(treatmentRecordsRes.data.result.content)) {
+            treatmentRecords = treatmentRecordsRes.data.result.content;
+          }
+        }
+        
+        console.log('📅 Appointments:', appointments);
+        console.log('📋 Treatment Records:', treatmentRecords);
+        
         // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ
         const filtered = appointments.filter((appt) => {
           return treatmentRecords.some(
@@ -82,6 +107,8 @@ const PatientList = () => {
               record.status !== "CANCELLED"
           );
         });
+        
+        console.log('✅ Filtered patients:', filtered);
         setPatients(filtered);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -122,84 +149,28 @@ const PatientList = () => {
 
   const handleDetail = async (record) => {
     try {
-      // Lấy tất cả treatment records của bác sĩ
-      const treatmentRecordsResponse = await treatmentService.getAllTreatmentRecordsByDoctor(doctorId);
-      const treatmentRecords = treatmentRecordsResponse?.data?.result || [];
-      
-      console.log('🔍 Tất cả treatment records:', treatmentRecords);
-      console.log('📅 Appointment cần tìm:', record);
-      
-      // Tìm treatment record có step khớp với appointment
-      let matchedTreatmentRecord = null;
-      
-      for (const treatmentRecord of treatmentRecords) {
-        // Kiểm tra từng step trong treatment record
-        if (treatmentRecord.treatmentSteps && Array.isArray(treatmentRecord.treatmentSteps)) {
-          const matchingStep = treatmentRecord.treatmentSteps.find(step => {
-            // Khớp theo ngày và tên step
-            const dateMatch = step.scheduledDate === record.appointmentDate;
-            const nameMatch = step.name === record.purpose;
-            
-            console.log(`🔍 Kiểm tra step: ${step.name} (${step.scheduledDate}) vs appointment: ${record.purpose} (${record.appointmentDate})`);
-            console.log(`📅 Date match: ${dateMatch}, Name match: ${nameMatch}`);
-            
-            return dateMatch && nameMatch;
-          });
-          
-          if (matchingStep) {
-            matchedTreatmentRecord = treatmentRecord;
-            console.log('✅ Tìm thấy treatment record khớp:', matchedTreatmentRecord);
-            console.log('✅ Step khớp:', matchingStep);
-            break;
-          }
-        }
+      if (!record.recordId) {
+        message.error("Không tìm thấy recordId cho lịch hẹn này!");
+        return;
       }
-      
-      // Nếu không tìm thấy theo step, tìm theo customer và service (fallback)
-      if (!matchedTreatmentRecord) {
-        console.log('⚠️ Không tìm thấy theo step, tìm theo customer và service...');
-        matchedTreatmentRecord = treatmentRecords.find(
-          (r) =>
-            (r.customerId === record.customerId ||
-              r.customerName === record.customerName) &&
-            r.status !== "PENDING" &&
-            r.status !== "CANCELLED" &&
-            (r.purpose === record.purpose ||
-             r.serviceName === record.serviceName ||
-             r.treatmentServiceName === record.purpose ||
-             r.treatmentServiceName === record.serviceName)
-        );
+      // Lấy chi tiết treatment record theo recordId
+      const detailRes = await treatmentService.getTreatmentRecordById(record.recordId);
+      const detail = detailRes?.data?.result;
+      if (!detail) {
+        message.error("Không lấy được chi tiết hồ sơ điều trị!");
+        return;
       }
-      
-      console.log('🎯 Treatment record cuối cùng:', matchedTreatmentRecord);
-      
-      if (matchedTreatmentRecord) {
-        // Gọi API lấy chi tiết treatment record (bao gồm các bước)
-        const detailRes = await treatmentService.getTreatmentRecordById(matchedTreatmentRecord.id);
-        const detail = detailRes?.data?.result;
-        
-        console.log('📋 Treatment record chi tiết:', detail);
-        
-        if (detail) {
-          navigate("/doctor-dashboard/treatment-stages", {
-            state: {
-              patientInfo: {
-                customerId: detail.customerId,
-                customerName: detail.customerName,
-              },
-              treatmentData: detail, // truyền treatment record chi tiết (có steps)
-              sourcePage: "patients",
-              appointmentData: record
-            },
-          });
-        } else {
-          message.error("Không lấy được chi tiết hồ sơ điều trị!");
-        }
-      } else {
-        message.error(
-          "Không tìm thấy hồ sơ điều trị hợp lệ cho bệnh nhân này!"
-        );
-      }
+      navigate("/doctor-dashboard/treatment-stages", {
+        state: {
+          patientInfo: {
+            customerId: detail.customerId,
+            customerName: detail.customerName,
+          },
+          treatmentData: detail,
+          sourcePage: "patients",
+          appointmentData: record
+        },
+      });
     } catch (error) {
       console.error("Error in handleDetail:", error);
       message.error("Có lỗi xảy ra khi tìm hồ sơ điều trị!");
@@ -256,11 +227,19 @@ const PatientList = () => {
     {
       title: "Dịch vụ",
       key: "serviceName",
-      render: (record) => (
-        <Tag color="purple">
-          {record.purpose || record.serviceName || "Chưa có"}
-        </Tag>
-      ),
+      render: (record) => {
+        // Hiển thị dịch vụ theo thứ tự ưu tiên
+        const serviceName = record.purpose || 
+                           record.serviceName || 
+                           record.treatmentServiceName ||
+                           record.treatmentService?.name ||
+                           "Chưa có";
+        return (
+          <Tag color="purple">
+            {serviceName}
+          </Tag>
+        );
+      },
     },
     {
       title: "Thao tác",
@@ -370,6 +349,7 @@ const PatientList = () => {
           </Button>,
         ]}
         width={800}
+        destroyOnHidden
       >
         {selectedPatient && (
           <Descriptions column={2} bordered>

@@ -26,16 +26,9 @@ const BlogApproval = () => {
   const fetchPendingBlogs = async () => {
     try {
       setLoading(true);
-      const response = await blogService.getAllBlogs({ 
-        status: 'PENDING_REVIEW', 
-        page: 0, 
-        size: 20 
-      });
-      if (response.data?.result?.content) {
-        setBlogs(response.data.result.content);
-      } else {
-        showNotification("Không có bài viết nào đang chờ duyệt", "info");
-        setBlogs([]);
+      const response = await blogService.getBlogsByStatus("PENDING_REVIEW");
+      if (response.data) {
+        setBlogs(response.data.result);
       }
     } catch (error) {
       console.error("Error fetching blogs:", error);

@@ -227,7 +227,7 @@ const FeedbackManagement = () => {
           <div className="flex justify-end mt-4">
             <Button
               disabled={currentPage === 0}
-              onClick={() => fetchUsers(showRemoved, currentPage - 1)}
+              onClick={() => getAllFeedBack(currentPage - 1)}
               className="mr-2"
             >
               Trang trước
@@ -237,7 +237,7 @@ const FeedbackManagement = () => {
             </span>
             <Button
               disabled={currentPage + 1 >= totalPages}
-              onClick={() => fetchUsers(showRemoved, currentPage + 1)}
+              onClick={() => getAllFeedBack(currentPage + 1)}
               className="ml-2"
             >
               Trang tiếp
@@ -346,10 +346,10 @@ const FeedbackManagement = () => {
               });
 
               showNotification("Cập nhật phản hồi thành công", "success");
-              await getAllFeedBack();
+              getAllFeedBack();
             } catch (err) {
               console.error(err);
-              showNotification("Có lỗi xảy ra khi cập nhật phản hồi", "error");
+              showNotification(err.response.data.message, "error");
             } finally {
               setModalVisible(false);
               setLoadingIds((prev) => prev.filter((id) => id !== currentId));
