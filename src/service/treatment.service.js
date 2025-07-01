@@ -884,5 +884,16 @@ export const treatmentService = {
       console.error('Error fetching manager doctors today:', error);
       throw error;
     }
-  }
+  },
+
+  getAppointmentsV1: async (params) => {
+    // params: { doctorId, date, page, size, ... }
+    try {
+      const response = await http.get("v1/appointments", { params });
+      return response;
+    } catch (error) {
+      console.error("Error fetching appointments v1:", error);
+      throw error;
+    }
+  },
 };

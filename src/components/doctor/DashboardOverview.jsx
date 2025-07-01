@@ -137,32 +137,24 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingToday(true);
-    
-    // Thử API mới trước
-    doctorService
-      .getAppointmentsToday(0, 10)
+
+    // Lấy ngày hôm nay
+    const today = dayjs().format("YYYY-MM-DD");
+    // Gọi API /api/v1/appointments lấy lịch khám hôm nay
+    treatmentService
+      .getAppointmentsV1({
+        doctorId,
+        date: today,
+        page: 0,
+        size: 10,
+      })
       .then((res) => {
-        if (res?.data?.result?.content) {
-          setTodayAppointments(res.data.result.content);
-        } else {
-          setTodayAppointments([]);
-        }
+        const data = res?.data?.result?.content || [];
+        // Log dữ liệu để debug
+        console.log('[Lịch Khám Hôm Nay] todayAppointments:', data);
+        setTodayAppointments(data);
       })
-      .catch((err) => {
-        console.warn('API mới không hoạt động, thử API cũ:', err);
-        // Fallback to old API
-        const today = dayjs().format("YYYY-MM-DD");
-        treatmentService
-          .getDoctorAppointmentsByDate(doctorId, today)
-          .then((res) => {
-            if (res?.data?.result) {
-              setTodayAppointments(res.data.result);
-            } else {
-              setTodayAppointments([]);
-            }
-          })
-          .catch(() => setTodayAppointments([]));
-      })
+      .catch(() => setTodayAppointments([]))
       .finally(() => setLoadingToday(false));
   }, [doctorId]);
 
@@ -272,8 +264,11 @@ const DashboardOverview = () => {
     },
     {
       title: "Dịch vụ",
-      dataIndex: "serviceName",
       key: "serviceName",
+      render: (record) => {
+        // Lấy trường 'step' từ API
+        return <Tag color="purple">{record.step || "Chưa có"}</Tag>;
+      },
     },
   ];
 

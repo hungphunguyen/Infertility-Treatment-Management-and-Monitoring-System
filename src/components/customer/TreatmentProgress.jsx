@@ -96,14 +96,14 @@ const TreatmentProgress = () => {
               hasDate: !!step.scheduledDate,
               startDate: step.scheduledDate,
               endDate: step.actualDate,
-              notes: step.notes,
+              notes: step.notes || '',
               appointment: null,
               activities: [
                 {
                   name: step.name,
                   date: step.scheduledDate,
                   status: step.status,
-                  notes: step.notes || 'Đang chờ thực hiện'
+                  notes: step.notes || ''
                 }
               ]
             })) || []
@@ -239,7 +239,29 @@ const TreatmentProgress = () => {
         setChangeModalVisible(false);
         setSelectedAppointment(null);
         changeForm.resetFields();
-        fetchData();
+        // Cập nhật trực tiếp trạng thái appointment trong treatmentData
+        setTreatmentData(prev => {
+          if (!prev) return prev;
+          const newPhases = prev.phases.map(phase => {
+            if (
+              phase.appointment &&
+              phase.appointment.id === selectedAppointment.id
+            ) {
+              return {
+                ...phase,
+                appointment: {
+                  ...phase.appointment,
+                  status: 'PENDING_CHANGE',
+                  requestedDate: values.requestedDate.format("YYYY-MM-DD"),
+                  requestedShift: values.requestedShift,
+                  notes: values.notes || ""
+                }
+              };
+            }
+            return phase;
+          });
+          return { ...prev, phases: newPhases };
+        });
       } else {
         showNotification(response?.data?.message || response?.message || "Không thể gửi yêu cầu.", "error");
       }
@@ -265,30 +287,25 @@ const TreatmentProgress = () => {
   };
 
   const getStatusTag = (status) => {
-    switch (status) {
+    switch ((status || '').toUpperCase()) {
       case "COMPLETED":
-      case "completed":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
       case "IN_PROGRESS":
-      case "in-progress":
-      case "inprogress":
-        return <Tag color="#1890ff">Đang điều trị</Tag>;
+        return <Tag color="#1890ff">Đang thực hiện</Tag>;
+      case "CONFIRMED":
+        return <Tag color="#1890ff">Đã xác nhận</Tag>;
       case "PENDING":
       case "PLANNED":
-      case "upcoming":
-      case "pending":
-        return <Tag color="warning">Đang chờ điều trị</Tag>;
+        return <Tag color="orange">Đang chờ</Tag>;
       case "CANCELLED":
-      case "cancelled":
         return <Tag color="error">Đã hủy</Tag>;
-      case "CONFIRMED":
-      case "confirmed":
-        return <Tag color="#1890ff">Đã xác nhận</Tag>;
       case "PENDING_CHANGE":
-        return <Tag color="orange">Chờ duyệt đổi lịch</Tag>;
+        return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
       case "REJECTED_CHANGE":
         return <Tag color="red">Từ chối đổi lịch</Tag>;
+      case "REJECTED":
+        return <Tag color="red">Đã từ chối</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -321,7 +338,7 @@ const TreatmentProgress = () => {
       return {
         name: currentPhase.name,
         status: currentPhase.statusRaw,
-        notes: currentPhase.notes || 'Đang chờ thực hiện'
+        notes: currentPhase.notes || ''
       };
     }
     
@@ -349,95 +366,72 @@ const TreatmentProgress = () => {
               {getStepStatusTag(phase.statusRaw)}
             </Descriptions.Item>
             {(idx === 0 || phase.hasDate) && (
-              <Descriptions.Item label="Ngày khám">
+              <Descriptions.Item label="Ngày dự kiến">
                 {phase.displayDate ? dayjs(phase.displayDate).format("DD/MM/YYYY") : '-'}
+              </Descriptions.Item>
+            )}
+            {phase.endDate && (
+              <Descriptions.Item label="Ngày thực hiện">
+                {dayjs(phase.endDate).format("DD/MM/YYYY")}
               </Descriptions.Item>
             )}
           </Descriptions>
           
-          {phase.appointment && 
-           phase.statusRaw !== 'COMPLETED' && 
-           phase.appointment.status !== 'PENDING_CHANGE' && 
-           phase.appointment.status !== 'REJECTED_CHANGE' && (
+          {phase.appointment && phase.statusRaw !== 'COMPLETED' && (
             <div style={{ marginTop: 16 }}>
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={() => handleOpenChangeModal(phase)}
-                style={{
-                  backgroundColor: "#1890ff",
-                  borderColor: "#1890ff",
-                }}
-              >
-                Gửi yêu cầu thay đổi lịch hẹn
-              </Button>
+              {phase.appointment.status !== 'PENDING_CHANGE' && phase.appointment.status !== 'REJECTED_CHANGE' && (
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={() => handleOpenChangeModal(phase)}
+                  style={{
+                    backgroundColor: "#1890ff",
+                    borderColor: "#1890ff",
+                  }}
+                >
+                  Gửi yêu cầu thay đổi lịch hẹn
+                </Button>
+              )}
+              {phase.appointment.appointmentDate && (
+                <div style={{ marginTop: 16 }}>
+                  <Text strong>Lịch hẹn:</Text>
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      display: 'inline-block',
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      background: phase.appointment.status === 'CONFIRMED' ? '#1890ff'
+                        : phase.appointment.status === 'PENDING' ? '#faad14'
+                        : phase.appointment.status === 'COMPLETED' ? '#52c41a'
+                        : phase.appointment.status === 'CANCELLED' ? '#ff4d4f'
+                        : phase.appointment.status === 'PENDING_CHANGE' ? '#722ed1'
+                        : phase.appointment.status === 'REJECTED_CHANGE' ? '#ff7875'
+                        : phase.appointment.status === 'REJECTED' ? '#ff7875'
+                        : '#d9d9d9',
+                      marginRight: 4
+                    }} />
+                    <span style={{ fontWeight: 500 }}>{phase.name}</span>
+                    {getStatusTag(phase.appointment.status)}
+                    <CalendarOutlined style={{ marginLeft: 8, marginRight: 4 }} />
+                    <span>{dayjs(phase.appointment.appointmentDate).format('DD/MM/YYYY')}</span>
+                    {phase.appointment.shift && (
+                      <span style={{ marginLeft: 8 }}>
+                        - Ca: {phase.appointment.shift === 'MORNING' ? 'Sáng' : 'Chiều'}
+                      </span>
+                    )}
+                    {/* Nếu có requestedDate (đang chờ duyệt đổi lịch), hiển thị thêm */}
+                    {phase.appointment.status === 'PENDING_CHANGE' && phase.appointment.requestedDate && (
+                      <span style={{ marginLeft: 16, color: '#722ed1' }}>
+                        (Yêu cầu đổi sang: {dayjs(phase.appointment.requestedDate).format('DD/MM/YYYY')} - Ca: {phase.appointment.requestedShift === 'MORNING' ? 'Sáng' : 'Chiều'})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {phase.appointment && phase.appointment.status === 'PENDING_CHANGE' && (
-            <div style={{ marginTop: 16 }}>
-              <Alert
-                type="warning"
-                message="Đã gửi yêu cầu thay đổi lịch hẹn"
-                description={`Ngày mới: ${phase.appointment.requestedDate ? dayjs(phase.appointment.requestedDate).format('DD/MM/YYYY') : ''} - Ca: ${phase.appointment.requestedShift === 'MORNING' ? 'Sáng' : 'Chiều'}`}
-                showIcon
-              />
-            </div>
-          )}
-
-          {phase.appointment && phase.appointment.status === 'REJECTED_CHANGE' && (
-            <div style={{ marginTop: 16 }}>
-              <Alert
-                type="error"
-                message="Yêu cầu thay đổi lịch hẹn đã bị từ chối"
-                description={phase.appointment.notes || 'Không có ghi chú'}
-                showIcon
-              />
-            </div>
-          )}
-
-          {phase.appointment && phase.appointment.status === 'REJECTED' && (
-            <div style={{ marginTop: 16 }}>
-              <Alert
-                type="warning"
-                message="Lịch hẹn đã bị từ chối"
-                description={`${phase.appointment.notes || 'Không có ghi chú'} - Bạn có thể gửi yêu cầu đổi lịch để chọn thời gian phù hợp hơn.`}
-                showIcon
-              />
-            </div>
-          )}
-
-          {phase.activities.length > 0 && (
-            <div style={{ marginTop: 16 }}>
-              <Text strong>Lịch hẹn:</Text>
-              <Timeline 
-                style={{ marginTop: 16 }}
-                items={phase.activities.map((activity, index) => ({
-                  key: index,
-                  color: activity.status === 'COMPLETED' ? 'green' : 
-                         activity.status === 'IN_PROGRESS' || activity.status === 'INPROGRESS' || activity.status === 'CONFIRMED' ? 'blue' : 
-                         activity.status === 'PLANNED' || activity.status === 'PENDING' ? 'orange' : 'gray',
-                  children: (
-                    <div>
-                      <Space>
-                        <Text strong>{activity.name}</Text>
-                        {getStatusTag(activity.status)}
-                      </Space>
-                      <div>
-                        <CalendarOutlined style={{ marginRight: 8 }} />
-                        <Text>{activity.date ? dayjs(activity.date).format("DD/MM/YYYY") : 'Chưa lên lịch'}</Text>
-                      </div>
-                      {activity.notes && (
-                        <div style={{ color: '#666', marginTop: 4 }}>
-                          {activity.notes}
-                        </div>
-                      )}
-                    </div>
-                  )
-                }))}
-              />
-            </div>
-          )}
           {phase.activities.length === 0 && (
             <div style={{ marginTop: 16, color: '#666' }}>
               Chưa có hoạt động được lên lịch
@@ -731,14 +725,14 @@ const TreatmentProgress = () => {
           hasDate: !!step.scheduledDate,
           startDate: step.scheduledDate,
           endDate: step.actualDate,
-          notes: step.notes,
+          notes: step.notes || '',
           appointment: step.appointments[0] || null, // Lấy appointment đầu tiên
           activities: [
             {
               name: step.name,
               date: step.scheduledDate,
               status: step.status,
-              notes: step.notes || 'Đang chờ thực hiện'
+              notes: step.notes || ''
             }
           ]
         }))
@@ -836,7 +830,8 @@ const TreatmentProgress = () => {
         {selectedPhase && (
           <div>
             <p><b>Trạng thái:</b> {getStepStatusTag(selectedPhase.statusRaw)}</p>
-            {selectedPhase.displayDate && <p><b>Ngày khám:</b> {dayjs(selectedPhase.displayDate).format("DD/MM/YYYY")}</p>}
+            {selectedPhase.displayDate && <p><b>Ngày dự kiến:</b> {dayjs(selectedPhase.displayDate).format("DD/MM/YYYY")}</p>}
+            {selectedPhase.endDate && <p><b>Ngày thực hiện:</b> {dayjs(selectedPhase.endDate).format("DD/MM/YYYY")}</p>}
             {selectedPhase.notes && <p><b>Ghi chú:</b> {selectedPhase.notes}</p>}
           </div>
         )}

@@ -344,12 +344,16 @@ const TreatmentStageDetails = () => {
 
   const handleScheduleAppointment = async (values) => {
     try {
+      // Lấy đúng step object từ treatmentData dựa vào id
+      const stepObj = treatmentData.treatmentSteps.find(
+        step => String(step.id) === String(values.treatmentStepId)
+      );
       const appointmentData = {
         customerId: treatmentData.customerId,
         doctorId: doctorId,
         appointmentDate: values.appointmentDate.format('YYYY-MM-DD'),
         shift: values.shift,
-        purpose: selectedStep?.name,
+        purpose: stepObj?.name || '', // Luôn lấy tên tiếng Việt
         notes: values.notes,
         treatmentStepId: values.treatmentStepId
       };
@@ -360,7 +364,7 @@ const TreatmentStageDetails = () => {
         setShowStepDetailModal(true);
         setLoadingAppointments(true);
         try {
-          const refreshed = await treatmentService.getAppointmentsByStepId(scheduleStep.id);
+          const refreshed = await treatmentService.getAppointmentsByStepId(values.treatmentStepId);
           setStepAppointments(refreshed?.data?.result?.content || []);
         } catch (error) {
           setStepAppointments([]);
@@ -372,7 +376,11 @@ const TreatmentStageDetails = () => {
         showNotification(response?.data?.message || "Tạo lịch hẹn thất bại", "error");
       }
     } catch (error) {
-      showNotification("Có lỗi khi tạo lịch hẹn", "error");
+      let errorMessage = "Có lỗi khi tạo lịch hẹn";
+      if (error.response && error.response.data && error.response.data.message) {
+        errorMessage = error.response.data.message;
+      }
+      showNotification(errorMessage, "error");
     }
   };
 
@@ -547,6 +555,12 @@ const TreatmentStageDetails = () => {
       showNotification('Có lỗi khi cập nhật trạng thái', 'error');
     }
   };
+
+  React.useEffect(() => {
+    if (showCreateAppointmentModal && selectedStep) {
+      scheduleForm.setFieldsValue({ treatmentStepId: selectedStep.id });
+    }
+  }, [showCreateAppointmentModal, selectedStep]);
 
   if (loading) {
     return (
@@ -1163,10 +1177,8 @@ const TreatmentStageDetails = () => {
           >
             <Row gutter={16}>
               <Col span={8}>
-                <Form.Item name="treatmentStepId" label="Bước điều trị" rules={[{ required: true, message: 'Bắt buộc' }]}> 
-                  <Select disabled>
-                    <Select.Option key={selectedStep?.id} value={selectedStep?.id}>{selectedStep?.name}</Select.Option>
-                  </Select>
+                <Form.Item label="Bước điều trị" required>
+                  <Input value={selectedStep?.name} disabled />
                 </Form.Item>
               </Col>
               <Col span={8}>
@@ -1185,6 +1197,9 @@ const TreatmentStageDetails = () => {
             </Row>
             <Form.Item name="notes" label="Ghi chú">
               <TextArea rows={2} />
+            </Form.Item>
+            <Form.Item name="treatmentStepId" initialValue={selectedStep?.id} hidden>
+              <Input />
             </Form.Item>
             <Form.Item style={{ textAlign: 'right' }}>
               <Button type="primary" htmlType="submit">

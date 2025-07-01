@@ -67,7 +67,6 @@ const AppointmentManagement = () => {
   });
   const [changeRequestNotes, setChangeRequestNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionType, setActionType] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -169,28 +168,24 @@ const AppointmentManagement = () => {
   const handleApproveClick = (request) => {
     setSelectedChangeRequest(request);
     setChangeRequestModalVisible(true);
-    setActionType('CONFIRMED');
-    setChangeRequestNotes("");
   };
 
   const handleRejectClick = (request) => {
     setSelectedChangeRequest(request);
     setChangeRequestModalVisible(true);
-    setActionType('REJECTED');
-    setChangeRequestNotes("");
   };
 
-  const handleChangeRequestAction = async () => {
+  const handleChangeRequestAction = async (status) => {
     if (!changeRequestNotes || !changeRequestNotes.trim()) {
       notification.error({ message: "Vui lòng nhập ghi chú!" });
       return;
     }
     setActionLoading(true);
     try {
-      await treatmentService.confirmAppointmentChange(selectedChangeRequest.id, { status: actionType, note: changeRequestNotes });
+      await treatmentService.confirmAppointmentChange(selectedChangeRequest.id, { status: status, note: changeRequestNotes });
       notification.success({ 
-        message: actionType === 'CONFIRMED' ? 'Đã duyệt yêu cầu!' : 'Đã từ chối yêu cầu!',
-        description: `Yêu cầu thay đổi lịch hẹn của ${selectedChangeRequest.customerName} đã được ${actionType === 'CONFIRMED' ? 'duyệt' : 'từ chối'} thành công.`
+        message: status === 'CONFIRMED' ? 'Đã duyệt yêu cầu!' : 'Đã từ chối yêu cầu!',
+        description: `Yêu cầu thay đổi lịch hẹn của ${selectedChangeRequest.customerName} đã được ${status === 'CONFIRMED' ? 'duyệt' : 'từ chối'} thành công.`
       });
       setChangeRequestModalVisible(false);
       setChangeRequestNotes("");
@@ -248,8 +243,6 @@ const AppointmentManagement = () => {
   const showChangeRequestDetail = (request) => {
     setSelectedChangeRequest(request);
     setChangeRequestModalVisible(true);
-    setActionType(null);
-    setChangeRequestNotes("");
   };
 
   const filterAppointments = () => {
@@ -355,30 +348,6 @@ const AppointmentManagement = () => {
       )
     },
     {
-      title: "Mục đích",
-      dataIndex: "purpose",
-      key: "purpose",
-      render: (purpose) => (
-        <Tooltip title={purpose}>
-          <Text ellipsis style={{ maxWidth: 150 }}>
-            {purpose}
-          </Text>
-        </Tooltip>
-      )
-    },
-    {
-      title: "Bước điều trị",
-      dataIndex: "step",
-      key: "step",
-      render: (step) => (
-        <Tooltip title={step}>
-          <Text ellipsis style={{ maxWidth: 120 }}>
-            {step}
-          </Text>
-        </Tooltip>
-      )
-    },
-    {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
@@ -476,59 +445,17 @@ const AppointmentManagement = () => {
       render: (s) => s === "MORNING" ? "Sáng" : s === "AFTERNOON" ? "Chiều" : s || <Text type="secondary">Chưa có thông tin</Text>
     },
     {
-      title: "Mục đích",
-      dataIndex: "purpose",
-      key: "purpose",
-      render: (purpose) => (
-        <Tooltip title={purpose}>
-          <Text ellipsis style={{ maxWidth: 120 }}>
-            {purpose}
-          </Text>
-        </Tooltip>
-      )
-    },
-    {
-      title: "Bước điều trị",
-      dataIndex: "step",
-      key: "step",
-      render: (step) => (
-        <Tooltip title={step}>
-          <Text ellipsis style={{ maxWidth: 120 }}>
-            {step}
-          </Text>
-        </Tooltip>
-      )
-    },
-    {
       title: "Thao tác",
       key: "action",
       render: (_, record) => (
-        <Space>
-          <Button
-            type="primary"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => showChangeRequestDetail(record)}
-          >
-            Chi tiết
-          </Button>
-          <Button
-            type="primary"
-            size="small"
-            icon={<CheckOutlined />}
-            onClick={() => handleApproveClick(record)}
-          >
-            Duyệt
-          </Button>
-          <Button
-            danger
-            size="small"
-            icon={<CloseOutlined />}
-            onClick={() => handleRejectClick(record)}
-          >
-            Từ chối
-          </Button>
-        </Space>
+        <Button
+          type="primary"
+          size="small"
+          icon={<EyeOutlined />}
+          onClick={() => showChangeRequestDetail(record)}
+        >
+          Chi tiết
+        </Button>
       )
     }
   ];
@@ -830,12 +757,6 @@ const AppointmentManagement = () => {
                 {getStatusText(selectedAppointment.status)}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Mã hồ sơ">
-              <Text code>{selectedAppointment.recordId}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="Mục đích" span={2}>
-              <Text>{selectedAppointment.purpose}</Text>
-            </Descriptions.Item>
             {selectedAppointment.step && (
               <Descriptions.Item label="Bước điều trị" span={2}>
                 <Text>{selectedAppointment.step}</Text>
@@ -852,7 +773,7 @@ const AppointmentManagement = () => {
 
       {/* Change Request Detail Modal */}
       <Modal
-        title={actionType === 'CONFIRMED' ? 'Duyệt yêu cầu đổi lịch' : actionType === 'REJECTED' ? 'Từ chối yêu cầu đổi lịch' : 'Chi tiết yêu cầu thay đổi lịch hẹn'}
+        title="Chi tiết yêu cầu thay đổi lịch hẹn"
         open={changeRequestModalVisible}
         onCancel={() => setChangeRequestModalVisible(false)}
         footer={null}
@@ -889,14 +810,8 @@ const AppointmentManagement = () => {
                   </div>
                 </Space>
               </Descriptions.Item>
-              <Descriptions.Item label="Mục đích">
-                <Text>{selectedChangeRequest.purpose}</Text>
-              </Descriptions.Item>
               <Descriptions.Item label="Bước điều trị">
                 <Text>{selectedChangeRequest.step}</Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Mã hồ sơ">
-                <Text code>{selectedChangeRequest.recordId}</Text>
               </Descriptions.Item>
             </Descriptions>
             <Timeline>
@@ -955,29 +870,39 @@ const AppointmentManagement = () => {
                 </Card>
               </>
             )}
-            {actionType && (
-              <>
-                <Divider />
-                <Input.TextArea
-                  rows={3}
-                  value={changeRequestNotes}
-                  onChange={e => setChangeRequestNotes(e.target.value)}
-                  placeholder="Nhập ghi chú bắt buộc"
-                  style={{ marginBottom: 16 }}
-                />
-                <Space style={{ width: "100%", justifyContent: "center" }}>
-                  <Button
-                    type={actionType === 'CONFIRMED' ? "primary" : "default"}
-                    danger={actionType === 'REJECTED'}
-                    icon={actionType === 'CONFIRMED' ? <CheckOutlined /> : <CloseOutlined />}
-                    loading={actionLoading}
-                    onClick={handleChangeRequestAction}
-                  >
-                    {actionType === 'CONFIRMED' ? 'Duyệt yêu cầu' : 'Từ chối yêu cầu'}
-                  </Button>
-                </Space>
-              </>
-            )}
+            <Divider />
+            <div style={{ marginBottom: 16 }}>
+              <Text strong>Ghi chú xử lý:</Text>
+              <Input.TextArea
+                rows={3}
+                value={changeRequestNotes}
+                onChange={e => setChangeRequestNotes(e.target.value)}
+                placeholder="Nhập ghi chú bắt buộc"
+                style={{ marginTop: 8 }}
+              />
+            </div>
+            <Space style={{ width: "100%", justifyContent: "center" }}>
+              <Button
+                type="primary"
+                size="large"
+                icon={<CheckOutlined />}
+                loading={actionLoading}
+                onClick={() => handleChangeRequestAction('CONFIRMED')}
+                style={{ minWidth: 120 }}
+              >
+                Duyệt yêu cầu
+              </Button>
+              <Button
+                danger
+                size="large"
+                icon={<CloseOutlined />}
+                loading={actionLoading}
+                onClick={() => handleChangeRequestAction('REJECTED')}
+                style={{ minWidth: 120 }}
+              >
+                Từ chối yêu cầu
+              </Button>
+            </Space>
           </div>
         )}
       </Modal>
