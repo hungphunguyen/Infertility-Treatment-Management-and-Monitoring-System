@@ -267,86 +267,225 @@ const ManagerTreatmentRecords = () => {
         title: "Dịch vụ",
         dataIndex: "treatmentServiceName",
         key: "treatmentServiceName",
-        render: (text) => (
-          <Space>
-            <MedicineBoxOutlined style={{ color: "#722ed1" }} />
-            <Text strong>{text}</Text>
-          </Space>
-        ),
+        render: (text, treatment) => {
+          // Lấy tên dịch vụ từ nhiều trường khác nhau
+          const serviceName =
+            treatment.treatmentServiceName ||
+            treatment.serviceName ||
+            treatment.name ||
+            treatment.treatmentService?.name ||
+            "Chưa có thông tin";
+
+          return (
+            <div
+              style={{
+                padding: "12px",
+                background: "#f8f9fa",
+                borderRadius: "6px",
+                border: "1px solid #e9ecef",
+              }}
+            >
+              <div style={{ marginBottom: "8px" }}>
+                <Text strong style={{ fontSize: "14px", color: "#2c3e50" }}>
+                  {serviceName}
+                </Text>
+              </div>
+              {treatment.treatmentServiceDescription && (
+                <div style={{ marginBottom: "4px" }}>
+                  <Text style={{ fontSize: "12px", color: "#6c757d" }}>
+                    {treatment.treatmentServiceDescription}
+                  </Text>
+                </div>
+              )}
+              {treatment.price && (
+                <div>
+                  <Text
+                    style={{
+                      fontSize: "12px",
+                      color: "#28a745",
+                      fontWeight: "500",
+                    }}
+                  >
+                    {treatment.price.toLocaleString("vi-VN")} VNĐ
+                  </Text>
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       {
         title: "Bác sĩ",
         dataIndex: "doctorName",
         key: "doctorName",
-        render: (text) => (
-          <Space>
-            <UserAddOutlined style={{ color: "#1890ff" }} />
-            <Text>{text}</Text>
-          </Space>
+        render: (text, treatment) => (
+          <div
+            style={{
+              padding: "12px",
+              background: "#f8f9fa",
+              borderRadius: "6px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <div style={{ marginBottom: "8px" }}>
+              <Text strong style={{ fontSize: "14px", color: "#2c3e50" }}>
+                {text || "Chưa có thông tin"}
+              </Text>
+            </div>
+            {treatment.doctorEmail && (
+              <div style={{ marginBottom: "4px" }}>
+                <Text style={{ fontSize: "12px", color: "#6c757d" }}>
+                  {treatment.doctorEmail}
+                </Text>
+              </div>
+            )}
+            {treatment.doctorPhone && (
+              <div>
+                <Text style={{ fontSize: "12px", color: "#6c757d" }}>
+                  {treatment.doctorPhone}
+                </Text>
+              </div>
+            )}
+          </div>
         ),
       },
       {
-        title: "Ngày bắt đầu",
+        title: "Thời gian",
         dataIndex: "startDate",
         key: "startDate",
-        render: (date) => (
-          <Space>
-            <CalendarOutlined />
-            {dayjs(date).format("DD/MM/YYYY")}
-          </Space>
+        render: (date, treatment) => (
+          <div
+            style={{
+              padding: "12px",
+              background: "#f8f9fa",
+              borderRadius: "6px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <div style={{ marginBottom: "8px" }}>
+              <Text strong style={{ fontSize: "14px", color: "#2c3e50" }}>
+                {dayjs(date).format("DD/MM/YYYY")}
+              </Text>
+            </div>
+            {treatment.endDate && (
+              <div style={{ marginBottom: "4px" }}>
+                <Text style={{ fontSize: "12px", color: "#6c757d" }}>
+                  Kết thúc: {dayjs(treatment.endDate).format("DD/MM/YYYY")}
+                </Text>
+              </div>
+            )}
+            {treatment.createdDate && (
+              <div>
+                <Text style={{ fontSize: "12px", color: "#6c757d" }}>
+                  Tạo: {dayjs(treatment.createdDate).format("DD/MM/YYYY")}
+                </Text>
+              </div>
+            )}
+          </div>
         ),
       },
       {
         title: "Trạng thái",
         dataIndex: "status",
         key: "status",
-        render: (status) => getStatusTag(status),
+        render: (status, treatment) => (
+          <div
+            style={{
+              padding: "12px",
+              background: "#f8f9fa",
+              borderRadius: "6px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <div style={{ marginBottom: "8px", textAlign: "center" }}>
+              {getStatusTag(status)}
+            </div>
+            {treatment.notes && (
+              <div style={{ textAlign: "center" }}>
+                <Text style={{ fontSize: "12px", color: "#6c757d" }}>
+                  {treatment.notes}
+                </Text>
+              </div>
+            )}
+          </div>
+        ),
       },
       {
         title: "Thao tác",
         key: "action",
         render: (_, treatment) => (
-          <Space>
-            <Button
-              type="primary"
-              icon={<EyeOutlined />}
-              size="small"
-              onClick={() => viewRecord(treatment)}
-            >
-              Xem chi tiết
-            </Button>
+          <div
+            style={{
+              padding: "12px",
+              background: "#f8f9fa",
+              borderRadius: "6px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <div style={{ marginBottom: "8px" }}>
+              <Button
+                type="primary"
+                icon={<EyeOutlined />}
+                size="small"
+                onClick={() => viewRecord(treatment)}
+                style={{ width: "100%" }}
+              >
+                Xem chi tiết
+              </Button>
+            </div>
             {treatment.status === "PENDING" && (
-              <>
-                <Button
-                  type="primary"
-                  icon={<CheckOutlined />}
-                  size="small"
-                  onClick={() => handleApprove(treatment)}
-                >
-                  Duyệt
-                </Button>
-                <Button
-                  danger
-                  icon={<CloseOutlined />}
-                  size="small"
-                  onClick={() => handleCancel(treatment)}
-                >
-                  Hủy
-                </Button>
-              </>
+              <div>
+                <div style={{ marginBottom: "4px" }}>
+                  <Button
+                    type="primary"
+                    icon={<CheckOutlined />}
+                    size="small"
+                    onClick={() => handleApprove(treatment)}
+                    style={{
+                      width: "100%",
+                      background: "#28a745",
+                      borderColor: "#28a745",
+                    }}
+                  >
+                    Duyệt
+                  </Button>
+                </div>
+                <div>
+                  <Button
+                    danger
+                    icon={<CloseOutlined />}
+                    size="small"
+                    onClick={() => handleCancel(treatment)}
+                    style={{ width: "100%" }}
+                  >
+                    Hủy
+                  </Button>
+                </div>
+              </div>
             )}
-          </Space>
+          </div>
         ),
       },
     ];
 
     return (
-      <Table
-        columns={columns}
-        dataSource={record.treatments}
-        pagination={false}
-        size="small"
-      />
+      <div
+        style={{
+          padding: "16px",
+          background: "#ffffff",
+          borderRadius: "8px",
+          margin: "8px 0",
+          border: "1px solid #dee2e6",
+        }}
+      >
+        <Table
+          columns={columns}
+          dataSource={record.treatments}
+          pagination={false}
+          size="small"
+          style={{ background: "transparent" }}
+        />
+      </div>
     );
   };
 
@@ -361,12 +500,6 @@ const ManagerTreatmentRecords = () => {
           <Text strong>{text}</Text>
         </Space>
       ),
-    },
-    {
-      title: "Số hồ sơ",
-      dataIndex: "treatments",
-      key: "treatmentCount",
-      render: (treatments) => <Tag color="blue">{treatments.length}</Tag>,
     },
     {
       title: "Hồ sơ mới nhất",

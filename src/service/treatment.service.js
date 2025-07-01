@@ -601,4 +601,14 @@ export const treatmentService = {
       throw error;
     }
   },
+  getAppointmentsV1: async (params) => {
+    // params: { doctorId, date, page, size, ... }
+    try {
+      const response = await http.get("v1/appointments", { params });
+      return response;
+    } catch (error) {
+      console.error("Error fetching appointments v1:", error);
+      throw error;
+    }
+  },
 };
