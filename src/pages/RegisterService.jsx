@@ -37,6 +37,7 @@ import UserFooter from "../components/UserFooter";
 import { authService } from "../service/auth.service";
 import { serviceService } from "../service/service.service";
 import { doctorService } from "../service/doctor.service";
+import { treatmentService } from "../service/treatment.service";
 import { getLocgetlStorage } from "../utils/util";
 import dayjs from "dayjs";
 import { NotificationContext } from "../App";
@@ -287,17 +288,26 @@ const RegisterService = () => {
   const fetchTreatmentServices = async () => {
     try {
       setServicesLoading(true);
-      const response = await serviceService.getAllNonRemovedServices();
+      // Sử dụng API mới thay vì API cũ
+      const response = await serviceService.getPublicServices({
+        page: 0,
+        size: 100,
+      });
 
-      if (response && response.data && response.data.result) {
-        let servicesData = Array.isArray(response.data.result)
-          ? response.data.result
-          : [response.data.result];
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        response.data.result.content
+      ) {
+        let servicesData = response.data.result.content;
 
         // Map API data to the format needed for Select options
         const mappedServices = servicesData.map((service) => ({
           value: service.id.toString(),
-          label: `${service.name} - ${new Intl.NumberFormat("vi-VN", {
+          label: `${
+            service.serviceName || service.name
+          } - ${new Intl.NumberFormat("vi-VN", {
             style: "currency",
             currency: "VND",
           }).format(service.price)}`,
@@ -307,6 +317,7 @@ const RegisterService = () => {
         setTreatmentServices(mappedServices);
       }
     } catch (error) {
+      console.error("Error fetching services:", error);
       // Silent error handling
     } finally {
       setServicesLoading(false);
@@ -317,13 +328,16 @@ const RegisterService = () => {
   const fetchDoctors = async () => {
     try {
       setDoctorsLoading(true);
-      const response = await doctorService.getAllDoctors();
-      
-      if (response && response.data && response.data.result) {
-        let doctorsData = Array.isArray(response.data.result) 
-          ? response.data.result 
-          : [response.data.result];
-        
+      const response = await doctorService.getAllDoctors(0, 100); // Get first 100 doctors
+
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        response.data.result.content
+      ) {
+        let doctorsData = response.data.result.content;
+
         // Map API data to the format needed for Select options
         const mappedDoctors = doctorsData.map((doctor) => ({
           value: doctor.id,
@@ -341,9 +355,23 @@ const RegisterService = () => {
         });
 
         setDoctors(mappedDoctors);
+      } else {
+        setDoctors([
+          {
+            value: "",
+            label: "Không có bác sĩ nào - Vui lòng thử lại",
+            specialty: "Tổng quát",
+          },
+        ]);
       }
     } catch (error) {
-      // Silent error handling
+      setDoctors([
+        {
+          value: "",
+          label: "Không thể tải danh sách bác sĩ - Vui lòng thử lại",
+          specialty: "Tổng quát",
+        },
+      ]);
     } finally {
       setDoctorsLoading(false);
     }
@@ -352,19 +380,9 @@ const RegisterService = () => {
   useEffect(() => {
     // If a doctor was selected from the doctor's page, set the form field and fetch their schedule
     if (initialSelectedDoctor) {
-      console.log(
-        "🔍 Initial doctor selection detected:",
-        initialSelectedDoctor
-      );
-      console.log("🔍 Doctor name:", doctorName);
-      console.log("🔍 Doctor role:", doctorRole);
-      console.log("🔍 Doctor specialization:", doctorSpecialization);
-
       // We need to call the same logic as onDoctorChange
       const fetchInitialDoctorSchedule = async (doctorId) => {
         if (!doctorId) return;
-
-        console.log("🔍 Fetching schedule for doctor ID:", doctorId);
 
         // Set the selected doctor in state and form
         setSelectedDoctor(doctorId);
@@ -378,22 +396,16 @@ const RegisterService = () => {
         try {
           // Call API to get doctor schedule
           const response = await doctorService.getDoctorScheduleById(doctorId);
-          console.log("🔍 Doctor Schedule API Response:", response);
-          console.log("🔍 Response data:", response.data);
-          console.log("🔍 Response result:", response.data?.result);
 
           if (response.data && response.data.result) {
-            console.log("✅ Setting doctor schedule:", response.data.result);
             setDoctorSchedule(response.data.result);
             setShowDoctorSchedule(true);
           } else {
-            console.log("❌ No schedule data found");
             // No schedule found or error
             setDoctorSchedule(null);
             setShowDoctorSchedule(false);
           }
         } catch (error) {
-          console.error("❌ Error fetching doctor schedule:", error);
           // Handle error if schedule fetching fails
           setDoctorSchedule(null);
           setShowDoctorSchedule(false);
@@ -412,13 +424,6 @@ const RegisterService = () => {
       });
     }
   }, [initialSelectedDoctor, selectedService, form]);
-
-  // Debug useEffect to monitor schedule state changes
-  useEffect(() => {
-    console.log("🔍 State Debug - showDoctorSchedule:", showDoctorSchedule);
-    console.log("🔍 State Debug - doctorSchedule:", doctorSchedule);
-    console.log("🔍 State Debug - scheduleLoading:", scheduleLoading);
-  }, [showDoctorSchedule, doctorSchedule, scheduleLoading]);
 
   // Add function to check doctor availability
   const checkDoctorAvailability = async (date, shift) => {
@@ -493,7 +498,6 @@ const RegisterService = () => {
         ]);
       }
     } catch (error) {
-      console.error("Error checking doctor availability:", error);
       setAvailableDoctors([]);
       setAvailabilityChecked(true);
 
@@ -513,13 +517,16 @@ const RegisterService = () => {
   // Helper function to fetch original doctors list
   const fetchOriginalDoctors = async () => {
     try {
-      const response = await doctorService.getAllDoctors();
-      
-      if (response && response.data && response.data.result) {
-        let doctorsData = Array.isArray(response.data.result) 
-          ? response.data.result 
-          : [response.data.result];
-        
+      const response = await doctorService.getAllDoctors(0, 100); // Get first 100 doctors
+
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        response.data.result.content
+      ) {
+        let doctorsData = response.data.result.content;
+
         // Map API data to the format needed for Select options
         const mappedDoctors = doctorsData.map((doctor) => ({
           value: doctor.id,
@@ -532,7 +539,7 @@ const RegisterService = () => {
         return mappedDoctors;
       }
     } catch (error) {
-      console.error("Error fetching original doctors:", error);
+      // Silent error handling
     }
     return [];
   };
@@ -726,12 +733,12 @@ const RegisterService = () => {
           }
         }
 
-        // Xử lý doctorId đúng định dạng - cho phép rỗng để hệ thống tự chọn
+        // Xử lý doctorId đúng định dạng - cho phép null để hệ thống tự chọn
         let doctorId = values.doctor;
 
-        // Nếu doctorId là chuỗi rỗng hoặc null, gán chuỗi rỗng để hệ thống tự chọn
+        // Nếu doctorId là chuỗi rỗng hoặc null, gán null để hệ thống tự chọn
         if (!doctorId || doctorId === "") {
-          doctorId = "";
+          doctorId = null;
         }
         // Nếu doctorId bắt đầu bằng "dr_", cắt bỏ tiền tố
         else if (typeof doctorId === "string" && doctorId.startsWith("dr_")) {
@@ -760,6 +767,33 @@ const RegisterService = () => {
 
         console.log("Debug - simplified registerData:", registerData);
 
+        // Validate required fields before sending
+        if (!registerData.customerId) {
+          showNotification("Thiếu thông tin khách hàng", "error");
+          setLoading(false);
+          return;
+        }
+
+        if (!registerData.treatmentServiceId) {
+          showNotification("Vui lòng chọn dịch vụ điều trị", "error");
+          setLoading(false);
+          return;
+        }
+
+        if (!registerData.startDate) {
+          showNotification("Vui lòng chọn ngày bắt đầu", "error");
+          setLoading(false);
+          return;
+        }
+
+        if (!registerData.shift) {
+          showNotification("Vui lòng chọn ca khám", "error");
+          setLoading(false);
+          return;
+        }
+
+        console.log("🔍 Validated registerData:", registerData);
+
         // Add loader indicator
         const submitButton = document.querySelector('button[type="submit"]');
         if (submitButton) {
@@ -770,8 +804,8 @@ const RegisterService = () => {
         showNotification("Đang xử lý đăng ký...", "info");
 
         try {
-          // Call the API directly
-          const response = await serviceService.registerTreatmentService(
+          // Call the API directly - sử dụng API mới từ treatmentService
+          const response = await treatmentService.registerTreatmentService(
             registerData
           );
 
@@ -933,7 +967,7 @@ const RegisterService = () => {
                 scrollToFirstError
               >
                 <Title level={3} className="mb-6" style={{ color: "#333" }}>
-                  👤 Thông tin Cá nhân
+                  Thông tin Cá nhân
                   {userInfoLoading && (
                     <span
                       style={{
@@ -942,7 +976,7 @@ const RegisterService = () => {
                         marginLeft: "10px",
                       }}
                     >
-                      🔄 Đang tải thông tin...
+                      Đang tải thông tin...
                     </span>
                   )}
                 </Title>
@@ -1078,7 +1112,7 @@ const RegisterService = () => {
                   className="mb-6"
                   style={{ color: "#333" }}
                 >
-                  🗓 Thông tin Đặt lịch
+                  Thông tin Đặt lịch
                 </Title>
 
                 <Row gutter={[16, 0]}>
@@ -1103,7 +1137,7 @@ const RegisterService = () => {
                     {doctorNotAvailable && (
                       <div className="text-red-500 text-sm mb-2">
                         <span>
-                          ⚠️ Bác sĩ không có lịch trống vào ngày và ca này. Vui
+                          Bác sĩ không có lịch trống vào ngày và ca này. Vui
                           lòng chọn ngày hoặc ca khác.
                         </span>
                       </div>
@@ -1129,9 +1163,9 @@ const RegisterService = () => {
                     {doctorNotAvailable && (
                       <div className="text-blue-500 text-sm mb-2">
                         <span>
-                          💡 Gợi ý: Thử chọn buổi khám khác hoặc chọn "Không
-                          chọn - Bác sĩ có sẵn" để hệ thống tự động phân bác sĩ
-                          có lịch trống.
+                          Gợi ý: Thử chọn buổi khám khác hoặc chọn "Không chọn -
+                          Bác sĩ có sẵn" để hệ thống tự động phân bác sĩ có lịch
+                          trống.
                         </span>
                       </div>
                     )}
@@ -1242,7 +1276,7 @@ const RegisterService = () => {
                 {/* Doctor Schedule */}
                 {showDoctorSchedule && doctorSchedule && (
                   <Card className="mb-4" style={{ backgroundColor: "#f9f9f9" }}>
-                    <Title level={4}>🗓 Lịch làm việc của bác sĩ</Title>
+                    <Title level={4}>Lịch làm việc của bác sĩ</Title>
                     <div className="mb-4 flex items-center gap-4">
                       <span>Xem lịch tháng:</span>
                       <Select
@@ -1332,19 +1366,6 @@ const RegisterService = () => {
                                   key={monthKey}
                                   style={{ marginBottom: 30 }}
                                 >
-                                  <h3
-                                    style={{
-                                      textAlign: "center",
-                                      color: "#1890ff",
-                                      fontSize: 18,
-                                      fontWeight: "bold",
-                                      marginBottom: 16,
-                                      textTransform: "capitalize",
-                                    }}
-                                  >
-                                    📅 {monthName}
-                                  </h3>
-
                                   <table
                                     style={{
                                       width: "100%",
@@ -1673,7 +1694,7 @@ const RegisterService = () => {
                               fontSize: 12,
                             }}
                           >
-                            📋 Chú thích:
+                            Chú thích:
                           </div>
                           <div
                             style={{
@@ -1761,12 +1782,21 @@ const RegisterService = () => {
                   </Card>
                 )}
 
-                <Form.Item>
+                <Form.Item style={{ textAlign: "center", marginTop: "40px" }}>
                   <Button
                     type="primary"
                     htmlType="submit"
                     loading={loading}
                     disabled={!isLoggedIn}
+                    size="large"
+                    style={{
+                      height: "50px",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      padding: "0 40px",
+                      borderRadius: "8px",
+                      boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
+                    }}
                   >
                     Gửi đăng ký
                   </Button>

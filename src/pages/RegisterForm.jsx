@@ -79,7 +79,7 @@ const RegisterForm = ({ switchToLogin }) => {
       }),
     });
   return (
-    <div className="bg-orange-50 w-full h-full px-8 py-10 text-gray-800 overflow-auto">
+    <div className="bg-white w-full h-full px-8 py-10 text-gray-800 overflow-auto">
       <h2 className="text-2xl font-bold mb-4 text-center">Đăng ký</h2>
       {/* Form đăng ký đầy đủ y hệt RegisterPage */}
       <form onSubmit={handleSubmit}>
@@ -201,7 +201,7 @@ const RegisterForm = ({ switchToLogin }) => {
         <div className="mt-8">
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition duration-200"
+            className="w-full py-2 bg-orange-600 hover:brightness-110 hover:scale-[1.02] transition-all duration-200 ease-in-out rounded-md text-white font-semibold"
           >
             Đăng kí
           </button>{" "}
@@ -209,7 +209,7 @@ const RegisterForm = ({ switchToLogin }) => {
       </form>
       <p className="text-sm mt-6 text-center">
         Đã có tài khoản?{" "}
-        <button onClick={switchToLogin} className="text-blue-600 underline">
+        <button onClick={switchToLogin} className="text-orange-600 underline">
           Đăng nhập
         </button>
       </p>

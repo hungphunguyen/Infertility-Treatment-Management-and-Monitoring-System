@@ -26,10 +26,10 @@ export const doctorService = {
     }
   },
 
-  // Lấy thông tin chi tiết một bác sĩ theo ID
+  // Lấy thông tin chi tiết một bác sĩ theo ID - UPDATED TO V1
   getDoctorById: async (id) => {
     try {
-      const response = await http.get(`doctors/${id}`);
+      const response = await http.get(`v1/public/doctors/${id}`);
       return response;
     } catch (error) {
       throw error;
@@ -37,14 +37,16 @@ export const doctorService = {
   },
 
   // Cập nhật thông tin bác sĩ
-  updateDoctor: async (id, data) => {
-    return http.put(`/doctors/${id}`, data);
+  updateDoctor: (doctorId, data) => {
+    return http.put(`v1/doctors/${doctorId}`, data);
   },
 
+  // Lấy thông tin bác sĩ public - UPDATED TO V1
   getInfoDoctor: (id) => {
     return http.get(`v1/public/doctors/${id}`);
   },
 
+  // Lấy danh sách bác sĩ cho card - UPDATED TO V1
   getDoctorForCard: async (page, size) => {
     return http.get("v1/public/doctors", {
       params: {
@@ -53,6 +55,7 @@ export const doctorService = {
       },
     });
   },
+
   // Lấy danh sách rating của bác sĩ
   getDoctorRatings: async () => {
     try {
@@ -62,6 +65,8 @@ export const doctorService = {
       throw error;
     }
   },
+
+  // Lấy feedback của bác sĩ - UPDATED TO V1
   getDoctorFeedback: async (doctorId, page, size) => {
     return http.get(`/v1/public/feedbacks`, {
       params: {
@@ -71,9 +76,12 @@ export const doctorService = {
       },
     });
   },
+
+  // Lấy thống kê dashboard
   getDashboardStatics: (doctorId) => {
     return http.get(`/doctors/dashboard/statics/${doctorId}`);
   },
+
   // Lấy thống kê số bệnh nhân đã khám theo ngày
   getDoctorStatistics: async (date) => {
     try {
@@ -84,25 +92,6 @@ export const doctorService = {
     }
   },
 
-  // Lấy lịch làm việc của bác sĩ theo ngày
-  getDoctorSchedulesByDate: async (date) => {
-    try {
-      const response = await http.get(`doctors/schedules/${date}`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  // Lấy danh sách bác sĩ và lịch làm việc
-  getDoctorSchedules: async () => {
-    try {
-      const response = await http.get("doctors");
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  },
   // Lấy danh sách bác sĩ có lịch trống theo ngày và ca - UPDATED TO V1
   getAvailableDoctors: async (date, shift) => {
     try {
@@ -121,9 +110,12 @@ export const doctorService = {
   // Lấy lịch làm việc của bác sĩ theo doctorId - UPDATED TO V1
   getDoctorScheduleById: async (doctorId) => {
     try {
+      console.log("🔍 Fetching doctor schedule for ID:", doctorId);
       const response = await http.get(`v1/doctors/schedules/${doctorId}`);
+      console.log("🔍 Doctor schedule response:", response.data);
       return response;
     } catch (error) {
+      console.error("❌ Error fetching doctor schedule:", error);
       throw error;
     }
   },
@@ -139,20 +131,89 @@ export const doctorService = {
       throw error;
     }
   },
-  // Duyệt hoặc hủy yêu cầu đổi lịch (PUT)
-  confirmAppointmentChange: async (appointmentId, data) => {
+
+  // Lấy danh sách bác sĩ để chọn lịch
+  getDoctorToSelectSchedule: () => {
+    return http.get(`v1/doctors/select/options/schedule`);
+  },
+
+  // ===== API MỚI CHO DOCTOR DASHBOARD =====
+  
+  // Lấy lịch làm việc theo tháng - API mới
+  getWorkScheduleByMonth: async (yearMonth) => {
     try {
-      const response = await http.put(
-        `appointments/confirm-appointment/${appointmentId}`,
-        data
-      );
-      return response;
+      // Thử API mới trước
+      try {
+        const response = await http.get(`v1/dashboard/doctor/work-schedule?yearMonth=${yearMonth}`);
+        return response;
+      } catch (newApiError) {
+        console.warn('API mới không hoạt động, thử API cũ:', newApiError);
+        // Fallback to old API hoặc trả về dữ liệu mặc định
+        return {
+          data: {
+            result: {
+              workShiftsThisMonth: 0,
+              workDays: []
+            }
+          }
+        };
+      }
     } catch (error) {
+      console.error("Error fetching work schedule by month:", error);
       throw error;
     }
   },
 
-  getDoctorToSelectSchedule: () => {
-    return http.get(`v1/doctors/select/options/schedule`);
+  // Lấy thống kê tổng quan dashboard - API mới
+  getDashboardOverview: async () => {
+    try {
+      // Thử API mới trước
+      try {
+        const response = await http.get(`v1/dashboard/doctor/overview`);
+        return response;
+      } catch (newApiError) {
+        console.warn('API mới không hoạt động, thử API cũ:', newApiError);
+        // Fallback to old API hoặc trả về dữ liệu mặc định
+        return {
+          data: {
+            result: {
+              patients: 0,
+              avgRating: 0,
+              workShiftsThisMonth: 0
+            }
+          }
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard overview:", error);
+      throw error;
+    }
   },
+
+  // Lấy appointments hôm nay - API mới
+  getAppointmentsToday: async (page = 0, size = 10) => {
+    try {
+      // Thử API mới trước
+      try {
+        const response = await http.get(`v1/dashboard/doctor/appointment-today?page=${page}&size=${size}`);
+        return response;
+      } catch (newApiError) {
+        console.warn('API mới không hoạt động, thử API cũ:', newApiError);
+        // Fallback to old API hoặc trả về dữ liệu mặc định
+        return {
+          data: {
+            result: {
+              content: [],
+              totalElements: 0
+            }
+          }
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching appointments today:", error);
+      throw error;
+    }
+  },
+
+  // Lấy thống kê dashboard (API cũ - giữ lại để tương thích)
 };

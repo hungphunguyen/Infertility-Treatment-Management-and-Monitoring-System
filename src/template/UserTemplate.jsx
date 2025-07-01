@@ -65,11 +65,14 @@ const UserTemplate = () => {
 
   const handleBookAppointment = (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra role
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
-      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    if (userInfo.roleName && userInfo.roleName.name !== "CUSTOMER") {
+      showNotification(
+        "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+        "error"
+      );
       return;
     }
 
@@ -79,11 +82,14 @@ const UserTemplate = () => {
 
   const handleServicesClick = (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra role
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
-      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    if (userInfo.roleName && userInfo.roleName.name !== "CUSTOMER") {
+      showNotification(
+        "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+        "error"
+      );
       return;
     }
 
@@ -93,11 +99,14 @@ const UserTemplate = () => {
 
   const handleStaffClick = (e) => {
     e.preventDefault();
-    
+
     // Kiểm tra role
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    if (userInfo.roleName && userInfo.roleName.name !== 'CUSTOMER') {
-      showNotification("Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.", "error");
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
+    if (userInfo.roleName && userInfo.roleName.name !== "CUSTOMER") {
+      showNotification(
+        "Bạn không có quyền đăng ký lịch hẹn. Chỉ khách hàng mới có thể sử dụng tính năng này.",
+        "error"
+      );
       return;
     }
 
@@ -344,8 +353,8 @@ const UserTemplate = () => {
                 <Card
                   key={doctor.id}
                   className="w-[250px] mx-auto mb-8 cursor-pointer shadow-lg rounded-xl border-0 hover:scale-105 transition-transform duration-300 bg-white overflow-hidden"
-                  onClick={() => navigate(`/doctor/${doctor.id}`)}
-                  bodyStyle={{ padding: 0 }}
+                  onClick={() => navigate(`/doctors/detail/${doctor.id}`)}
+                  styles={{ body: { padding: 0 } }}
                 >
                   <img
                     src={doctor.avatarUrl}

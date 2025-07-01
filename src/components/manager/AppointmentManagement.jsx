@@ -1,278 +1,986 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
   Card,
-  Typography,
-  Button,
-  Space,
+  Table,
   Tag,
-  Select,
-  Input,
-  Modal,
+  Space,
+  Typography,
+  Spin,
   DatePicker,
+  Select,
+  Button,
+  Input,
+  notification,
+  Row,
+  Col,
+  Statistic,
+  Tabs,
+  Modal,
+  Descriptions,
+  Timeline,
+  Avatar,
+  Badge,
+  Tooltip,
+  Divider,
+  Alert
 } from "antd";
+import {
+  UserOutlined,
+  CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  SwapOutlined,
+  EyeOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  BellOutlined,
+  ScheduleOutlined
+} from "@ant-design/icons";
 import dayjs from "dayjs";
 import { http } from "../../service/config";
+import { treatmentService } from "../../service/treatment.service";
 
-const { Title } = Typography;
+const { Title, Text, Paragraph } = Typography;
+const { TabPane } = Tabs;
 
 const AppointmentManagement = () => {
-  const [appointments, setAppointments] = useState([]);
-  const [filters, setFilters] = useState({
-    keyword: "",
-    status: "",
-  });
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalElements, setTotalElements] = useState(0);
-  const [pageSize] = useState(4);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [appointments, setAppointments] = useState([]);
+  const [changeRequests, setChangeRequests] = useState([]);
+  const [filteredAppointments, setFilteredAppointments] = useState([]);
+  const [filteredChangeRequests, setFilteredChangeRequests] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [date, setDate] = useState(null);
+  const [selectedChangeRequest, setSelectedChangeRequest] = useState(null);
+  const [appointmentModalVisible, setAppointmentModalVisible] = useState(false);
+  const [changeRequestModalVisible, setChangeRequestModalVisible] = useState(false);
+  const [stats, setStats] = useState({
+    totalAppointments: 0,
+    todayAppointments: 0,
+    pendingAppointments: 0,
+    completedAppointments: 0,
+    changeRequests: 0
+  });
+  const [changeRequestNotes, setChangeRequestNotes] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionType, setActionType] = useState(null);
 
-  // Thống kê nhanh
-  const totalAppointment = totalElements;
-  const pendingAppointment = appointments.filter((a) => a.status === "PENDING").length;
-  const completedAppointment = appointments.filter((a) => a.status === "COMPLETED").length;
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const fetchAppointments = async (page = 0) => {
-    setLoading(true);
+  const fetchData = async () => {
     try {
-      // Chỉ truyền params có giá trị thực sự
-      const params = { page, size: pageSize };
-      if (filters.status) params.status = filters.status;
-      if (date) params.date = date.format("YYYY-MM-DD");
-      // Nếu có thêm stepId, customerId, doctorId thì kiểm tra và thêm tương tự
+      setLoading(true);
+      
+      // Bước 1: Lấy tất cả appointments
+      const response = await treatmentService.getAppointments({
+        page: 0,
+        size: 100
+      });
+      
+      const appointmentData = response?.data?.result?.content || [];
+      console.log('✅ Appointments loaded:', appointmentData.length);
 
-      const res = await http.get("v1/appointments", { params });
-      if (res?.data?.result?.content) {
-        setAppointments(res.data.result.content);
-        setTotalPages(res.data.result.totalPages);
-        setTotalElements(res.data.result.totalElements);
-        setCurrentPage(page);
-      } else {
-        setAppointments([]);
-        setTotalPages(1);
-        setTotalElements(0);
+      // Bước 2: Lấy danh sách PENDING_CHANGE appointments
+      const changeRequestsResponse = await treatmentService.getAppointments({
+        status: 'PENDING_CHANGE',
+        page: 0,
+        size: 100
+      });
+      
+      const pendingChangeAppointments = changeRequestsResponse?.data?.result?.content || [];
+      console.log('✅ PENDING_CHANGE appointments found:', pendingChangeAppointments.length);
+
+      // Bước 3: Lấy thông tin chi tiết cho từng PENDING_CHANGE appointment
+      const detailedChangeRequests = [];
+      for (const appointment of pendingChangeAppointments) {
+        try {
+          const detailResponse = await http.get(`v1/appointments/${appointment.id}`);
+          const detailData = detailResponse?.data?.result;
+          if (detailData) {
+            // Merge thông tin từ cả 2 API
+            const mergedData = {
+              ...appointment,
+              ...detailData,
+              customerName: detailData.customerName || appointment.customerName,
+              doctorName: detailData.doctorName || appointment.doctorName,
+              appointmentDate: detailData.appointmentDate || appointment.appointmentDate,
+              shift: detailData.shift || appointment.shift,
+              purpose: appointment.purpose,
+              step: appointment.step,
+              recordId: appointment.recordId,
+              requestedDate: detailData.requestedDate || appointment.requestedDate,
+              requestedShift: detailData.requestedShift || appointment.requestedShift
+            };
+            detailedChangeRequests.push(mergedData);
+          }
+        } catch (error) {
+          console.warn(`Failed to get details for appointment ${appointment.id}:`, error);
+          // Fallback: sử dụng data từ API đầu tiên
+          detailedChangeRequests.push(appointment);
+        }
       }
+
+      console.log('✅ Detailed change requests loaded:', detailedChangeRequests.length);
+
+      setAppointments(appointmentData);
+      setChangeRequests(detailedChangeRequests);
+      setFilteredAppointments(appointmentData);
+      setFilteredChangeRequests(detailedChangeRequests);
+
+      // Calculate statistics
+      const today = dayjs().format('YYYY-MM-DD');
+      const todayAppointments = appointmentData.filter(apt => apt.appointmentDate === today);
+      
+      setStats({
+        totalAppointments: appointmentData.length,
+        todayAppointments: todayAppointments.length,
+        pendingAppointments: appointmentData.filter(apt => apt.status === 'PENDING' || apt.status === 'CONFIRMED').length,
+        completedAppointments: appointmentData.filter(apt => apt.status === 'COMPLETED').length,
+        changeRequests: detailedChangeRequests.length
+      });
+
     } catch (error) {
-      setAppointments([]);
-      setTotalPages(1);
-      setTotalElements(0);
+      console.error('Error fetching data:', error);
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể tải dữ liệu. Vui lòng kiểm tra kết nối và thử lại."
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchAppointments();
-    // eslint-disable-next-line
-  }, [filters.status, date]);
-
-  // Search/filter
-  const filteredAppointments = appointments.filter((item) => {
-    const doctorName = item.doctorName?.toLowerCase() || "";
-    const customerName = item.customerName?.toLowerCase() || "";
-    const matchKeyword =
-      filters.keyword === "" ||
-      customerName.includes(filters.keyword) ||
-      doctorName.includes(filters.keyword);
-    return matchKeyword;
-  });
-
-  // Modal chi tiết
-  const openDetailModal = (appointment) => {
-    setSelectedAppointment(appointment);
-    setDetailModalVisible(true);
+  const fetchChangeRequests = async () => {
+    // Không cần gọi API riêng nữa vì đã xử lý trong fetchData
+    // Chỉ cần cập nhật filtered data
+    setFilteredChangeRequests(changeRequests);
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case "PENDING":
-        return "Chờ xác nhận";
-      case "CONFIRMED":
-        return "Đã xác nhận";
-      case "CANCELLED":
-        return "Đã hủy";
-      case "COMPLETED":
-        return "Hoàn thành";
-      case "PENDING_CHANGE":
-        return "Chờ duyệt đổi lịch";
-      case "REJECTED_CHANGE":
-        return "Từ chối đổi lịch";
-      case "REJECTED":
-        return "Đang điều trị";
-      default:
-        return status;
+  useEffect(() => {
+    if (appointments.length > 0) fetchChangeRequests();
+  }, [appointments]);
+
+  const handleApproveClick = (request) => {
+    setSelectedChangeRequest(request);
+    setChangeRequestModalVisible(true);
+    setActionType('CONFIRMED');
+    setChangeRequestNotes("");
+  };
+
+  const handleRejectClick = (request) => {
+    setSelectedChangeRequest(request);
+    setChangeRequestModalVisible(true);
+    setActionType('REJECTED');
+    setChangeRequestNotes("");
+  };
+
+  const handleChangeRequestAction = async () => {
+    if (!changeRequestNotes || !changeRequestNotes.trim()) {
+      notification.error({ message: "Vui lòng nhập ghi chú!" });
+      return;
+    }
+    setActionLoading(true);
+    try {
+      await treatmentService.confirmAppointmentChange(selectedChangeRequest.id, { status: actionType, note: changeRequestNotes });
+      notification.success({ 
+        message: actionType === 'CONFIRMED' ? 'Đã duyệt yêu cầu!' : 'Đã từ chối yêu cầu!',
+        description: `Yêu cầu thay đổi lịch hẹn của ${selectedChangeRequest.customerName} đã được ${actionType === 'CONFIRMED' ? 'duyệt' : 'từ chối'} thành công.`
+      });
+      setChangeRequestModalVisible(false);
+      setChangeRequestNotes("");
+      await fetchData();
+    } catch (err) {
+      notification.error({ 
+        message: 'Không thể cập nhật yêu cầu!',
+        description: err?.response?.data?.message || err?.message || 'Lỗi không xác định.'
+      });
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "PENDING":
-        return "orange";
-      case "CONFIRMED":
-        return "blue";
-      case "CANCELLED":
-        return "red";
-      case "COMPLETED":
-        return "green";
-      case "PENDING_CHANGE":
-        return "gold";
-      case "REJECTED_CHANGE":
-        return "volcano";
-      case "REJECTED":
-        return "blue";
-      default:
-        return "default";
+      case "PENDING": return "orange";
+      case "CONFIRMED": return "blue";
+      case "CANCELLED": return "red";
+      case "COMPLETED": return "green";
+      case "PENDING_CHANGE": return "gold";
+      case "REJECTED_CHANGE": return "volcano";
+      default: return "default";
     }
   };
 
-  return (
-    <div>
-      {/* Thống kê nhanh */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 p-6 rounded shadow text-center border border-blue-100">
-          <p className="text-blue-700 font-semibold text-sm uppercase">Tổng lịch hẹn</p>
-          <h2 className="text-4xl font-bold text-blue-600">{totalAppointment}</h2>
-        </div>
-        <div className="bg-orange-50 p-6 rounded shadow text-center border border-orange-100">
-          <p className="text-red-600 font-semibold text-sm uppercase">Chờ xác nhận</p>
-          <h2 className="text-4xl font-bold text-red-500">{pendingAppointment}</h2>
-        </div>
-        <div className="bg-green-50 p-6 rounded shadow text-center border border-green-100">
-          <p className="text-green-700 font-semibold text-sm uppercase">Hoàn thành</p>
-          <h2 className="text-4xl font-bold text-green-600">{completedAppointment}</h2>
-        </div>
-      </div>
-      <Card title="Quản lý lịch hẹn điều trị">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-          <Input
-            placeholder="Tìm theo tên bệnh nhân hoặc bác sĩ"
-            allowClear
-            className="w-full md:w-1/3"
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                keyword: e.target.value.toLowerCase(),
-              }))
-            }
-          />
-          <Select
-            placeholder="Lọc trạng thái"
-            allowClear
-            className="w-full md:w-1/4"
-            onChange={(value) =>
-              setFilters((prev) => ({ ...prev, status: value }))
-            }
-          >
-            <Select.Option value="">Tất cả trạng thái</Select.Option>
-            <Select.Option value="PENDING">Chờ xác nhận</Select.Option>
-            <Select.Option value="CONFIRMED">Đã xác nhận</Select.Option>
-            <Select.Option value="COMPLETED">Hoàn thành</Select.Option>
-            <Select.Option value="CANCELLED">Đã hủy</Select.Option>
-            <Select.Option value="PENDING_CHANGE">Chờ duyệt đổi lịch</Select.Option>
-            <Select.Option value="REJECTED_CHANGE">Từ chối đổi lịch</Select.Option>
-            <Select.Option value="REJECTED">Đang điều trị</Select.Option>
-          </Select>
-          <DatePicker
-            placeholder="Ngày hẹn"
-            value={date}
-            onChange={setDate}
-            style={{ width: 140 }}
-            allowClear
-          />
-        </div>
-        <div className="overflow-x-auto rounded-lg shadow">
-          <table className="min-w-full text-sm text-left table-auto">
-            <thead className="bg-gray-100 text-xs font-semibold text-gray-700 uppercase">
-              <tr>
-                <th className="px-4 py-3">Bệnh nhân</th>
-                <th className="px-4 py-3">Bác sĩ</th>
-                <th className="px-4 py-3">Mục đích</th>
-                <th className="px-4 py-3">Ngày hẹn</th>
-                <th className="px-4 py-3">Ca khám</th>
-                <th className="px-4 py-3">Trạng thái</th>
-                <th className="px-4 py-3">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredAppointments.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">{item.customerName}</td>
-                  <td className="px-4 py-3 text-gray-500">{item.doctorName || "..."}</td>
-                  <td className="px-4 py-3">{item.purpose}</td>
-                  <td className="px-4 py-3">{item.appointmentDate ? dayjs(item.appointmentDate).format("DD/MM/YYYY") : ""}</td>
-                  <td className="px-4 py-3">{item.shift === "MORNING" ? "Sáng" : item.shift === "AFTERNOON" ? "Chiều" : item.shift}</td>
-                  <td className="px-4 py-3">
-                    <Tag color={getStatusColor(item.status)}>{getStatusLabel(item.status)}</Tag>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Button type="primary" size="small" onClick={() => openDetailModal(item)}>
-                      Xem
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex justify-end mt-4">
-            <Button
-              disabled={currentPage === 0}
-              onClick={() => fetchAppointments(currentPage - 1)}
-              className="mr-2"
-            >
-              Trang trước
-            </Button>
-            <span className="px-4 py-1 bg-gray-100 rounded text-sm">
-              Trang {currentPage + 1} / {totalPages}
-            </span>
-            <Button
-              disabled={currentPage + 1 >= totalPages}
-              onClick={() => fetchAppointments(currentPage + 1)}
-              className="ml-2"
-            >
-              Trang tiếp
-            </Button>
+  const getStatusText = (status) => {
+    switch (status) {
+      case "PENDING": return "Chờ xác nhận";
+      case "CONFIRMED": return "Đã xác nhận";
+      case "CANCELLED": return "Đã hủy";
+      case "COMPLETED": return "Hoàn thành";
+      case "PENDING_CHANGE": return "Chờ duyệt đổi lịch";
+      case "REJECTED_CHANGE": return "Từ chối đổi lịch";
+      default: return status;
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "COMPLETED": return <CheckCircleOutlined style={{ color: '#52c41a' }} />;
+      case "CONFIRMED": return <ScheduleOutlined style={{ color: '#1890ff' }} />;
+      case "PENDING": return <ClockCircleOutlined style={{ color: '#faad14' }} />;
+      case "PENDING_CHANGE": return <SwapOutlined style={{ color: '#faad14' }} />;
+      case "CANCELLED": return <CloseOutlined style={{ color: '#ff4d4f' }} />;
+      default: return <ClockCircleOutlined style={{ color: '#d9d9d9' }} />;
+    }
+  };
+
+  const showAppointmentDetail = (appointment) => {
+    setSelectedAppointment(appointment);
+    setAppointmentModalVisible(true);
+  };
+
+  const showChangeRequestDetail = (request) => {
+    setSelectedChangeRequest(request);
+    setChangeRequestModalVisible(true);
+    setActionType(null);
+    setChangeRequestNotes("");
+  };
+
+  const filterAppointments = () => {
+    let filtered = [...appointments];
+
+    if (searchText) {
+      const lower = searchText.toLowerCase();
+      filtered = filtered.filter(apt =>
+        apt.customerName?.toLowerCase().includes(lower) ||
+        apt.doctorName?.toLowerCase().includes(lower) ||
+        apt.purpose?.toLowerCase().includes(lower)
+      );
+    }
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(apt => apt.status === statusFilter);
+    }
+
+    if (dateFilter) {
+      filtered = filtered.filter(apt => 
+        dayjs(apt.appointmentDate).isSame(dateFilter, 'day')
+      );
+    }
+
+    setFilteredAppointments(filtered);
+  };
+
+  const filterChangeRequests = () => {
+    let filtered = [...changeRequests];
+
+    if (searchText) {
+      const lower = searchText.toLowerCase();
+      filtered = filtered.filter(req =>
+        req.customerName?.toLowerCase().includes(lower) ||
+        req.doctorName?.toLowerCase().includes(lower)
+      );
+    }
+
+    setFilteredChangeRequests(filtered);
+  };
+
+  useEffect(() => {
+    filterAppointments();
+  }, [appointments, searchText, statusFilter, dateFilter]);
+
+  useEffect(() => {
+    filterChangeRequests();
+  }, [changeRequests, searchText]);
+
+  const appointmentColumns = [
+    {
+      title: "Bệnh nhân",
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (name, record) => (
+        <Space>
+          <Avatar size="small" icon={<UserOutlined />} />
+          <div>
+            <Text strong>{name}</Text>
+            {record.customerPhone && (
+              <>
+                <br />
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {record.customerPhone}
+                </Text>
+              </>
+            )}
           </div>
-        </div>
-        <Modal
-          title="Chi tiết lịch hẹn"
-          open={detailModalVisible}
-          onCancel={() => setDetailModalVisible(false)}
-          footer={[
-            <Button key="close" onClick={() => setDetailModalVisible(false)}>
-              Đóng
-            </Button>,
-          ]}
+        </Space>
+      )
+    },
+    {
+      title: "Bác sĩ",
+      dataIndex: "doctorName",
+      key: "doctorName",
+      render: (name) => (
+        <Space>
+          <UserOutlined style={{ color: '#722ed1' }} />
+          <Text>{name}</Text>
+        </Space>
+      )
+    },
+    {
+      title: "Ngày hẹn",
+      dataIndex: "appointmentDate",
+      key: "appointmentDate",
+      render: (date) => (
+        <Space direction="vertical" size="small">
+          <CalendarOutlined style={{ color: '#1890ff' }} />
+          <Text strong>{dayjs(date).format("DD/MM/YYYY")}</Text>
+          <Text type="secondary">{dayjs(date).format("HH:mm")}</Text>
+        </Space>
+      )
+    },
+    {
+      title: "Ca khám",
+      dataIndex: "shift",
+      key: "shift",
+      render: (shift) => (
+        <Tag color="cyan" icon={<ScheduleOutlined />}>
+          {shift === "MORNING" ? "Sáng" : shift === "AFTERNOON" ? "Chiều" : shift}
+        </Tag>
+      )
+    },
+    {
+      title: "Mục đích",
+      dataIndex: "purpose",
+      key: "purpose",
+      render: (purpose) => (
+        <Tooltip title={purpose}>
+          <Text ellipsis style={{ maxWidth: 150 }}>
+            {purpose}
+          </Text>
+        </Tooltip>
+      )
+    },
+    {
+      title: "Bước điều trị",
+      dataIndex: "step",
+      key: "step",
+      render: (step) => (
+        <Tooltip title={step}>
+          <Text ellipsis style={{ maxWidth: 120 }}>
+            {step}
+          </Text>
+        </Tooltip>
+      )
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => (
+        <Tag color={getStatusColor(status)} icon={getStatusIcon(status)}>
+          {getStatusText(status)}
+        </Tag>
+      )
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<EyeOutlined />}
+          onClick={() => showAppointmentDetail(record)}
         >
-          {selectedAppointment && (
-            <div className="space-y-3 text-sm">
-              <p>
-                <strong>Bệnh nhân:</strong> {selectedAppointment.customerName}
-              </p>
-              <p>
-                <strong>Bác sĩ:</strong> {selectedAppointment.doctorName || "Không rõ"}
-              </p>
-              <p>
-                <strong>Mục đích:</strong> {selectedAppointment.purpose}
-              </p>
-              <p>
-                <strong>Ngày hẹn:</strong> {selectedAppointment.appointmentDate ? dayjs(selectedAppointment.appointmentDate).format("DD/MM/YYYY") : ""}
-              </p>
-              <p>
-                <strong>Ca khám:</strong> {selectedAppointment.shift === "MORNING" ? "Sáng" : selectedAppointment.shift === "AFTERNOON" ? "Chiều" : selectedAppointment.shift}
-              </p>
-              <p>
-                <strong>Trạng thái:</strong> {getStatusLabel(selectedAppointment.status)}
-              </p>
-              <p>
-                <strong>Ghi chú:</strong> {selectedAppointment.notes || ""}
-              </p>
-            </div>
+          Chi tiết
+        </Button>
+      )
+    }
+  ];
+
+  const changeRequestColumns = [
+    {
+      title: "Bệnh nhân",
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (name, record) => (
+        <Space>
+          <Avatar size="small" icon={<UserOutlined />} />
+          <div>
+            <Text strong>{name}</Text>
+            {record.customerEmail && (
+              <>
+                <br />
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {record.customerEmail}
+                </Text>
+              </>
+            )}
+          </div>
+        </Space>
+      )
+    },
+    {
+      title: "Bác sĩ",
+      dataIndex: "doctorName",
+      key: "doctorName",
+      render: (name, record) => (
+        <Space>
+          <UserOutlined style={{ color: '#722ed1' }} />
+          <div>
+            <Text>{name}</Text>
+            {record.doctorEmail && (
+              <>
+                <br />
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  {record.doctorEmail}
+                </Text>
+              </>
+            )}
+          </div>
+        </Space>
+      )
+    },
+    {
+      title: "Lịch hiện tại",
+      key: "currentSchedule",
+      render: (_, record) => (
+        <Space direction="vertical" size="small">
+          <Text strong>{dayjs(record.appointmentDate).format("DD/MM/YYYY")}</Text>
+          <Tag color="blue">
+            {record.shift === "MORNING" ? "Sáng" : "Chiều"}
+          </Tag>
+        </Space>
+      )
+    },
+    {
+      title: "Ngày yêu cầu",
+      dataIndex: "requestedDate",
+      key: "requestedDate",
+      render: (t) => t ? (
+        <Text strong style={{ color: '#faad14' }}>{dayjs(t).format("DD/MM/YYYY")}</Text>
+      ) : (
+        <Text type="secondary">Chưa có thông tin</Text>
+      )
+    },
+    {
+      title: "Ca yêu cầu",
+      dataIndex: "requestedShift",
+      key: "requestedShift",
+      render: (s) => s === "MORNING" ? "Sáng" : s === "AFTERNOON" ? "Chiều" : s || <Text type="secondary">Chưa có thông tin</Text>
+    },
+    {
+      title: "Mục đích",
+      dataIndex: "purpose",
+      key: "purpose",
+      render: (purpose) => (
+        <Tooltip title={purpose}>
+          <Text ellipsis style={{ maxWidth: 120 }}>
+            {purpose}
+          </Text>
+        </Tooltip>
+      )
+    },
+    {
+      title: "Bước điều trị",
+      dataIndex: "step",
+      key: "step",
+      render: (step) => (
+        <Tooltip title={step}>
+          <Text ellipsis style={{ maxWidth: 120 }}>
+            {step}
+          </Text>
+        </Tooltip>
+      )
+    },
+    {
+      title: "Thao tác",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Button
+            type="primary"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => showChangeRequestDetail(record)}
+          >
+            Chi tiết
+          </Button>
+          <Button
+            type="primary"
+            size="small"
+            icon={<CheckOutlined />}
+            onClick={() => handleApproveClick(record)}
+          >
+            Duyệt
+          </Button>
+          <Button
+            danger
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={() => handleRejectClick(record)}
+          >
+            Từ chối
+          </Button>
+        </Space>
+      )
+    }
+  ];
+
+  // Tabs items for Antd 5+
+  const tabItems = [
+    {
+      key: "appointments",
+      label: (
+        <span>
+          <CalendarOutlined />
+          Lịch hẹn ({filteredAppointments.length})
+        </span>
+      ),
+      children: (
+        <>
+          {/* Filters */}
+          <Card size="small" style={{ marginBottom: 16, background: "#fafafa" }}>
+            <Row gutter={16} align="middle">
+              <Col span={6}>
+                <Input.Search
+                  placeholder="Tìm kiếm bệnh nhân, bác sĩ..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  prefix={<SearchOutlined />}
+                />
+              </Col>
+              <Col span={4}>
+                <Select
+                  placeholder="Trạng thái"
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  style={{ width: "100%" }}
+                  options={[
+                    { value: "all", label: "Tất cả" },
+                    { value: "PENDING", label: "Chờ xác nhận" },
+                    { value: "CONFIRMED", label: "Đã xác nhận" },
+                    { value: "COMPLETED", label: "Hoàn thành" },
+                    { value: "CANCELLED", label: "Đã hủy" },
+                    { value: "PENDING_CHANGE", label: "Chờ đổi lịch" }
+                  ]}
+                />
+              </Col>
+              <Col span={4}>
+                <DatePicker
+                  placeholder="Chọn ngày"
+                  value={dateFilter}
+                  onChange={setDateFilter}
+                  style={{ width: "100%" }}
+                />
+              </Col>
+              <Col span={4}>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={() => {
+                    setSearchText("");
+                    setStatusFilter("all");
+                    setDateFilter(null);
+                  }}
+                >
+                  Đặt lại
+                </Button>
+              </Col>
+            </Row>
+          </Card>
+
+          <Spin spinning={loading}>
+            <Table
+              columns={appointmentColumns}
+              dataSource={filteredAppointments}
+              rowKey="id"
+              locale={{
+                emptyText: loading
+                  ? ""
+                  : "Không có lịch hẹn nào phù hợp hoặc dữ liệu chưa sẵn sàng."
+              }}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showTotal: (total) => `Tổng số ${total} lịch hẹn`,
+              }}
+              scroll={{ x: 1200 }}
+            />
+          </Spin>
+        </>
+      )
+    },
+    {
+      key: "changeRequests",
+      label: (
+        <span>
+          <SwapOutlined />
+          Yêu cầu thay đổi lịch hẹn
+          {stats.changeRequests > 0 && (
+            <Badge count={stats.changeRequests} style={{ marginLeft: 8 }} />
           )}
-        </Modal>
+        </span>
+      ),
+      children: (
+        <>
+          {stats.changeRequests > 0 && (
+            <Alert
+              message={`Có ${stats.changeRequests} yêu cầu thay đổi lịch hẹn cần xử lý`}
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
+            />
+          )}
+
+          <Spin spinning={loading}>
+            <Table
+              columns={changeRequestColumns}
+              dataSource={filteredChangeRequests}
+              rowKey="id"
+              locale={{
+                emptyText: loading
+                  ? ""
+                  : "Không có yêu cầu thay đổi lịch hẹn nào hoặc dữ liệu chưa sẵn sàng."
+              }}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showTotal: (total) => `Tổng số ${total} yêu cầu`,
+              }}
+              scroll={{ x: 1200 }}
+            />
+          </Spin>
+        </>
+      )
+    }
+  ];
+
+  return (
+    <div style={{ padding: "24px", background: "#f5f5f5", minHeight: "100vh" }}>
+      {/* Header */}
+      <Card style={{ marginBottom: 24, borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+        <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
+          <Space>
+            <CalendarOutlined />
+            Quản lý lịch hẹn điều trị
+          </Space>
+        </Title>
+        <Paragraph type="secondary">
+          Quản lý tất cả lịch hẹn và yêu cầu thay đổi lịch hẹn của bệnh nhân
+        </Paragraph>
       </Card>
+
+      {/* Statistics */}
+      <Row gutter={24} style={{ marginBottom: 24 }}>
+        <Col span={4}>
+          <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            }}
+            styles={{ body: { padding: "20px" } }}
+          >
+            <Statistic
+              title={<span style={{ color: "white", fontWeight: 600 }}>Tổng lịch hẹn</span>}
+              value={stats.totalAppointments}
+              prefix={<CalendarOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white", fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(52,201,58,0.08)",
+              background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+            }}
+            styles={{ body: { padding: "20px" } }}
+          >
+            <Statistic
+              title={<span style={{ color: "white", fontWeight: 600 }}>Hôm nay</span>}
+              value={stats.todayAppointments}
+              prefix={<ScheduleOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white", fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(250,173,20,0.08)",
+              background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+            }}
+            styles={{ body: { padding: "20px" } }}
+          >
+            <Statistic
+              title={<span style={{ color: "white", fontWeight: 600 }}>Chờ xử lý</span>}
+              value={stats.pendingAppointments}
+              prefix={<ClockCircleOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white", fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(82,196,26,0.08)",
+              background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
+            }}
+            styles={{ body: { padding: "20px" } }}
+          >
+            <Statistic
+              title={<span style={{ color: "white", fontWeight: 600 }}>Hoàn thành</span>}
+              value={stats.completedAppointments}
+              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white", fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(250,173,20,0.08)",
+              background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+            }}
+            styles={{ body: { padding: "20px" } }}
+          >
+            <Statistic
+              title={<span style={{ color: "white", fontWeight: 600 }}>Yêu cầu thay đổi</span>}
+              value={stats.changeRequests}
+              prefix={<SwapOutlined style={{ color: "white" }} />}
+              valueStyle={{ color: "white", fontSize: 28 }}
+            />
+          </Card>
+        </Col>
+        <Col span={4}>
+          <Card
+            style={{
+              borderRadius: 12,
+              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+              background: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+            }}
+            styles={{ body: { padding: "20px" } }}
+          >
+            <Button
+              type="primary"
+              size="large"
+              icon={<ReloadOutlined />}
+              onClick={fetchData}
+              style={{ width: "100%", height: "60px", borderRadius: "8px" }}
+            >
+              Làm mới
+            </Button>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Main Content */}
+      <Card style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+        <Tabs defaultActiveKey="appointments" size="large" items={tabItems} />
+      </Card>
+
+      {/* Appointment Detail Modal */}
+      <Modal
+        title="Chi tiết lịch hẹn"
+        open={appointmentModalVisible}
+        onCancel={() => setAppointmentModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        {selectedAppointment && (
+          <Descriptions column={2} bordered>
+            <Descriptions.Item label="Bệnh nhân" span={2}>
+              <Space>
+                <Avatar icon={<UserOutlined />} />
+                <div>
+                  <Text strong>{selectedAppointment.customerName}</Text>
+                  {selectedAppointment.customerPhone && (
+                    <>
+                      <br />
+                      <Text type="secondary">{selectedAppointment.customerPhone}</Text>
+                    </>
+                  )}
+                </div>
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="Bác sĩ">
+              <Text>{selectedAppointment.doctorName}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Ngày hẹn">
+              <Text>{dayjs(selectedAppointment.appointmentDate).format("DD/MM/YYYY")}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Ca khám">
+              <Tag color="cyan">
+                {selectedAppointment.shift === "MORNING" ? "Sáng" : "Chiều"}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="Trạng thái">
+              <Tag color={getStatusColor(selectedAppointment.status)}>
+                {getStatusText(selectedAppointment.status)}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="Mã hồ sơ">
+              <Text code>{selectedAppointment.recordId}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="Mục đích" span={2}>
+              <Text>{selectedAppointment.purpose}</Text>
+            </Descriptions.Item>
+            {selectedAppointment.step && (
+              <Descriptions.Item label="Bước điều trị" span={2}>
+                <Text>{selectedAppointment.step}</Text>
+              </Descriptions.Item>
+            )}
+            {selectedAppointment.notes && (
+              <Descriptions.Item label="Ghi chú" span={2}>
+                <Text>{selectedAppointment.notes}</Text>
+              </Descriptions.Item>
+            )}
+          </Descriptions>
+        )}
+      </Modal>
+
+      {/* Change Request Detail Modal */}
+      <Modal
+        title={actionType === 'CONFIRMED' ? 'Duyệt yêu cầu đổi lịch' : actionType === 'REJECTED' ? 'Từ chối yêu cầu đổi lịch' : 'Chi tiết yêu cầu thay đổi lịch hẹn'}
+        open={changeRequestModalVisible}
+        onCancel={() => setChangeRequestModalVisible(false)}
+        footer={null}
+        width={700}
+      >
+        {selectedChangeRequest && (
+          <div>
+            <Descriptions column={2} bordered style={{ marginBottom: 16 }}>
+              <Descriptions.Item label="Bệnh nhân" span={2}>
+                <Space>
+                  <Avatar icon={<UserOutlined />} />
+                  <div>
+                    <Text strong>{selectedChangeRequest.customerName}</Text>
+                    {selectedChangeRequest.customerEmail && (
+                      <>
+                        <br />
+                        <Text type="secondary">{selectedChangeRequest.customerEmail}</Text>
+                      </>
+                    )}
+                  </div>
+                </Space>
+              </Descriptions.Item>
+              <Descriptions.Item label="Bác sĩ" span={2}>
+                <Space>
+                  <UserOutlined style={{ color: '#722ed1' }} />
+                  <div>
+                    <Text>{selectedChangeRequest.doctorName}</Text>
+                    {selectedChangeRequest.doctorEmail && (
+                      <>
+                        <br />
+                        <Text type="secondary">{selectedChangeRequest.doctorEmail}</Text>
+                      </>
+                    )}
+                  </div>
+                </Space>
+              </Descriptions.Item>
+              <Descriptions.Item label="Mục đích">
+                <Text>{selectedChangeRequest.purpose}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Bước điều trị">
+                <Text>{selectedChangeRequest.step}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Mã hồ sơ">
+                <Text code>{selectedChangeRequest.recordId}</Text>
+              </Descriptions.Item>
+            </Descriptions>
+            <Timeline>
+              <Timeline.Item color="blue">
+                <Card size="small" title="Thông tin hiện tại">
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Text strong>Ngày hiện tại:</Text>
+                      <br />
+                      <Text>{selectedChangeRequest.appointmentDate ? dayjs(selectedChangeRequest.appointmentDate).format("DD/MM/YYYY") : <Text type="secondary">Chưa có thông tin</Text>}</Text>
+                    </Col>
+                    <Col span={12}>
+                      <Text strong>Ca hiện tại:</Text>
+                      <br />
+                      <Tag color="blue">
+                        {selectedChangeRequest.shift === "MORNING" ? "Sáng" : selectedChangeRequest.shift === "AFTERNOON" ? "Chiều" : selectedChangeRequest.shift}
+                      </Tag>
+                    </Col>
+                  </Row>
+                </Card>
+              </Timeline.Item>
+              <Timeline.Item color="orange">
+                <Card size="small" title="Yêu cầu thay đổi">
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Text strong>Ngày yêu cầu:</Text>
+                      <br />
+                      {selectedChangeRequest.requestedDate ? (
+                        <Text style={{ color: '#faad14' }}>
+                          {dayjs(selectedChangeRequest.requestedDate).format("DD/MM/YYYY")}
+                        </Text>
+                      ) : (
+                        <Text type="secondary">Chưa có thông tin</Text>
+                      )}
+                    </Col>
+                    <Col span={12}>
+                      <Text strong>Ca yêu cầu:</Text>
+                      <br />
+                      {selectedChangeRequest.requestedShift ? (
+                        <Tag color="gold">
+                          {selectedChangeRequest.requestedShift === "MORNING" ? "Sáng" : selectedChangeRequest.requestedShift === "AFTERNOON" ? "Chiều" : selectedChangeRequest.requestedShift}
+                        </Tag>
+                      ) : (
+                        <Text type="secondary">Chưa có thông tin</Text>
+                      )}
+                    </Col>
+                  </Row>
+                </Card>
+              </Timeline.Item>
+            </Timeline>
+            {selectedChangeRequest.notes && (
+              <>
+                <Divider />
+                <Card size="small" title="Ghi chú">
+                  <Text>{selectedChangeRequest.notes}</Text>
+                </Card>
+              </>
+            )}
+            {actionType && (
+              <>
+                <Divider />
+                <Input.TextArea
+                  rows={3}
+                  value={changeRequestNotes}
+                  onChange={e => setChangeRequestNotes(e.target.value)}
+                  placeholder="Nhập ghi chú bắt buộc"
+                  style={{ marginBottom: 16 }}
+                />
+                <Space style={{ width: "100%", justifyContent: "center" }}>
+                  <Button
+                    type={actionType === 'CONFIRMED' ? "primary" : "default"}
+                    danger={actionType === 'REJECTED'}
+                    icon={actionType === 'CONFIRMED' ? <CheckOutlined /> : <CloseOutlined />}
+                    loading={actionLoading}
+                    onClick={handleChangeRequestAction}
+                  >
+                    {actionType === 'CONFIRMED' ? 'Duyệt yêu cầu' : 'Từ chối yêu cầu'}
+                  </Button>
+                </Space>
+              </>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

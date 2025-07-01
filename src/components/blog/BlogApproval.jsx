@@ -1,23 +1,22 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Card, Table, Button, Space, Tag, Typography, Modal, Input, Spin } from "antd";
+import { Card, Table, Button, Space, Tag, Typography, Modal, message, Input } from "antd";
 import { blogService } from "../../service/blog.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
-import { EyeOutlined, CheckOutlined, CloseOutlined, ReloadOutlined } from "@ant-design/icons";
+import { EyeOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
-const { TextArea } = Input;
 
 const BlogApproval = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const token = useSelector((state) => state.authSlice);
+  const { showNotification } = useContext(NotificationContext);
   const [isCommentModalVisible, setIsCommentModalVisible] = useState(false);
   const [currentAction, setCurrentAction] = useState({ blogId: null, status: null });
   const [commentText, setCommentText] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     fetchPendingBlogs();
@@ -26,21 +25,13 @@ const BlogApproval = () => {
   const fetchPendingBlogs = async () => {
     try {
       setLoading(true);
-      const response = await blogService.getAllBlogs({ 
-        status: 'PENDING_REVIEW', 
-        page: 0, 
-        size: 20 
-      });
-      if (response.data?.result?.content) {
-        setBlogs(response.data.result.content);
-      } else {
-        showNotification("Không có bài viết nào đang chờ duyệt", "info");
-        setBlogs([]);
+      const response = await blogService.getBlogsByStatus("PENDING_REVIEW");
+      if (response.data) {
+        setBlogs(response.data.result);
       }
     } catch (error) {
-      console.error("Error fetching blogs:", error);
-      showNotification("Không thể tải danh sách bài viết. Vui lòng thử lại sau", "error");
-      setBlogs([]);
+      console.error("Error fetching pending blogs:", error);
+      showNotification("Không thể tải danh sách bài viết", "error");
     } finally {
       setLoading(false);
     }
@@ -51,40 +42,60 @@ const BlogApproval = () => {
     setIsModalVisible(true);
   };
 
-  const handleStatusUpdate = (blogId, status) => {
-    setCurrentAction({ blogId, status });
+  const handleApprove = async (blogId) => {
+    setCurrentAction({ blogId, status: "APPROVED" });
+    setIsCommentModalVisible(true);
+  };
+
+  const handleReject = async (blogId) => {
+    setCurrentAction({ blogId, status: "REJECTED" });
     setIsCommentModalVisible(true);
   };
 
   const handleCommentSubmit = async () => {
-    const { blogId, status } = currentAction;
-    if (!blogId || !status) {
-      showNotification("Thông tin bài viết hoặc trạng thái không hợp lệ", "error");
-      return;
-    }
-    if (status === "REJECTED" && !commentText.trim()) {
-      showNotification("Vui lòng nhập lý do từ chối!", "error");
-      return;
-    }
     try {
-      setSubmitting(true);
-      // Log để debug
-      console.log("Gửi duyệt:", { blogId, status, comment: commentText });
-      await blogService.updateBlogStatus(blogId, status, commentText);
-      showNotification(
-        `Bài viết đã được ${status === 'APPROVED' ? 'phê duyệt' : 'từ chối'} thành công`,
-        "success"
+      if (!token?.token || !token?.infoUser?.id) {
+        showNotification("Không có thông tin người dùng quản lý.", "error");
+        return;
+      }
+
+      const { blogId, status } = currentAction;
+      if (!blogId || !status) {
+        showNotification("Thông tin bài viết hoặc trạng thái không hợp lệ.", "error");
+        return;
+      }
+      console.log("Blog ID from currentAction:", blogId);
+      console.log("Manager ID from token:", token.infoUser.id);
+      console.log("Token:", token.token);
+      console.log("Request Body:", { action: status, comment: commentText });
+
+      const response = await blogService.approveBlog(
+        blogId,
+        token.infoUser.id,
+        token.token,
+        { action: status, comment: commentText }
       );
-      setIsCommentModalVisible(false);
-      setIsModalVisible(false);
-      setCommentText("");
-      setCurrentAction({ blogId: null, status: null });
-      await fetchPendingBlogs();
+
+      if (response.data && response.data.result) {
+        showNotification(
+          `Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} thành công!`, "success"
+        );
+        setIsCommentModalVisible(false);
+        setCommentText(""); // Clear comment
+        fetchPendingBlogs(); // Refresh danh sách
+      } else {
+        showNotification("Thao tác thất bại.", "error");
+      }
     } catch (error) {
+      console.error("Error processing blog action:", error);
       showNotification("Không thể thực hiện thao tác", "error");
-    } finally {
-      setSubmitting(false);
     }
+  };
+
+  const handleCommentModalCancel = () => {
+    setIsCommentModalVisible(false);
+    setCommentText("");
+    setCurrentAction({ blogId: null, status: null });
   };
 
   const columns = [
@@ -96,11 +107,17 @@ const BlogApproval = () => {
     },
     {
       title: "Tác giả",
-      dataIndex: "authorName",
-      key: "authorName",
+      dataIndex: "author",
+      key: "author",
     },
     {
-      title: "Ngày gửi",
+      title: "Danh mục",
+      dataIndex: "category",
+      key: "category",
+      render: (category) => <Tag color="blue">{category}</Tag>,
+    },
+    {
+      title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date) => new Date(date).toLocaleDateString("vi-VN"),
@@ -119,15 +136,20 @@ const BlogApproval = () => {
           <Button
             type="primary"
             icon={<CheckOutlined />}
-            onClick={() => handleStatusUpdate(record.id, "APPROVED")}
-            className="bg-green-500 hover:bg-green-600"
+            onClick={() => {
+              setCurrentAction({ blogId: record.id, status: "APPROVED" });
+              setIsCommentModalVisible(true);
+            }}
           >
             Duyệt
           </Button>
           <Button
             danger
             icon={<CloseOutlined />}
-            onClick={() => handleStatusUpdate(record.id, "REJECTED")}
+            onClick={() => {
+              setCurrentAction({ blogId: record.id, status: "REJECTED" });
+              setIsCommentModalVisible(true);
+            }}
           >
             Từ chối
           </Button>
@@ -144,13 +166,6 @@ const BlogApproval = () => {
             <Title level={4} className="!mb-0">
               Duyệt Bài Viết
             </Title>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchPendingBlogs}
-              loading={loading}
-            >
-              Làm mới
-            </Button>
           </div>
         }
         className="shadow-md"
@@ -160,10 +175,7 @@ const BlogApproval = () => {
           dataSource={blogs}
           loading={loading}
           rowKey="id"
-          pagination={{ 
-            pageSize: 10,
-            showTotal: (total) => `Tổng số ${total} bài viết`,
-          }}
+          pagination={{ pageSize: 10 }}
         />
       </Card>
 
@@ -181,22 +193,28 @@ const BlogApproval = () => {
               <p>{selectedBlog.title}</p>
             </div>
             <div>
+              <h3 className="text-lg font-semibold mb-2">Tóm tắt</h3>
+              <p>{selectedBlog.summary}</p>
+            </div>
+            <div>
               <h3 className="text-lg font-semibold mb-2">Nội dung</h3>
-              <div className="max-h-96 overflow-y-auto whitespace-pre-wrap border p-4 rounded">
-                {selectedBlog.content}
-              </div>
+              <p className="whitespace-pre-wrap">{selectedBlog.content}</p>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-2">Thông tin khác</h3>
-              <p>Tác giả: {selectedBlog.authorName}</p>
-              <p>Ngày tạo: {new Date(selectedBlog.createdAt).toLocaleString("vi-VN")}</p>
+              <p>Tác giả: {selectedBlog.author}</p>
+              <p>Danh mục: {selectedBlog.category}</p>
+              <p>Tags: {selectedBlog.tags?.join(", ")}</p>
             </div>
             <div className="flex justify-end space-x-2 mt-4">
               <Button
                 type="primary"
                 icon={<CheckOutlined />}
-                onClick={() => handleStatusUpdate(selectedBlog.id, "APPROVED")}
-                className="bg-green-500 hover:bg-green-600"
+                onClick={() => {
+                  handleApprove(selectedBlog.id);
+                  setIsModalVisible(false);
+                }}
+                style={{ backgroundColor: "#52c41a" }}
               >
                 Duyệt
               </Button>
@@ -204,7 +222,10 @@ const BlogApproval = () => {
                 type="primary"
                 danger
                 icon={<CloseOutlined />}
-                onClick={() => handleStatusUpdate(selectedBlog.id, "REJECTED")}
+                onClick={() => {
+                  handleReject(selectedBlog.id);
+                  setIsModalVisible(false);
+                }}
               >
                 Từ chối
               </Button>
@@ -214,39 +235,19 @@ const BlogApproval = () => {
       </Modal>
 
       <Modal
-        title={`${currentAction.status === 'APPROVED' ? 'Phê duyệt' : 'Từ chối'} bài viết`}
+        title={`Thêm bình luận cho bài viết ${currentAction.status === 'APPROVED' ? 'duyệt' : 'từ chối'}`}
         open={isCommentModalVisible}
         onOk={handleCommentSubmit}
-        onCancel={() => {
-          setIsCommentModalVisible(false);
-          setCommentText("");
-          setCurrentAction({ blogId: null, status: null });
-        }}
-        okText="Xác nhận"
+        onCancel={handleCommentModalCancel}
+        okText="Gửi"
         cancelText="Hủy"
-        confirmLoading={submitting}
       >
-        <div className="space-y-2">
-          <p>
-            {currentAction.status === 'APPROVED' 
-              ? 'Thêm nhận xét cho bài viết (không bắt buộc):' 
-              : 'Vui lòng cho biết lý do từ chối:'}
-          </p>
-          <TextArea
-            rows={4}
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            placeholder={
-              currentAction.status === 'APPROVED'
-                ? "Nhập nhận xét của bạn (nếu có)..."
-                : "Nhập lý do từ chối bài viết..."
-            }
-            required={currentAction.status === 'REJECTED'}
-          />
-          {currentAction.status === 'REJECTED' && !commentText && (
-            <p className="text-red-500 text-sm">* Vui lòng nhập lý do từ chối</p>
-          )}
-        </div>
+        <Input.TextArea
+          rows={4}
+          placeholder="Nhập bình luận của bạn (ví dụ: Bài viết đạt yêu cầu; Nội dung cần sửa đổi)..."
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+        />
       </Modal>
     </div>
   );

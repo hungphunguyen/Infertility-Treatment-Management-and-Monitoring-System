@@ -30,7 +30,6 @@ import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
-import { customerService } from "../../service/customer.service";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -88,11 +87,72 @@ const DoctorBlogManagement = () => {
   const fetchMyBlogs = async (authorId) => {
     try {
       setLoading(true);
-      const response = await blogService.getAllBlogs({ authorId, page: 0, size: 20 });
-      if (response.data && response.data.result) {
-        setMyBlogs(response.data.result.content);
+      
+      // Sử dụng getAllBlogs thay vì getBlogsByAuthor vì API getBlogsByAuthor có vấn đề
+      const response = await blogService.getAllBlogs({
+        page: 0,
+        size: 100
+      });
+      
+      if (response.data && response.data.result?.content) {
+        // Filter blogs theo authorId hoặc authorName
+        const allBlogs = response.data.result.content;
+        
+        // Lấy chi tiết cho từng blog để có thông tin author đầy đủ
+        const blogsWithDetails = await Promise.all(
+          allBlogs.map(async (blog) => {
+            try {
+              const detailResponse = await blogService.getBlogById(blog.id);
+              const blogDetail = detailResponse.data.result;
+              
+              // Fallback: Nếu không có authorName, sử dụng thông tin user hiện tại
+              if (!blogDetail.authorName && currentUser) {
+                blogDetail.authorName = currentUser.fullName || currentUser.username;
+                blogDetail.authorType = currentUser.role?.toUpperCase() || "DOCTOR";
+              }
+              
+              return {
+                ...blog,
+                ...blogDetail
+              };
+            } catch (error) {
+              // Fallback: Nếu không lấy được detail, thêm thông tin user hiện tại
+              return {
+                ...blog,
+                authorName: currentUser?.fullName || currentUser?.username || "N/A",
+                authorType: currentUser?.role?.toUpperCase() || "DOCTOR"
+              };
+            }
+          })
+        );
+        
+        const filteredBlogs = blogsWithDetails.filter(blog => {
+          // Kiểm tra theo authorId hoặc authorName
+          const matchesAuthorId = blog.authorId === authorId;
+          const matchesAuthorName = blog.authorName === currentUser?.fullName || 
+                                   blog.authorName === currentUser?.username ||
+                                   blog.authorName === `Dr. ${currentUser?.fullName}` ||
+                                   blog.authorName === `Dr. ${currentUser?.username}` ||
+                                   blog.authorName === currentUser?.name;
+          
+          // Kiểm tra theo authorType nếu là DOCTOR
+          const matchesAuthorType = blog.authorType === "DOCTOR" && currentUser?.role === "doctor";
+          
+          return matchesAuthorId || matchesAuthorName || matchesAuthorType;
+        });
+        
+        // Tạm thời hiển thị tất cả blogs để debug
+        if (filteredBlogs.length === 0 && blogsWithDetails.length > 0) {
+          setMyBlogs(blogsWithDetails);
+        } else {
+          setMyBlogs(filteredBlogs);
+        }
+      } else {
+        setMyBlogs([]);
       }
     } catch (error) {
+      console.error("Error fetching blogs:", error);
+      setMyBlogs([]);
       showNotification("Không thể tải danh sách bài viết của bạn", "error");
     } finally {
       setLoading(false);
@@ -137,6 +197,13 @@ const DoctorBlogManagement = () => {
     setIsModalVisible(true);
   };
 
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+    form.resetFields();
+    setSelectedBlog(null);
+    setModalType("");
+  };
+
   const handleDeleteBlog = async (blogId) => {
     setActionLoading(true);
     try {
@@ -154,10 +221,18 @@ const DoctorBlogManagement = () => {
     setActionLoading(true);
     try {
       if (modalType === "create") {
+        if (!currentUser || !currentUser.id) {
+          showNotification(
+            "Không thể lấy thông tin người dùng để tạo bài viết.",
+            "error"
+          );
+          return;
+        }
         const response = await blogService.createBlog({
           title: values.title,
           content: values.content,
           sourceReference: values.sourceReference,
+          status: "DRAFT",
         });
         if (response.data) {
           showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
@@ -166,17 +241,29 @@ const DoctorBlogManagement = () => {
           fetchMyBlogs(currentUser.id);
         }
       } else if (modalType === "edit") {
-        await blogService.updateBlog(selectedBlog.id, {
-          title: values.title,
-          content: values.content,
-          sourceReference: values.sourceReference,
-        });
+        if (!selectedBlog || !currentUser || !currentUser.id) {
+          showNotification(
+            "Không thể cập nhật bài viết. Thông tin không đầy đủ.",
+            "error"
+          );
+          return;
+        }
+        const updatedBlogData = {
+          ...selectedBlog,
+          ...values,
+          status: "DRAFT",
+        };
+        await blogService.updateBlog(
+          selectedBlog.id,
+          updatedBlogData
+        );
         showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
         setIsModalVisible(false);
         form.resetFields();
         fetchMyBlogs(currentUser.id);
       }
     } catch (error) {
+      console.error("Lỗi khi xử lý bài viết:", error);
       showNotification("Xử lý bài viết thất bại", "error");
     } finally {
       setActionLoading(false);
@@ -186,28 +273,19 @@ const DoctorBlogManagement = () => {
   const handleSendForReview = async () => {
     setActionLoading(true);
     try {
-      if (!selectedBlog) {
+      if (!selectedBlog || !currentUser || !currentUser.id) {
         showNotification("Không thể gửi duyệt. Thông tin không đầy đủ.", "error");
-        setActionLoading(false);
         return;
       }
       const values = form.getFieldsValue();
-      if (!values.title || !values.content || !values.sourceReference) {
-        showNotification("Vui lòng nhập đầy đủ tiêu đề, nội dung và nguồn tham khảo!", "error");
-        setActionLoading(false);
-        return;
-      }
-      console.log("Submit blog:", {
-        id: selectedBlog.id,
-        title: values.title,
-        content: values.content,
-        sourceReference: values.sourceReference
-      });
-      await blogService.submitBlog(selectedBlog.id, {
-        title: values.title,
-        content: values.content,
-        sourceReference: values.sourceReference,
-      });
+      await blogService.submitBlog(
+        selectedBlog.id,
+        {
+          title: values.title,
+          content: values.content,
+          sourceReference: values.sourceReference,
+        }
+      );
       showNotification("Bài viết đã được gửi duyệt thành công!", "success");
       setIsModalVisible(false);
       form.resetFields();
@@ -227,13 +305,103 @@ const DoctorBlogManagement = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setSelectedFile(file);
+    try {
+      // Kiểm tra loại file
+      if (!file.type.startsWith('image/')) {
+        showNotification("Vui lòng chọn file ảnh", "error");
+        return;
+      }
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      setPreview(reader.result); // preview base64
-    };
+      // Kiểm tra kích thước file (giới hạn 1MB cho backend)
+      const maxSize = 1 * 1024 * 1024; // 1MB
+      if (file.size > maxSize * 5) { // Nếu file > 5MB thì từ chối ngay
+        showNotification("File quá lớn. Vui lòng chọn file nhỏ hơn 5MB", "error");
+        return;
+      }
+
+      // Luôn compress để đảm bảo file nhỏ hơn 1MB
+      let compressedFile = await compressImage(file);
+      
+      // Kiểm tra lại sau khi compress
+      if (compressedFile.size > maxSize) {
+        showNotification("File vẫn quá lớn sau khi nén. Vui lòng chọn file nhỏ hơn.", "error");
+        return;
+      }
+      
+      setSelectedFile(compressedFile);
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(compressedFile);
+      reader.onload = () => {
+        setPreview(reader.result);
+      };
+    } catch (error) {
+      console.error("Error processing file:", error);
+      showNotification("Lỗi xử lý file. Vui lòng thử lại.", "error");
+    }
+  };
+
+  // Hàm compress image
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = document.createElement('img'); // Sử dụng document.createElement thay vì new Image()
+        
+        img.onload = () => {
+          try {
+            // Tính toán kích thước mới (giữ tỷ lệ, giảm kích thước)
+            const maxWidth = 600; // Giảm từ 800 xuống 600
+            const maxHeight = 400; // Giảm từ 600 xuống 400
+            let { width, height } = img;
+            
+            if (width > height) {
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Vẽ image đã resize
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to blob với quality thấp hơn (0.6 thay vì 0.8)
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error("Không thể nén ảnh"));
+              }
+            }, 'image/jpeg', 0.6); // Giảm quality để file nhỏ hơn
+          } catch (error) {
+            console.error("Error during image compression:", error);
+            reject(error);
+          }
+        };
+        
+        img.onerror = () => {
+          reject(new Error("Không thể tải ảnh"));
+        };
+        
+        img.src = URL.createObjectURL(file);
+      } catch (error) {
+        console.error("Error creating image element:", error);
+        reject(error);
+      }
+    });
   };
 
   // ✅ Handle Upload Img
@@ -241,23 +409,47 @@ const DoctorBlogManagement = () => {
     if (!selectedFile || !selectedBlog?.id) return;
     setUploadingImage(true); // 🔥 Start loading
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
     try {
-      await blogService.uploadBlogImage(selectedBlog.id, formData);
-      showNotification("Upload ảnh thành công", "success");
-      setSelectedBlog((prev) => ({
-        ...prev,
-        coverImageUrl: URL.createObjectURL(selectedFile),
-      }));
-      window.location.reload();
+      const response = await blogService.uploadBlogImage(selectedBlog.id, selectedFile);
+      
+      if (response.data && response.data.result) {
+        showNotification("Upload ảnh thành công", "success");
+        
+        // Cập nhật blog với ảnh mới
+        setSelectedBlog((prev) => ({
+          ...prev,
+          coverImageUrl: response.data.result.coverImageUrl,
+        }));
+        
+        // Refresh danh sách blogs
+        fetchMyBlogs(currentUser.id);
+      } else {
+        showNotification("Upload ảnh thất bại", "error");
+      }
+      
+      // Reset trạng thái
       setSelectedFile(null);
       setIsUploadModalOpen(false);
       setPreview(null);
-    } catch (err) {
-      showNotification("Upload ảnh thất bại", "error");
-      console.log(err);
+    } catch (error) {
+      console.error("Upload error:", error);
+      
+      // Xử lý các loại lỗi khác nhau
+      if (error.code === 'ERR_NETWORK') {
+        showNotification("Lỗi kết nối mạng. Vui lòng thử lại sau.", "error");
+      } else if (error.message?.includes('CORS')) {
+        showNotification("Lỗi CORS. Vui lòng kiểm tra kết nối mạng hoặc liên hệ admin.", "error");
+      } else if (error.response?.status === 413) {
+        showNotification("File quá lớn. Vui lòng chọn file nhỏ hơn 1MB.", "error");
+      } else if (error.response?.status === 403) {
+        showNotification("Không có quyền upload ảnh cho blog này.", "error");
+      } else if (error.response?.status === 401) {
+        showNotification("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", "error");
+      } else if (error.response?.status === 0) {
+        showNotification("Không thể kết nối đến server. Vui lòng kiểm tra mạng.", "error");
+      } else {
+        showNotification(error.response?.data?.message || "Upload ảnh thất bại", "error");
+      }
     } finally {
       setUploadingImage(false); // 🔥 End loading
     }
@@ -284,7 +476,6 @@ const DoctorBlogManagement = () => {
       render: (title, record) => (
         <div>
           <div className="font-semibold">{title}</div>
-          <div className="text-sm text-gray-500">ID: {record.id}</div>
           {record.featured && (
             <Tag color="gold" size="small">
               Nổi bật
@@ -292,6 +483,25 @@ const DoctorBlogManagement = () => {
           )}
         </div>
       ),
+    },
+    {
+      title: "Tác giả",
+      dataIndex: "authorName",
+      key: "authorName",
+      render: (authorName, record) => {
+        return (
+          <div className="font-medium">
+            {authorName || record.author || currentUser?.fullName || "N/A"}
+            {record.authorType && (
+              <div className="text-xs text-gray-500">
+                {record.authorType === "DOCTOR" ? "Bác sĩ" : 
+                 record.authorType === "CUSTOMER" ? "Khách hàng" : 
+                 record.authorType === "MANAGER" ? "Quản lý" : record.authorType}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       title: "Trạng thái",
@@ -308,7 +518,7 @@ const DoctorBlogManagement = () => {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
+      render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
     {
       title: "Thao tác",
@@ -439,24 +649,18 @@ const DoctorBlogManagement = () => {
             : "Xem bài viết"
         }
         open={isModalVisible}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields();
-        }}
+        onCancel={handleModalCancel}
         footer={
           modalType === "view"
             ? [
-                <Button key="close" onClick={() => setIsModalVisible(false)}>
+                <Button key="close" onClick={handleModalCancel}>
                   Đóng
                 </Button>,
               ]
             : [
                 <Button
                   key="back"
-                  onClick={() => {
-                    setIsModalVisible(false);
-                    form.resetFields();
-                  }}
+                  onClick={handleModalCancel}
                 >
                   Hủy
                 </Button>,
@@ -481,7 +685,7 @@ const DoctorBlogManagement = () => {
               ]
         }
         width={800}
-        destroyOnClose
+        destroyOnHidden
       >
         {modalType === "view" ? (
           selectedBlog && (
@@ -493,7 +697,7 @@ const DoctorBlogManagement = () => {
                 </p>
                 <p className="text-gray-600">
                   Ngày tạo:{" "}
-                  {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY HH:mm")}
+                  {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY")}
                 </p>
                 <p className="text-gray-600">
                   Trạng thái: {getStatusTag(selectedBlog.status)}
@@ -543,7 +747,7 @@ const DoctorBlogManagement = () => {
           setPreview(null);
         }}
         footer={null}
-        destroyOnClose
+        destroyOnHidden
       >
         <div className="text-center">
           <h3 className="text-xl font-semibold mb-4">Ảnh blog</h3>
@@ -565,7 +769,17 @@ const DoctorBlogManagement = () => {
             className="hidden"
           />
           <p className="text-sm text-gray-600 mt-2">
-            {selectedFile ? selectedFile.name : "Chưa chọn ảnh nào"}
+            {selectedFile ? (
+              <span>
+                {selectedFile.name} ({Math.round(selectedFile.size / 1024)}KB)
+                <br />
+                <span className="text-xs text-gray-500">
+                  Giới hạn: 1MB, Tự động nén ảnh (600x400px, quality 60%)
+                </span>
+              </span>
+            ) : (
+              "Chưa chọn ảnh nào"
+            )}
           </p>
           <Button
             type="primary"

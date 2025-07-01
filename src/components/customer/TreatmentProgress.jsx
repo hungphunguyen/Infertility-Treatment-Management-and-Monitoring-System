@@ -68,51 +68,49 @@ const TreatmentProgress = () => {
       const treatmentId = location.state?.treatmentId;
       
       if (treatmentRecord && treatmentId) {
-        const appointmentsResponse = await treatmentService.getCustomerAppointments(treatmentRecord.customerId);
-        const appointments = appointmentsResponse?.data?.result || [];
+        const detailResponse = await treatmentService.getTreatmentRecordById(treatmentId);
+        const detailData = detailResponse?.data?.result;
         
-        const totalSteps = treatmentRecord.treatmentSteps.length;
-        const completedSteps = treatmentRecord.treatmentSteps.filter(step => step.status === 'COMPLETED').length;
-        const overallProgress = Math.round((completedSteps / totalSteps) * 100);
+        if (detailData) {
+          const totalSteps = detailData.treatmentSteps?.length || 0;
+          const completedSteps = detailData.treatmentSteps?.filter(step => step.status === 'COMPLETED').length || 0;
+          const overallProgress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
-        setTreatmentData({
-          id: treatmentRecord.id,
-          type: treatmentRecord.treatmentServiceName,
-          startDate: treatmentRecord.startDate,
-          currentPhase: treatmentRecord.treatmentSteps.findIndex(step => step.status === 'COMPLETED') + 1,
-          doctor: treatmentRecord.doctorName,
-          status: treatmentRecord.status.toLowerCase(),
-          estimatedCompletion: treatmentRecord.endDate || dayjs(treatmentRecord.startDate).add(45, 'days').format('YYYY-MM-DD'),
-          nextAppointment: null,
-          overallProgress: overallProgress,
-          customerId: treatmentRecord.customerId,
-          phases: treatmentRecord.treatmentSteps.map((step, index) => {
-            const appointment = appointments.find(app => app.purpose === step.name);
-            return {
+          setTreatmentData({
+            id: detailData.id,
+            type: detailData.treatmentServiceName,
+            startDate: detailData.startDate,
+            currentPhase: detailData.treatmentSteps?.findIndex(step => step.status === 'COMPLETED') + 1 || 1,
+            doctor: detailData.doctorName,
+            status: detailData.status.toLowerCase(),
+            estimatedCompletion: detailData.endDate || dayjs(detailData.startDate).add(45, 'days').format('YYYY-MM-DD'),
+            nextAppointment: null,
+            overallProgress: overallProgress,
+            customerId: detailData.customerId,
+            phases: detailData.treatmentSteps?.map((step, index) => ({
               id: step.id,
               name: step.name,
               statusRaw: step.status,
               status: step.status,
-              displayDate: appointment?.appointmentDate || step.scheduledDate || null,
-              hasDate: !!(appointment?.appointmentDate || step.scheduledDate),
-              startDate: appointment?.appointmentDate || step.scheduledDate,
+              displayDate: step.scheduledDate || null,
+              hasDate: !!step.scheduledDate,
+              startDate: step.scheduledDate,
               endDate: step.actualDate,
               notes: step.notes,
-              appointment: appointment,
+              appointment: null,
               activities: [
                 {
                   name: step.name,
-                  date: appointment?.appointmentDate || step.scheduledDate,
+                  date: step.scheduledDate,
                   status: step.status,
                   notes: step.notes || 'Đang chờ thực hiện'
                 }
               ]
-            };
-          })
-        });
+            })) || []
+          });
+        }
       } else {
         const userResponse = await authService.getMyInfo();
-        console.log('User Info Response:', userResponse);
         
         if (!userResponse?.data?.result?.id) {
           message.error('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
@@ -120,28 +118,43 @@ const TreatmentProgress = () => {
         }
 
         const customerId = userResponse.data.result.id;
-        const response = await treatmentService.getTreatmentRecordsByCustomer(customerId);
         
-        if (response?.data?.code === 1000 && Array.isArray(response.data.result)) {
-          const treatmentRecords = response.data.result
+        // Tạm thời cho phép sử dụng test data
+        if (!customerId) {
+          message.error('ID người dùng không hợp lệ. Vui lòng đăng nhập lại.');
+          return;
+        }
+
+        // Cảnh báo nếu đang sử dụng test data
+        // (Đã xóa thông báo demo, chỉ dùng dữ liệu thật)
+        
+        const response = await treatmentService.getTreatmentRecords({
+          customerId: customerId,
+          page: 0,
+          size: 100
+        });
+        
+        if (response?.data?.code === 1000 && response.data.result?.content) {
+          const treatmentRecords = response.data.result.content
             .filter(treatment => treatment.status !== 'CANCELLED')
-            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+            .sort((a, b) => new Date(b.createdDate || b.startDate) - new Date(a.createdDate || a.startDate));
 
           setTreatments(treatmentRecords.map(treatment => {
-            const totalSteps = treatment.treatmentSteps.length;
-            const completedSteps = treatment.treatmentSteps.filter(step => step.status === 'COMPLETED').length;
-            const progress = Math.round((completedSteps / totalSteps) * 100);
+            const totalSteps = treatment.totalSteps || 0;
+            const completedSteps = treatment.completedSteps || 0;
+            const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
             return {
               key: treatment.id,
               id: treatment.id,
-              serviceName: treatment.treatmentServiceName,
+              serviceName: treatment.serviceName,
               doctorName: treatment.doctorName,
               startDate: treatment.startDate,
               status: treatment.status,
               progress: progress,
-              treatmentSteps: treatment.treatmentSteps,
-              customerId: treatment.customerId
+              totalSteps: treatment.totalSteps,
+              completedSteps: treatment.completedSteps,
+              customerId: customerId
             };
           }));
         }
@@ -158,32 +171,33 @@ const TreatmentProgress = () => {
   };
 
   const handleOpenChangeModal = async (step) => {
-    if (!treatmentData?.customerId) return;
     setChangeStep(step);
     setChangeAppointment(null);
     setChangeModalVisible(true);
     setChangeLoading(true);
+    
     try {
-      const res = await treatmentService.getAppointmentsByStepId(step.id);
-      if (res?.data?.code === 1000 && res.data.result) {
-        const appointments = res.data.result;
-        console.log("Tất cả lịch hẹn của step:", appointments);
-        
-        if (appointments.length === 0) {
-          setChangeAppointment(null);
-          console.log("Không tìm thấy lịch hẹn cho step:", step.name);
-        } else {
-          setChangeAppointment(appointments);
-          console.log("Có", appointments.length, "lịch hẹn cho step:", step.name);
-        }
+      // Lấy appointments thật cho step này
+      if (step.appointment?.id) {
+        // Nếu đã có appointment, sử dụng luôn
+        setChangeAppointment([step.appointment]);
       } else {
-        setChangeAppointment(null);
-        console.log("Không tìm thấy lịch hẹn cho step:", step.name);
+        // Lấy appointments theo step ID
+        const appointmentsResponse = await treatmentService.getAppointments({
+          stepId: step.id,
+          customerId: treatmentData.customerId,
+          status: 'CONFIRMED,PENDING', // Chỉ lấy appointments có thể đổi
+          page: 0,
+          size: 10
+        });
+        
+        const appointments = appointmentsResponse?.data?.result?.content || [];
+        setChangeAppointment(appointments);
       }
     } catch (error) {
-      console.error('Error fetching appointments:', error);
-      setChangeAppointment(null);
-      message.error('Không thể lấy danh sách lịch hẹn');
+      console.error('Lỗi khi mở modal đổi lịch:', error);
+      message.error('Không thể mở form đổi lịch hẹn');
+      setChangeAppointment([]);
     } finally {
       setChangeLoading(false);
     }
@@ -656,49 +670,85 @@ const TreatmentProgress = () => {
   const handleViewDetail = async (record) => {
     try {
       setLoading(true);
-      const appointmentsResponse = await treatmentService.getCustomerAppointments(record.customerId);
-      const appointments = appointmentsResponse?.data?.result || [];
       
-      const treatmentDetail = {
-        id: record.id,
-        type: record.serviceName,
-        startDate: record.startDate,
-        currentPhase: record.treatmentSteps.findIndex(step => step.status === 'COMPLETED') + 1,
-        doctor: record.doctorName,
-        status: record.status.toLowerCase(),
-        estimatedCompletion: dayjs(record.startDate).add(45, 'days').format('YYYY-MM-DD'),
-        nextAppointment: null,
-        overallProgress: record.progress,
-        customerId: record.customerId,
-        phases: record.treatmentSteps.map((step) => {
-          const appointment = appointments.find(app => app.purpose === step.name);
-          return {
-            id: step.id,
-            name: step.name,
-            statusRaw: step.status,
-            status: step.status,
-            displayDate: appointment?.appointmentDate || step.scheduledDate || null,
-            hasDate: !!(appointment?.appointmentDate || step.scheduledDate),
-            startDate: appointment?.appointmentDate || step.scheduledDate,
-            endDate: step.actualDate,
-            notes: step.notes,
-            appointment: appointment,
-            activities: [
-              {
-                name: step.name,
-                date: appointment?.appointmentDate || step.scheduledDate,
-                status: step.status,
-                notes: step.notes || 'Đang chờ thực hiện'
-              }
-            ]
-          };
+      // Lấy chi tiết treatment record bằng API mới
+      const detailResponse = await treatmentService.getTreatmentRecordById(record.id);
+      const detailData = detailResponse?.data?.result;
+      
+      if (!detailData) {
+        message.error('Không tìm thấy thông tin chi tiết điều trị');
+        return;
+      }
+
+      // Format dữ liệu để hiển thị
+      const treatmentSteps = detailData.treatmentSteps || [];
+      const totalSteps = treatmentSteps.length;
+      const completedSteps = treatmentSteps.filter(step => step.status === 'COMPLETED').length;
+      const overallProgress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+      // Lấy appointments cho từng step
+      const stepsWithAppointments = await Promise.all(
+        treatmentSteps.map(async (step) => {
+          try {
+            const appointmentsResponse = await treatmentService.getAppointments({
+              stepId: step.id,
+              customerId: detailData.customerId,
+              page: 0,
+              size: 10
+            });
+            const appointments = appointmentsResponse?.data?.result?.content || [];
+            return {
+              ...step,
+              appointments: appointments
+            };
+          } catch (error) {
+            console.warn(`Không thể lấy appointments cho step ${step.id}:`, error);
+            return {
+              ...step,
+              appointments: []
+            };
+          }
         })
-      };
+      );
+
+      setTreatmentData({
+        id: detailData.id,
+        type: detailData.treatmentServiceName || detailData.serviceName,
+        startDate: detailData.startDate,
+        currentPhase: treatmentSteps.findIndex(step => step.status !== 'COMPLETED') + 1 || 1,
+        doctor: detailData.doctorName,
+        status: detailData.status,
+        estimatedCompletion: detailData.endDate || dayjs(detailData.startDate).add(45, 'days').format('YYYY-MM-DD'),
+        nextAppointment: null,
+        overallProgress: overallProgress,
+        customerId: detailData.customerId,
+        phases: stepsWithAppointments.map((step, index) => ({
+          id: step.id,
+          name: step.name,
+          statusRaw: step.status,
+          status: step.status,
+          displayDate: step.scheduledDate || null,
+          hasDate: !!step.scheduledDate,
+          startDate: step.scheduledDate,
+          endDate: step.actualDate,
+          notes: step.notes,
+          appointment: step.appointments[0] || null, // Lấy appointment đầu tiên
+          activities: [
+            {
+              name: step.name,
+              date: step.scheduledDate,
+              status: step.status,
+              notes: step.notes || 'Đang chờ thực hiện'
+            }
+          ]
+        }))
+      });
       
-      setTreatmentData(treatmentDetail);
       setViewMode('detail');
+      setSelectedPhase(null);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tải chi tiết điều trị');
+      console.error('Lỗi khi lấy chi tiết điều trị:', error);
+      message.error('Không thể lấy thông tin chi tiết điều trị');
     } finally {
       setLoading(false);
     }
@@ -781,6 +831,7 @@ const TreatmentProgress = () => {
         onCancel={() => setModalOpen(false)}
         footer={null}
         title={selectedPhase ? selectedPhase.name : ''}
+        destroyOnHidden
       >
         {selectedPhase && (
           <div>

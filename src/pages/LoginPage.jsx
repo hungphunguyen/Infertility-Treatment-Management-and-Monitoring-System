@@ -45,7 +45,7 @@ const LoginPage = () => {
 
             // thực hiên thông báo chuyển hướng người dùng
             showNotification("Đăng nhập thành công", "success");
-
+            localStorage.setItem("loginJustNow", "true");
             // Kiểm tra xem có URL redirect không
             const redirectUrl = localStorage.getItem("redirectAfterLogin");
             if (redirectUrl) {
@@ -66,8 +66,9 @@ const LoginPage = () => {
                 "Nếu bạn muốn xác nhận otp lại, hãy nhấn vào đây",
                 "warning"
               );
-            }
-            showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
+            } else {
+              showNotification(error.response.data.message, "error");
+            } // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({
