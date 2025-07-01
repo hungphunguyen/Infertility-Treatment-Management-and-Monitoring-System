@@ -230,7 +230,7 @@ const UserHeader = () => {
               NewLife
             </div>
             <div className="text-gray-600 text-sm font-medium">
-              Bệnh viện Hỗ Trỡ Sinh sản
+              Bệnh viện Hỗ Trợ Sinh sản
             </div>
           </div>
         </div>
