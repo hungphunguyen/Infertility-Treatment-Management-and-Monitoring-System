@@ -13,6 +13,7 @@ http.interceptors.request.use(
   function (config) {
     // Do something before request is sent
     // lay token tu local
+    console.log(config.url)
     const token = localStorage.getItem("token");
     if (token) {
       const newToken = JSON.parse(token);

@@ -60,7 +60,7 @@ export const blogService = {
   updateBlogStatus: (blogId, status, comment) => {
     return http.put(`/v1/blogs/${blogId}/updateStatus`, { 
       status: status,
-      comment: comment || "" 
+      comment: comment
     });
   },
 
