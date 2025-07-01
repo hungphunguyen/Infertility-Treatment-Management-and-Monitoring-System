@@ -133,7 +133,8 @@ const UserHeader = () => {
   const isActive = (pathname) => {
     if (
       pathname === path.ourStaff &&
-      location.pathname.startsWith("/doctor/")
+      (location.pathname.startsWith("/doctor/") ||
+        location.pathname.startsWith("/doctors/"))
     ) {
       return true;
     }

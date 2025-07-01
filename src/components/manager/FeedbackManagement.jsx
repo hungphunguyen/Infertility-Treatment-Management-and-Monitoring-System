@@ -346,10 +346,10 @@ const FeedbackManagement = () => {
               });
 
               showNotification("Cập nhật phản hồi thành công", "success");
-              await getAllFeedBack();
+              getAllFeedBack();
             } catch (err) {
               console.error(err);
-              showNotification("Có lỗi xảy ra khi cập nhật phản hồi", "error");
+              showNotification(err.response.data.message, "error");
             } finally {
               setModalVisible(false);
               setLoadingIds((prev) => prev.filter((id) => id !== currentId));

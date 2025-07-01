@@ -16,6 +16,10 @@ export const customerService = {
     });
   },
 
+  getFeedbackInfoToCreate: (treatmentRecordId) => {
+    return http.get(`v1/feedbacks/${treatmentRecordId}/get-info-to-feedback`);
+  },
+
   checkIsValid: (recordId) => {
     return http.get(`/feedback/isValidToFeedback/${recordId}`);
   },

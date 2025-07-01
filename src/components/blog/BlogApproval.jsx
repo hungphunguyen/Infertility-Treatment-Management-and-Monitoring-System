@@ -25,7 +25,7 @@ const BlogApproval = () => {
   const fetchPendingBlogs = async () => {
     try {
       setLoading(true);
-      const response = await blogService.getBlogsByStatus("pending");
+      const response = await blogService.getBlogsByStatus("PENDING_REVIEW");
       if (response.data) {
         setBlogs(response.data.result);
       }

@@ -108,31 +108,45 @@ const DoctorDetailPage = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#f7f8fa]">
+    <div
+      className="w-full min-h-screen"
+      style={{
+        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        padding: "20px 0",
+      }}
+    >
       <UserHeader />
       <div className="px-4 py-8 max-w-5xl mx-auto">
-        <Card className="shadow-lg rounded-xl p-6">
+        <Card
+          className="shadow-2xl rounded-2xl p-8"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            border: "none",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+          }}
+        >
           <Row gutter={[32, 32]} align="middle">
             <Col xs={24} md={6} className="flex flex-col items-center">
               <Avatar
                 src={doctor.avatarUrl}
                 size={180}
-                className="border-4 border-orange-400 shadow-lg"
+                className="border-4 border-orange-400 shadow-xl"
+                style={{
+                  boxShadow: "0 10px 30px rgba(255, 132, 96, 0.3)",
+                }}
                 icon={<UserOutlined />}
               />
-              <div className="mt-4 text-center">
+              <div className="mt-6 text-center">
                 {doctorRating !== null && (
                   <>
                     <Rate
                       disabled
                       allowHalf
                       value={doctorRating}
-                      style={{ fontSize: 28 }}
+                      style={{ fontSize: 32 }}
                     />
-                    <span className="ml-2 text-lg font-semibold text-gray-700">
-                      {doctorRating}
-                    </span>
-                    <div className="text-gray-500 text-sm mt-1">
+                    <div className="text-gray-600 text-sm mt-2 font-medium">
                       Đánh giá tổng quan
                     </div>
                   </>
@@ -140,47 +154,79 @@ const DoctorDetailPage = () => {
               </div>
             </Col>
             <Col xs={24} md={14}>
-              <Title level={2} className="mb-2 text-orange-500">
+              <Title
+                level={2}
+                className="mb-4 text-orange-500"
+                style={{
+                  fontSize: "2.5rem",
+                  fontWeight: "700",
+                  textShadow: "0 2px 4px rgba(255, 132, 96, 0.2)",
+                }}
+              >
                 {doctor.fullName}
               </Title>
-              <div className="mb-2 flex items-center">
-                <UserOutlined className="mr-2 text-orange-400" />{" "}
-                <span className="font-semibold mr-1">Chuyên khoa:</span>{" "}
-                <span>{doctor.specialty || "Chưa cập nhật"}</span>
-              </div>
-              <div className="mb-2 flex items-center">
-                <MailOutlined className="mr-2 text-orange-400" />{" "}
-                <span className="font-semibold mr-1">Email:</span>{" "}
-                <span>{doctor.email || "Chưa cập nhật"}</span>
-              </div>
-              <div className="mb-2 flex items-center">
-                <PhoneOutlined className="mr-2 text-orange-400" />{" "}
-                <span className="font-semibold mr-1">Số điện thoại:</span>{" "}
-                <span>{doctor.phoneNumber || "Chưa cập nhật"}</span>
-              </div>
-              <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400"></span>{" "}
-                <span className="font-semibold mr-1">Bằng cấp:</span>{" "}
-                <span>{doctor.qualifications || "Chưa cập nhật"}</span>
-              </div>
-              <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400"></span>{" "}
-                <span className="font-semibold mr-1">Năm tốt nghiệp:</span>{" "}
-                <span>{doctor.graduationYear || "Chưa cập nhật"}</span>
-              </div>
-              <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400"></span>{" "}
-                <span className="font-semibold mr-1">Địa chỉ:</span>{" "}
-                <span>{doctor.address || "Chưa cập nhật"}</span>
-              </div>
-              <div className="mb-2 flex items-center">
-                <span className="mr-2 text-orange-400"></span>{" "}
-                <span className="font-semibold mr-1">Kinh nghiệm:</span>{" "}
-                <span>
-                  {doctor.experienceYears
-                    ? `${doctor.experienceYears} năm kinh nghiệm`
-                    : "Chưa cập nhật"}
-                </span>
+              <div className="space-y-3">
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <UserOutlined className="mr-3 text-orange-400 text-lg" />
+                  <span className="font-semibold mr-2 text-orange-400">
+                    Chuyên khoa:
+                  </span>
+                  <span className="text-gray-800">
+                    {doctor.specialty || "Chưa cập nhật"}
+                  </span>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <MailOutlined className="mr-3 text-orange-400 text-lg" />
+                  <span className="font-semibold mr-2 text-orange-400">
+                    Email:
+                  </span>
+                  <span className="text-gray-800">
+                    {doctor.email || "Chưa cập nhật"}
+                  </span>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <PhoneOutlined className="mr-3 text-orange-400 text-lg" />
+                  <span className="font-semibold mr-2 text-orange-400">
+                    Số điện thoại:
+                  </span>
+                  <span className="text-gray-800">
+                    {doctor.phoneNumber || "Chưa cập nhật"}
+                  </span>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="mr-3 text-orange-400 font-semibold">
+                    Bằng cấp:
+                  </span>
+                  <span className="text-gray-800">
+                    {doctor.qualifications || "Chưa cập nhật"}
+                  </span>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="mr-3 text-orange-400 font-semibold">
+                    Năm tốt nghiệp:
+                  </span>
+                  <span className="text-gray-800">
+                    {doctor.graduationYear || "Chưa cập nhật"}
+                  </span>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="mr-3 text-orange-400 font-semibold">
+                    Địa chỉ:
+                  </span>
+                  <span className="text-gray-800">
+                    {doctor.address || "Chưa cập nhật"}
+                  </span>
+                </div>
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="mr-3 text-orange-400 font-semibold">
+                    Kinh nghiệm:
+                  </span>
+                  <span className="text-gray-800">
+                    {doctor.experienceYears
+                      ? `${doctor.experienceYears} năm kinh nghiệm`
+                      : "Chưa cập nhật"}
+                  </span>
+                </div>
               </div>
             </Col>
             <Col
@@ -191,7 +237,15 @@ const DoctorDetailPage = () => {
               <Button
                 type="primary"
                 size="large"
-                className="bg-[#ff8460] hover:bg-[#ff6b40] border-none shadow"
+                className="bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700 border-none shadow-xl"
+                style={{
+                  height: "60px",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  borderRadius: "12px",
+                  boxShadow: "0 8px 25px rgba(255, 132, 96, 0.4)",
+                  minWidth: "160px",
+                }}
                 onClick={() => {
                   // Save doctor information to localStorage for later use
                   localStorage.setItem(
@@ -224,7 +278,27 @@ const DoctorDetailPage = () => {
             </Col>
           </Row>
         </Card>
-        <Card title="Đánh giá từ bệnh nhân" className="mt-8 shadow rounded-xl">
+        <Card
+          title={
+            <span
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "600",
+                color: "#333",
+              }}
+            >
+              Đánh giá từ bệnh nhân
+            </span>
+          }
+          className="mt-8 shadow-2xl rounded-2xl"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            border: "none",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+            borderRadius: "16px",
+          }}
+        >
           {loadingFeedbacks ? (
             <Spin tip="Đang tải đánh giá..." />
           ) : (

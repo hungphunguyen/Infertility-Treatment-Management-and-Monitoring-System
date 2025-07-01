@@ -98,22 +98,31 @@ const ServicesPage = () => {
                     <Card
                       className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 cursor-pointer border-0 hover:scale-105"
                       onClick={() => navigate(`/service-detail/${service.id}`)}
-                      bodyStyle={{ padding: 0 }}
+                      styles={{ body: { padding: 0 } }}
                     >
-                      <div className="relative overflow-hidden w-full h-64">
+                      <div className="relative overflow-hidden w-full h-72">
                         {service.coverImageUrl ? (
                           <img
                             src={service.coverImageUrl}
                             alt={service.name}
                             className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
-                            style={{ minHeight: '100%', minWidth: '100%' }}
+                            style={{ 
+                              minHeight: '100%', 
+                              minWidth: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center'
+                            }}
                             onError={(e) => {
                               // Nếu hình từ API lỗi, ẩn hình đi
                               e.target.style.display = 'none';
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full bg-white"></div>
+                          <div className="w-full h-full bg-gradient-to-br from-[#fff7f3] to-[#ffe5db] flex items-center justify-center">
+                            <div className="text-center text-gray-400">
+                              <div className="text-sm">Không có ảnh</div>
+                            </div>
+                          </div>
                         )}
                       </div>
                       <div className="p-6">

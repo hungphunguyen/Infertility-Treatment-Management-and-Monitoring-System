@@ -97,18 +97,38 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingSchedule(true);
-    managerService
-      .getWorkScheduleByMonthDoctor(selectedMonth, doctorId)
+    
+    // Thử API mới trước
+    doctorService
+      .getWorkScheduleByMonth(selectedMonth)
       .then((res) => {
-        if (res.data && res.data.result && res.data.result.schedules) {
-          setSchedule(res.data.result.schedules);
+        if (res.data && res.data.result) {
+          // Chuyển đổi format từ API mới sang format cũ
+          const schedules = {};
+          res.data.result.forEach(item => {
+            schedules[item.workDate] = item.shift;
+          });
+          setSchedule(schedules);
         } else {
           setSchedule({});
         }
       })
       .catch((err) => {
-        setSchedule({});
-        message.error("Không thể lấy lịch làm việc");
+        console.warn('API mới không hoạt động, thử API cũ:', err);
+        // Fallback to old API
+        managerService
+          .getWorkScheduleYear(selectedMonth, doctorId)
+          .then((res) => {
+            if (res.data && res.data.result && res.data.result.schedules) {
+              setSchedule(res.data.result.schedules);
+            } else {
+              setSchedule({});
+            }
+          })
+          .catch((oldErr) => {
+            setSchedule({});
+            message.error("Không thể lấy lịch làm việc");
+          });
       })
       .finally(() => setLoadingSchedule(false));
   }, [doctorId, selectedMonth]);
@@ -117,33 +137,61 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingToday(true);
-    const today = dayjs().format("YYYY-MM-DD");
-    treatmentService
-      .getDoctorAppointmentsByDate(doctorId, today)
+    
+    // Thử API mới trước
+    doctorService
+      .getAppointmentsToday(0, 10)
       .then((res) => {
-        if (res?.data?.result) {
-          setTodayAppointments(res.data.result);
+        if (res?.data?.result?.content) {
+          setTodayAppointments(res.data.result.content);
         } else {
           setTodayAppointments([]);
         }
       })
-      .catch(() => setTodayAppointments([]))
+      .catch((err) => {
+        console.warn('API mới không hoạt động, thử API cũ:', err);
+        // Fallback to old API
+        const today = dayjs().format("YYYY-MM-DD");
+        treatmentService
+          .getDoctorAppointmentsByDate(doctorId, today)
+          .then((res) => {
+            if (res?.data?.result) {
+              setTodayAppointments(res.data.result);
+            } else {
+              setTodayAppointments([]);
+            }
+          })
+          .catch(() => setTodayAppointments([]));
+      })
       .finally(() => setLoadingToday(false));
   }, [doctorId]);
 
   // Lấy dashboard statics
   useEffect(() => {
     if (!doctorId) return;
+    
+    // Thử API mới trước
     doctorService
-      .getDashboardStatics(doctorId)
+      .getDashboardOverview()
       .then((res) => {
         if (res?.data?.result) {
           setDashboardStats(res.data.result);
         }
       })
-      .catch(() =>
-        setDashboardStats({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 })
-      );
+      .catch((err) => {
+        console.warn('API mới không hoạt động, thử API cũ:', err);
+        // Fallback to old API
+        doctorService
+          .getDashboardStatics(doctorId)
+          .then((res) => {
+            if (res?.data?.result) {
+              setDashboardStats(res.data.result);
+            }
+          })
+          .catch(() =>
+            setDashboardStats({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 })
+          );
+      });
   }, [doctorId]);
 
   // Bảng lịch làm việc tháng (thu nhỏ)
@@ -316,7 +364,7 @@ const DashboardOverview = () => {
                     format="[Tháng] MM/YYYY"
                     size="middle"
                     style={{ fontWeight: 600, fontSize: 16, minWidth: 120, background: 'transparent', border: 'none' }}
-                    dropdownClassName="ant-picker-dropdown-vi"
+                    classNames={{ popup: { root: "ant-picker-dropdown-vi" } }}
                   />
                 </div>
               </div>
