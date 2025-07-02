@@ -2,7 +2,8 @@ import axios from "axios";
 
 //setup axios custom xử lý gọi API cho dự án
 const http = axios.create({
-  baseURL: "https://techleaf.pro/infertility-system/api/", // domain
+  baseURL:
+    "https://ought-stat-persian-cheese.trycloudflare.com/infertility-system/api/", // domain
   timeout: 30000,
   headers: {},
 });

@@ -43,6 +43,7 @@ const RegisterForm = ({ switchToLogin }) => {
           })
           .catch((errors) => {
             showNotification(errors.response.data.message, "error");
+            console.log(errors);
           });
       },
       validationSchema: yup.object({
