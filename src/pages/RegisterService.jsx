@@ -109,8 +109,6 @@ const RegisterService = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [userInfoLoading, setUserInfoLoading] = useState(true);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
   const location = useLocation();
   const token = useSelector((state) => state.authSlice.token);
   const [currentUser, setCurrentUser] = useState(null);
@@ -131,26 +129,66 @@ const RegisterService = () => {
   // Additional state
   const [doctorNotAvailable, setDoctorNotAvailable] = useState(false);
 
-  // Add new state for available doctors
-  const [availableDoctors, setAvailableDoctors] = useState([]);
-  const [checkingAvailability, setCheckingAvailability] = useState(false);
-  const [availabilityChecked, setAvailabilityChecked] = useState(false);
-
-  // Add state to track unavailable doctor and newly selected doctor
-  const [unavailableDoctor, setUnavailableDoctor] = useState(null);
-  const [newlySelectedDoctor, setNewlySelectedDoctor] = useState(null);
-
   // Add state for doctor schedule
   const [doctorSchedule, setDoctorSchedule] = useState(null);
   const [scheduleLoading, setScheduleLoading] = useState(false);
 
-  // Always ignore incomplete treatment warning
-  const [ignoreIncompleteWarning, setIgnoreIncompleteWarning] = useState(true);
-
-  const [selectedMonth, setSelectedMonth] = useState(dayjs().month()); // Mặc định là tháng hiện tại
-
   // Thêm state để đảm bảo chỉ hiện thông báo một lần
   const [roleChecked, setRoleChecked] = useState(false);
+
+  // Thêm state ở đầu component:
+  const [calendarRerender, setCalendarRerender] = useState(0);
+
+  // Hàm renderCalendarTable dùng chung, style đồng bộ tuyệt đối
+  const renderCalendarTable = ({ calendar, renderCell, tableHeader }) => (
+    <table
+      style={{
+        width: "100%",
+        minWidth: 700,
+        tableLayout: "fixed",
+        borderCollapse: "separate",
+        borderSpacing: 4,
+        height: 480,
+        fontFamily: 'inherit',
+        fontSize: 14,
+        background: "#fff",
+        borderRadius: 16,
+        overflow: "hidden"
+      }}
+    >
+      <thead>
+        <tr>
+          {tableHeader.map((header, idx) => (
+            <th
+              key={idx}
+              style={{
+                border: "none",
+                padding: 12,
+                background: "#f0f8ff",
+                textAlign: "center",
+                fontWeight: 700,
+                fontSize: 14,
+                color: "#1890ff",
+                borderRadius: 8,
+                width: `${100 / 7}%`,
+                minWidth: 80,
+                maxWidth: 120
+              }}
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {calendar.map((week, weekIndex) => (
+          <tr key={weekIndex}>
+            {week.map((cell, dayIndex) => renderCell(cell, dayIndex, weekIndex))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 
   // Add more aggressive DOM cleanup on mount and for every render
   useEffect(() => {
@@ -304,13 +342,8 @@ const RegisterService = () => {
 
         // Map API data to the format needed for Select options
         const mappedServices = servicesData.map((service) => ({
-          value: service.id.toString(),
-          label: `${
-            service.serviceName || service.name
-          } - ${new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-          }).format(service.price)}`,
+          value: service.id,
+          label: `${service.serviceName || service.name} - ${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(service.price)}`,
           price: service.price,
         }));
 
@@ -385,13 +418,11 @@ const RegisterService = () => {
         if (!doctorId) return;
 
         // Set the selected doctor in state and form
-        setSelectedDoctor(doctorId);
         form.setFieldsValue({ doctor: doctorId });
 
         // Show loading state for schedule
         setScheduleLoading(true);
         setDoctorSchedule(null);
-        setShowDoctorSchedule(false);
 
         try {
           // Call API to get doctor schedule
@@ -399,16 +430,13 @@ const RegisterService = () => {
 
           if (response.data && response.data.result) {
             setDoctorSchedule(response.data.result);
-            setShowDoctorSchedule(true);
           } else {
             // No schedule found or error
             setDoctorSchedule(null);
-            setShowDoctorSchedule(false);
           }
         } catch (error) {
           // Handle error if schedule fetching fails
           setDoctorSchedule(null);
-          setShowDoctorSchedule(false);
         } finally {
           setScheduleLoading(false);
         }
@@ -425,147 +453,12 @@ const RegisterService = () => {
     }
   }, [initialSelectedDoctor, selectedService, form]);
 
-  // Add function to check doctor availability
-  const checkDoctorAvailability = async (date, shift) => {
-    if (!date || !shift) return;
-
-    try {
-      setCheckingAvailability(true);
-
-      // Format the date as YYYY-MM-DD
-      const formattedDate = date.format("YYYY-MM-DD");
-
-      // Convert shift to uppercase as required by API
-      const formattedShift = shift.toUpperCase();
-
-      // Call the API to get available doctors
-      const response = await doctorService.getAvailableDoctors(
-        formattedDate,
-        formattedShift
-      );
-
-      if (response && response.data && response.data.result) {
-        const availableDoctorsData = Array.isArray(response.data.result)
-          ? response.data.result
-          : [response.data.result];
-        setAvailableDoctors(availableDoctorsData);
-        setAvailabilityChecked(true);
-
-        // Update the doctors dropdown with only available doctors
-        const mappedAvailableDoctors = availableDoctorsData.map((doctor) => ({
-          value: doctor.id,
-          label: `${doctor.fullName || "Bác sĩ"} - ${
-            doctor.qualifications || "Chuyên khoa"
-          }`,
-          specialty: doctor.qualifications || "Chuyên khoa",
-        }));
-
-        // If there's an initially selected doctor, make sure they're included
-        if (
-          initialSelectedDoctor &&
-          !availableDoctorsData.find((d) => d.id === initialSelectedDoctor)
-        ) {
-          // Find the initially selected doctor from the original doctors list
-          const originalDoctors = await fetchOriginalDoctors();
-          const selectedDoctor = originalDoctors.find(
-            (d) => d.value === initialSelectedDoctor
-          );
-          if (selectedDoctor) {
-            mappedAvailableDoctors.unshift(selectedDoctor);
-          }
-        }
-
-        // Add "No selection" option
-        mappedAvailableDoctors.push({
-          value: "",
-          label: "Không chọn - Bác sĩ có sẵn",
-          specialty: "Tổng quát",
-        });
-
-        // Update the doctors state with only available doctors
-        setDoctors(mappedAvailableDoctors);
-      } else {
-        setAvailableDoctors([]);
-        setAvailabilityChecked(true);
-
-        // If no doctors available, show empty list with "No selection" option
-        setDoctors([
-          {
-            value: "",
-            label: "Không có bác sĩ có lịch trống - Vui lòng chọn ngày/ca khác",
-            specialty: "Tổng quát",
-          },
-        ]);
-      }
-    } catch (error) {
-      setAvailableDoctors([]);
-      setAvailabilityChecked(true);
-
-      // On error, show empty list with "No selection" option
-      setDoctors([
-        {
-          value: "",
-          label: "Không thể tải danh sách bác sĩ - Vui lòng thử lại",
-          specialty: "Tổng quát",
-        },
-      ]);
-    } finally {
-      setCheckingAvailability(false);
-    }
-  };
-
-  // Helper function to fetch original doctors list
-  const fetchOriginalDoctors = async () => {
-    try {
-      const response = await doctorService.getAllDoctors(0, 100); // Get first 100 doctors
-
-      if (
-        response &&
-        response.data &&
-        response.data.result &&
-        response.data.result.content
-      ) {
-        let doctorsData = response.data.result.content;
-
-        // Map API data to the format needed for Select options
-        const mappedDoctors = doctorsData.map((doctor) => ({
-          value: doctor.id,
-          label: `${doctor.fullName || "Bác sĩ"} - ${
-            doctor.qualifications || "Chuyên khoa"
-          }`,
-          specialty: doctor.qualifications || "Chuyên khoa",
-        }));
-
-        return mappedDoctors;
-      }
-    } catch (error) {
-      // Silent error handling
-    }
-    return [];
-  };
-
-  // Add effect to check availability when date or shift changes
-  useEffect(() => {
-    const appointmentDate = form.getFieldValue("appointmentDate");
-    const shift = form.getFieldValue("shift");
-
-    if (appointmentDate && shift) {
-      checkDoctorAvailability(appointmentDate, shift);
-    } else {
-      setAvailabilityChecked(false);
-      // Reset doctors list to original state when no date/shift selected
-      fetchDoctors();
-    }
-  }, [form.getFieldValue("appointmentDate"), form.getFieldValue("shift")]);
-
   // Modify existing handlers to check availability
   const onDateChange = (date) => {
     const shift = form.getFieldValue("shift");
     if (date && shift) {
       checkDoctorAvailability(date, shift);
     } else {
-      setAvailabilityChecked(false);
-      // Reset doctors list to original state when no date/shift selected
       fetchDoctors();
     }
   };
@@ -575,18 +468,13 @@ const RegisterService = () => {
     if (appointmentDate && value) {
       checkDoctorAvailability(appointmentDate, value);
     } else {
-      setAvailabilityChecked(false);
-      // Reset doctors list to original state when no date/shift selected
       fetchDoctors();
     }
   };
 
   // Modify onDoctorChange to check if doctor is available
   const onDoctorChange = async (value) => {
-    setSelectedDoctor(value);
     setDoctorNotAvailable(false);
-    setAvailableDoctors([]);
-    setAvailabilityChecked(false);
 
     if (!value || value === "") {
       form.setFieldsValue({ doctor: null });
@@ -648,30 +536,14 @@ const RegisterService = () => {
   // Add a more comprehensive error handler that also shows more info to the user in this scenario
   const onFinish = (values) => {
     setLoading(true);
-    setDoctorNotAvailable(false); // Reset doctor status
-
-    // Call the API to register treatment service
+    setDoctorNotAvailable(false);
     const registerTreatment = async () => {
       try {
-        // Kiểm tra đăng nhập và thông tin người dùng
         const token = getLocgetlStorage("token");
-
-        console.log("Debug - currentUser:", currentUser);
-        console.log("Debug - token:", token ? "Có token" : "Không có token");
-        console.log("Debug - form values:", values);
-        console.log("Debug - selectedDoctor:", selectedDoctor);
-        console.log(
-          "Debug - ignoreIncompleteWarning:",
-          ignoreIncompleteWarning
-        );
-
-        // Kiểm tra xem token có tồn tại không (người dùng đã đăng nhập)
         if (!token) {
           setLoading(false);
           return;
         }
-
-        // Kiểm tra xem có thông tin người dùng không
         if (!currentUser || !currentUser.id) {
           showNotification(
             "Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại.",
@@ -680,48 +552,17 @@ const RegisterService = () => {
           setLoading(false);
           return;
         }
-
-        // Kiểm tra các trường bắt buộc
         const requiredFields = [
-          {
-            name: "firstName",
-            message: "Vui lòng nhập họ tên",
-            field: "firstName",
-          },
+          { name: "firstName", message: "Vui lòng nhập họ tên", field: "firstName" },
           { name: "email", message: "Vui lòng nhập email", field: "email" },
-          {
-            name: "phone",
-            message: "Vui lòng nhập số điện thoại",
-            field: "phone",
-          },
-          {
-            name: "dateOfBirth",
-            message: "Vui lòng chọn ngày sinh",
-            field: "dateOfBirth",
-          },
-          {
-            name: "gender",
-            message: "Vui lòng chọn giới tính",
-            field: "gender",
-          },
-          {
-            name: "address",
-            message: "Vui lòng nhập địa chỉ",
-            field: "address",
-          },
-          {
-            name: "appointmentDate",
-            message: "Vui lòng chọn ngày thăm khám",
-            field: "appointmentDate",
-          },
+          { name: "phone", message: "Vui lòng nhập số điện thoại", field: "phone" },
+          { name: "dateOfBirth", message: "Vui lòng chọn ngày sinh", field: "dateOfBirth" },
+          { name: "gender", message: "Vui lòng chọn giới tính", field: "gender" },
+          { name: "address", message: "Vui lòng nhập địa chỉ", field: "address" },
+          { name: "appointmentDate", message: "Vui lòng chọn ngày thăm khám", field: "appointmentDate" },
           { name: "shift", message: "Vui lòng chọn buổi khám", field: "shift" },
-          {
-            name: "treatmentService",
-            message: "Vui lòng chọn dịch vụ điều trị",
-            field: "treatmentService",
-          },
+          { name: "treatmentService", message: "Vui lòng chọn dịch vụ điều trị", field: "treatmentService" },
         ];
-
         for (const field of requiredFields) {
           if (!values[field.name]) {
             showNotification(field.message, "error");
@@ -730,106 +571,63 @@ const RegisterService = () => {
             return;
           }
         }
-
-        // Xử lý doctorId đúng định dạng - cho phép null để hệ thống tự chọn
         let doctorId = values.doctor;
-
-        // Nếu doctorId là chuỗi rỗng hoặc null, gán null để hệ thống tự chọn
         if (!doctorId || doctorId === "") {
           doctorId = null;
-        }
-        // Nếu doctorId bắt đầu bằng "dr_", cắt bỏ tiền tố
-        else if (typeof doctorId === "string" && doctorId.startsWith("dr_")) {
+        } else if (typeof doctorId === "string" && doctorId.startsWith("dr_")) {
           doctorId = doctorId.substring(3);
         }
-
-        console.log("Debug - final doctorId:", doctorId, typeof doctorId);
-
-        // Create direct API payload - remove any unnecessary fields
         const registerData = {
           customerId: currentUser.id,
           doctorId: doctorId,
-          treatmentServiceId: parseInt(values.treatmentService),
+          treatmentServiceId: values.treatmentService,
           startDate: values.appointmentDate.format("YYYY-MM-DD"),
           shift: values.shift.toUpperCase() || "MORNING",
         };
-
-        // Only add optional fields if they have values
         if (values.cd1Date) {
           registerData.cd1Date = values.cd1Date.format("YYYY-MM-DD");
         }
-
         if (values.medicalHistory) {
           registerData.medicalHistory = values.medicalHistory;
         }
-
-        console.log("Debug - simplified registerData:", registerData);
-
-        // Validate required fields before sending
         if (!registerData.customerId) {
           showNotification("Thiếu thông tin khách hàng", "error");
           setLoading(false);
           return;
         }
-
         if (!registerData.treatmentServiceId) {
           showNotification("Vui lòng chọn dịch vụ điều trị", "error");
           setLoading(false);
           return;
         }
-
         if (!registerData.startDate) {
           showNotification("Vui lòng chọn ngày bắt đầu", "error");
           setLoading(false);
           return;
         }
-
         if (!registerData.shift) {
           showNotification("Vui lòng chọn ca khám", "error");
           setLoading(false);
           return;
         }
-
-        console.log("🔍 Validated registerData:", registerData);
-
-        // Add loader indicator
         const submitButton = document.querySelector('button[type="submit"]');
         if (submitButton) {
           submitButton.disabled = true;
         }
-
-        // Direct registration approach - show the user what's happening
         showNotification("Đang xử lý đăng ký...", "info");
-
         try {
-          // Call the API directly - sử dụng API mới từ treatmentService
-          const response = await treatmentService.registerTreatmentService(
-            registerData
-          );
-
-          console.log("Debug - API response:", response);
-
+          const response = await treatmentService.registerTreatmentService(registerData);
           if (response && response.status >= 200 && response.status < 300) {
-            // Hiển thị thông báo thành công
             showNotification("Đăng ký dịch vụ thành công!", "success");
-
-            // Reset form và các state
             form.resetFields();
-            setSelectedDoctor(null);
             setShowDoctorSchedule(false);
             setDoctorSchedule(null);
-            setAvailableDoctors([]);
-            setAvailabilityChecked(false);
-
-            // Chuyển hướng đến trang customer-dashboard/treatment sau khi đăng ký thành công
             setTimeout(() => {
               navigate("/customer-dashboard/treatment", {
                 state: {
                   registrationSuccess: true,
                   serviceName:
-                    treatmentServices.find(
-                      (s) => s.value === values.treatmentService
-                    )?.label || "Dịch vụ",
+                    treatmentServices.find((s) => s.value === values.treatmentService)?.label || "Dịch vụ",
                 },
               });
             }, 2000);
@@ -837,28 +635,18 @@ const RegisterService = () => {
             throw new Error("Unexpected response");
           }
         } catch (apiError) {
-          // Sử dụng message từ BE nếu có
-          let errorMessage =
-            "Đăng ký dịch vụ không thành công. Vui lòng thử lại sau.";
-          if (
-            apiError.response &&
-            apiError.response.data &&
-            apiError.response.data.message
-          ) {
+          let errorMessage = "Đăng ký dịch vụ không thành công. Vui lòng thử lại sau.";
+          if (apiError.response && apiError.response.data && apiError.response.data.message) {
             errorMessage = apiError.response.data.message;
           }
           showNotification(errorMessage, "error");
-          throw apiError;
         } finally {
-          // Always re-enable the button
           if (submitButton) {
             submitButton.disabled = false;
           }
           setLoading(false);
         }
-      } catch (err) {
-        // Không hiển thị thông báo lỗi ở đây vì đã hiển thị ở trên
-        // Re-enable submit button nếu cần
+      } catch {
         const submitButton = document.querySelector('button[type="submit"]');
         if (submitButton) {
           submitButton.disabled = false;
@@ -866,7 +654,6 @@ const RegisterService = () => {
         setLoading(false);
       }
     };
-
     registerTreatment();
   };
 
@@ -923,58 +710,10 @@ const RegisterService = () => {
   }, [token, navigate, showNotification, roleChecked]);
 
   // Thêm state ở đầu component:
-  const [calendarRerender, setCalendarRerender] = useState(0);
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
 
-  // Hàm renderCalendarTable dùng chung, style đồng bộ tuyệt đối
-  const renderCalendarTable = ({ calendar, renderCell, tableHeader }) => (
-    <table
-      style={{
-        width: "100%",
-        minWidth: 700,
-        tableLayout: "fixed",
-        borderCollapse: "separate",
-        borderSpacing: 4,
-        height: 480,
-        fontFamily: 'inherit',
-        fontSize: 14,
-        background: "#fff",
-        borderRadius: 16,
-        overflow: "hidden"
-      }}
-    >
-      <thead>
-        <tr>
-          {tableHeader.map((header, idx) => (
-            <th
-              key={idx}
-              style={{
-                border: "none",
-                padding: 12,
-                background: "#f0f8ff",
-                textAlign: "center",
-                fontWeight: 700,
-                fontSize: 14,
-                color: "#1890ff",
-                borderRadius: 8,
-                width: `${100 / 7}%`,
-                minWidth: 80,
-                maxWidth: 120
-              }}
-            >
-              {header}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {calendar.map((week, weekIndex) => (
-          <tr key={weekIndex}>
-            {week.map((cell, dayIndex) => renderCell(cell, dayIndex, weekIndex))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+  // Thêm state để đảm bảo chỉ hiện thông báo một lần
+  const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
 
   return (
     <div className="min-h-screen">
@@ -1082,7 +821,20 @@ const RegisterService = () => {
                       <div className="text-gray-500 text-sm mt-1"><i>Thông tin này giúp bác sĩ xác định chu kỳ kinh nguyệt và lập kế hoạch điều trị phù hợp</i></div>
                     </Col>
                   </Row>
-                  <Form.Item name="treatmentService" label="Gói dịch vụ điều trị" rules={[{ required: true, message: "Vui lòng chọn gói dịch vụ" }]}> {servicesLoading ? (<div className="flex items-center"><Spin size="small" className="mr-2" /><span>Đang tải danh sách dịch vụ...</span></div>) : (<Select placeholder="-- Chọn gói dịch vụ --" size="large">{treatmentServices.map((service) => (<Option key={service.value} value={service.value}>{service.label}</Option>))}</Select>)} </Form.Item>
+                  <Form.Item
+                    name="treatmentService"
+                    label="Gói dịch vụ điều trị"
+                    rules={[{ required: true, message: "Vui lòng chọn gói dịch vụ" }]}
+                  >
+                    {servicesLoading
+                      ? <Spin size="small" className="mr-2" />
+                      : <Select placeholder="-- Chọn gói dịch vụ --" size="large">
+                          {treatmentServices.map((service) => (
+                            <Option key={service.value} value={service.value}>{service.label}</Option>
+                          ))}
+                        </Select>
+                    }
+                  </Form.Item>
                   <Form.Item style={{ textAlign: "center", marginTop: "40px" }}>
                     <Button type="primary" htmlType="submit" loading={loading} disabled={!isLoggedIn} size="large" style={{ height: "50px", fontSize: "16px", fontWeight: "bold", padding: "0 40px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)" }}>
                       Xác nhận
