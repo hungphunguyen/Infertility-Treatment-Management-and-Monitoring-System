@@ -103,11 +103,11 @@ const CustomerDashboard = () => {
       setSelectedMenuItem("payment");
     } else {
       // Default to profile if no match
-      setSelectedMenuItem("profile");
+      setSelectedMenuItem("services");
       // Redirect to profile if at the root customer dashboard
-      if (pathname === "/customer") {
-        navigate(path.customerProfile);
-      }
+      // if (pathname === "/customer") {
+      //   navigate(path.customerProfile);
+      // }
     }
   }, [location, navigate]);
 

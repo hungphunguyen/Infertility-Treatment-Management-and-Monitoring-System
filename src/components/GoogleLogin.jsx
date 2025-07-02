@@ -65,7 +65,7 @@ export default function GoogleLogin() {
   };
 
   return (
-    <div className="flex justify-center items-center py-6">
+    <div className="flex justify-center items-center py-2">
       <div className="w-full max-w mx-auto" id="google-signin-button"></div>
     </div>
   );
