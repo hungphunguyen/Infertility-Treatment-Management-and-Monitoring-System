@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import CreateTreatmentStage from "./CreateTreatmentStage";
 import CreateTreatmentService from "./CreateTreatmentService";
 import CreateTreatmentType from "./CreateTreatmentType";
-import { Layout } from "antd";
+import { Layout, Modal } from "antd";
 import ManagerSidebar from "../ManagerSidebar";
 
 import Step1 from "./CreateTreatmentType";
@@ -12,9 +12,8 @@ import { NotificationContext } from "../../../App";
 import { useNavigate } from "react-router-dom";
 import { path } from "../../../common/path";
 
-const RenderCreateTreatment = () => {
+const RenderCreateTreatment = ({ isOpen, onClose }) => {
   const { showNotification } = useContext(NotificationContext);
-  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [treatmentData, setTreatmentData] = useState({
     name: "",
@@ -25,7 +24,7 @@ const RenderCreateTreatment = () => {
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
 
-  const updateTreatmentType = (typeData) => {
+  const updateTreatmentService = (typeData) => {
     setTreatmentData((prev) => ({ ...prev, ...typeData }));
     nextStep();
   };
@@ -36,19 +35,29 @@ const RenderCreateTreatment = () => {
 
   const submitTreatmentAndStages = async () => {
     try {
-      const res = await managerService.createTreatType(treatmentData);
-      showNotification("Tạo liệu trình điều trị thành công!", "success");
-      navigate(path.managerServices);
+      const res = await managerService.createTreatService(treatmentData);
+      showNotification(
+        "Tạo liệu trình dịch vụ điều trị thành công!",
+        "success"
+      );
+      onClose();
     } catch (err) {
       console.error("Lỗi tạo loại điều trị:", err);
-      showNotification("Lỗi tạo loại điều trị", "error");
+      showNotification(err.response.data.message, "error");
       console.log(treatmentData);
     }
   };
   return (
-    <>
+    <Modal
+      title="Tạo dịch vụ điều trị"
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={900}
+      destroyOnClose
+    >
       {step === 1 && (
-        <Step1 defaultValues={treatmentData} onNext={updateTreatmentType} />
+        <Step1 defaultValues={treatmentData} onNext={updateTreatmentService} />
       )}
       {step === 2 && (
         <Step2
@@ -58,7 +67,7 @@ const RenderCreateTreatment = () => {
           onSubmit={submitTreatmentAndStages}
         />
       )}
-    </>
+    </Modal>
   );
 };
 

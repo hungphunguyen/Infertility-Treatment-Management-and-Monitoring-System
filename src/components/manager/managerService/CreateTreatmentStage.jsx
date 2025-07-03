@@ -16,11 +16,26 @@ const CreateTreatmentStage = ({
     initialStages || []
   );
   const [currentOrderIndex, setCurrentOrderIndex] = useState(
-    initialStages?.length + 1 || 1
+    initialStages?.length + 1 || 0
   );
 
   const { showNotification } = useContext(NotificationContext);
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!initialStages || initialStages.length === 0) {
+      const defaultStage = {
+        name: "Khám tổng quát",
+        description: "Tiến hành kiểm tra sức khoẻ tổng quát trước điều trị.",
+        expectedDayRange: "1-2 ngày",
+        orderIndex: 0,
+      };
+
+      const initial = [defaultStage];
+      setTreatmentStagesList(initial);
+      setCurrentOrderIndex(1); // set bước tiếp theo
+      onStagesChange(initial); // cập nhật wrapper nếu cần
+    }
+  }, []);
 
   const formik = useFormik({
     initialValues: {

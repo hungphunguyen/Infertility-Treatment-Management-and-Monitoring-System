@@ -26,7 +26,7 @@ const CustomerDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
+  const [selectedMenuItem, setSelectedMenuItem] = useState("service");
   const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
   const [infoUser, setInfoUser] = useState();
@@ -193,7 +193,7 @@ const CustomerDashboard = () => {
           }}
         >
           <Routes>
-            <Route index element={<ProfileOverview />} />
+            <Route index element={<MyServices />} />
             <Route path="profile" element={<ProfileOverview />} />
             <Route path="services" element={<MyServices />} />
             <Route path="appointments" element={<AppointmentSchedule />} />

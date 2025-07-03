@@ -83,33 +83,33 @@ const FeedbackCustomer = () => {
     setFieldValue,
   } = formik;
 
-  useEffect(async () => {
-    const id = state?.recordId || sessionStorage.getItem("feedback_record_id");
-    if (!id) return;
-    sessionStorage.setItem("feedback_record_id", id);
-    try {
-      const res = await customerService.getFeedbackInfoToCreate(id);
-      console.log(res);
-      const { doctorId, customerId, serviceId, doctorFullName, serviceName } =
-        res.data.result;
-      // Lưu đầy đủ info vào state để render UI
-      setFeedbackInfo({
-        recordId: id,
-        doctorId,
-        customerId,
-        serviceId,
-        doctorFullName,
-        serviceName,
-      });
+  useEffect(() => {
+    const fetchFeedbackInfo = async () => {
+      const id = state?.recordId;
+      if (!id) return;
+      try {
+        const res = await customerService.getFeedbackInfoToCreate(id);
+        const { doctorId, customerId, serviceId, doctorFullName, serviceName } =
+          res.data.result;
+        // Lưu đầy đủ info vào state để render UI
+        setFeedbackInfo({
+          recordId: id,
+          doctorId,
+          customerId,
+          serviceId,
+          doctorFullName,
+          serviceName,
+        });
 
-      // Gán cho Formik
-      setFieldValue("recordId", id);
-      setFieldValue("doctorId", doctorId);
-      setFieldValue("customerId", customerId);
-      setFieldValue("serviceId", Number(serviceId));
-    } catch (error) {
-      showNotification(error?.response?.data?.message, "error");
-    }
+        // Gán cho Formik
+        setFieldValue("recordId", id);
+        setFieldValue("doctorId", doctorId);
+        setFieldValue("customerId", customerId);
+        setFieldValue("serviceId", Number(serviceId));
+      } catch (error) {
+        showNotification(error?.response?.data?.message, "error");
+      }
+    };
   }, [state, setFieldValue]);
 
   return (
