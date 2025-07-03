@@ -217,12 +217,6 @@ const ScheduleManagement = () => {
 
   return (
     <div className="max-w-5xl mx-auto my-10 bg-white p-6 rounded shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Thiết lập lịch mẫu
-        </h2>
-      </div>
-
       <>
         <h1 className="text-center text-white text-2xl font-semibold bg-blue-600 py-4 rounded">
           Bảng ca phân ca làm theo tháng

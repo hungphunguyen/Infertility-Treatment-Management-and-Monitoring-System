@@ -68,19 +68,24 @@ const AppointmentManagement = () => {
   });
   const [changeRequestNotes, setChangeRequestNotes] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0); // page index (0-based)
+  const [totalPages, setTotalPages] = useState(1);
 
+  const [changeRequestPage, setChangeRequestPage] = useState(0);
+  const [changeRequestTotalPages, setChangeRequestTotalPages] = useState(1);
+  const [pagedChangeRequests, setPagedChangeRequests] = useState([]);
   useEffect(() => {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (page = 0) => {
     try {
       setLoading(true);
 
       // Bước 1: Lấy tất cả appointments
       const response = await treatmentService.getAppointments({
-        page: 0,
-        size: 100,
+        page: page, // API backend thường dùng 0-based
+        size: 5,
       });
 
       const appointmentData = response?.data?.result?.content || [];
@@ -147,6 +152,8 @@ const AppointmentManagement = () => {
       setChangeRequests(detailedChangeRequests);
       setFilteredAppointments(appointmentData);
       setFilteredChangeRequests(detailedChangeRequests);
+      setTotalPages(response?.data?.result?.totalPages);
+      setCurrentPage(page);
 
       // Calculate statistics
       const today = dayjs().format("YYYY-MM-DD");
@@ -583,6 +590,7 @@ const AppointmentManagement = () => {
 
           <Spin spinning={loading}>
             <Table
+              pagination={false}
               columns={appointmentColumns}
               dataSource={filteredAppointments}
               rowKey="id"
@@ -591,13 +599,27 @@ const AppointmentManagement = () => {
                   ? ""
                   : "Không có lịch hẹn nào phù hợp hoặc dữ liệu chưa sẵn sàng.",
               }}
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total) => `Tổng số ${total} lịch hẹn`,
-              }}
-              scroll={{ x: 1200 }}
             />
+            {/* Pagination buttons giống feedback */}
+            <div className="flex justify-end mt-4">
+              <Button
+                disabled={currentPage === 0}
+                onClick={() => fetchData(currentPage - 1)}
+                className="mr-2"
+              >
+                Trang trước
+              </Button>
+              <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+                Trang {currentPage + 1} / {totalPages}
+              </span>
+              <Button
+                disabled={currentPage + 1 >= totalPages}
+                onClick={() => fetchData(currentPage + 1)}
+                className="ml-2"
+              >
+                Trang tiếp
+              </Button>
+            </div>
           </Spin>
         </>
       ),
@@ -627,6 +649,7 @@ const AppointmentManagement = () => {
           <Spin spinning={loading}>
             <Table
               columns={changeRequestColumns}
+              pagination={false}
               dataSource={filteredChangeRequests}
               rowKey="id"
               locale={{
@@ -634,12 +657,6 @@ const AppointmentManagement = () => {
                   ? ""
                   : "Không có yêu cầu thay đổi lịch hẹn nào hoặc dữ liệu chưa sẵn sàng.",
               }}
-              pagination={{
-                pageSize: 10,
-                showSizeChanger: true,
-                showTotal: (total) => `Tổng số ${total} yêu cầu`,
-              }}
-              scroll={{ x: 1200 }}
             />
           </Spin>
         </>
@@ -649,25 +666,6 @@ const AppointmentManagement = () => {
 
   return (
     <div style={{ padding: "24px", background: "#f5f5f5", minHeight: "100vh" }}>
-      {/* Header */}
-      <Card
-        style={{
-          marginBottom: 24,
-          borderRadius: 12,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        }}
-      >
-        <Title level={2} style={{ margin: 0, color: "#1890ff" }}>
-          <Space>
-            <CalendarOutlined />
-            Quản lý lịch hẹn điều trị
-          </Space>
-        </Title>
-        <Paragraph type="secondary">
-          Quản lý tất cả lịch hẹn và yêu cầu thay đổi lịch hẹn của bệnh nhân
-        </Paragraph>
-      </Card>
-
       {/* Statistics */}
       <Row gutter={24} style={{ marginBottom: 24 }}>
         <Col span={4}>
