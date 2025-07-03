@@ -161,6 +161,7 @@ const MyServices = () => {
   };
 
   const handleViewTreatmentProgress = (record) => {
+    console.log("👉 [MyServices] Chuyển sang TreatmentProgress với:", record);
     navigate(path.customerTreatment, {
       state: {
         treatmentRecord: record,
@@ -241,7 +242,12 @@ const MyServices = () => {
             e.stopPropagation();
             handleCancelTreatment(record);
           }}
-          disabled={!userId || record.status === "Cancelled"}
+          disabled={!userId || record.status === "CANCELLED"}
+          style={
+            record.status === "CANCELLED"
+              ? { opacity: 0.5, cursor: "not-allowed" }
+              : {}
+          }
         >
           Hủy dịch vụ
         </Button>

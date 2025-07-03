@@ -138,16 +138,9 @@ const DashboardOverview = () => {
     if (!doctorId) return;
     setLoadingToday(true);
 
-    // Lấy ngày hôm nay
-    const today = dayjs().format("YYYY-MM-DD");
-    // Gọi API /api/v1/appointments lấy lịch khám hôm nay
-    treatmentService
-      .getAppointmentsV1({
-        doctorId,
-        date: today,
-        page: 0,
-        size: 10,
-      })
+    // Sử dụng API mới
+    doctorService
+      .getAppointmentsToday(0, 10)
       .then((res) => {
         const data = res?.data?.result?.content || [];
         // Log dữ liệu để debug
@@ -271,11 +264,11 @@ const DashboardOverview = () => {
       },
     },
     {
-      title: "Dịch vụ",
-      key: "serviceName",
+      title: "Mục đích",
+      key: "purpose",
       render: (record) => {
-        // Lấy trường 'step' từ API
-        return <Tag color="purple">{record.step || "Chưa có"}</Tag>;
+        // Lấy trường 'purpose' từ API thay vì 'step'
+        return <Tag color="purple">{record.purpose || "Chưa có"}</Tag>;
       },
     },
   ];
@@ -308,7 +301,7 @@ const DashboardOverview = () => {
           <Card>
             <Statistic
               title="Đánh giá"
-              value={dashboardStats.avgRating}
+              value={dashboardStats.avgRating || 0}
               prefix={<StarFilled style={{ color: "#faad14" }} />}
               valueStyle={{ color: "#faad14" }}
               precision={1}
