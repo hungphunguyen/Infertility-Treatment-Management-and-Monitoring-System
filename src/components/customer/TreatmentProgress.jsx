@@ -966,7 +966,10 @@ const TreatmentProgress = () => {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(path.customerServices)}
+            onClick={() => {
+              setViewMode("list");
+              setTreatmentData(null); // dọn data chi tiết
+            }}
             style={{ border: "none", boxShadow: "none" }}
           />
           <Title level={4} style={{ margin: 0 }}>
