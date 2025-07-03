@@ -36,6 +36,8 @@ const FeedbackManagement = () => {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
+  const [feedbackDetail, setFeedbackDetail] = useState(null);
+
   useEffect(() => {
     authService
       .getMyInfo()
@@ -54,6 +56,15 @@ const FeedbackManagement = () => {
         setTotalPages(res.data.result.totalPages);
         setCurrentPage(page);
       }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getFeedbackDetail = async (id) => {
+    try {
+      const res = await managerService.getFeedbackDetail(id);
+      setFeedbackDetail(res.data.result);
     } catch (error) {
       console.log(error);
     }
@@ -98,9 +109,14 @@ const FeedbackManagement = () => {
         ).toFixed(1)
       : "0.0";
 
-  const openDetailModal = (feedback) => {
-    setSelectedFeedback(feedback);
-    setDetailModalVisible(true);
+  const openDetailModal = async (feedback) => {
+    try {
+      setSelectedFeedback(feedback);
+      await getFeedbackDetail(feedback.id);
+      setDetailModalVisible(true);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const getStatusLabel = (status) => {
@@ -247,82 +263,100 @@ const FeedbackManagement = () => {
         <Modal
           title="Chi tiết phản hồi"
           open={detailModalVisible}
-          onCancel={() => setDetailModalVisible(false)}
-          footer={[
-            // selectedFeedback?.status !== "HIDDEN" && (
-            <>
-              <Button
-                key="hide"
-                style={{
-                  backgroundColor: "#6c757d", // Bootstrap secondary
-                  borderColor: "#6c757d",
-                  color: "#fff",
-                }}
-                onClick={() => openApprovalModal(selectedFeedback.id, "HIDDEN")}
-              >
-                Ẩn
-              </Button>
-              {/* {selectedFeedback?.status === "PENDING" ||
-                selectedFeedback?.status === "REJECTED" ? ( */}
-              <>
-                <Button
-                  key="reject"
-                  danger
-                  onClick={() =>
-                    openApprovalModal(selectedFeedback.id, "REJECTED")
-                  }
-                >
-                  Từ chối
-                </Button>
-                <Button
-                  key="approve"
-                  type="primary"
-                  onClick={() =>
-                    openApprovalModal(selectedFeedback.id, "APPROVED")
-                  }
-                >
-                  Duyệt
-                </Button>
-              </>
-              {/* ) : null} */}
-            </>,
-            // ),
-          ]}
+          onCancel={() => {
+            setDetailModalVisible(false);
+            setFeedbackDetail(null);
+          }}
+          footer={
+            feedbackDetail ? (
+              <Space>
+                {feedbackDetail.status === "PENDING" && (
+                  <>
+                    <Button
+                      danger
+                      onClick={() =>
+                        openApprovalModal(feedbackDetail.id, "REJECTED")
+                      }
+                    >
+                      Từ chối
+                    </Button>
+                    <Button
+                      type="primary"
+                      onClick={() =>
+                        openApprovalModal(feedbackDetail.id, "APPROVED")
+                      }
+                    >
+                      Duyệt
+                    </Button>
+                  </>
+                )}
+
+                {feedbackDetail.status === "APPROVED" && (
+                  <Button
+                    style={{
+                      backgroundColor: "#6c757d",
+                      borderColor: "#6c757d",
+                      color: "#fff",
+                    }}
+                    onClick={() =>
+                      openApprovalModal(feedbackDetail.id, "HIDDEN")
+                    }
+                  >
+                    Ẩn
+                  </Button>
+                )}
+
+                {(feedbackDetail.status === "REJECTED" ||
+                  feedbackDetail.status === "HIDDEN") && (
+                  <Button
+                    type="primary"
+                    onClick={() =>
+                      openApprovalModal(feedbackDetail.id, "APPROVED")
+                    }
+                  >
+                    Duyệt
+                  </Button>
+                )}
+              </Space>
+            ) : null
+          }
         >
-          {selectedFeedback && (
+          {feedbackDetail ? (
             <div className="space-y-3 text-sm">
               <p>
-                <strong>Bệnh nhân:</strong> {selectedFeedback.customerName}
+                <strong>Bệnh nhân:</strong> {feedbackDetail.customerName}
               </p>
               <p>
                 <strong>Bác sĩ:</strong>{" "}
-                {selectedFeedback.doctorFullName || "Không rõ"}
+                {feedbackDetail.doctorName || "Không rõ"}
               </p>
               <p>
                 <strong>Đánh giá:</strong>{" "}
-                <Rate disabled value={selectedFeedback.rating} />
+                <Rate disabled value={feedbackDetail.rating} />
               </p>
               <p>
-                <strong>Bình luận:</strong> {selectedFeedback.comment}
+                <strong>Bình luận:</strong> {feedbackDetail.comment}
               </p>
               <p>
                 <strong>Ngày gửi:</strong>{" "}
-                {selectedFeedback.submitDate
-                  ? dayjs(selectedFeedback.submitDate).format("DD/MM/YYYY")
+                {feedbackDetail.submitDate
+                  ? dayjs(feedbackDetail.submitDate).format("DD/MM/YYYY")
                   : ""}
               </p>
               <p>
                 <strong>Trạng thái:</strong>{" "}
-                {getStatusLabel(selectedFeedback.status)}
+                {getStatusLabel(feedbackDetail.status)}
               </p>
               <p>
-                <strong>Note:</strong> {selectedFeedback.note}
+                <strong>Note:</strong> {feedbackDetail.note}
               </p>
               <p>
                 <strong>Người duyệt:</strong>{" "}
-                {selectedFeedback.approvedBy || "Chưa có"}
+                {feedbackDetail.approvedBy || "Chưa có"}
               </p>
             </div>
+          ) : (
+            <p className="italic text-gray-500">Đang tải chi tiết...</p>
           )}
         </Modal>
 
@@ -352,6 +386,7 @@ const FeedbackManagement = () => {
               showNotification(err.response.data.message, "error");
             } finally {
               setModalVisible(false);
+              setDetailModalVisible(false);
               setLoadingIds((prev) => prev.filter((id) => id !== currentId));
               noteRef.current = "";
             }

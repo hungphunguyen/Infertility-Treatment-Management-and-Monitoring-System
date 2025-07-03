@@ -66,6 +66,8 @@ const FeedbackCustomer = () => {
         const res = await customerService.createFeedback(values);
         await getAllFeedBack();
         showNotification("Gửi phản hồi thành công!", "success");
+        resetForm(); // ✅ Reset lại tất cả value
+        setFeedbackInfo(null);
       } catch (err) {
         console.log(err);
         showNotification(err.response.data.message, "error");
@@ -81,12 +83,13 @@ const FeedbackCustomer = () => {
     touched,
     errors,
     setFieldValue,
+    resetForm,
   } = formik;
 
   useEffect(() => {
+    const id = state?.recordId;
+    if (!id) return;
     const fetchFeedbackInfo = async () => {
-      const id = state?.recordId;
-      if (!id) return;
       try {
         const res = await customerService.getFeedbackInfoToCreate(id);
         const { doctorId, customerId, serviceId, doctorFullName, serviceName } =
@@ -110,6 +113,7 @@ const FeedbackCustomer = () => {
         showNotification(error?.response?.data?.message, "error");
       }
     };
+    fetchFeedbackInfo();
   }, [state, setFieldValue]);
 
   return (

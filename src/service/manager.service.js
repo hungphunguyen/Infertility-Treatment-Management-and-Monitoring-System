@@ -48,6 +48,10 @@ export const managerService = {
     });
   },
 
+  getFeedbackDetail: (id) => {
+    return http.get(`v1/feedbacks/${id}`);
+  },
+
   createWorkScheduleBulk: (payload) => {
     return http.post("v1/work-schedules/bulk-create", payload);
   },
