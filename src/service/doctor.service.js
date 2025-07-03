@@ -42,8 +42,12 @@ export const doctorService = {
   },
 
   // Lấy thông tin bác sĩ public - UPDATED TO V1
-  getInfoDoctor: (id) => {
-    return http.get(`v1/public/doctors/${id}`);
+  getInfoDoctor: (id, isPublic) => {
+    return http.get(`v1/public/doctors/${id}`, {
+      params: {
+        isPublic,
+      },
+    });
   },
 
   // Lấy danh sách bác sĩ cho card - UPDATED TO V1
@@ -138,24 +142,26 @@ export const doctorService = {
   },
 
   // ===== API MỚI CHO DOCTOR DASHBOARD =====
-  
+
   // Lấy lịch làm việc theo tháng - API mới
   getWorkScheduleByMonth: async (yearMonth) => {
     try {
       // Thử API mới trước
       try {
-        const response = await http.get(`v1/dashboard/doctor/work-schedule?yearMonth=${yearMonth}`);
+        const response = await http.get(
+          `v1/dashboard/doctor/work-schedule?yearMonth=${yearMonth}`
+        );
         return response;
       } catch (newApiError) {
-        console.warn('API mới không hoạt động, thử API cũ:', newApiError);
+        console.warn("API mới không hoạt động, thử API cũ:", newApiError);
         // Fallback to old API hoặc trả về dữ liệu mặc định
         return {
           data: {
             result: {
               workShiftsThisMonth: 0,
-              workDays: []
-            }
-          }
+              workDays: [],
+            },
+          },
         };
       }
     } catch (error) {
@@ -172,16 +178,16 @@ export const doctorService = {
         const response = await http.get(`v1/dashboard/doctor/overview`);
         return response;
       } catch (newApiError) {
-        console.warn('API mới không hoạt động, thử API cũ:', newApiError);
+        console.warn("API mới không hoạt động, thử API cũ:", newApiError);
         // Fallback to old API hoặc trả về dữ liệu mặc định
         return {
           data: {
             result: {
               patients: 0,
               avgRating: 0,
-              workShiftsThisMonth: 0
-            }
-          }
+              workShiftsThisMonth: 0,
+            },
+          },
         };
       }
     } catch (error) {
@@ -195,18 +201,20 @@ export const doctorService = {
     try {
       // Thử API mới trước
       try {
-        const response = await http.get(`v1/dashboard/doctor/appointment-today?page=${page}&size=${size}`);
+        const response = await http.get(
+          `v1/dashboard/doctor/appointment-today?page=${page}&size=${size}`
+        );
         return response;
       } catch (newApiError) {
-        console.warn('API mới không hoạt động, thử API cũ:', newApiError);
+        console.warn("API mới không hoạt động, thử API cũ:", newApiError);
         // Fallback to old API hoặc trả về dữ liệu mặc định
         return {
           data: {
             result: {
               content: [],
-              totalElements: 0
-            }
-          }
+              totalElements: 0,
+            },
+          },
         };
       }
     } catch (error) {

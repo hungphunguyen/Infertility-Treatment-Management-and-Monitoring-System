@@ -14,15 +14,23 @@ const ServicesPage = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Hàm lấy danh sách dịch vụ
   const fetchServices = async () => {
     try {
       setLoading(true);
       setError(null);
       // Gọi API mới lấy danh sách dịch vụ public
-      const response = await serviceService.getPublicServices({ page: 0, size: 20 });
-      if (response && response.data && response.data.result && Array.isArray(response.data.result.content)) {
+      const response = await serviceService.getPublicServices({
+        page: 0,
+        size: 20,
+      });
+      if (
+        response &&
+        response.data &&
+        response.data.result &&
+        Array.isArray(response.data.result.content)
+      ) {
         setServices(response.data.result.content);
       } else {
         setServices([]);
@@ -42,7 +50,7 @@ const ServicesPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa]">
+    <div className="min-h-screen bg-orange-50">
       <UserHeader />
 
       {/* Hero Banner */}
@@ -55,13 +63,15 @@ const ServicesPage = () => {
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">Dịch Vụ</h1>
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              Dịch Vụ
+            </h1>
           </div>
         </div>
       </div>
 
       {/* Services Section */}
-      <div className="py-20 bg-white">
+      <div className="py-20 bg-orange-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <Title level={1} className="text-gray-800 mb-2">
@@ -82,16 +92,12 @@ const ServicesPage = () => {
           ) : services.length === 0 ? (
             <div className="text-center py-10">
               <Empty description={error || "Không có dịch vụ nào"} />
-              <Button 
-                onClick={() => fetchServices()} 
-                className="mt-3"
-              >
+              <Button onClick={() => fetchServices()} className="mt-3">
                 Thử lại
               </Button>
             </div>
           ) : (
             <>
-              
               <Row gutter={[32, 64]} className="justify-center">
                 {services.map((service) => (
                   <Col xs={24} md={12} key={service.id}>
@@ -106,15 +112,15 @@ const ServicesPage = () => {
                             src={service.coverImageUrl}
                             alt={service.name}
                             className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-110"
-                            style={{ 
-                              minHeight: '100%', 
-                              minWidth: '100%',
-                              objectFit: 'cover',
-                              objectPosition: 'center'
+                            style={{
+                              minHeight: "100%",
+                              minWidth: "100%",
+                              objectFit: "cover",
+                              objectPosition: "center",
                             }}
                             onError={(e) => {
                               // Nếu hình từ API lỗi, ẩn hình đi
-                              e.target.style.display = 'none';
+                              e.target.style.display = "none";
                             }}
                           />
                         ) : (
@@ -126,14 +132,20 @@ const ServicesPage = () => {
                         )}
                       </div>
                       <div className="p-6">
-                        <h3 className="text-2xl font-bold mb-3 text-gray-800">{service.name}</h3>
+                        <h3 className="text-2xl font-bold mb-3 text-gray-800">
+                          {service.name}
+                        </h3>
                         <p className="text-gray-600 mb-4 line-clamp-3">
-                          {service.description || "Không có mô tả cho dịch vụ này."}
+                          {service.description ||
+                            "Không có mô tả cho dịch vụ này."}
                         </p>
                         <div className="flex justify-between items-center mt-4">
                           {service.price && (
                             <p className="text-[#ff8460] font-medium">
-                              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(service.price)}
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              }).format(service.price)}
                             </p>
                           )}
                           <span className="inline-flex items-center text-[#ff8460] hover:text-[#ff6b40] font-medium">

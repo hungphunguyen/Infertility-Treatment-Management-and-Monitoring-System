@@ -209,7 +209,7 @@ const UserHeader = () => {
   };
   return (
     <header
-      style={{ borderBottom: "1px solid #f2f2f2" }}
+      style={{ borderBottom: "1px solid #f2f2f2", backgroundColor: "#FFF7ED" }}
       className="sticky top-0 bg-white z-50"
     >
       <div className="container mx-auto flex items-center justify-between py-4">
