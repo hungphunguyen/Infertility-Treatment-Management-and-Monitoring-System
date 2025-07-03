@@ -68,20 +68,26 @@ const PatientList = () => {
           treatmentService.getDoctorAppointmentsByDate(doctorId, today),
           treatmentService.getTreatmentRecordsByDoctor(doctorId),
         ]);
-        
+
         // Đảm bảo appointments là array
         let appointments = [];
         if (appointmentsRes?.data?.result) {
           if (Array.isArray(appointmentsRes.data.result)) {
             appointments = appointmentsRes.data.result;
-          } else if (appointmentsRes.data.result.content && Array.isArray(appointmentsRes.data.result.content)) {
+          } else if (
+            appointmentsRes.data.result.content &&
+            Array.isArray(appointmentsRes.data.result.content)
+          ) {
             appointments = appointmentsRes.data.result.content;
           } else {
-            console.warn('Appointments data format không đúng:', appointmentsRes.data.result);
+            console.warn(
+              "Appointments data format không đúng:",
+              appointmentsRes.data.result
+            );
             appointments = [];
           }
         }
-        
+
         // Đảm bảo treatmentRecords là array
         let treatmentRecords = [];
         if (Array.isArray(treatmentRecordsRes)) {
@@ -89,14 +95,17 @@ const PatientList = () => {
         } else if (treatmentRecordsRes?.data?.result) {
           if (Array.isArray(treatmentRecordsRes.data.result)) {
             treatmentRecords = treatmentRecordsRes.data.result;
-          } else if (treatmentRecordsRes.data.result.content && Array.isArray(treatmentRecordsRes.data.result.content)) {
+          } else if (
+            treatmentRecordsRes.data.result.content &&
+            Array.isArray(treatmentRecordsRes.data.result.content)
+          ) {
             treatmentRecords = treatmentRecordsRes.data.result.content;
           }
         }
-        
-        console.log('📅 Appointments:', appointments);
-        console.log('📋 Treatment Records:', treatmentRecords);
-        
+
+        console.log("📅 Appointments:", appointments);
+        console.log("📋 Treatment Records:", treatmentRecords);
+
         // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ
         const filtered = appointments.filter((appt) => {
           return treatmentRecords.some(
@@ -107,8 +116,8 @@ const PatientList = () => {
               record.status !== "CANCELLED"
           );
         });
-        
-        console.log('✅ Filtered patients:', filtered);
+
+        console.log("✅ Filtered patients:", filtered);
         setPatients(filtered);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -154,7 +163,9 @@ const PatientList = () => {
         return;
       }
       // Lấy chi tiết treatment record theo recordId
-      const detailRes = await treatmentService.getTreatmentRecordById(record.recordId);
+      const detailRes = await treatmentService.getTreatmentRecordById(
+        record.recordId
+      );
       const detail = detailRes?.data?.result;
       if (!detail) {
         message.error("Không lấy được chi tiết hồ sơ điều trị!");
@@ -168,7 +179,7 @@ const PatientList = () => {
           },
           treatmentData: detail,
           sourcePage: "patients",
-          appointmentData: record
+          appointmentData: record,
         },
       });
     } catch (error) {
@@ -229,16 +240,13 @@ const PatientList = () => {
       key: "serviceName",
       render: (record) => {
         // Hiển thị dịch vụ theo thứ tự ưu tiên
-        const serviceName = record.purpose || 
-                           record.serviceName || 
-                           record.treatmentServiceName ||
-                           record.treatmentService?.name ||
-                           "Chưa có";
-        return (
-          <Tag color="purple">
-            {serviceName}
-          </Tag>
-        );
+        const serviceName =
+          record.purpose ||
+          record.serviceName ||
+          record.treatmentServiceName ||
+          record.treatmentService?.name ||
+          "Chưa có";
+        return <Tag color="purple">{serviceName}</Tag>;
       },
     },
     {
@@ -300,11 +308,6 @@ const PatientList = () => {
 
       {/* Patient Table */}
       <Card
-        title={
-          <span style={{ fontWeight: 600, fontSize: 20, color: "#1890ff" }}>
-            Danh Sách Bệnh Nhân Hôm Nay
-          </span>
-        }
         style={{
           boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
           borderRadius: 16,

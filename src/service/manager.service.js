@@ -31,8 +31,8 @@ export const managerService = {
     });
   },
 
-  getTreatmentStages: (typeId) => {
-    return http.get(`v1/treatment-stages/${typeId}/find-by-type`);
+  getTreatmentStages: (serviceId) => {
+    return http.get(`v1/treatment-stages/${serviceId}/find-by-service`);
   },
 
   getTreatmentServiceDetail: (id) => {
@@ -56,9 +56,9 @@ export const managerService = {
     return http.post("v1/work-schedules", data);
   },
 
-  createTreatType: (data) => {
-    return http.post("v1/treatment-types", data);
-  },
+  // createTreatType: (data) => {
+  //   return http.post("v1/treatment-types", data);
+  // },
 
   createTreatService: (data) => {
     return http.post("v1/treatment-services", data);

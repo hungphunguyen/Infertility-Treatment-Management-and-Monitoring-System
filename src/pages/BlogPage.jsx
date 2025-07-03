@@ -45,7 +45,7 @@ const BlogPage = () => {
   const blogPosts = data?.pages.flatMap((page) => page.content) || [];
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa]">
+    <div className="min-h-screen bg-orange-50">
       <UserHeader />
       {/* Hero Banner */}
       <div className="relative h-[400px] w-full overflow-hidden mb-0">
@@ -64,7 +64,7 @@ const BlogPage = () => {
         </div>
       </div>
       {/* Blog Content */}
-      <div className="py-20 bg-white">
+      <div className="py-20 bg-orange-50">
         <div className="container mx-auto px-4">
           {blogPosts.length > 0 ? (
             <>

@@ -169,9 +169,11 @@ const LoginForm = ({ switchToRegister }) => {
         <GoogleLogin />
 
         {isResend && (
-          <div className=" text-yellow-300 text-center text-sm">
-            Nếu bạn muốn xác nhận OTP lại, hãy nhấn vào đây.
-          </div>
+          <Link to={path.verify}>
+            <div className="mt-2 px-4 py-2 text-center text-white text-sm font-semibold bg-orange-500 rounded-lg hover:bg-orange-600 transition duration-200">
+              Nếu bạn muốn xác nhận OTP lại, hãy nhấn vào đây
+            </div>
+          </Link>
         )}
       </div>
     </div>

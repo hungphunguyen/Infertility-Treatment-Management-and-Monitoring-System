@@ -48,9 +48,9 @@ const ProfileUpdate = () => {
   useEffect(() => {
     if (!userInfo?.id || role !== "DOCTOR") return;
     const doctorId = userInfo.id;
-    const fetchInfoDoctor = async () => {
+    const fetchInfoDoctor = async (isPublic = false) => {
       try {
-        const res = await doctorService.getInfoDoctor(doctorId);
+        const res = await doctorService.getInfoDoctor(doctorId, isPublic);
         setDoctorInfo(res.data.result);
       } catch (error) {
         console.log(error);

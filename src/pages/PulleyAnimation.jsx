@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import babyImage from "../../public/images/baybySleep.png";
+import babyImage from "../../public/images/babySleep-new.png";
 
 const PulleyAnimation = ({ authMode, onSwitchMode }) => {
   const translateX = authMode === "login" ? "0%" : "-50%";

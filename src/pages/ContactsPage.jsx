@@ -36,7 +36,7 @@ const contactInfo = [
 
 const ContactsPage = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-orange-50">
       <UserHeader />
 
       {/* Hero Banner */}

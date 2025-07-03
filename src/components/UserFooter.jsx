@@ -1,10 +1,20 @@
 import React from "react";
 
 const UserFooter = () => {
+  const openingHours = [
+    { day: "Thứ 2", morning: "8h – 12h", afternoon: "13h – 17h" },
+    { day: "Thứ 3", morning: "8h – 12h", afternoon: "13h – 17h" },
+    { day: "Thứ 4", morning: "8h – 12h", afternoon: "13h – 17h" },
+    { day: "Thứ 5", morning: "8h – 12h", afternoon: "13h – 17h" },
+    { day: "Thứ 6", morning: "8h – 12h", afternoon: "13h – 17h" },
+    { day: "Thứ 7", morning: "8h – 12h", afternoon: "13h – 17h" },
+    { day: "Chủ nhật", morning: "8h – 12h", afternoon: "13h – 17h" },
+  ];
+
   return (
-    <footer className="bg-[#F5F5F5] pt-12 pb-8 border-t border-gray-200">
+    <footer className="bg-orange-50 pt-12 pb-8 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 items-start">
           {/* Logo & Description */}
           <div className="flex flex-col">
             <div className="flex items-center gap-3 mb-4">
@@ -64,6 +74,27 @@ const UserFooter = () => {
           </div>
 
           {/* Opening Hours */}
+          <div className="flex flex-col items-center text-sm">
+            <h3 className="font-bold text-gray-700 mb-4 text-center">
+              Lịch làm việc
+            </h3>
+
+            {openingHours.map((item) => (
+              <div key={item.day} className="mb-2 flex items-center gap-3">
+                <div className="w-20 text-right font-semibold text-gray-800">
+                  {item.day}
+                </div>
+                <div className="flex gap-2 text-xs">
+                  <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-md">
+                    {item.morning}
+                  </span>
+                  <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md">
+                    {item.afternoon}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Bottom section */}

@@ -28,7 +28,11 @@ export const authService = {
     return http.post("v1/auth/password/reset", data); // reset password với OTP
   },
   resendOtp: (data) => {
-    return http.post("v1/auth/otp/resend", data); // resend OTP
+    return http.post("v1/auth/otp/resend", data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }); // resend OTP
   },
   checkIntrospect: (data) => {
     return http.post("v1/auth/introspect", data, {

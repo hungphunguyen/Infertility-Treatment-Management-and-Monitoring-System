@@ -24,7 +24,7 @@ const VerifyPage = () => {
           .then((res) => {
             showNotification("OTP xác nhận thành công", "success");
             setTimeout(() => {
-              navigate("/sign-in");
+              navigate("/dang-nhap");
               localStorage.clear();
               window.location.reload();
             }, 1000);
@@ -37,6 +37,20 @@ const VerifyPage = () => {
         otp: yup.string().required("Vui lòng không để trống"),
       }),
     });
+
+  const resendOtp = async () => {
+    if (!infoUser) {
+      return;
+    }
+    try {
+      const res = await authService.resendOtp(infoUser.email);
+      showNotification("Đã gửi lại mã đến Email của bạn", "success");
+      console.log(res);
+    } catch (error) {
+      console.log(error);
+      showNotification(error.response.data.message, "error");
+    }
+  };
 
   return (
     <div>
@@ -70,9 +84,12 @@ const VerifyPage = () => {
             Xác nhận code
           </button>
 
-          <p className="text-center text-sm mt-4 text-blue-500 cursor-pointer hover:underline">
+          <button
+            className="text-center text-sm mt-4 text-blue-500 cursor-pointer hover:underline"
+            onClick={resendOtp}
+          >
             Gửi lại code
-          </p>
+          </button>
         </form>
       </div>
     </div>

@@ -32,8 +32,8 @@ import { managerService } from "../../service/manager.service";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { doctorService } from "../../service/doctor.service";
-import 'dayjs/locale/vi';
-dayjs.locale('vi');
+import "dayjs/locale/vi";
+dayjs.locale("vi");
 
 const { Title, Text } = Typography;
 const shiftMap = {
@@ -97,7 +97,7 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingSchedule(true);
-    
+
     // Thử API mới trước
     doctorService
       .getWorkScheduleByMonth(selectedMonth)
@@ -105,7 +105,7 @@ const DashboardOverview = () => {
         if (res.data && res.data.result) {
           // Chuyển đổi format từ API mới sang format cũ
           const schedules = {};
-          res.data.result.forEach(item => {
+          res.data.result.forEach((item) => {
             schedules[item.workDate] = item.shift;
           });
           setSchedule(schedules);
@@ -114,7 +114,7 @@ const DashboardOverview = () => {
         }
       })
       .catch((err) => {
-        console.warn('API mới không hoạt động, thử API cũ:', err);
+        console.warn("API mới không hoạt động, thử API cũ:", err);
         // Fallback to old API
         managerService
           .getWorkScheduleYear(selectedMonth, doctorId)
@@ -137,39 +137,31 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingToday(true);
-    
-    // Thử API mới trước
-    doctorService
-      .getAppointmentsToday(0, 10)
+
+    // Lấy ngày hôm nay
+    const today = dayjs().format("YYYY-MM-DD");
+    // Gọi API /api/v1/appointments lấy lịch khám hôm nay
+    treatmentService
+      .getAppointmentsV1({
+        doctorId,
+        date: today,
+        page: 0,
+        size: 10,
+      })
       .then((res) => {
-        if (res?.data?.result?.content) {
-          setTodayAppointments(res.data.result.content);
-        } else {
-          setTodayAppointments([]);
-        }
+        const data = res?.data?.result?.content || [];
+        // Log dữ liệu để debug
+        console.log("[Lịch Khám Hôm Nay] todayAppointments:", data);
+        setTodayAppointments(data);
       })
-      .catch((err) => {
-        console.warn('API mới không hoạt động, thử API cũ:', err);
-        // Fallback to old API
-        const today = dayjs().format("YYYY-MM-DD");
-        treatmentService
-          .getDoctorAppointmentsByDate(doctorId, today)
-          .then((res) => {
-            if (res?.data?.result) {
-              setTodayAppointments(res.data.result);
-            } else {
-              setTodayAppointments([]);
-            }
-          })
-          .catch(() => setTodayAppointments([]));
-      })
+      .catch(() => setTodayAppointments([]))
       .finally(() => setLoadingToday(false));
   }, [doctorId]);
 
   // Lấy dashboard statics
   useEffect(() => {
     if (!doctorId) return;
-    
+
     // Thử API mới trước
     doctorService
       .getDashboardOverview()
@@ -179,7 +171,7 @@ const DashboardOverview = () => {
         }
       })
       .catch((err) => {
-        console.warn('API mới không hoạt động, thử API cũ:', err);
+        console.warn("API mới không hoạt động, thử API cũ:", err);
         // Fallback to old API
         doctorService
           .getDashboardStatics(doctorId)
@@ -189,7 +181,11 @@ const DashboardOverview = () => {
             }
           })
           .catch(() =>
-            setDashboardStats({ workShiftsThisMonth: 0, patients: 0, avgRating: 0 })
+            setDashboardStats({
+              workShiftsThisMonth: 0,
+              patients: 0,
+              avgRating: 0,
+            })
           );
       });
   }, [doctorId]);
@@ -247,10 +243,14 @@ const DashboardOverview = () => {
       render: (shift) => {
         const shiftColorMap = {
           MORNING: "blue",
-          AFTERNOON: "orange", 
-          FULL_DAY: "purple"
+          AFTERNOON: "orange",
+          FULL_DAY: "purple",
         };
-        return <Tag color={shiftColorMap[shift] || "default"}>{shiftMap[shift]?.text || shift}</Tag>;
+        return (
+          <Tag color={shiftColorMap[shift] || "default"}>
+            {shiftMap[shift]?.text || shift}
+          </Tag>
+        );
       },
     },
     {
@@ -272,8 +272,11 @@ const DashboardOverview = () => {
     },
     {
       title: "Dịch vụ",
-      dataIndex: "serviceName",
       key: "serviceName",
+      render: (record) => {
+        // Lấy trường 'step' từ API
+        return <Tag color="purple">{record.step || "Chưa có"}</Tag>;
+      },
     },
   ];
 
@@ -342,20 +345,30 @@ const DashboardOverview = () => {
         <Col xs={24} lg={12}>
           <Card
             title={
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 8,
+                }}
+              >
                 <Space>
                   <MedicineBoxOutlined />
                   <span>Lịch Làm Việc</span>
                 </Space>
-                <div style={{
-                  background: '#faf6ff',
-                  border: '1.5px solid #b37feb',
-                  borderRadius: 8,
-                  padding: '4px 12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  minWidth: 150
-                }}>
+                <div
+                  style={{
+                    background: "#faf6ff",
+                    border: "1.5px solid #b37feb",
+                    borderRadius: 8,
+                    padding: "4px 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    minWidth: 150,
+                  }}
+                >
                   <DatePicker
                     picker="month"
                     value={dayjs(selectedMonth + "-01")}
@@ -363,7 +376,13 @@ const DashboardOverview = () => {
                     allowClear={false}
                     format="[Tháng] MM/YYYY"
                     size="middle"
-                    style={{ fontWeight: 600, fontSize: 16, minWidth: 120, background: 'transparent', border: 'none' }}
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 16,
+                      minWidth: 120,
+                      background: "transparent",
+                      border: "none",
+                    }}
                     classNames={{ popup: { root: "ant-picker-dropdown-vi" } }}
                   />
                 </div>

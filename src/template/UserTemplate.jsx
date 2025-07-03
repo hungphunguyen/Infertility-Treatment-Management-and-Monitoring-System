@@ -115,7 +115,7 @@ const UserTemplate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa]">
+    <div className="min-h-screen bg-orange-50">
       <UserHeader />
 
       {/* Hero Slider */}
@@ -252,7 +252,7 @@ const UserTemplate = () => {
       </div>
 
       {/* About Center Section */}
-      <div className="py-20 bg-gray-50">
+      <div className="py-20">
         <div className="container mx-auto px-4">
           <Row gutter={[48, 48]} className="items-center">
             <Col xs={24} md={12}>
@@ -323,7 +323,7 @@ const UserTemplate = () => {
       </div>
 
       {/* Our Doctors */}
-      <div className="py-20 bg-[#c2da5c]">
+      <div className="py-20 bg-orange-200">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">

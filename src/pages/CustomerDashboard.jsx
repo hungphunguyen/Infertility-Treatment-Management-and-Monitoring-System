@@ -26,7 +26,7 @@ const CustomerDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedMenuItem, setSelectedMenuItem] = useState("profile");
+  const [selectedMenuItem, setSelectedMenuItem] = useState("service");
   const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
   const [infoUser, setInfoUser] = useState();
@@ -103,11 +103,11 @@ const CustomerDashboard = () => {
       setSelectedMenuItem("payment");
     } else {
       // Default to profile if no match
-      setSelectedMenuItem("profile");
+      setSelectedMenuItem("services");
       // Redirect to profile if at the root customer dashboard
-      if (pathname === "/customer") {
-        navigate(path.customerProfile);
-      }
+      // if (pathname === "/customer") {
+      //   navigate(path.customerProfile);
+      // }
     }
   }, [location, navigate]);
 
@@ -193,7 +193,7 @@ const CustomerDashboard = () => {
           }}
         >
           <Routes>
-            <Route index element={<ProfileOverview />} />
+            <Route index element={<MyServices />} />
             <Route path="profile" element={<ProfileOverview />} />
             <Route path="services" element={<MyServices />} />
             <Route path="appointments" element={<AppointmentSchedule />} />

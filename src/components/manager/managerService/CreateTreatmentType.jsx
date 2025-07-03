@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import { NotificationContext } from "../../../App";
 import { Link, useNavigate } from "react-router-dom";
 import { path } from "../../../common/path";
+import * as yup from "yup";
 
 const CreateTreatmentType = ({ defaultValues, onNext }) => {
   const { showNotification } = useContext(NotificationContext);
@@ -24,6 +25,25 @@ const CreateTreatmentType = ({ defaultValues, onNext }) => {
     onSubmit: (values) => {
       onNext(values);
     },
+    validationSchema: yup.object({
+      name: yup
+        .string()
+        .trim("Vui lòng không để trống hoặc khoảng trắng")
+        .required("Vui lòng không để trống hoặc khoảng trắng"),
+      description: yup
+        .string()
+        .trim("Vui lòng không để trống hoặc khoảng trắng")
+        .required("Vui lòng không để trống hoặc khoảng trắng"),
+      price: yup
+        .string()
+        .trim("Vui lòng không để trống hoặc khoảng trắng")
+        .required("Vui lòng không để trống hoặc khoảng trắng"),
+
+      duration: yup
+        .string()
+        .trim("Vui lòng không để trống hoặc khoảng trắng")
+        .required("Vui lòng không để trống hoặc khoảng trắng"),
+    }),
   });
 
   useEffect(() => {
@@ -33,6 +53,8 @@ const CreateTreatmentType = ({ defaultValues, onNext }) => {
         setValues({
           name: selected.name,
           description: selected.description,
+          price: selected.price,
+          duration: selected.duration,
         });
       }
     }
@@ -42,7 +64,7 @@ const CreateTreatmentType = ({ defaultValues, onNext }) => {
     <div className="">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded px-10 py-8 mt-10">
         <h2 className="text-2xl font-bold mb-8 text-center">
-          Tạo phương pháp điều trị
+          Tạo dịch vụ điều trị
         </h2>
         <form className="space-y-5" onSubmit={handleSubmit}>
           <InputCustom
@@ -66,6 +88,30 @@ const CreateTreatmentType = ({ defaultValues, onNext }) => {
             onBlur={handleBlur}
           />
 
+          <InputCustom
+            labelContent="Giá tiền"
+            name="price"
+            placeholder="Nhập giá tiền"
+            typeInput="number"
+            value={values.price}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.price}
+            touched={touched.price}
+          />
+
+          <InputCustom
+            labelContent="Thời gian điều trị của dịch vụ"
+            name="duration"
+            placeholder="Nhập thời gian (tháng)"
+            typeInput="number"
+            value={values.duration}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.duration}
+            touched={touched.duration}
+          />
+
           <div>
             <button
               type="submit"
@@ -73,12 +119,6 @@ const CreateTreatmentType = ({ defaultValues, onNext }) => {
             >
               Tiếp tục
             </button>
-            <Link
-              to={path.managerServices}
-              className="text-blue-500 hover:underline duration-300"
-            >
-              Trở lại trang dịch vụ
-            </Link>
           </div>
         </form>
       </div>

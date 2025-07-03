@@ -52,7 +52,7 @@ const OurStaffPage = () => {
     navigate(path.doctorDetail.replace(":id", doctorId));
   };
   return (
-    <div className="w-full min-h-screen bg-[#f7f8fa]">
+    <div className="w-full min-h-screen bg-orange-50">
       <UserHeader />
       {/* Hero Banner */}
       <div className="relative h-[400px] w-full overflow-hidden mb-0">
