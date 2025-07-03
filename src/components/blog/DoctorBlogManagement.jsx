@@ -12,7 +12,6 @@ import {
   Form,
   Image,
   Avatar,
-  message,
   Popconfirm,
 } from "antd";
 import {
@@ -29,7 +28,6 @@ import { blogService } from "../../service/blog.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
-import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option } = Select;

@@ -230,7 +230,7 @@ const ScheduleManagement = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <div>
-            <label className="block font-semibold mb-1">🗓️ Chọn tháng:</label>
+            <label className="block font-semibold mb-1">Chọn tháng:</label>
             <input
               type="month"
               className="border rounded px-3 py-2 h-[40px] w-full text-sm"
@@ -240,7 +240,7 @@ const ScheduleManagement = () => {
           </div>
 
           <div>
-            <label className="block font-semibold mb-1">👨‍⚕️ Chọn bác sĩ:</label>
+            <label className="block font-semibold mb-1">Chọn bác sĩ:</label>
             <Select
               showSearch
               placeholder="Chọn bác sĩ"

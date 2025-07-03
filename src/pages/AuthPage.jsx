@@ -48,7 +48,6 @@ const AuthPage = () => {
                   setAuthMode(authMode === "login" ? "register" : "login")
                 }
               />
-              {/* <FormSection authMode={authMode} /> */}
             </motion.div>
 
             {/* LoginForm - trượt trái */}

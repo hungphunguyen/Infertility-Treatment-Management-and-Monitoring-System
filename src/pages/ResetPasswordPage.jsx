@@ -29,62 +29,69 @@ const ResetPasswordPage = () => {
     }
   }, [location.state, navigate, showNotification]);
 
-  const { handleSubmit, handleChange, values, errors, touched, handleBlur, isSubmitting } =
-    useFormik({
-      initialValues: {
-        otp: "",
-        password: "",
-        confirmPassword: "",
-      },
-      onSubmit: async (values, { setSubmitting }) => {
-        try {
-          console.log("Sending reset password request:", {
-            email,
-            otp: values.otp,
-            password: values.password
+  const {
+    handleSubmit,
+    handleChange,
+    values,
+    errors,
+    touched,
+    handleBlur,
+    isSubmitting,
+  } = useFormik({
+    initialValues: {
+      otp: "",
+      password: "",
+      confirmPassword: "",
+    },
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        console.log("Sending reset password request:", {
+          email,
+          otp: values.otp,
+          password: values.password,
+        });
+        const resetData = {
+          email: email,
+          otp: values.otp,
+          password: values.password,
+        };
+        const response = await authService.resetPassword(resetData);
+        showNotification("Đặt lại mật khẩu thành công!", "success");
+        setTimeout(() => {
+          navigate(path.testLogin, {
+            state: {
+              username: email, // Sử dụng email đầy đủ thay vì chỉ phần username
+              message:
+                "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới.",
+            },
           });
-          const resetData = {
-            email: email,
-            otp: values.otp,
-            password: values.password
-          };
-          const response = await authService.resetPassword(resetData);
-          showNotification("Đặt lại mật khẩu thành công!", "success");
-          setTimeout(() => {
-            navigate(path.signIn, {
-              state: { 
-                username: email, // Sử dụng email đầy đủ thay vì chỉ phần username
-                message: "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập với mật khẩu mới."
-              }
-            });
-          }, 1500);
-          
-        } catch (error) {
-          console.log("Reset password error:", error);
-          showNotification(
-            error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!", 
-            "error"
-          );
-        } finally {
-          setSubmitting(false);
-        }
-      },
-      validationSchema: yup.object({
-        otp: yup
-          .string()
-          .required("Vui lòng nhập mã OTP")
-          .length(6, "Mã OTP phải có 6 số"),
-        password: yup
-          .string()
-          .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
-          .max(20, "Mật khẩu không được quá 20 ký tự")
-          .required("Vui lòng nhập mật khẩu mới"),
-        confirmPassword: yup
-          .string()
-          .oneOf([yup.ref('password'), null], "Mật khẩu xác nhận không khớp")
-          .required("Vui lòng xác nhận mật khẩu"),
-      }),
-    });
+        }, 1500);
+      } catch (error) {
+        console.log("Reset password error:", error);
+        showNotification(
+          error.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại!",
+          "error"
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    validationSchema: yup.object({
+      otp: yup
+        .string()
+        .required("Vui lòng nhập mã OTP")
+        .length(6, "Mã OTP phải có 6 số"),
+      password: yup
+        .string()
+        .min(8, "Mật khẩu phải có ít nhất 8 ký tự")
+        .max(20, "Mật khẩu không được quá 20 ký tự")
+        .required("Vui lòng nhập mật khẩu mới"),
+      confirmPassword: yup
+        .string()
+        .oneOf([yup.ref("password"), null], "Mật khẩu xác nhận không khớp")
+        .required("Vui lòng xác nhận mật khẩu"),
+    }),
+  });
 
   const handleResendOTP = async () => {
     try {
@@ -106,11 +113,14 @@ const ResetPasswordPage = () => {
           <div className="loginPage_img w-1/2">{View}</div>
           <div className="loginPage_form w-1/2">
             <form className="space-y-5" onSubmit={handleSubmit}>
-              <h1 className="text-center text-4xl font-medium">ĐẶT LẠI MẬT KHẨU</h1>
+              <h1 className="text-center text-4xl font-medium">
+                ĐẶT LẠI MẬT KHẨU
+              </h1>
               <p className="text-center text-gray-600 mb-6">
-                Mã OTP đã được gửi đến: <span className="font-semibold">{email}</span>
+                Mã OTP đã được gửi đến:{" "}
+                <span className="font-semibold">{email}</span>
               </p>
-              
+
               {/* OTP */}
               <InputCustom
                 name={"otp"}
@@ -156,14 +166,14 @@ const ResetPasswordPage = () => {
                   type="submit"
                   disabled={isSubmitting}
                   className={`inline-block w-full py-2 px-5 rounded-md text-white ${
-                    isSubmitting 
-                      ? "bg-gray-400 cursor-not-allowed" 
+                    isSubmitting
+                      ? "bg-gray-400 cursor-not-allowed"
                       : "bg-[#ff8460] hover:bg-[#ff6b40]"
                   } transition duration-300`}
                 >
                   {isSubmitting ? "Đang xử lý..." : "Đặt lại mật khẩu"}
                 </button>
-                
+
                 <div className="mt-4 text-center space-y-2">
                   <button
                     type="button"
@@ -172,7 +182,7 @@ const ResetPasswordPage = () => {
                   >
                     Gửi lại mã OTP
                   </button>
-                  
+
                   <div>
                     <Link
                       to={path.forgotPassword}
@@ -191,4 +201,4 @@ const ResetPasswordPage = () => {
   );
 };
 
-export default ResetPasswordPage; 
+export default ResetPasswordPage;

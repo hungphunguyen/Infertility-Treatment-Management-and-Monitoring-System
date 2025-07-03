@@ -27,7 +27,7 @@ const ResendOtpPage = () => {
             await authService.verify(values);
             showNotification("OTP Kiểm tra thành công", "success");
             setTimeout(() => {
-              navigate("/sign-in");
+              navigate("/dang-nhap");
               window.location.reload();
             }, 1000);
           }

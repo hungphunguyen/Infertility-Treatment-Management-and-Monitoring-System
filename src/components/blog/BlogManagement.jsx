@@ -26,10 +26,8 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { blogService } from "../../service/blog.service";
-import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
-import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option = Select.Option } = Select;
@@ -56,12 +54,10 @@ const BlogManagement = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalType, setModalType] = useState(""); // create, edit, view
   const [form] = Form.useForm();
-  const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
   const [currentUser, setCurrentUser] = useState(null);
   const [isActionModalVisible, setIsActionModalVisible] = useState(false);
   const [actionType, setActionType] = useState(""); // approve, reject
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBlogs();
@@ -70,16 +66,14 @@ const BlogManagement = () => {
   useEffect(() => {
     const loadUserInfo = async () => {
       try {
-        if (token?.token) {
-          const response = await authService.getMyInfo(token.token);
-          setCurrentUser(response.data.result);
-        }
+        const response = await authService.getMyInfo();
+        setCurrentUser(response.data.result);
       } catch (error) {
         showNotification("Không thể tải thông tin người dùng", "error");
       }
     };
     loadUserInfo();
-  }, [token, showNotification]);
+  }, [showNotification]);
 
   const fetchBlogs = async (page = 0) => {
     try {
@@ -148,25 +142,6 @@ const BlogManagement = () => {
     } else {
       return <Tag>Không xác định</Tag>;
     }
-  };
-
-  const createBlog = () => {
-    setSelectedBlog(null);
-    setModalType("create");
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const editBlog = (blog) => {
-    setSelectedBlog(blog);
-    setModalType("edit");
-    form.setFieldsValue({
-      title: blog.title,
-      content: blog.content,
-      sourceReference: blog.sourceReference,
-      featured: blog.featured || false,
-    });
-    setIsModalVisible(true);
   };
 
   const viewBlog = (blog) => {
@@ -379,7 +354,6 @@ const BlogManagement = () => {
       render: (text, record) => (
         <span
           className="font-medium cursor-pointer text-blue-600 hover:underline"
-          onClick={() => navigate(`/blog-detail/${record.id}`)}
         >
           {text}
         </span>
