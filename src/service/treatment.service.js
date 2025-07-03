@@ -237,73 +237,25 @@ export const treatmentService = {
   },
 
   updateTreatmentStatus: async (recordId, status) => {
+    // Thử API mới với query params
     try {
-      console.log("🔍 Updating treatment status:", { recordId, status });
-
-      // Thử API mới trước
-      try {
-        const response = await http.put(
-          `v1/treatment-records/${recordId}/status`,
-          { status },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
-        console.log("✅ API mới thành công:", response);
-        return response;
-      } catch (newApiError) {
-        console.warn(
-          "❌ API mới không hoạt động, thử format khác:",
-          newApiError.response?.data
-        );
-
-        // Thử API mới với query params
-        try {
-          const response = await http.put(
-            `v1/treatment-records/${recordId}/status?status=${status}`,
-            null,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-            }
-          );
-          console.log("✅ API mới với query params thành công:", response);
-          return response;
-        } catch (queryError) {
-          console.warn(
-            "❌ API mới với query params cũng không hoạt động:",
-            queryError.response?.data
-          );
-
-          // Thử API mới với body khác
-          try {
-            const response = await http.put(
-              `v1/treatment-records/${recordId}/status`,
-              {
-                recordId: recordId,
-                status: status,
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Accept: "application/json",
-                },
-              }
-            );
-            console.log("✅ API mới với body khác thành công:", response);
-            return response;
-          } catch (bodyError) {}
+      const response = await http.put(
+        `v1/treatment-records/${recordId}/status?status=${status}`,
+        null,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
         }
-      }
-    } catch (error) {
-      console.error("❌ Error updating treatment status:", error);
-      console.error("❌ Error response:", error.response?.data);
-      throw error;
+      );
+      console.log("✅ API mới với query params thành công:", response);
+      return response;
+    } catch (queryError) {
+      console.warn(
+        "❌ API mới với query params cũng không hoạt động:",
+        queryError.response?.data
+      );
     }
   },
 
@@ -628,7 +580,9 @@ export const treatmentService = {
   // Đổi dịch vụ điều trị cho treatment record (API mới)
   updateTreatmentRecordService: async (recordId, serviceId) => {
     try {
-      const response = await http.put(`v1/treatment-records/${recordId}`, { serviceId });
+      const response = await http.put(`v1/treatment-records/${recordId}`, {
+        serviceId,
+      });
       return response;
     } catch (error) {
       console.error("Error updating treatment record service:", error);
@@ -639,7 +593,9 @@ export const treatmentService = {
   // Lấy danh sách stage theo serviceId (API mới)
   getStagesByServiceId: async (serviceId) => {
     try {
-      const response = await http.get(`v1/treatment-stages/${serviceId}/find-by-service`);
+      const response = await http.get(
+        `v1/treatment-stages/${serviceId}/find-by-service`
+      );
       return response;
     } catch (error) {
       console.error("Error fetching stages by serviceId:", error);
@@ -661,7 +617,9 @@ export const treatmentService = {
   // Lấy danh sách stage cho select khi tạo bước điều trị
   getSelectableStagesByServiceId: async (serviceId) => {
     try {
-      const response = await http.get(`v1/treatment-stages/${serviceId}/select`);
+      const response = await http.get(
+        `v1/treatment-stages/${serviceId}/select`
+      );
       return response;
     } catch (error) {
       console.error("Error fetching selectable stages by serviceId:", error);

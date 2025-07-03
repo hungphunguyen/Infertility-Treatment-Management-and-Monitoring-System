@@ -51,6 +51,8 @@ const PaymentPage = () => {
             if (code === 1000 && result === true) {
               showNotification("Đã thanh toán thành công", "success");
               setShowModal(false);
+              sessionStorage.clear();
+              fetchPaymentInfo();
               setQrCodeUrl("");
               setSelectedTreatment(null);
               clearInterval(intervalRef.current);

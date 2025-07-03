@@ -48,13 +48,26 @@ const ProfileUpdate = () => {
   useEffect(() => {
     if (!userInfo?.id || role !== "DOCTOR") return;
     const doctorId = userInfo.id;
-    const fetchInfoDoctor = async (isPublic = false) => {
-      try {
-        const res = await doctorService.getInfoDoctor(doctorId, isPublic);
-        setDoctorInfo(res.data.result);
-      } catch (error) {
-        console.log(error);
-        showNotification("Không thể lấy thông tin người dùng", "error");
+    const fetchInfoDoctor = async (isPublic) => {
+      if (!userInfo.phoneNumber) {
+        try {
+          const res = await doctorService.getInfoDoctor(
+            doctorId,
+            (isPublic = false)
+          );
+          setDoctorInfo(res.data.result);
+        } catch (error) {
+          console.log(error);
+          showNotification("Không thể lấy thông tin người dùng", "error");
+        }
+      } else {
+        try {
+          const res = await doctorService.getInfoDoctor(doctorId, isPublic);
+          setDoctorInfo(res.data.result);
+        } catch (error) {
+          console.log(error);
+          showNotification("Không thể lấy thông tin người dùng", "error");
+        }
       }
     };
     fetchInfoDoctor();
