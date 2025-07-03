@@ -455,12 +455,9 @@ const RegisterService = () => {
 
   // Modify existing handlers to check availability
   const onDateChange = (date) => {
-    const shift = form.getFieldValue("shift");
-    if (date && shift) {
-      checkDoctorAvailability(date, shift);
-    } else {
-      fetchDoctors();
-    }
+    // KHÔNG reset shift về null nữa để giữ lại buổi khám đã chọn
+    setCalendarRerender(prev => prev + 1);
+    // Nếu muốn kiểm tra lại bác sĩ, có thể gọi lại fetchDoctors hoặc checkDoctorAvailability nếu muốn
   };
 
   const onShiftChange = (value) => {
@@ -483,16 +480,6 @@ const RegisterService = () => {
       return;
     }
 
-    // Nếu đã chọn ngày và ca thì không hiển thị lịch làm việc nữa
-    const appointmentDate = form.getFieldValue("appointmentDate");
-    const shift = form.getFieldValue("shift");
-    if (appointmentDate && shift) {
-      setShowDoctorSchedule(false);
-      setDoctorSchedule(null);
-      return;
-    }
-
-    // Nếu chưa chọn đủ ngày và ca thì mới hiển thị lịch làm việc
     setScheduleLoading(true);
     setDoctorSchedule(null);
     setShowDoctorSchedule(false);
