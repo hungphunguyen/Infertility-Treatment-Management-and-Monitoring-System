@@ -137,10 +137,58 @@ const RegisterService = () => {
   const [roleChecked, setRoleChecked] = useState(false);
 
   // Thêm state ở đầu component:
-  const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
+  const [calendarRerender, setCalendarRerender] = useState(0);
 
-  // Thêm state để đảm bảo chỉ hiện thông báo một lần
-  const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
+  // Hàm renderCalendarTable dùng chung, style đồng bộ tuyệt đối
+  const renderCalendarTable = ({ calendar, renderCell, tableHeader }) => (
+    <table
+      style={{
+        width: "100%",
+        minWidth: 700,
+        tableLayout: "fixed",
+        borderCollapse: "separate",
+        borderSpacing: 4,
+        height: 480,
+        fontFamily: 'inherit',
+        fontSize: 14,
+        background: "#fff",
+        borderRadius: 16,
+        overflow: "hidden"
+      }}
+    >
+      <thead>
+        <tr>
+          {tableHeader.map((header, idx) => (
+            <th
+              key={idx}
+              style={{
+                border: "none",
+                padding: 12,
+                background: "#f0f8ff",
+                textAlign: "center",
+                fontWeight: 700,
+                fontSize: 14,
+                color: "#1890ff",
+                borderRadius: 8,
+                width: `${100 / 7}%`,
+                minWidth: 80,
+                maxWidth: 120
+              }}
+            >
+              {header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {calendar.map((week, weekIndex) => (
+          <tr key={weekIndex}>
+            {week.map((cell, dayIndex) => renderCell(cell, dayIndex, weekIndex))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 
   // Add more aggressive DOM cleanup on mount and for every render
   useEffect(() => {
@@ -472,6 +520,7 @@ const RegisterService = () => {
       appointmentDate: dayjs(date),
       shift: shift.toLowerCase(),
     });
+    setCalendarRerender(prev => prev + 1);
     setTimeout(() => {
       document.getElementById("appointment-section")?.scrollIntoView({
         behavior: "smooth",
@@ -659,6 +708,12 @@ const RegisterService = () => {
       }
     }
   }, [token, navigate, showNotification, roleChecked]);
+
+  // Thêm state ở đầu component:
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().month());
+
+  // Thêm state để đảm bảo chỉ hiện thông báo một lần
+  const [showDoctorSchedule, setShowDoctorSchedule] = useState(false);
 
   return (
     <div className="min-h-screen">
