@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
+import { doctorService } from "../../service/doctor.service";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -35,6 +36,7 @@ const PatientList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [doctorId, setDoctorId] = useState("");
   const [doctorName, setDoctorName] = useState("");
+  const [purposeData, setPurposeData] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,11 +65,16 @@ const PatientList = () => {
       try {
         setLoading(true);
         const today = dayjs().format("YYYY-MM-DD");
-        // Gọi song song 2 API
-        const [appointmentsRes, treatmentRecordsRes] = await Promise.all([
-          treatmentService.getDoctorAppointmentsByDate(doctorId, today),
-          treatmentService.getTreatmentRecordsByDoctor(doctorId),
-        ]);
+
+        // Gọi song song 3 API: appointments, treatment records, và purpose data
+        const [appointmentsRes, treatmentRecordsRes, purposeRes] =
+          await Promise.all([
+            treatmentService.getDoctorAppointmentsByDate(doctorId, today),
+            treatmentService.getTreatmentRecordsByDoctor(doctorId),
+            doctorService
+              .getAppointmentsToday(0, 100)
+              .catch(() => ({ data: { result: { content: [] } } })),
+          ]);
 
         // Đảm bảo appointments là array
         let appointments = [];
@@ -103,8 +110,19 @@ const PatientList = () => {
           }
         }
 
+        // Xử lý purpose data từ API mới
+        const purposeList = purposeRes?.data?.result?.content || [];
+        const purposeMap = {};
+        purposeList.forEach((item) => {
+          if (item.customerName && item.purpose) {
+            purposeMap[item.customerName] = item.purpose;
+          }
+        });
+        setPurposeData(purposeMap);
+
         console.log("📅 Appointments:", appointments);
         console.log("📋 Treatment Records:", treatmentRecords);
+        console.log("🎯 Purpose Data:", purposeMap);
 
         // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ
         const filtered = appointments.filter((appt) => {
@@ -236,10 +254,16 @@ const PatientList = () => {
       render: (record) => getStatusTag(record.status),
     },
     {
-      title: "Dịch vụ",
+      title: "Mục đích",
       key: "serviceName",
       render: (record) => {
-        // Hiển thị dịch vụ theo thứ tự ưu tiên
+        // Ưu tiên lấy purpose từ API mới
+        const purpose = purposeData[record.customerName];
+        if (purpose) {
+          return <Tag color="purple">{purpose}</Tag>;
+        }
+
+        // Fallback về logic cũ nếu không có purpose từ API mới
         const serviceName =
           record.purpose ||
           record.serviceName ||
@@ -365,7 +389,7 @@ const PatientList = () => {
             <Descriptions.Item label="Bác sĩ">
               {selectedPatient.doctorName}
             </Descriptions.Item>
-            <Descriptions.Item label="Dịch vụ">
+            <Descriptions.Item label="Mục đích">
               {selectedPatient.serviceName || "Chưa có"}
             </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">

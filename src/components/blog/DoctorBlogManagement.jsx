@@ -204,19 +204,6 @@ const DoctorBlogManagement = () => {
     setModalType("");
   };
 
-  const handleDeleteBlog = async (blogId) => {
-    setActionLoading(true);
-    try {
-      await blogService.deleteBlog(blogId, token.token);
-      showNotification("Bài viết đã được xóa!", "success");
-      fetchMyBlogs(currentUser.id);
-    } catch (error) {
-      showNotification("Xóa bài viết thất bại", "error");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleSubmit = async (values) => {
     setActionLoading(true);
     try {
@@ -264,7 +251,7 @@ const DoctorBlogManagement = () => {
       }
     } catch (error) {
       console.error("Lỗi khi xử lý bài viết:", error);
-      showNotification("Xử lý bài viết thất bại", "error");
+      showNotification(error?.response?.data?.message || "Xử lý bài viết thất bại", "error");
     } finally {
       setActionLoading(false);
     }
@@ -291,7 +278,7 @@ const DoctorBlogManagement = () => {
       form.resetFields();
       fetchMyBlogs(currentUser.id);
     } catch (error) {
-      showNotification("Gửi duyệt bài viết thất bại", "error");
+      showNotification(error?.response?.data?.message || "Gửi duyệt bài viết thất bại", "error");
     } finally {
       setActionLoading(false);
     }
@@ -308,14 +295,14 @@ const DoctorBlogManagement = () => {
     try {
       // Kiểm tra loại file
       if (!file.type.startsWith('image/')) {
-        showNotification("Vui lòng chọn file ảnh", "error");
+        showNotification(error?.response?.data?.message || "Vui lòng chọn file ảnh", "error");
         return;
       }
 
       // Kiểm tra kích thước file (giới hạn 1MB cho backend)
       const maxSize = 1 * 1024 * 1024; // 1MB
       if (file.size > maxSize * 5) { // Nếu file > 5MB thì từ chối ngay
-        showNotification("File quá lớn. Vui lòng chọn file nhỏ hơn 5MB", "error");
+        showNotification(error?.response?.data?.message || "File quá lớn. Vui lòng chọn file nhỏ hơn 5MB", "error");
         return;
       }
 
@@ -324,7 +311,7 @@ const DoctorBlogManagement = () => {
       
       // Kiểm tra lại sau khi compress
       if (compressedFile.size > maxSize) {
-        showNotification("File vẫn quá lớn sau khi nén. Vui lòng chọn file nhỏ hơn.", "error");
+        showNotification(error?.response?.data?.message || "File vẫn quá lớn sau khi nén. Vui lòng chọn file nhỏ hơn.", "error");
         return;
       }
       
@@ -337,7 +324,7 @@ const DoctorBlogManagement = () => {
       };
     } catch (error) {
       console.error("Error processing file:", error);
-      showNotification("Lỗi xử lý file. Vui lòng thử lại.", "error");
+      showNotification(error?.response?.data?.message || "Lỗi xử lý file. Vui lòng thử lại.", "error");
     }
   };
 
@@ -548,23 +535,6 @@ const DoctorBlogManagement = () => {
             >
               Upload ảnh
             </Button>
-            {record.status === "DRAFT" && (
-              <Popconfirm
-                title="Bạn có chắc chắn muốn xóa bài viết này?"
-                onConfirm={() => handleDeleteBlog(record.id)}
-                okText="Có"
-                cancelText="Không"
-              >
-                <Button
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  loading={actionLoading}
-                >
-                  Xóa
-                </Button>
-              </Popconfirm>
-            )}
           </Space>
           <Space wrap>
             {record.status === "DRAFT" && (

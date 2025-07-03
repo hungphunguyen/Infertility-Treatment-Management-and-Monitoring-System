@@ -924,6 +924,14 @@ const RegisterService = () => {
     }
   }, [token, navigate, showNotification, roleChecked]);
 
+  useEffect(() => {
+    if (selectedService && treatmentServices.length > 0) {
+      form.setFieldsValue({
+        treatmentService: selectedService.toString(),
+      });
+    }
+  }, [selectedService, treatmentServices, form]);
+
   return (
     <div className="min-h-screen">
       <UserHeader />
