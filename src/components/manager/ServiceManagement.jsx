@@ -356,7 +356,7 @@ const ServiceManagement = () => {
           </span>
           <Button
             disabled={currentPage + 1 >= totalPages}
-            onClick={() => getAllFeedBack(currentPage + 1)}
+            onClick={() => fetchTreatmentService(currentPage + 1)}
             className="ml-2"
           >
             Trang tiếp
