@@ -9,6 +9,11 @@ import {
   Statistic,
   Spin,
   Button,
+  Modal,
+  Descriptions,
+  Collapse,
+  Progress,
+  Space,
 } from "antd";
 import {
   ExperimentOutlined,
@@ -41,6 +46,9 @@ const MyServices = () => {
   const [cancelLoading, setCancelLoading] = useState({});
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedTreatmentDetail, setSelectedTreatmentDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     fetchTreatmentRecords();
@@ -126,6 +134,24 @@ const MyServices = () => {
     }
   };
 
+  const getStepStatusTag = (status) => {
+    switch ((status || "").toUpperCase()) {
+      case "COMPLETED":
+        return <Tag color="success">Hoàn thành</Tag>;
+      case "INPROGRESS":
+      case "IN_PROGRESS":
+      case "CONFIRMED":
+        return <Tag color="#1890ff">Đang điều trị</Tag>;
+      case "PENDING":
+      case "PLANNED":
+        return <Tag color="warning">Đang chờ điều trị</Tag>;
+      case "CANCELLED":
+        return <Tag color="error">Đã hủy</Tag>;
+      default:
+        return <Tag color="default">{status}</Tag>;
+    }
+  };
+
   const handleCancelTreatment = async (record) => {
     if (!userId) return;
     setCancelLoading((l) => ({ ...l, [record.id]: true }));
@@ -160,14 +186,17 @@ const MyServices = () => {
     });
   };
 
-  const handleViewTreatmentProgress = (record) => {
-    console.log("👉 [MyServices] Chuyển sang TreatmentProgress với:", record);
-    navigate(path.customerTreatment, {
-      state: {
-        treatmentRecord: record,
-        treatmentId: record.id,
-      },
-    });
+  const handleViewTreatmentDetail = async (record) => {
+    setDetailLoading(true);
+    setDetailModalVisible(true);
+    try {
+      const res = await treatmentService.getTreatmentRecordById(record.id);
+      setSelectedTreatmentDetail(res?.data?.result || record);
+    } catch (err) {
+      setSelectedTreatmentDetail(record);
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const columns = [
@@ -217,14 +246,10 @@ const MyServices = () => {
         <Button
           type="primary"
           icon={<EyeOutlined />}
-          style={{
-            backgroundColor: "#ff6b35",
-            borderColor: "#ff6b35",
-            color: "#fff",
-          }}
+          style={{ backgroundColor: "#ff6b35", borderColor: "#ff6b35", color: "#fff" }}
           onClick={(e) => {
             e.stopPropagation();
-            handleViewTreatmentProgress(record);
+            handleViewTreatmentDetail(record);
           }}
         >
           Xem
@@ -381,6 +406,72 @@ const MyServices = () => {
           style={{ borderRadius: 12, overflow: "hidden" }}
         />
       </Card>
+      <Modal
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={null}
+        title="Chi tiết quá trình điều trị"
+        width={900}
+      >
+        {detailLoading ? (
+          <Spin />
+        ) : selectedTreatmentDetail ? (
+          <div>
+            <Descriptions bordered column={2} size="small">
+              <Descriptions.Item label="Gói điều trị">
+                {selectedTreatmentDetail.treatmentServiceName || selectedTreatmentDetail.serviceName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Bác sĩ">
+                {selectedTreatmentDetail.doctorName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày bắt đầu">
+                {selectedTreatmentDetail.startDate ? dayjs(selectedTreatmentDetail.startDate).format("DD/MM/YYYY") : "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Trạng thái">
+                {getStatusTag(selectedTreatmentDetail.status)}
+              </Descriptions.Item>
+            </Descriptions>
+            <div style={{ margin: "24px 0" }}>
+              <Progress
+                percent={(() => {
+                  const steps = selectedTreatmentDetail.treatmentSteps || [];
+                  const total = steps.length;
+                  const completed = steps.filter((s) => s.status === "COMPLETED").length;
+                  return total > 0 ? Math.round((completed / total) * 100) : 0;
+                })()}
+                status="active"
+              />
+            </div>
+            <Collapse
+              items={(selectedTreatmentDetail.treatmentSteps || []).map((step, idx) => ({
+                key: step.id || idx,
+                label: (
+                  <Space>
+                    <b>{step.name}</b> {getStepStatusTag(step.status)}
+                  </Space>
+                ),
+                children: (
+                  <div>
+                    <Descriptions size="small" column={1} bordered>
+                      <Descriptions.Item label="Ngày bắt đầu">
+                        {step.startDate ? dayjs(step.startDate).format("DD/MM/YYYY") : "-"}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Ngày hoàn thành">
+                        {step.endDate ? dayjs(step.endDate).format("DD/MM/YYYY") : "-"}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Ghi chú">
+                        {step.notes || "-"}
+                      </Descriptions.Item>
+                    </Descriptions>
+                  </div>
+                ),
+              }))}
+            />
+          </div>
+        ) : (
+          <Text type="secondary">Không có dữ liệu chi tiết</Text>
+        )}
+      </Modal>
     </div>
   );
 };

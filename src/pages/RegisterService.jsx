@@ -43,6 +43,7 @@ import dayjs from "dayjs";
 import { NotificationContext } from "../App";
 import "react-toastify/dist/ReactToastify.css";
 import { useSelector } from "react-redux";
+import { path } from "../common/path";
 
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
@@ -823,17 +824,9 @@ const RegisterService = () => {
             setAvailableDoctors([]);
             setAvailabilityChecked(false);
 
-            // Chuyển hướng đến trang customer-dashboard/treatment sau khi đăng ký thành công
+            // Chuyển hướng đến trang customer-dashboard/my-services sau khi đăng ký thành công
             setTimeout(() => {
-              navigate("/customer-dashboard/treatment", {
-                state: {
-                  registrationSuccess: true,
-                  serviceName:
-                    treatmentServices.find(
-                      (s) => s.value === values.treatmentService
-                    )?.label || "Dịch vụ",
-                },
-              });
+              navigate(path.customerServices);
             }, 2000);
           } else {
             throw new Error("Unexpected response");
