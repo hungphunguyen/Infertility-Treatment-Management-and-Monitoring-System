@@ -825,14 +825,14 @@ const RegisterService = () => {
 
             // Chuyển hướng đến trang customer-dashboard/treatment sau khi đăng ký thành công
             setTimeout(() => {
-              navigate("/customer-dashboard/treatment", {
-                state: {
-                  registrationSuccess: true,
-                  serviceName:
-                    treatmentServices.find(
-                      (s) => s.value === values.treatmentService
-                    )?.label || "Dịch vụ",
-                },
+              navigate("/customer-dashboard/services", {
+                // state: {
+                //   registrationSuccess: true,
+                //   serviceName:
+                //     treatmentServices.find(
+                //       (s) => s.value === values.treatmentService
+                //     )?.label || "Dịch vụ",
+                // },
               });
             }, 2000);
           } else {
@@ -1806,7 +1806,7 @@ const RegisterService = () => {
                       boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)",
                     }}
                   >
-                    Gửi đăng ký
+                    Xác nhận
                   </Button>
                 </Form.Item>
               </Form>

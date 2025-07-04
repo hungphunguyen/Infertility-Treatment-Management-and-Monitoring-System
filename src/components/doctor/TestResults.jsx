@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Card, Table, Button, Space, Tag, Modal, Descriptions, 
-  Row, Col, Input, Select, Typography, notification, Drawer,
-  Collapse
+import {
+  Card,
+  Table,
+  Button,
+  Space,
+  Tag,
+  Modal,
+  Descriptions,
+  Row,
+  Col,
+  Input,
+  Select,
+  Typography,
+  notification,
+  Drawer,
+  Collapse,
 } from "antd";
 import {
-  UserOutlined, EyeOutlined, DownOutlined, UpOutlined,
-  CalendarOutlined, FileTextOutlined, MedicineBoxOutlined,
-  CheckOutlined, CloseOutlined
+  UserOutlined,
+  EyeOutlined,
+  DownOutlined,
+  UpOutlined,
+  CalendarOutlined,
+  FileTextOutlined,
+  MedicineBoxOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
@@ -39,13 +57,13 @@ const TestResults = () => {
         } else {
           notification.error({
             message: "Lỗi",
-            description: "Không thể lấy thông tin bác sĩ"
+            description: "Không thể lấy thông tin bác sĩ",
           });
         }
       } catch (error) {
         notification.error({
           message: "Lỗi",
-          description: "Không thể lấy thông tin bác sĩ"
+          description: "Không thể lấy thông tin bác sĩ",
         });
       }
     };
@@ -61,11 +79,11 @@ const TestResults = () => {
         const result = await treatmentService.getTreatmentRecords({
           doctorId: doctorId,
           page: 0,
-          size: 100
+          size: 100,
         });
-        
-        console.log('📋 Treatment Records API response:', result);
-        
+
+        console.log("📋 Treatment Records API response:", result);
+
         // Đảm bảo result là array từ content
         let treatmentRecords = [];
         if (result?.data?.result?.content) {
@@ -75,9 +93,9 @@ const TestResults = () => {
         } else if (Array.isArray(result)) {
           treatmentRecords = result;
         }
-        
-        console.log('📋 Processed Treatment Records:', treatmentRecords);
-        
+
+        console.log("📋 Processed Treatment Records:", treatmentRecords);
+
         if (treatmentRecords && treatmentRecords.length > 0) {
           // Nhóm các records theo customerName thay vì customerId
           const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
@@ -90,34 +108,36 @@ const TestResults = () => {
           }, {});
 
           // Chuyển đổi thành mảng và sắp xếp
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerName, treatments]) => {
-            // Sắp xếp treatments theo ngày bắt đầu mới nhất
-            const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.startDate) - new Date(a.startDate)
-            );
-            
-            return {
-              key: customerName, // Sử dụng customerName làm key
-              customerId: sortedTreatments[0].customerId, // Lấy customerId từ treatment đầu tiên
-              customerName: customerName,
-              treatments: sortedTreatments.map(treatment => ({
-                ...treatment,
-                key: treatment.id
-              }))
-            };
-          });
+          const formattedRecords = Object.entries(groupedByCustomer).map(
+            ([customerName, treatments]) => {
+              // Sắp xếp treatments theo ngày bắt đầu mới nhất
+              const sortedTreatments = treatments.sort(
+                (a, b) => new Date(b.startDate) - new Date(a.startDate)
+              );
 
-          console.log('✅ Formatted Records:', formattedRecords);
+              return {
+                key: customerName, // Sử dụng customerName làm key
+                customerId: sortedTreatments[0].customerId, // Lấy customerId từ treatment đầu tiên
+                customerName: customerName,
+                treatments: sortedTreatments.map((treatment) => ({
+                  ...treatment,
+                  key: treatment.id,
+                })),
+              };
+            }
+          );
+
+          console.log("✅ Formatted Records:", formattedRecords);
           setRecords(formattedRecords);
         } else {
-          console.log('⚠️ No treatment records found');
+          console.log("⚠️ No treatment records found");
           setRecords([]);
         }
       } catch (error) {
-        console.error('❌ Error fetching records:', error);
+        console.error("❌ Error fetching records:", error);
         notification.error({
           message: "Lỗi",
-          description: "Không thể lấy danh sách điều trị"
+          description: "Không thể lấy danh sách điều trị",
         });
         setRecords([]);
       }
@@ -131,9 +151,11 @@ const TestResults = () => {
       PENDING: { color: "orange", text: "Đang chờ xử lý" },
       INPROGRESS: { color: "blue", text: "Đang điều trị" },
       CANCELLED: { color: "red", text: "Đã hủy" },
-      COMPLETED: { color: "green", text: "Hoàn thành" }
+      COMPLETED: { color: "green", text: "Hoàn thành" },
     };
-    return <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>;
+    return (
+      <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>
+    );
   };
 
   const viewRecord = (record) => {
@@ -144,14 +166,17 @@ const TestResults = () => {
           customerName: record.customerName,
         },
         treatmentData: record,
-        sourcePage: "test-results"
+        sourcePage: "test-results",
       },
     });
   };
 
   const handleApprove = async (treatment) => {
     try {
-      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "INPROGRESS");
+      const response = await treatmentService.updateTreatmentRecordStatus(
+        treatment.id,
+        "INPROGRESS"
+      );
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Duyệt hồ sơ thành công!",
@@ -161,12 +186,12 @@ const TestResults = () => {
         const updatedRecords = await treatmentService.getTreatmentRecords({
           doctorId: doctorId,
           page: 0,
-          size: 100
+          size: 100,
         });
-        
+
         if (updatedRecords?.data?.result?.content) {
           const treatmentRecords = updatedRecords.data.result.content;
-          
+
           const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
             const customerName = record.customerName;
             if (!acc[customerName]) {
@@ -176,28 +201,32 @@ const TestResults = () => {
             return acc;
           }, {});
 
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerName, treatments]) => {
-            const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.startDate) - new Date(a.startDate)
-            );
-            
-            return {
-              key: customerName,
-              customerId: sortedTreatments[0].customerId,
-              customerName: customerName,
-              treatments: sortedTreatments.map(treatment => ({
-                ...treatment,
-                key: treatment.id
-              }))
-            };
-          });
+          const formattedRecords = Object.entries(groupedByCustomer).map(
+            ([customerName, treatments]) => {
+              const sortedTreatments = treatments.sort(
+                (a, b) => new Date(b.startDate) - new Date(a.startDate)
+              );
+
+              return {
+                key: customerName,
+                customerId: sortedTreatments[0].customerId,
+                customerName: customerName,
+                treatments: sortedTreatments.map((treatment) => ({
+                  ...treatment,
+                  key: treatment.id,
+                })),
+              };
+            }
+          );
 
           setRecords(formattedRecords);
         }
       } else {
         notification.error({
           message: "Duyệt hồ sơ thất bại!",
-          description: response?.data?.message || "Không thể duyệt hồ sơ, vui lòng thử lại.",
+          description:
+            response?.data?.message ||
+            "Không thể duyệt hồ sơ, vui lòng thử lại.",
         });
       }
     } catch (error) {
@@ -210,7 +239,10 @@ const TestResults = () => {
 
   const handleCancel = async (treatment) => {
     try {
-      const response = await treatmentService.updateTreatmentRecordStatus(treatment.id, "CANCELLED");
+      const response = await treatmentService.updateTreatmentRecordStatus(
+        treatment.id,
+        "CANCELLED"
+      );
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Hủy hồ sơ thành công!",
@@ -220,12 +252,12 @@ const TestResults = () => {
         const updatedRecords = await treatmentService.getTreatmentRecords({
           doctorId: doctorId,
           page: 0,
-          size: 100
+          size: 100,
         });
-        
+
         if (updatedRecords?.data?.result?.content) {
           const treatmentRecords = updatedRecords.data.result.content;
-          
+
           const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
             const customerName = record.customerName;
             if (!acc[customerName]) {
@@ -235,28 +267,31 @@ const TestResults = () => {
             return acc;
           }, {});
 
-          const formattedRecords = Object.entries(groupedByCustomer).map(([customerName, treatments]) => {
-            const sortedTreatments = treatments.sort((a, b) => 
-              new Date(b.startDate) - new Date(a.startDate)
-            );
-            
-            return {
-              key: customerName,
-              customerId: sortedTreatments[0].customerId,
-              customerName: customerName,
-              treatments: sortedTreatments.map(treatment => ({
-                ...treatment,
-                key: treatment.id
-              }))
-            };
-          });
+          const formattedRecords = Object.entries(groupedByCustomer).map(
+            ([customerName, treatments]) => {
+              const sortedTreatments = treatments.sort(
+                (a, b) => new Date(b.startDate) - new Date(a.startDate)
+              );
+
+              return {
+                key: customerName,
+                customerId: sortedTreatments[0].customerId,
+                customerName: customerName,
+                treatments: sortedTreatments.map((treatment) => ({
+                  ...treatment,
+                  key: treatment.id,
+                })),
+              };
+            }
+          );
 
           setRecords(formattedRecords);
         }
       } else {
         notification.error({
           message: "Hủy hồ sơ thất bại!",
-          description: response?.data?.message || "Không thể hủy hồ sơ, vui lòng thử lại.",
+          description:
+            response?.data?.message || "Không thể hủy hồ sơ, vui lòng thử lại.",
         });
       }
     } catch (error) {
@@ -270,47 +305,47 @@ const TestResults = () => {
   const expandedRowRender = (record) => {
     const columns = [
       {
-        title: 'Dịch vụ',
-        dataIndex: 'serviceName',
-        key: 'serviceName',
+        title: "Dịch vụ",
+        dataIndex: "serviceName",
+        key: "serviceName",
         render: (text) => (
           <Space>
-            <MedicineBoxOutlined style={{ color: '#722ed1' }} />
+            <MedicineBoxOutlined style={{ color: "#722ed1" }} />
             <Text strong>{text}</Text>
           </Space>
-        )
+        ),
       },
       {
-        title: 'Ngày bắt đầu',
-        dataIndex: 'startDate',
-        key: 'startDate',
+        title: "Ngày bắt đầu",
+        dataIndex: "startDate",
+        key: "startDate",
         render: (date) => (
           <Space>
             <CalendarOutlined />
             {dayjs(date).format("DD/MM/YYYY")}
           </Space>
-        )
+        ),
       },
       {
-        title: 'Tiến độ',
-        key: 'progress',
+        title: "Tiến độ",
+        key: "progress",
         render: (_, treatment) => (
           <Space>
             <Text type="secondary">
               {treatment.completedSteps}/{treatment.totalSteps} bước
             </Text>
           </Space>
-        )
+        ),
       },
       {
-        title: 'Trạng thái',
-        dataIndex: 'status',
-        key: 'status',
-        render: (status) => getStatusTag(status)
+        title: "Trạng thái",
+        dataIndex: "status",
+        key: "status",
+        render: (status) => getStatusTag(status),
       },
       {
-        title: 'Thao tác',
-        key: 'action',
+        title: "Thao tác",
+        key: "action",
         render: (_, treatment) => (
           <Space>
             <Button
@@ -328,7 +363,7 @@ const TestResults = () => {
                   size="small"
                   icon={<CheckOutlined />}
                   onClick={() => handleApprove(treatment)}
-                  style={{ background: '#52c41a', borderColor: '#52c41a' }}
+                  style={{ background: "#52c41a", borderColor: "#52c41a" }}
                 >
                   Duyệt
                 </Button>
@@ -343,8 +378,8 @@ const TestResults = () => {
               </>
             )}
           </Space>
-        )
-      }
+        ),
+      },
     ];
 
     return (
@@ -366,17 +401,17 @@ const TestResults = () => {
       key: "customerName",
       render: (name) => (
         <Space>
-          <UserOutlined style={{ color: '#1890ff' }} />
+          <UserOutlined style={{ color: "#1890ff" }} />
           <Text strong>{name}</Text>
         </Space>
-      )
+      ),
     },
     {
       title: "Số dịch vụ",
       key: "treatmentCount",
       render: (_, record) => (
         <Tag color="blue">{record.treatments.length} dịch vụ</Tag>
-      )
+      ),
     },
     {
       title: "Chi tiết",
@@ -384,42 +419,41 @@ const TestResults = () => {
       render: (_, record) => (
         <Button
           type="text"
-          icon={expandedRows.includes(record.key) ? <UpOutlined /> : <DownOutlined />}
+          icon={
+            expandedRows.includes(record.key) ? (
+              <UpOutlined />
+            ) : (
+              <DownOutlined />
+            )
+          }
           onClick={() => {
             const newExpandedRows = expandedRows.includes(record.key)
-              ? expandedRows.filter(key => key !== record.key)
+              ? expandedRows.filter((key) => key !== record.key)
               : [...expandedRows, record.key];
             setExpandedRows(newExpandedRows);
           }}
         >
-          {expandedRows.includes(record.key) ? 'Thu gọn' : 'Xem thêm'}
+          {expandedRows.includes(record.key) ? "Thu gọn" : "Xem thêm"}
         </Button>
-      )
-    }
+      ),
+    },
   ];
 
   return (
-    <div style={{ padding: '24px' }}>
+    <div style={{ padding: "24px" }}>
       <Card>
-        <Title level={3}>
-          <Space>
-            <FileTextOutlined />
-            Hồ sơ bệnh nhân 
-          </Space>
-        </Title>
-
         <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
           <Col xs={24} sm={12} md={8}>
             <Search
               placeholder="Tìm kiếm theo tên bệnh nhân"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
             />
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Select
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               value={statusFilter}
               onChange={setStatusFilter}
               placeholder="Lọc theo trạng thái"
@@ -434,10 +468,13 @@ const TestResults = () => {
         </Row>
 
         <Table
-          dataSource={records.filter(record => {
-            const matchesSearch = record.customerName.toLowerCase().includes(searchText.toLowerCase());
-            const matchesStatus = statusFilter === 'all' || 
-              record.treatments.some(t => t.status === statusFilter);
+          dataSource={records.filter((record) => {
+            const matchesSearch = record.customerName
+              .toLowerCase()
+              .includes(searchText.toLowerCase());
+            const matchesStatus =
+              statusFilter === "all" ||
+              record.treatments.some((t) => t.status === statusFilter);
             return matchesSearch && matchesStatus;
           })}
           columns={columns}
@@ -447,15 +484,15 @@ const TestResults = () => {
             onExpand: (expanded, record) => {
               const newExpandedRows = expanded
                 ? [...expandedRows, record.key]
-                : expandedRows.filter(key => key !== record.key);
+                : expandedRows.filter((key) => key !== record.key);
               setExpandedRows(newExpandedRows);
-            }
+            },
           }}
-          pagination={{ pageSize: 10 }}
+          pagination={false}
         />
       </Card>
     </div>
   );
 };
 
-export default TestResults; 
+export default TestResults;
