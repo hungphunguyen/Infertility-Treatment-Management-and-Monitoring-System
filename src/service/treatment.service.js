@@ -178,6 +178,10 @@ export const treatmentService = {
     return response;
   },
 
+  updateAppointmentStatusCustomer: (appointmentId) => {
+    return http.put(`v1/appointments/{appointmentId}/status`, data);
+  },
+
   updateTreatmentStep: async (id, data) => {
     try {
       // Luôn truyền đủ stageId, startDate, endDate, status, notes
@@ -233,7 +237,7 @@ export const treatmentService = {
   },
 
   getAppointmentsByStepId: async (stepId) => {
-    return await http.get(`v1/appointments?stepId=${stepId}`);
+    return await http.get(`v1/appointments/get-by-step/${stepId}`);
   },
 
   updateTreatmentStatus: async (recordId, status) => {

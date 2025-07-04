@@ -76,16 +76,6 @@ const TreatmentStageDetails = () => {
   const [stageOptions, setStageOptions] = useState([]);
   const [editingStepStageId, setEditingStepStageId] = useState(null);
 
-  // Debug log khi treatmentData thay đổi
-  useEffect(() => {
-    console.log("🔄 TreatmentData state changed:", treatmentData);
-    console.log("🔄 Has treatmentSteps?", !!treatmentData?.treatmentSteps);
-    console.log("🔄 Steps count:", treatmentData?.treatmentSteps?.length || 0);
-    console.log("🔄 Steps data:", treatmentData?.treatmentSteps);
-    console.log("🔄 SelectedStep:", selectedStep);
-    console.log("🔄 SelectedStep ID:", selectedStep?.id);
-  }, [treatmentData, selectedStep]);
-
   const statusOptions = [
     { value: "PLANNED", label: "Chờ xếp lịch" },
     { value: "CONFIRMED", label: "Đã xác nhận" },
@@ -118,7 +108,6 @@ const TreatmentStageDetails = () => {
       if (!doctorId || dataLoadedRef.current) return;
 
       dataLoadedRef.current = true;
-      console.log("🚀 Starting to fetch treatment data...");
 
       try {
         const {
@@ -140,17 +129,11 @@ const TreatmentStageDetails = () => {
 
         // Chỉ sử dụng treatmentData được truyền từ PatientList
         if (passedTreatmentData && passedTreatmentData.id) {
-          console.log(
-            "✅ Using treatmentData from PatientList:",
-            passedTreatmentData.id
-          );
-
           // Nếu đã có đủ steps thì dùng luôn
           if (
             passedTreatmentData.treatmentSteps &&
             passedTreatmentData.treatmentSteps.length > 0
           ) {
-            console.log("✅ TreatmentData already has steps, using directly");
             setTreatmentData(passedTreatmentData);
             setLoading(false);
             return;
@@ -165,12 +148,10 @@ const TreatmentStageDetails = () => {
               );
             const detailedData = detailedResponse?.data?.result;
             if (detailedData) {
-              console.log("✅ Got detailed treatment data with steps");
               setTreatmentData(detailedData);
               setLoading(false);
               return;
             } else {
-              console.log("⚠️ API call failed, using passed treatmentData");
               setTreatmentData(passedTreatmentData);
               setLoading(false);
               return;
@@ -179,14 +160,12 @@ const TreatmentStageDetails = () => {
         }
 
         // Nếu không có treatmentData từ PatientList, báo lỗi
-        console.log("❌ No treatmentData received from PatientList");
         showNotification(
           "Không nhận được dữ liệu điều trị từ danh sách bệnh nhân",
           "error"
         );
         navigate(-1);
       } catch (error) {
-        console.error("❌ Error fetching treatment data:", error);
         showNotification("Không thể lấy thông tin điều trị", "error");
         setLoading(false);
       }
@@ -371,29 +350,27 @@ const TreatmentStageDetails = () => {
         showNotification("Cập nhật thất bại", "error");
       }
     } catch (error) {
-      console.error("❌ Error updating step:", error);
-      console.error("❌ Error details:");
       showNotification(error.response?.data.message, "error");
     }
   };
 
-  const showScheduleModalForStep = async (step) => {
-    setScheduleStep(step);
-    setShowScheduleModal(true);
-    setShowCreateForm(false);
-    scheduleForm.resetFields();
-    setLoadingAppointments(true);
+  // const showScheduleModalForStep = async (step) => {
+  //   setScheduleStep(step);
+  //   setShowScheduleModal(true);
+  //   setShowCreateForm(false);
+  //   scheduleForm.resetFields();
+  //   setLoadingAppointments(true);
 
-    try {
-      const response = await treatmentService.getAppointmentsByStepId(step.id);
-      setStepAppointments(response?.data?.result?.content || []);
-    } catch (error) {
-      showNotification("Không thể lấy danh sách lịch hẹn", "error");
-      setStepAppointments([]);
-    } finally {
-      setLoadingAppointments(false);
-    }
-  };
+  //   try {
+  //     const response = await treatmentService.getAppointmentsByStepId(step.id);
+  //     setStepAppointments(response?.data?.result?.content || []);
+  //   } catch (error) {
+  //     showNotification("Không thể lấy danh sách lịch hẹn", "error");
+  //     setStepAppointments([]);
+  //   } finally {
+  //     setLoadingAppointments(false);
+  //   }
+  // };
 
   const handleScheduleAppointment = async (values) => {
     try {
@@ -632,32 +609,10 @@ const TreatmentStageDetails = () => {
     setShowCreateAppointmentModal(false);
     setLoadingAppointments(true);
     try {
-      console.log("🔍 Calling getAppointmentsByStepId with stepId:", step.id);
       const response = await treatmentService.getAppointmentsByStepId(step.id);
-      console.log("🔍 Appointments response:", response);
-      console.log("🔍 Appointments response.data:", response?.data);
-      console.log(
-        "🔍 Appointments response.data.result:",
-        response?.data?.result
-      );
-      console.log(
-        "🔍 Appointments response.data.result.content:",
-        response?.data?.result?.content
-      );
-      console.log(
-        "🔍 Appointments response.data.result type:",
-        typeof response?.data?.result
-      );
-      console.log("🔍 Is result array?", Array.isArray(response?.data?.result));
-      console.log(
-        "🔍 Is content array?",
-        Array.isArray(response?.data?.result?.content)
-      );
 
       // Lấy content array từ paginated response
-      const appointments = response?.data?.result?.content || [];
-      console.log("🔍 Final appointments array:", appointments);
-      console.log("🔍 Appointments length:", appointments.length);
+      const appointments = response?.data?.result || [];
 
       setStepAppointments(appointments);
     } catch (error) {
@@ -927,7 +882,7 @@ const TreatmentStageDetails = () => {
             }}
           >
             <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-              <Button
+              {/* <Button
                 type="default"
                 icon={<EditOutlined />}
                 onClick={handleShowChangeService}
@@ -935,7 +890,7 @@ const TreatmentStageDetails = () => {
                 style={{ borderRadius: 8, minWidth: 180 }}
               >
                 Chọn dịch vụ phù hợp
-              </Button>
+              </Button> */}
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -1147,20 +1102,20 @@ const TreatmentStageDetails = () => {
                 </Col>
                 <Col span={12}>
                   <div style={{ marginBottom: 12 }}>
-                    <Text strong>Ngày dự kiến:</Text>
+                    <Text strong>Ngày bắt đầu:</Text>
                     <br />
                     <Text style={{ marginTop: 4 }}>
-                      {selectedStep.scheduledDate
-                        ? dayjs(selectedStep.scheduledDate).format("DD/MM/YYYY")
+                      {selectedStep.startDate
+                        ? dayjs(selectedStep.startDate).format("DD/MM/YYYY")
                         : "Chưa có"}
                     </Text>
                   </div>
                   <div>
-                    <Text strong>Ngày thực hiện:</Text>
+                    <Text strong>Ngày kết thúc:</Text>
                     <br />
                     <Text style={{ marginTop: 4 }}>
-                      {selectedStep.actualDate
-                        ? dayjs(selectedStep.actualDate).format("DD/MM/YYYY")
+                      {selectedStep.endDate
+                        ? dayjs(selectedStep.endDate).format("DD/MM/YYYY")
                         : "Chưa có"}
                     </Text>
                   </div>
@@ -1174,7 +1129,7 @@ const TreatmentStageDetails = () => {
                   textAlign: "left",
                 }}
               >
-                📅 Các lần hẹn đã đăng ký cho bước này:
+                Các lần hẹn đã đăng ký cho bước này:
               </div>
               <div
                 style={{

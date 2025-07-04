@@ -32,6 +32,12 @@ const AppointmentSchedule = () => {
         return "Đã hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "PLANED":
+        return "Đã lên lịch";
+      case "PENDING_CHANGE":
+        return "Yêu cầu thay đổi";
+      case "REJECTED":
+        return "Đã từ chối";
       default:
         return "Không xác định";
     }
@@ -72,6 +78,26 @@ const AppointmentSchedule = () => {
     }
   };
 
+  // nút từ chối và update
+  const openApprovalModal = (id, status) => {
+    setCurrentId(id);
+    setCurrentStatus(status);
+    setModalVisible(true);
+  };
+
+  const updateStatusAppointment = async (appointmentId, payload) => {
+    try {
+      const res = await treatmentService.updateAppointmentStatusCustomer(
+        appointmentId,
+        (payload = {
+          requestedDate,
+          requestedShift,
+          notes,
+        })
+      );
+    } catch (error) {}
+  };
+
   return (
     <div className="p-6">
       <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
@@ -87,6 +113,12 @@ const AppointmentSchedule = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Ngày hẹn
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Bước điều trị
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Mục đích
               </th>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Trạng thái
@@ -119,6 +151,16 @@ const AppointmentSchedule = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {item.appointmentDate}
                   </td>
+
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-red-600 bg-red-200 py-0.5 px-2.5 rounded">
+                      {item.step}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item.purpose || "Không có"}
+                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
@@ -170,6 +212,19 @@ const AppointmentSchedule = () => {
             <Button key="close" onClick={() => setIsModalOpen(false)}>
               Đóng
             </Button>,
+
+            <Button
+              key="close"
+              onClick={() => {
+                updateStatusAppointment(appointmentDetail.id);
+              }}
+            >
+              Xác nhận
+            </Button>,
+
+            <Button key="close" onClick={() => setIsModalOpen(false)}>
+              Hủy
+            </Button>,
           ]}
         >
           {appointmentDetail && (
@@ -216,6 +271,10 @@ const AppointmentSchedule = () => {
                 </Tag>
               </Descriptions.Item>
 
+              <Descriptions.Item label="Ngày hẹn">
+                <CalendarOutlined className="mr-1" />
+                {appointmentDetail.appointmentDate}
+              </Descriptions.Item>
               <Descriptions.Item label="Ca yêu cầu">
                 {appointmentDetail.requestedShift ? (
                   <Tag color="gold">
@@ -225,12 +284,6 @@ const AppointmentSchedule = () => {
                   <Tag color="default">Không có</Tag>
                 )}
               </Descriptions.Item>
-
-              <Descriptions.Item label="Ngày hẹn">
-                <CalendarOutlined className="mr-1" />
-                {appointmentDetail.appointmentDate}
-              </Descriptions.Item>
-
               <Descriptions.Item label="Ngày yêu cầu">
                 {appointmentDetail.requestedDate || (
                   <Tag color="default">Không có</Tag>
@@ -266,6 +319,47 @@ const AppointmentSchedule = () => {
               </Descriptions.Item>
             </Descriptions>
           )}
+        </Modal>
+
+        <Modal
+          title={
+            currentStatus === "APPROVED"
+              ? "Duyệt phản hồi?"
+              : "Từ chối phản hồi?"
+          }
+          open={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          onOk={async () => {
+            if (!infoUser?.id || !currentId) return;
+
+            setLoadingIds((prev) => [...prev, currentId]);
+
+            try {
+              await managerService.confirmFeedback(currentId, {
+                note: noteRef.current || "",
+                status: currentStatus,
+              });
+
+              showNotification("Cập nhật phản hồi thành công", "success");
+              getAllFeedBack();
+            } catch (err) {
+              console.error(err);
+              showNotification(err.response.data.message, "error");
+            } finally {
+              setModalVisible(false);
+              setDetailModalVisible(false);
+              setLoadingIds((prev) => prev.filter((id) => id !== currentId));
+              noteRef.current = "";
+            }
+          }}
+          okText="Xác nhận"
+          cancelText="Huỷ"
+        >
+          <Input.TextArea
+            rows={4}
+            placeholder="Nhập ghi chú"
+            onChange={(e) => (noteRef.current = e.target.value)}
+          />
         </Modal>
       </div>
     </div>
