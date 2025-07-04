@@ -420,7 +420,7 @@ const TreatmentStagesView = () => {
                     </Descriptions>
                     <Space style={{ marginTop: 16 }}>
                       <Button type="link" onClick={() => handleShowScheduleModal(step)}>
-                        <FileTextOutlined /> Xem lịch hẹn ({stepAppointments[step.id]?.length || 0})
+                        <FileTextOutlined /> Xem lịch hẹn
                       </Button>
                     </Space>
                   </Card>

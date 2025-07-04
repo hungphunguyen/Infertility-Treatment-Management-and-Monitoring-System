@@ -192,6 +192,7 @@ const ManagerTreatmentRecords = () => {
   };
 
   const viewRecord = (record) => {
+    console.log("🔍 Navigating to treatment-stages-view with record:", record);
     navigate("/manager/treatment-stages-view", {
       state: {
         patientInfo: {

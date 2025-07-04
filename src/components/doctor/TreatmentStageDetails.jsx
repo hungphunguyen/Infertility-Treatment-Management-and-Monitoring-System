@@ -82,7 +82,9 @@ const TreatmentStageDetails = () => {
     console.log("🔄 Has treatmentSteps?", !!treatmentData?.treatmentSteps);
     console.log("🔄 Steps count:", treatmentData?.treatmentSteps?.length || 0);
     console.log("🔄 Steps data:", treatmentData?.treatmentSteps);
-  }, [treatmentData]);
+    console.log("🔄 SelectedStep:", selectedStep);
+    console.log("🔄 SelectedStep ID:", selectedStep?.id);
+  }, [treatmentData, selectedStep]);
 
   const statusOptions = [
     { value: "PLANNED", label: "Chờ xếp lịch" },
@@ -407,7 +409,28 @@ const TreatmentStageDetails = () => {
       );
       if (response?.data?.code === 1000) {
         showNotification("Tạo lịch hẹn thành công", "success");
-        window.location.reload();
+        
+        // Thay vì reload trang, refresh treatment data
+        try {
+          const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
+          const detailedData = detailedResponse?.data?.result;
+          if (detailedData) {
+            setTreatmentData(detailedData);
+            
+            // Cập nhật selectedStep nếu nó vẫn đang được chọn
+            if (selectedStep && selectedStep.id === values.treatmentStepId) {
+              const updatedStep = detailedData.treatmentSteps?.find(
+                step => String(step.id) === String(values.treatmentStepId)
+              );
+              if (updatedStep) {
+                setSelectedStep(updatedStep);
+              }
+            }
+          }
+        } catch (refreshError) {
+          console.warn("Không thể refresh treatment data:", refreshError);
+        }
+        
         setShowCreateAppointmentModal(false);
         setShowStepDetailModal(true);
         setLoadingAppointments(true);
@@ -639,9 +662,15 @@ const TreatmentStageDetails = () => {
   };
 
   const handleShowCreateAppointment = () => {
+    console.log("🔍 handleShowCreateAppointment called with selectedStep:", selectedStep);
     setShowStepDetailModal(false);
     setShowCreateAppointmentModal(true);
     scheduleForm.resetFields();
+    // Đảm bảo form có treatmentStepId đúng
+    scheduleForm.setFieldsValue({
+      treatmentStepId: selectedStep?.id,
+      shift: "MORNING"
+    });
   };
 
   // Helper function to handle appointment status updates
@@ -731,6 +760,19 @@ const TreatmentStageDetails = () => {
       addStepForm.resetFields();
     }
   }, [showAddStepModal, treatmentData?.treatmentServiceId]);
+
+  // Tự động cập nhật selectedStep khi treatmentData thay đổi
+  useEffect(() => {
+    if (selectedStep && treatmentData?.treatmentSteps) {
+      const updatedStep = treatmentData.treatmentSteps.find(
+        step => String(step.id) === String(selectedStep.id)
+      );
+      if (updatedStep && JSON.stringify(updatedStep) !== JSON.stringify(selectedStep)) {
+        console.log("🔄 Updating selectedStep with new data:", updatedStep);
+        setSelectedStep(updatedStep);
+      }
+    }
+  }, [treatmentData, selectedStep]);
 
   if (loading) {
     return (
@@ -1646,14 +1688,39 @@ const TreatmentStageDetails = () => {
                 data.purpose = values.purpose;
                 data.shift = values.shift;
               }
-              await treatmentService.createTreatmentStep(data);
-              showNotification("Đã thêm bước điều trị mới!", "success");
-              setShowAddStepModal(false);
-              addStepForm.resetFields();
-              // Reload treatment record
-              const detail = await treatmentService.getTreatmentRecordById(treatmentData.id);
-              setTreatmentData(detail?.data?.result);
+              
+              console.log("🔍 Creating treatment step with data:", data);
+              const response = await treatmentService.createTreatmentStep(data);
+              console.log("🔍 Create treatment step response:", response);
+              
+              if (response?.data?.code === 1000 || response?.code === 1000) {
+                showNotification("Đã thêm bước điều trị mới!", "success");
+                setShowAddStepModal(false);
+                addStepForm.resetFields();
+                
+                // Reload treatment record
+                try {
+                  console.log("🔄 Reloading treatment record after creating step...");
+                  const detail = await treatmentService.getTreatmentRecordById(treatmentData.id);
+                  const detailData = detail?.data?.result;
+                  console.log("🔍 Reloaded treatment data:", detailData);
+                  
+                  if (detailData) {
+                    setTreatmentData(detailData);
+                    console.log("✅ Treatment data updated successfully");
+                  } else {
+                    console.warn("⚠️ No treatment data returned from reload");
+                  }
+                } catch (reloadError) {
+                  console.error("❌ Error reloading treatment data:", reloadError);
+                  showNotification("Đã thêm bước nhưng không thể cập nhật giao diện", "warning");
+                }
+              } else {
+                console.warn("❌ Create treatment step failed:", response);
+                showNotification("Thêm bước điều trị thất bại!", "error");
+              }
             } catch (err) {
+              console.error("❌ Error creating treatment step:", err);
               showNotification("Thêm bước điều trị thất bại!", "error");
             } finally {
               setAddStepLoading(false);
