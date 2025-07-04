@@ -409,11 +409,12 @@ export const treatmentService = {
   // Hủy treatment record - API mới
   cancelTreatmentRecord: async (recordId) => {
     try {
-      const response = await http.delete(
-        `v1/treatment-records/${recordId}/cancel`
-      );
+      const response = await http.delete(`v1/treatment-records/${recordId}/cancel`);
       return response;
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error cancelling treatment record:", error);
+      throw error;
+    }
   },
 
   // Lấy chi tiết appointment theo ID - API mới

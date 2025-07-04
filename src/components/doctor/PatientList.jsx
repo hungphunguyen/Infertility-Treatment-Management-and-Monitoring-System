@@ -16,7 +16,7 @@ import {
   Spin,
   message,
 } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import { UserOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
@@ -37,6 +37,7 @@ const PatientList = () => {
   const [doctorId, setDoctorId] = useState("");
   const [doctorName, setDoctorName] = useState("");
   const [purposeData, setPurposeData] = useState({});
+  const [cancelLoading, setCancelLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -192,6 +193,32 @@ const PatientList = () => {
     }
   };
 
+  // Hủy dịch vụ
+  const handleCancelService = (record) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn hủy dịch vụ này?",
+      icon: <ExclamationCircleOutlined />,
+      content: `Bệnh nhân: ${record.customerName}`,
+      okText: "Hủy dịch vụ",
+      okType: "danger",
+      cancelText: "Không",
+      confirmLoading: cancelLoading,
+      onOk: async () => {
+        setCancelLoading(true);
+        try {
+          await treatmentService.cancelTreatmentRecord(record.recordId);
+          message.success("Hủy dịch vụ thành công!");
+          // Reload danh sách
+          setTimeout(() => window.location.reload(), 800);
+        } catch (err) {
+          message.error("Hủy dịch vụ thất bại!");
+        } finally {
+          setCancelLoading(false);
+        }
+      },
+    });
+  };
+
   const columns = [
     {
       title: "Bệnh nhân",
@@ -273,6 +300,15 @@ const PatientList = () => {
             onClick={() => handleDetail(record)}
           >
             Chi Tiết
+          </Button>
+          <Button
+            danger
+            size="small"
+            loading={cancelLoading}
+            onClick={() => handleCancelService(record)}
+            disabled={record.status === "CANCELLED" || record.status === "COMPLETED"}
+          >
+            Hủy dịch vụ
           </Button>
         </Space>
       ),
