@@ -62,12 +62,9 @@ const BlogManagement = () => {
   const [isActionModalVisible, setIsActionModalVisible] = useState(false);
   const [actionType, setActionType] = useState(""); // approve, reject
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(0); // page từ 0
-  const [pageSize, setPageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetchBlogs(currentPage, pageSize);
+    fetchBlogs();
   }, []);
 
   useEffect(() => {
@@ -87,6 +84,7 @@ const BlogManagement = () => {
   const fetchBlogs = async (page = 0) => {
     try {
       setLoading(true);
+      console.log("Fetching all blogs with page:", page);
 
       const response = await blogService.getAllBlogs({
         page: page,
@@ -114,10 +112,6 @@ const BlogManagement = () => {
         );
 
         setBlogs(blogsWithDetails);
-        setCurrentPage(page);
-        setPageSize(size);
-        setTotalPages(response.data.result.totalPages);
-
         console.log("Loaded", blogsWithDetails.length, "blogs");
       } else {
         console.log("No blogs found or invalid response structure");
@@ -509,25 +503,19 @@ const BlogManagement = () => {
         </div>
       </div>
 
-      <div className="flex justify-end mt-4">
-        <Button
-          disabled={currentPage === 0}
-          onClick={() => fetchBlogs(currentPage - 1, pageSize)}
-          className="mr-2"
-        >
-          Trang trước
-        </Button>
-        <span className="px-4 py-1 bg-gray-100 rounded text-sm">
-          Trang {currentPage + 1} / {totalPages}
-        </span>
-        <Button
-          disabled={currentPage + 1 >= totalPages}
-          onClick={() => fetchBlogs(currentPage + 1, pageSize)}
-          className="ml-2"
-        >
-          Trang tiếp
-        </Button>
-      </div>
+      <Table
+        columns={columns}
+        dataSource={filteredData}
+        rowKey="id"
+        loading={loading || actionLoading}
+        pagination={
+          // pageSize: 10,
+          // showSizeChanger: true,
+          // showTotal: (total) => `Tổng số ${total} bài viết`,
+          false
+        }
+        scroll={{ x: 1000 }}
+      />
 
       <Modal
         title={

@@ -89,7 +89,7 @@ const ScheduleManagement = () => {
       );
       return;
     }
-    const rules = Object.entries(shiftByDay)
+    const shiftRules = Object.entries(shiftByDay)
       .filter(([_, shift]) => shift)
       .map(([weekday, shift]) => ({
         weekday,
@@ -98,7 +98,7 @@ const ScheduleManagement = () => {
     const payload = {
       doctorId: selectedDoctor.id,
       month: selectedMonth,
-      rules,
+      shiftRules,
       createdBy: infoUser.id,
     };
 

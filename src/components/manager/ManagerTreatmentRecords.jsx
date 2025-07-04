@@ -50,10 +50,6 @@ const ManagerTreatmentRecords = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [expandedRows, setExpandedRows] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
-  const [totalPages, setTotalPages] = useState(1);
-  const [treatmentRecords, setTreatmentRecords] = useState(1);
-
   const [stats, setStats] = useState({
     totalRecords: 0,
     pendingRecords: 0,
@@ -65,25 +61,45 @@ const ManagerTreatmentRecords = () => {
     fetchRecords();
   }, []);
 
-  const fetchRecords = async (page = 0) => {
+  const fetchRecords = async () => {
     try {
       setLoading(true);
 
       // Sử dụng API mới v1/treatment-records với fallback
+      let treatmentRecords = [];
+      try {
+        const result = await treatmentService.getTreatmentRecords({
+          page: 0,
+          size: 1000,
+        });
 
-      const result = await treatmentService.getTreatmentRecords({
-        page,
-        size: 5,
-      });
+        console.log("📋 Treatment Records API response:", result);
 
-      console.log("📋 Treatment Records API response:", result);
-
-      // Đảm bảo result là array từ content
-      if (result?.data?.result?.content) {
-        setTreatmentRecords(result.data.result.content);
+        // Đảm bảo result là array từ content
+        if (result?.data?.result?.content) {
+          treatmentRecords = result.data.result.content;
+        } else if (Array.isArray(result?.data?.result)) {
+          treatmentRecords = result.data.result;
+        } else if (Array.isArray(result)) {
+          treatmentRecords = result;
+        }
+      } catch (error) {
+        console.warn("API mới không hoạt động, thử API cũ:", error);
+        // Fallback to old API
+        try {
+          const response =
+            await treatmentService.getTreatmentRecordsForManager();
+          if (
+            response?.data?.code === 1000 &&
+            Array.isArray(response.data.result)
+          ) {
+            treatmentRecords = response.data.result;
+          }
+        } catch (fallbackError) {
+          console.error("Cả 2 API đều fail:", fallbackError);
+          treatmentRecords = [];
+        }
       }
-      setTotalPages(result.data.result.totalPages);
-      setCurrentPage(page);
 
       console.log("📋 Processed Treatment Records:", treatmentRecords);
 
@@ -176,6 +192,7 @@ const ManagerTreatmentRecords = () => {
   };
 
   const viewRecord = (record) => {
+    console.log("🔍 Navigating to treatment-stages-view with record:", record);
     navigate("/manager/treatment-stages-view", {
       state: {
         patientInfo: {
@@ -701,27 +718,13 @@ const ManagerTreatmentRecords = () => {
                 }
               },
             }}
-            pagination={false}
+            pagination={
+              // pageSize: 10,
+              // showSizeChanger: true,
+              // showTotal: (total) => `Tổng số ${total} bệnh nhân`,
+              false
+            }
           />
-          <div className="flex justify-end mt-4">
-            <Button
-              disabled={currentPage === 0}
-              onClick={() => fetchRecords(currentPage - 1)}
-              className="mr-2"
-            >
-              Trang trước
-            </Button>
-            <span className="px-4 py-1 bg-gray-100 rounded text-sm">
-              Trang {currentPage + 1} / {totalPages}
-            </span>
-            <Button
-              disabled={currentPage + 1 >= totalPages}
-              onClick={() => fetchRecords(currentPage + 1)}
-              className="ml-2"
-            >
-              Trang tiếp
-            </Button>
-          </div>
         </Spin>
       </Card>
     </div>
