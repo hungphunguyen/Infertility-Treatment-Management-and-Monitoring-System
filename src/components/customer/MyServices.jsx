@@ -129,6 +129,10 @@ const MyServices = () => {
         return <Tag color="warning">Đang chờ điều trị</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
+      case "PLANED":
+        return <Tag color="gold">Đã lên lịch</Tag>;
+      case "CONFIRMED":
+        return <Tag color="blue">Đã xác nhận</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }

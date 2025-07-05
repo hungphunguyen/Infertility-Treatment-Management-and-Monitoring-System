@@ -17,15 +17,9 @@ import {
   Collapse,
 } from "antd";
 import {
-  UserOutlined,
-  EyeOutlined,
-  DownOutlined,
-  UpOutlined,
-  CalendarOutlined,
-  FileTextOutlined,
-  MedicineBoxOutlined,
-  CheckOutlined,
-  CloseOutlined,
+  UserOutlined, EyeOutlined, DownOutlined, UpOutlined,
+  CalendarOutlined, FileTextOutlined, MedicineBoxOutlined,
+  CheckOutlined, CloseOutlined, ExclamationCircleOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
@@ -46,6 +40,7 @@ const TestResults = () => {
   const [doctorId, setDoctorId] = useState("");
   const navigate = useNavigate();
   const [expandedRows, setExpandedRows] = useState([]);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
@@ -152,6 +147,7 @@ const TestResults = () => {
       INPROGRESS: { color: "blue", text: "Đang điều trị" },
       CANCELLED: { color: "red", text: "Đã hủy" },
       COMPLETED: { color: "green", text: "Hoàn thành" },
+      CONFIRMED: { color: "blue", text: "Đã xác nhận" },
     };
     return (
       <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>
@@ -237,69 +233,29 @@ const TestResults = () => {
     }
   };
 
-  const handleCancel = async (treatment) => {
-    try {
-      const response = await treatmentService.updateTreatmentRecordStatus(
-        treatment.id,
-        "CANCELLED"
-      );
-      if (response?.data?.code === 1000) {
-        notification.success({
-          message: "Hủy hồ sơ thành công!",
-          description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã được hủy.`,
-        });
-        // Refresh the list using new API
-        const updatedRecords = await treatmentService.getTreatmentRecords({
-          doctorId: doctorId,
-          page: 0,
-          size: 100,
-        });
-
-        if (updatedRecords?.data?.result?.content) {
-          const treatmentRecords = updatedRecords.data.result.content;
-
-          const groupedByCustomer = treatmentRecords.reduce((acc, record) => {
-            const customerName = record.customerName;
-            if (!acc[customerName]) {
-              acc[customerName] = [];
-            }
-            acc[customerName].push(record);
-            return acc;
-          }, {});
-
-          const formattedRecords = Object.entries(groupedByCustomer).map(
-            ([customerName, treatments]) => {
-              const sortedTreatments = treatments.sort(
-                (a, b) => new Date(b.startDate) - new Date(a.startDate)
-              );
-
-              return {
-                key: customerName,
-                customerId: sortedTreatments[0].customerId,
-                customerName: customerName,
-                treatments: sortedTreatments.map((treatment) => ({
-                  ...treatment,
-                  key: treatment.id,
-                })),
-              };
-            }
-          );
-
-          setRecords(formattedRecords);
+  const handleCancelService = (treatment) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn hủy hồ sơ/dịch vụ này?",
+      icon: <ExclamationCircleOutlined />,
+      content: `Bệnh nhân: ${treatment.customerName || treatment.customerName}`,
+      okText: "Hủy hồ sơ",
+      okType: "danger",
+      cancelText: "Không",
+      confirmLoading: cancelLoading,
+      onOk: async () => {
+        setCancelLoading(true);
+        try {
+          await treatmentService.cancelTreatmentRecord(treatment.id);
+          notification.success({ message: "Hủy hồ sơ thành công!" });
+          // Reload danh sách
+          setTimeout(() => window.location.reload(), 800);
+        } catch (err) {
+          notification.error({ message: "Hủy hồ sơ thất bại!" });
+        } finally {
+          setCancelLoading(false);
         }
-      } else {
-        notification.error({
-          message: "Hủy hồ sơ thất bại!",
-          description:
-            response?.data?.message || "Không thể hủy hồ sơ, vui lòng thử lại.",
-        });
-      }
-    } catch (error) {
-      notification.error({
-        message: "Lỗi khi hủy hồ sơ!",
-        description: error.message || "Đã xảy ra lỗi, vui lòng thử lại.",
-      });
-    }
+      },
+    });
   };
 
   const expandedRowRender = (record) => {
@@ -367,16 +323,18 @@ const TestResults = () => {
                 >
                   Duyệt
                 </Button>
-                <Button
-                  danger
-                  size="small"
-                  icon={<CloseOutlined />}
-                  onClick={() => handleCancel(treatment)}
-                >
-                  Hủy
-                </Button>
               </>
             )}
+            <Button
+              danger
+              size="small"
+              loading={cancelLoading}
+              icon={<CloseOutlined />}
+              onClick={() => handleCancelService(treatment)}
+              disabled={treatment.status === "CANCELLED" || treatment.status === "COMPLETED"}
+            >
+              Hủy hồ sơ
+            </Button>
           </Space>
         ),
       },

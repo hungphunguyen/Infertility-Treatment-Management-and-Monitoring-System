@@ -441,14 +441,14 @@ const TreatmentStagesView = () => {
                       <Descriptions.Item label="Mô tả">
                         {step.description || "Không có mô tả"}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Ngày dự kiến">
-                        {step.scheduledDate
-                          ? dayjs(step.scheduledDate).format("DD/MM/YYYY")
+                      <Descriptions.Item label="Ngày bắt đầu">
+                        {step.startDate
+                          ? dayjs(step.startDate).format("DD/MM/YYYY")
                           : "Chưa có lịch"}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Ngày thực hiện">
-                        {step.actualDate
-                          ? dayjs(step.actualDate).format("DD/MM/YYYY")
+                      <Descriptions.Item label="Ngày kết thúc">
+                        {step.endDate
+                          ? dayjs(step.endDate).format("DD/MM/YYYY")
                           : "Chưa thực hiện"}
                       </Descriptions.Item>
                       <Descriptions.Item label="Ghi chú">
