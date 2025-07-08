@@ -213,8 +213,8 @@ const TreatmentStageDetails = () => {
         return "Hoàn thành";
       case "INPROGRESS":
         return "Đang thực hiện";
-      case "PLANNED":
-        return "Chờ xếp lịch";
+      case "PLANED":
+        return "Đã lên lịch";
       case "CANCELLED":
         return "Đã hủy";
       case "PENDING_CHANGE":
@@ -379,7 +379,7 @@ const TreatmentStageDetails = () => {
         doctorId: doctorId,
         appointmentDate: values.appointmentDate.format("YYYY-MM-DD"),
         shift: values.shift,
-        purpose: stepObj?.name || "", // Luôn lấy tên tiếng Việt
+        purpose: values.purpose, // Lấy từ form
         notes: values.notes,
         treatmentStepId: values.treatmentStepId,
       };
@@ -1555,6 +1555,13 @@ const TreatmentStageDetails = () => {
                 </Form.Item>
               </Col>
             </Row>
+            <Form.Item
+              name="purpose"
+              label="Mục đích"
+              rules={[{ required: true, message: "Vui lòng nhập mục đích" }]}
+            >
+              <Input placeholder="Nhập mục đích của lịch hẹn" />
+            </Form.Item>
             <Form.Item name="notes" label="Ghi chú">
               <TextArea rows={2} />
             </Form.Item>
@@ -1623,6 +1630,13 @@ const TreatmentStageDetails = () => {
                 </Form.Item>
               </Col>
             </Row>
+            <Form.Item
+              name="purpose"
+              label="Mục đích"
+              rules={[{ required: true, message: "Vui lòng nhập mục đích" }]}
+            >
+              <Input placeholder="Nhập mục đích của lịch hẹn" />
+            </Form.Item>
             <Form.Item name="notes" label="Ghi chú">
               <TextArea rows={2} />
             </Form.Item>

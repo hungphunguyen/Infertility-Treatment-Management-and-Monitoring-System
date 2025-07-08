@@ -162,7 +162,9 @@ const PatientList = () => {
     const statusMap = {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       PENDING: { color: "orange", text: "Chờ xác nhận" },
+      REJECTED: { color: "red", text: "Đã từ chối" },
       REJECTED_CHANGE: { color: "red", text: "Từ chối thay đổi" },
+      PENDING_CHANGE: { color: "gold", text: "Yêu cầu thay đổi" },
       CANCELLED: { color: "red", text: "Đã hủy" },
       COMPLETED: { color: "green", text: "Đã hoàn thành" },
       INPROGRESS: { color: "blue", text: "Đang thực hiện" },

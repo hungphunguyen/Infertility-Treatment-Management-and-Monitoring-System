@@ -243,6 +243,7 @@ const DashboardOverview = () => {
         const statusMap = {
           CONFIRMED: { color: "blue", text: "Đã xác nhận" },
           PLANNED: { color: "orange", text: "Chờ thực hiện" },
+          PLANED: { color: "gold", text: "Đã lên lịch" },
           COMPLETED: { color: "green", text: "Hoàn thành" },
           CANCELLED: { color: "red", text: "Đã hủy" },
           INPROGRESS: { color: "blue", text: "Đang thực hiện" },

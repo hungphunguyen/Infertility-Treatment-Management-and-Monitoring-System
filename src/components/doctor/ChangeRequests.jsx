@@ -176,11 +176,7 @@ const ChangeRequests = () => {
 
   const columns = [
     {
-      title: (
-        <span>
-          <UserOutlined /> Khách hàng
-        </span>
-      ),
+      title: "Bệnh nhân",
       dataIndex: "customerName",
       key: "customerName",
       render: (name, record) => (
@@ -201,92 +197,91 @@ const ChangeRequests = () => {
       ),
     },
     {
-      title: "Mục đích",
-      dataIndex: "purpose",
-      key: "purpose",
-      render: (purpose) => <Text>{purpose}</Text>,
-    },
-    {
-      title: "Bước điều trị",
-      dataIndex: "step",
-      key: "step",
-      render: (step) => <Text>{step}</Text>,
-    },
-    {
-      title: (
-        <span>
-          <CalendarOutlined /> Ngày hẹn
-        </span>
+      title: "Bác sĩ",
+      dataIndex: "doctorName",
+      key: "doctorName",
+      render: (name, record) => (
+        <Space>
+          <Avatar
+            size="small"
+            style={{ background: "#a084ee" }}
+            icon={<UserOutlined />}
+          />
+          <div>
+            <Text strong>{name}</Text>
+            {record.doctorEmail && (
+              <>
+                <br />
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  {record.doctorEmail}
+                </Text>
+              </>
+            )}
+          </div>
+        </Space>
       ),
-      dataIndex: "appointmentDate",
-      key: "appointmentDate",
-      render: (t) => (t ? dayjs(t).format("DD/MM/YYYY") : ""),
     },
     {
-      title: "Ca cũ",
-      dataIndex: "shift",
-      key: "shift",
-      render: (s) =>
-        s === "MORNING" ? "Sáng" : s === "AFTERNOON" ? "Chiều" : s,
+      title: "Lịch hiện tại",
+      key: "currentSchedule",
+      render: (_, record) => (
+        <div>
+          <div>
+            {record.appointmentDate
+              ? dayjs(record.appointmentDate).format("DD/MM/YYYY")
+              : ""}
+          </div>
+          <Tag color="blue">
+            {record.shift === "MORNING"
+              ? "Sáng"
+              : record.shift === "AFTERNOON"
+              ? "Chiều"
+              : record.shift}
+          </Tag>
+        </div>
+      ),
     },
     {
-      title: "Đổi sang ngày",
+      title: "Ngày yêu cầu",
       dataIndex: "requestedDate",
       key: "requestedDate",
       render: (t) =>
         t ? (
-          dayjs(t).format("DD/MM/YYYY")
+          <Text style={{ color: "#faad14" }}>
+            {dayjs(t).format("DD/MM/YYYY")}
+          </Text>
         ) : (
-          <Text type="secondary">Chưa có thông tin</Text>
+          <Text type="secondary">Chưa có</Text>
         ),
     },
     {
-      title: "Ca muốn đổi",
+      title: "Ca yêu cầu",
       dataIndex: "requestedShift",
       key: "requestedShift",
       render: (s) =>
-        s === "MORNING"
-          ? "Sáng"
-          : s === "AFTERNOON"
-          ? "Chiều"
-          : s || <Text type="secondary">Chưa có thông tin</Text>,
+        s ? (
+          s === "MORNING" ? (
+            "Sáng"
+          ) : s === "AFTERNOON" ? (
+            "Chiều"
+          ) : (
+            s
+          )
+        ) : (
+          <Text type="secondary">Chưa có</Text>
+        ),
     },
     {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (s) => <Tag color="orange">Chờ duyệt</Tag>,
-    },
-    {
-      title: "Hành động",
+      title: "Thao tác",
       key: "action",
       render: (_, record) => (
-        <Space>
-          <Button
-            type="primary"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => showDetail(record)}
-          >
-            Chi tiết
-          </Button>
-          <Button
-            type="primary"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleApproveClick(record)}
-          >
-            Duyệt
-          </Button>
-          <Button
-            danger
-            size="small"
-            icon={<CloseCircleOutlined />}
-            onClick={() => handleRejectClick(record)}
-          >
-            Từ chối
-          </Button>
-        </Space>
+        <Button
+          type="primary"
+          icon={<EyeOutlined />}
+          onClick={() => showDetail(record)}
+        >
+          Chi tiết
+        </Button>
       ),
     },
   ];
@@ -296,7 +291,6 @@ const ChangeRequests = () => {
       <Card
         title={
           <Space>
-            <SyncOutlined spin style={{ color: "#faad14" }} />{" "}
             <span>Yêu cầu đổi lịch hẹn từ khách hàng</span>
           </Space>
         }
@@ -322,160 +316,107 @@ const ChangeRequests = () => {
           />
         </Spin>
         <Modal
-          title={
-            actionType === "CONFIRMED"
-              ? "Duyệt yêu cầu đổi lịch"
-              : actionType === "REJECTED"
-              ? "Từ chối yêu cầu đổi lịch"
-              : "Chi tiết yêu cầu đổi lịch"
-          }
+          title="Chi tiết yêu cầu đổi lịch"
           open={modalVisible}
           onCancel={() => setModalVisible(false)}
           footer={null}
           centered
-          destroyOnHidden
-          width={700}
+          width={500}
         >
           {selected && (
             <div style={{ padding: 8 }}>
               <Descriptions
-                column={2}
+                column={1}
                 size="small"
                 bordered
                 style={{ marginBottom: 16 }}
               >
-                <Descriptions.Item label="Khách hàng" span={2}>
+                <Descriptions.Item label="Bệnh nhân">
                   <Space>
                     <Avatar icon={<UserOutlined />} />
-                    <div>
-                      <Text strong>{selected.customerName}</Text>
-                      {selected.customerEmail && (
-                        <>
-                          <br />
-                          <Text type="secondary">{selected.customerEmail}</Text>
-                        </>
-                      )}
-                    </div>
+                    <Text strong>{selected.customerName}</Text>
                   </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="Mục đích">
-                  <Text>{selected.purpose}</Text>
+                <Descriptions.Item label="Bác sĩ">
+                  <Space>
+                    <Avatar
+                      style={{ background: "#a084ee" }}
+                      icon={<UserOutlined />}
+                    />
+                    <Text strong>{selected.doctorName}</Text>
+                  </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="Bước điều trị">
-                  <Text>{selected.step}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Ngày tạo">
-                  <Text>
-                    {selected.createdAt
-                      ? dayjs(selected.createdAt).format("DD/MM/YYYY")
+                <Descriptions.Item label="Lịch hiện tại">
+                  <div>
+                    {selected.appointmentDate
+                      ? dayjs(selected.appointmentDate).format("DD/MM/YYYY")
                       : ""}
-                  </Text>
+                  </div>
+                  <Tag color="blue">
+                    {selected.shift === "MORNING"
+                      ? "Sáng"
+                      : selected.shift === "AFTERNOON"
+                      ? "Chiều"
+                      : selected.shift}
+                  </Tag>
                 </Descriptions.Item>
-                <Descriptions.Item label="Mã hồ sơ">
-                  <Text code>{selected.recordId}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Đổi sang ngày">
+                <Descriptions.Item label="Ngày yêu cầu">
                   {selected.requestedDate ? (
-                    dayjs(selected.requestedDate).format("DD/MM/YYYY")
+                    <Text style={{ color: "#faad14" }}>
+                      {dayjs(selected.requestedDate).format("DD/MM/YYYY")}
+                    </Text>
                   ) : (
-                    <Text type="secondary">Chưa có thông tin</Text>
+                    <Text type="secondary">Chưa có</Text>
                   )}
                 </Descriptions.Item>
-                <Descriptions.Item label="Ca muốn đổi">
-                  {selected.requestedShift === "MORNING" ? (
-                    "Sáng"
-                  ) : selected.requestedShift === "AFTERNOON" ? (
-                    "Chiều"
+                <Descriptions.Item label="Ca yêu cầu">
+                  {selected.requestedShift ? (
+                    selected.requestedShift === "MORNING" ? (
+                      "Sáng"
+                    ) : selected.requestedShift === "AFTERNOON" ? (
+                      "Chiều"
+                    ) : (
+                      selected.requestedShift
+                    )
                   ) : (
-                    <Text type="secondary">Chưa có thông tin</Text>
+                    <Text type="secondary">Chưa có</Text>
                   )}
                 </Descriptions.Item>
               </Descriptions>
-
-              <Timeline>
-                <Timeline.Item color="blue">
-                  <Card size="small" title="Thông tin hiện tại">
-                    <Space direction="vertical" size="small">
-                      <Text strong>
-                        Ngày hiện tại:{" "}
-                        {selected.appointmentDate
-                          ? dayjs(selected.appointmentDate).format("DD/MM/YYYY")
-                          : ""}
-                      </Text>
-                      <Tag color="blue">
-                        Ca hiện tại:{" "}
-                        {selected.shift === "MORNING"
-                          ? "Sáng"
-                          : selected.shift === "AFTERNOON"
-                          ? "Chiều"
-                          : selected.shift}
-                      </Tag>
-                    </Space>
-                  </Card>
-                </Timeline.Item>
-                <Timeline.Item color="orange">
-                  <Card size="small" title="Yêu cầu thay đổi">
-                    <Space direction="vertical" size="small">
-                      <Text strong style={{ color: "#faad14" }}>
-                        Ngày yêu cầu:{" "}
-                        {selected.requestedDate
-                          ? dayjs(selected.requestedDate).format("DD/MM/YYYY")
-                          : "Chưa có thông tin"}
-                      </Text>
-                      <Tag color="gold">
-                        Ca yêu cầu:{" "}
-                        {selected.requestedShift === "MORNING"
-                          ? "Sáng"
-                          : selected.requestedShift === "AFTERNOON"
-                          ? "Chiều"
-                          : selected.requestedShift || "Chưa có thông tin"}
-                      </Tag>
-                    </Space>
-                  </Card>
-                </Timeline.Item>
-              </Timeline>
-
-              {selected.notes && (
-                <>
-                  <Divider />
-                  <Card size="small" title="Ghi chú">
-                    <Text>{selected.notes}</Text>
-                  </Card>
-                </>
-              )}
-
-              {actionType && (
-                <>
-                  <Divider />
-                  <Input.TextArea
-                    rows={3}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Nhập ghi chú bắt buộc"
-                    style={{ marginBottom: 16 }}
-                  />
-                  <Space style={{ width: "100%", justifyContent: "center" }}>
-                    <Button
-                      type={actionType === "CONFIRMED" ? "primary" : "default"}
-                      danger={actionType === "REJECTED"}
-                      icon={
-                        actionType === "CONFIRMED" ? (
-                          <CheckCircleOutlined />
-                        ) : (
-                          <CloseCircleOutlined />
-                        )
-                      }
-                      loading={actionLoading}
-                      onClick={handleAction}
-                      style={{ minWidth: 120 }}
-                    >
-                      {actionType === "CONFIRMED"
-                        ? "Duyệt yêu cầu"
-                        : "Từ chối yêu cầu"}
-                    </Button>
-                  </Space>
-                </>
-              )}
+              <Divider />
+              <Input.TextArea
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Nhập ghi chú bắt buộc"
+                style={{ marginBottom: 16 }}
+              />
+              <Space style={{ width: "100%", justifyContent: "center" }}>
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  loading={actionLoading && actionType === "CONFIRMED"}
+                  onClick={() => {
+                    setActionType("CONFIRMED");
+                    handleAction();
+                  }}
+                  style={{ minWidth: 120 }}
+                >
+                  Duyệt yêu cầu
+                </Button>
+                <Button
+                  danger
+                  icon={<CloseCircleOutlined />}
+                  loading={actionLoading && actionType === "REJECTED"}
+                  onClick={() => {
+                    setActionType("REJECTED");
+                    handleAction();
+                  }}
+                  style={{ minWidth: 120 }}
+                >
+                  Từ chối yêu cầu
+                </Button>
+              </Space>
             </div>
           )}
         </Modal>
