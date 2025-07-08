@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
   Card,
-  Steps,
   Row,
   Col,
   Typography,
   Descriptions,
   Tag,
-  Timeline,
   Space,
   Divider,
   Progress,
@@ -24,18 +22,12 @@ import {
   Table,
 } from "antd";
 import {
-  CheckCircleOutlined,
-  ClockCircleOutlined,
   HeartOutlined,
   MedicineBoxOutlined,
-  ExperimentOutlined,
   CalendarOutlined,
-  FileTextOutlined,
   UserOutlined,
   ClockCircleOutlined as ClockIcon,
   CheckCircleOutlined as CheckIcon,
-  InfoCircleOutlined,
-  AppstoreOutlined,
   DeploymentUnitOutlined,
   ExperimentOutlined as TestTubeIcon,
   ArrowLeftOutlined,
@@ -46,11 +38,10 @@ import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { useNavigate, useLocation } from "react-router-dom";
-import { path } from "../../common/path";
 import { NotificationContext } from "../../App";
 
-const { Title, Text, Paragraph } = Typography;
-const { Panel } = Collapse;
+const { Title, Text } = Typography;
+const {} = Collapse;
 const { Option } = Select;
 
 const TreatmentProgress = () => {
@@ -65,7 +56,6 @@ const TreatmentProgress = () => {
   const [changeForm] = Form.useForm();
   const [changeLoading, setChangeLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const navigate = useNavigate();
   const location = useLocation();
   const [viewMode, setViewMode] = useState("list");
   const [treatments, setTreatments] = useState([]);

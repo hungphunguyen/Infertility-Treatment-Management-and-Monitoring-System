@@ -1,21 +1,9 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import {
-  Card,
-  Typography,
-  Button,
-  Space,
-  Tag,
-  Select,
-  Input,
-  Rate,
-  Modal,
-} from "antd";
-import { CheckOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { Card, Button, Space, Tag, Select, Input, Rate, Modal } from "antd";
 import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
 import { authService } from "../../service/auth.service";
 import { NotificationContext } from "../../App";
-import { doctorService } from "../../service/doctor.service";
 
 const FeedbackManagement = () => {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -25,7 +13,6 @@ const FeedbackManagement = () => {
     keyword: "",
     status: "",
   });
-  const [loadingIds, setLoadingIds] = useState([]);
   const noteRef = useRef("");
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -33,7 +20,6 @@ const FeedbackManagement = () => {
   const [currentStatus, setCurrentStatus] = useState("");
 
   const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
   const [feedbackDetail, setFeedbackDetail] = useState(null);
@@ -44,7 +30,7 @@ const FeedbackManagement = () => {
       .then((res) => {
         setInfoUser(res.data.result);
       })
-      .catch((err) => {});
+      .catch(() => {});
   }, []);
 
   const getAllFeedBack = async (page = 0) => {

@@ -150,25 +150,6 @@ const BlogManagement = () => {
     }
   };
 
-  const createBlog = () => {
-    setSelectedBlog(null);
-    setModalType("create");
-    form.resetFields();
-    setIsModalVisible(true);
-  };
-
-  const editBlog = (blog) => {
-    setSelectedBlog(blog);
-    setModalType("edit");
-    form.setFieldsValue({
-      title: blog.title,
-      content: blog.content,
-      sourceReference: blog.sourceReference,
-      featured: blog.featured || false,
-    });
-    setIsModalVisible(true);
-  };
-
   const viewBlog = (blog) => {
     setSelectedBlog(blog);
     setModalType("view");

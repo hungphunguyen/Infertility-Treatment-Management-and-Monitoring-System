@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Typography, Select, Popconfirm, Modal } from "antd";
+import { Select, Popconfirm, Modal } from "antd";
 import { doctorService } from "../../service/doctor.service";
 import { NotificationContext } from "../../App";
 import { useSelector } from "react-redux";
@@ -17,7 +17,7 @@ const ScheduleManagement = () => {
       .then((res) => {
         setInfoUser(res.data.result);
       })
-      .catch((err) => {});
+      .catch(() => {});
   }, [token]);
   const days = [
     "MONDAY",
@@ -141,7 +141,7 @@ const ScheduleManagement = () => {
   const handleDelete = (date, doctorId) => {
     managerService
       .deleteWorkSchedule(date, doctorId)
-      .then((res) => {
+      .then(() => {
         showNotification("Xóa lịch làm việc thành công", "success");
         getWorkScheduleMonth();
       })
@@ -151,7 +151,7 @@ const ScheduleManagement = () => {
   const handleUpdate = (doctorId, data) => {
     managerService
       .updateWorkSchedule(doctorId, data)
-      .then((res) => {
+      .then(() => {
         showNotification("Cập nhật lịch làm việc thành công", "success");
         getWorkScheduleMonth();
       })
@@ -169,7 +169,7 @@ const ScheduleManagement = () => {
         shift: data.shift,
         createdBy: infoUser.id,
       })
-      .then((res) => {
+      .then(() => {
         showNotification("Tạo lịch làm việc thành công", "success");
         getWorkScheduleMonth();
       })

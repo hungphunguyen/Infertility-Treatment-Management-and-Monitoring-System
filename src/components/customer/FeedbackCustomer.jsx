@@ -1,15 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
-import { doctorService } from "../../service/doctor.service";
 import { customerService } from "../../service/customer.service";
 import { Card, Modal, Rate } from "antd";
 import Title from "antd/es/skeleton/Title";
 import { UserAddOutlined } from "@ant-design/icons";
-import { serviceService } from "../../service/service.service";
-import { treatmentService } from "../../service/treatment.service";
 import { useFormik } from "formik";
-import InputCustom from "../Input/InputCustom";
 import { useLocation } from "react-router-dom";
 
 const FeedbackCustomer = () => {
@@ -28,7 +24,7 @@ const FeedbackCustomer = () => {
       .then((res) => {
         setInfoUser(res.data.result);
       })
-      .catch((err) => {});
+      .catch(() => {});
   }, []);
 
   const getAllFeedBack = async (page = 0) => {
@@ -63,7 +59,7 @@ const FeedbackCustomer = () => {
       try {
         console.log(values);
 
-        const res = await customerService.createFeedback(values);
+        await customerService.createFeedback(values);
         await getAllFeedBack();
         showNotification("Gửi phản hồi thành công!", "success");
         resetForm(); // ✅ Reset lại tất cả value

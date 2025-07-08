@@ -5,8 +5,6 @@ import {
   Button,
   Space,
   Tag,
-  Modal,
-  Descriptions,
   Row,
   Col,
   Input,
@@ -22,12 +20,9 @@ import {
   EyeOutlined,
   DownOutlined,
   UpOutlined,
-  CalendarOutlined,
   FileTextOutlined,
-  MedicineBoxOutlined,
   CheckOutlined,
   CloseOutlined,
-  UserAddOutlined,
   TeamOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -37,13 +32,8 @@ import { treatmentService } from "../../service/treatment.service";
 import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
-const { Option } = Select;
-const { Title, Text } = Typography;
-const { Panel } = Collapse;
 
 const ManagerTreatmentRecords = () => {
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [records, setRecords] = useState([]);

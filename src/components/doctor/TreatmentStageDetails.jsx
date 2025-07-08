@@ -15,8 +15,6 @@ import {
   Row,
   Col,
   Avatar,
-  Divider,
-  Progress,
   Tooltip,
   Badge,
   Switch,
@@ -28,7 +26,6 @@ import {
   UserOutlined,
   CalendarOutlined,
   MedicineBoxOutlined,
-  ExclamationCircleOutlined,
   ExperimentOutlined,
   ClockCircleOutlined,
   CheckOutlined,
@@ -51,13 +48,11 @@ const TreatmentStageDetails = () => {
   const [doctorId, setDoctorId] = useState(null);
   const [editingStep, setEditingStep] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [nextStep, setNextStep] = useState(null);
   const [form] = Form.useForm();
   const [scheduleForm] = Form.useForm();
   const [scheduleStep, setScheduleStep] = useState(null);
   const [stepAppointments, setStepAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedStep, setSelectedStep] = useState(null);
   const [showStepDetailModal, setShowStepDetailModal] = useState(false);
   const [showCreateAppointmentModal, setShowCreateAppointmentModal] =

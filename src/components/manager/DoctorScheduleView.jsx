@@ -10,11 +10,8 @@ import {
   Col,
   Avatar,
   Statistic,
-  Badge,
-  Space,
   Button,
   Tooltip,
-  Spin,
   Modal,
   Progress,
   notification,
@@ -27,17 +24,13 @@ import {
   TeamOutlined,
   CalendarOutlined,
   PhoneOutlined,
-  MailOutlined,
-  EnvironmentOutlined,
   CalendarOutlined as CalendarIcon,
   StarOutlined,
   TrophyOutlined,
   HeartOutlined,
 } from "@ant-design/icons";
-import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 
-const { Title, Text } = Typography;
 const { Option } = Select;
 const { Search } = Input;
 
@@ -49,8 +42,6 @@ const DoctorScheduleView = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [doctorModalVisible, setDoctorModalVisible] = useState(false);
-  const [doctorDetails, setDoctorDetails] = useState(null);
-  const [loadingDoctorDetails, setLoadingDoctorDetails] = useState(false);
   const [workStats, setWorkStats] = useState({
     totalDoctorsToday: 0,
     totalPatientsToday: 0,

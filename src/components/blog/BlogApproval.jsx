@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Card, Table, Button, Space, Tag, Typography, Modal, message, Input } from "antd";
+import {
+  Card,
+  Table,
+  Button,
+  Space,
+  Tag,
+  Typography,
+  Modal,
+  Input,
+} from "antd";
 import { blogService } from "../../service/blog.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
@@ -15,7 +24,10 @@ const BlogApproval = () => {
   const token = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
   const [isCommentModalVisible, setIsCommentModalVisible] = useState(false);
-  const [currentAction, setCurrentAction] = useState({ blogId: null, status: null });
+  const [currentAction, setCurrentAction] = useState({
+    blogId: null,
+    status: null,
+  });
   const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
@@ -61,7 +73,10 @@ const BlogApproval = () => {
 
       const { blogId, status } = currentAction;
       if (!blogId || !status) {
-        showNotification("Thông tin bài viết hoặc trạng thái không hợp lệ.", "error");
+        showNotification(
+          "Thông tin bài viết hoặc trạng thái không hợp lệ.",
+          "error"
+        );
         return;
       }
       console.log("Blog ID from currentAction:", blogId);
@@ -78,7 +93,10 @@ const BlogApproval = () => {
 
       if (response.data && response.data.result) {
         showNotification(
-          `Bài viết đã được ${status === 'APPROVED' ? 'duyệt' : 'từ chối'} thành công!`, "success"
+          `Bài viết đã được ${
+            status === "APPROVED" ? "duyệt" : "từ chối"
+          } thành công!`,
+          "success"
         );
         setIsCommentModalVisible(false);
         setCommentText(""); // Clear comment
@@ -127,10 +145,7 @@ const BlogApproval = () => {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() => handleViewBlog(record)}
-          >
+          <Button icon={<EyeOutlined />} onClick={() => handleViewBlog(record)}>
             Xem
           </Button>
           <Button
@@ -235,7 +250,9 @@ const BlogApproval = () => {
       </Modal>
 
       <Modal
-        title={`Thêm bình luận cho bài viết ${currentAction.status === 'APPROVED' ? 'duyệt' : 'từ chối'}`}
+        title={`Thêm bình luận cho bài viết ${
+          currentAction.status === "APPROVED" ? "duyệt" : "từ chối"
+        }`}
         open={isCommentModalVisible}
         onOk={handleCommentSubmit}
         onCancel={handleCommentModalCancel}
@@ -253,4 +270,4 @@ const BlogApproval = () => {
   );
 };
 
-export default BlogApproval; 
+export default BlogApproval;

@@ -178,8 +178,8 @@ export const treatmentService = {
     return response;
   },
 
-  updateAppointmentStatusCustomer: (appointmentId) => {
-    return http.put(`v1/appointments/{appointmentId}/status`, data);
+  updateAppointmentStatusCustomer: (appointmentId, data) => {
+    return http.put(`v1/appointments/${appointmentId}/status`, data);
   },
 
   updateTreatmentStep: async (id, data) => {
@@ -265,6 +265,7 @@ export const treatmentService = {
 
   // Gửi yêu cầu đổi lịch hẹn (customer)
   requestChangeAppointment: async (appointmentId, data) => {
+    console.log("first");
     const response = await http.put(
       `v1/appointments/${appointmentId}/customer-change`,
       data,

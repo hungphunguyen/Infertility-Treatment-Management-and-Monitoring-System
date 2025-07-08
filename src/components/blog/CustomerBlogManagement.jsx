@@ -11,27 +11,14 @@ import {
   Modal,
   Form,
   Image,
-  Avatar,
-  message,
-  Popconfirm,
 } from "antd";
-import {
-  EditOutlined,
-  EyeOutlined,
-  UserOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  DeleteOutlined,
-  EyeInvisibleOutlined,
-} from "@ant-design/icons";
+import { EditOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { blogService } from "../../service/blog.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
-import { useNavigate } from "react-router-dom";
 
-const { Title } = Typography;
 const { Option } = Select;
 const { Search } = Input;
 const { TextArea } = Input;

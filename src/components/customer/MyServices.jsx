@@ -18,9 +18,6 @@ import {
 import {
   ExperimentOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined,
-  UserOutlined,
-  CalendarOutlined,
   CloseCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
@@ -28,7 +25,6 @@ import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
-import { customerService } from "../../service/customer.service";
 import { path } from "../../common/path";
 import { NotificationContext } from "../../App";
 

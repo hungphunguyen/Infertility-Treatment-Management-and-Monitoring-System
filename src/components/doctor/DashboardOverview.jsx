@@ -4,16 +4,11 @@ import {
   Row,
   Col,
   Table,
-  Calendar,
-  Badge,
   Typography,
   Statistic,
   Tag,
   Avatar,
   Space,
-  Button,
-  Timeline,
-  Progress,
   DatePicker,
   Spin,
   message,
@@ -21,21 +16,15 @@ import {
 import {
   CalendarOutlined,
   UserOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
   MedicineBoxOutlined,
-  PhoneOutlined,
   StarFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
-import { treatmentService } from "../../service/treatment.service";
-import { authService } from "../../service/auth.service";
 import { doctorService } from "../../service/doctor.service";
 import "dayjs/locale/vi";
 dayjs.locale("vi");
 
-const { Title, Text } = Typography;
 const shiftMap = {
   MORNING: { color: "green", text: "Sáng" },
   AFTERNOON: { color: "orange", text: "Chiều" },

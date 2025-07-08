@@ -73,7 +73,6 @@ const AppointmentManagement = () => {
 
   const [changeRequestPage, setChangeRequestPage] = useState(0);
   const [changeRequestTotalPages, setChangeRequestTotalPages] = useState(1);
-  const [pagedChangeRequests, setPagedChangeRequests] = useState([]);
   useEffect(() => {
     fetchData();
   }, []);
@@ -94,8 +93,8 @@ const AppointmentManagement = () => {
       // Bước 2: Lấy danh sách PENDING_CHANGE appointments
       const changeRequestsResponse = await treatmentService.getAppointments({
         status: "PENDING_CHANGE",
-        page: 0,
-        size: 100,
+        page: page,
+        size: 5,
       });
 
       const pendingChangeAppointments =
@@ -152,9 +151,14 @@ const AppointmentManagement = () => {
       setChangeRequests(detailedChangeRequests);
       setFilteredAppointments(appointmentData);
       setFilteredChangeRequests(detailedChangeRequests);
+
       setTotalPages(response?.data?.result?.totalPages);
       setCurrentPage(page);
 
+      setChangeRequestPage(page);
+      setChangeRequestTotalPages(
+        changeRequestsResponse?.data?.result.totalPages
+      );
       // Calculate statistics
       const today = dayjs().format("YYYY-MM-DD");
       const todayAppointments = appointmentData.filter(
@@ -658,6 +662,25 @@ const AppointmentManagement = () => {
                   : "Không có yêu cầu thay đổi lịch hẹn nào hoặc dữ liệu chưa sẵn sàng.",
               }}
             />
+            <div className="flex justify-end mt-4">
+              <Button
+                disabled={changeRequestPage === 0}
+                onClick={() => fetchData(changeRequestPage - 1)}
+                className="mr-2"
+              >
+                Trang trước
+              </Button>
+              <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+                Trang {changeRequestPage + 1} / {changeRequestTotalPages}
+              </span>
+              <Button
+                disabled={changeRequestPage + 1 >= changeRequestTotalPages}
+                onClick={() => fetchData(changeRequestPage + 1)}
+                className="ml-2"
+              >
+                Trang tiếp
+              </Button>
+            </div>
           </Spin>
         </>
       ),

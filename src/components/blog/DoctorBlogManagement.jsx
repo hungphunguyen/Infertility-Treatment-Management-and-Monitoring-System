@@ -11,25 +11,13 @@ import {
   Modal,
   Form,
   Image,
-  Avatar,
-  message,
-  Popconfirm,
 } from "antd";
-import {
-  EditOutlined,
-  EyeOutlined,
-  UserOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  DeleteOutlined,
-  EyeInvisibleOutlined,
-} from "@ant-design/icons";
+import { EditOutlined, EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { blogService } from "../../service/blog.service";
 import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
-import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -87,60 +75,65 @@ const DoctorBlogManagement = () => {
   const fetchMyBlogs = async (authorId) => {
     try {
       setLoading(true);
-      
+
       // Sử dụng getAllBlogs thay vì getBlogsByAuthor vì API getBlogsByAuthor có vấn đề
       const response = await blogService.getAllBlogs({
         page: 0,
-        size: 100
+        size: 100,
       });
-      
+
       if (response.data && response.data.result?.content) {
         // Filter blogs theo authorId hoặc authorName
         const allBlogs = response.data.result.content;
-        
+
         // Lấy chi tiết cho từng blog để có thông tin author đầy đủ
         const blogsWithDetails = await Promise.all(
           allBlogs.map(async (blog) => {
             try {
               const detailResponse = await blogService.getBlogById(blog.id);
               const blogDetail = detailResponse.data.result;
-              
+
               // Fallback: Nếu không có authorName, sử dụng thông tin user hiện tại
               if (!blogDetail.authorName && currentUser) {
-                blogDetail.authorName = currentUser.fullName || currentUser.username;
-                blogDetail.authorType = currentUser.role?.toUpperCase() || "DOCTOR";
+                blogDetail.authorName =
+                  currentUser.fullName || currentUser.username;
+                blogDetail.authorType =
+                  currentUser.role?.toUpperCase() || "DOCTOR";
               }
-              
+
               return {
                 ...blog,
-                ...blogDetail
+                ...blogDetail,
               };
             } catch (error) {
               // Fallback: Nếu không lấy được detail, thêm thông tin user hiện tại
               return {
                 ...blog,
-                authorName: currentUser?.fullName || currentUser?.username || "N/A",
-                authorType: currentUser?.role?.toUpperCase() || "DOCTOR"
+                authorName:
+                  currentUser?.fullName || currentUser?.username || "N/A",
+                authorType: currentUser?.role?.toUpperCase() || "DOCTOR",
               };
             }
           })
         );
-        
-        const filteredBlogs = blogsWithDetails.filter(blog => {
+
+        const filteredBlogs = blogsWithDetails.filter((blog) => {
           // Kiểm tra theo authorId hoặc authorName
           const matchesAuthorId = blog.authorId === authorId;
-          const matchesAuthorName = blog.authorName === currentUser?.fullName || 
-                                   blog.authorName === currentUser?.username ||
-                                   blog.authorName === `Dr. ${currentUser?.fullName}` ||
-                                   blog.authorName === `Dr. ${currentUser?.username}` ||
-                                   blog.authorName === currentUser?.name;
-          
+          const matchesAuthorName =
+            blog.authorName === currentUser?.fullName ||
+            blog.authorName === currentUser?.username ||
+            blog.authorName === `Dr. ${currentUser?.fullName}` ||
+            blog.authorName === `Dr. ${currentUser?.username}` ||
+            blog.authorName === currentUser?.name;
+
           // Kiểm tra theo authorType nếu là DOCTOR
-          const matchesAuthorType = blog.authorType === "DOCTOR" && currentUser?.role === "doctor";
-          
+          const matchesAuthorType =
+            blog.authorType === "DOCTOR" && currentUser?.role === "doctor";
+
           return matchesAuthorId || matchesAuthorName || matchesAuthorType;
         });
-        
+
         // Tạm thời hiển thị tất cả blogs để debug
         if (filteredBlogs.length === 0 && blogsWithDetails.length > 0) {
           setMyBlogs(blogsWithDetails);
@@ -240,10 +233,7 @@ const DoctorBlogManagement = () => {
           ...values,
           status: "DRAFT",
         };
-        await blogService.updateBlog(
-          selectedBlog.id,
-          updatedBlogData
-        );
+        await blogService.updateBlog(selectedBlog.id, updatedBlogData);
         showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
         setIsModalVisible(false);
         form.resetFields();
@@ -251,7 +241,10 @@ const DoctorBlogManagement = () => {
       }
     } catch (error) {
       console.error("Lỗi khi xử lý bài viết:", error);
-      showNotification(error?.response?.data?.message || "Xử lý bài viết thất bại", "error");
+      showNotification(
+        error?.response?.data?.message || "Xử lý bài viết thất bại",
+        "error"
+      );
     } finally {
       setActionLoading(false);
     }
@@ -261,24 +254,27 @@ const DoctorBlogManagement = () => {
     setActionLoading(true);
     try {
       if (!selectedBlog || !currentUser || !currentUser.id) {
-        showNotification("Không thể gửi duyệt. Thông tin không đầy đủ.", "error");
+        showNotification(
+          "Không thể gửi duyệt. Thông tin không đầy đủ.",
+          "error"
+        );
         return;
       }
       const values = form.getFieldsValue();
-      await blogService.submitBlog(
-        selectedBlog.id,
-        {
-          title: values.title,
-          content: values.content,
-          sourceReference: values.sourceReference,
-        }
-      );
+      await blogService.submitBlog(selectedBlog.id, {
+        title: values.title,
+        content: values.content,
+        sourceReference: values.sourceReference,
+      });
       showNotification("Bài viết đã được gửi duyệt thành công!", "success");
       setIsModalVisible(false);
       form.resetFields();
       fetchMyBlogs(currentUser.id);
     } catch (error) {
-      showNotification(error?.response?.data?.message || "Gửi duyệt bài viết thất bại", "error");
+      showNotification(
+        error?.response?.data?.message || "Gửi duyệt bài viết thất bại",
+        "error"
+      );
     } finally {
       setActionLoading(false);
     }
@@ -294,29 +290,41 @@ const DoctorBlogManagement = () => {
 
     try {
       // Kiểm tra loại file
-      if (!file.type.startsWith('image/')) {
-        showNotification(error?.response?.data?.message || "Vui lòng chọn file ảnh", "error");
+      if (!file.type.startsWith("image/")) {
+        showNotification(
+          error?.response?.data?.message || "Vui lòng chọn file ảnh",
+          "error"
+        );
         return;
       }
 
       // Kiểm tra kích thước file (giới hạn 1MB cho backend)
       const maxSize = 1 * 1024 * 1024; // 1MB
-      if (file.size > maxSize * 5) { // Nếu file > 5MB thì từ chối ngay
-        showNotification(error?.response?.data?.message || "File quá lớn. Vui lòng chọn file nhỏ hơn 5MB", "error");
+      if (file.size > maxSize * 5) {
+        // Nếu file > 5MB thì từ chối ngay
+        showNotification(
+          error?.response?.data?.message ||
+            "File quá lớn. Vui lòng chọn file nhỏ hơn 5MB",
+          "error"
+        );
         return;
       }
 
       // Luôn compress để đảm bảo file nhỏ hơn 1MB
       let compressedFile = await compressImage(file);
-      
+
       // Kiểm tra lại sau khi compress
       if (compressedFile.size > maxSize) {
-        showNotification(error?.response?.data?.message || "File vẫn quá lớn sau khi nén. Vui lòng chọn file nhỏ hơn.", "error");
+        showNotification(
+          error?.response?.data?.message ||
+            "File vẫn quá lớn sau khi nén. Vui lòng chọn file nhỏ hơn.",
+          "error"
+        );
         return;
       }
-      
+
       setSelectedFile(compressedFile);
-      
+
       const reader = new FileReader();
       reader.readAsDataURL(compressedFile);
       reader.onload = () => {
@@ -324,7 +332,10 @@ const DoctorBlogManagement = () => {
       };
     } catch (error) {
       console.error("Error processing file:", error);
-      showNotification(error?.response?.data?.message || "Lỗi xử lý file. Vui lòng thử lại.", "error");
+      showNotification(
+        error?.response?.data?.message || "Lỗi xử lý file. Vui lòng thử lại.",
+        "error"
+      );
     }
   };
 
@@ -332,17 +343,17 @@ const DoctorBlogManagement = () => {
   const compressImage = (file) => {
     return new Promise((resolve, reject) => {
       try {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = document.createElement('img'); // Sử dụng document.createElement thay vì new Image()
-        
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = document.createElement("img"); // Sử dụng document.createElement thay vì new Image()
+
         img.onload = () => {
           try {
             // Tính toán kích thước mới (giữ tỷ lệ, giảm kích thước)
             const maxWidth = 600; // Giảm từ 800 xuống 600
             const maxHeight = 400; // Giảm từ 600 xuống 400
             let { width, height } = img;
-            
+
             if (width > height) {
               if (width > maxWidth) {
                 height = (height * maxWidth) / width;
@@ -354,35 +365,39 @@ const DoctorBlogManagement = () => {
                 height = maxHeight;
               }
             }
-            
+
             canvas.width = width;
             canvas.height = height;
-            
+
             // Vẽ image đã resize
             ctx.drawImage(img, 0, 0, width, height);
-            
+
             // Convert to blob với quality thấp hơn (0.6 thay vì 0.8)
-            canvas.toBlob((blob) => {
-              if (blob) {
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-                resolve(compressedFile);
-              } else {
-                reject(new Error("Không thể nén ảnh"));
-              }
-            }, 'image/jpeg', 0.6); // Giảm quality để file nhỏ hơn
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const compressedFile = new File([blob], file.name, {
+                    type: "image/jpeg",
+                    lastModified: Date.now(),
+                  });
+                  resolve(compressedFile);
+                } else {
+                  reject(new Error("Không thể nén ảnh"));
+                }
+              },
+              "image/jpeg",
+              0.6
+            ); // Giảm quality để file nhỏ hơn
           } catch (error) {
             console.error("Error during image compression:", error);
             reject(error);
           }
         };
-        
+
         img.onerror = () => {
           reject(new Error("Không thể tải ảnh"));
         };
-        
+
         img.src = URL.createObjectURL(file);
       } catch (error) {
         console.error("Error creating image element:", error);
@@ -397,45 +412,63 @@ const DoctorBlogManagement = () => {
     setUploadingImage(true); // 🔥 Start loading
 
     try {
-      const response = await blogService.uploadBlogImage(selectedBlog.id, selectedFile);
-      
+      const response = await blogService.uploadBlogImage(
+        selectedBlog.id,
+        selectedFile
+      );
+
       if (response.data && response.data.result) {
         showNotification("Upload ảnh thành công", "success");
-        
+
         // Cập nhật blog với ảnh mới
         setSelectedBlog((prev) => ({
           ...prev,
           coverImageUrl: response.data.result.coverImageUrl,
         }));
-        
+
         // Refresh danh sách blogs
         fetchMyBlogs(currentUser.id);
       } else {
         showNotification("Upload ảnh thất bại", "error");
       }
-      
+
       // Reset trạng thái
       setSelectedFile(null);
       setIsUploadModalOpen(false);
       setPreview(null);
     } catch (error) {
       console.error("Upload error:", error);
-      
+
       // Xử lý các loại lỗi khác nhau
-      if (error.code === 'ERR_NETWORK') {
+      if (error.code === "ERR_NETWORK") {
         showNotification("Lỗi kết nối mạng. Vui lòng thử lại sau.", "error");
-      } else if (error.message?.includes('CORS')) {
-        showNotification("Lỗi CORS. Vui lòng kiểm tra kết nối mạng hoặc liên hệ admin.", "error");
+      } else if (error.message?.includes("CORS")) {
+        showNotification(
+          "Lỗi CORS. Vui lòng kiểm tra kết nối mạng hoặc liên hệ admin.",
+          "error"
+        );
       } else if (error.response?.status === 413) {
-        showNotification("File quá lớn. Vui lòng chọn file nhỏ hơn 1MB.", "error");
+        showNotification(
+          "File quá lớn. Vui lòng chọn file nhỏ hơn 1MB.",
+          "error"
+        );
       } else if (error.response?.status === 403) {
         showNotification("Không có quyền upload ảnh cho blog này.", "error");
       } else if (error.response?.status === 401) {
-        showNotification("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", "error");
+        showNotification(
+          "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+          "error"
+        );
       } else if (error.response?.status === 0) {
-        showNotification("Không thể kết nối đến server. Vui lòng kiểm tra mạng.", "error");
+        showNotification(
+          "Không thể kết nối đến server. Vui lòng kiểm tra mạng.",
+          "error"
+        );
       } else {
-        showNotification(error.response?.data?.message || "Upload ảnh thất bại", "error");
+        showNotification(
+          error.response?.data?.message || "Upload ảnh thất bại",
+          "error"
+        );
       }
     } finally {
       setUploadingImage(false); // 🔥 End loading
@@ -481,9 +514,13 @@ const DoctorBlogManagement = () => {
             {authorName || record.author || currentUser?.fullName || "N/A"}
             {record.authorType && (
               <div className="text-xs text-gray-500">
-                {record.authorType === "DOCTOR" ? "Bác sĩ" : 
-                 record.authorType === "CUSTOMER" ? "Khách hàng" : 
-                 record.authorType === "MANAGER" ? "Quản lý" : record.authorType}
+                {record.authorType === "DOCTOR"
+                  ? "Bác sĩ"
+                  : record.authorType === "CUSTOMER"
+                  ? "Khách hàng"
+                  : record.authorType === "MANAGER"
+                  ? "Quản lý"
+                  : record.authorType}
               </div>
             )}
           </div>
@@ -628,10 +665,7 @@ const DoctorBlogManagement = () => {
                 </Button>,
               ]
             : [
-                <Button
-                  key="back"
-                  onClick={handleModalCancel}
-                >
+                <Button key="back" onClick={handleModalCancel}>
                   Hủy
                 </Button>,
                 <Button
@@ -666,8 +700,7 @@ const DoctorBlogManagement = () => {
                   Tác giả: {selectedBlog.authorName}
                 </p>
                 <p className="text-gray-600">
-                  Ngày tạo:{" "}
-                  {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY")}
+                  Ngày tạo: {dayjs(selectedBlog.createdAt).format("DD/MM/YYYY")}
                 </p>
                 <p className="text-gray-600">
                   Trạng thái: {getStatusTag(selectedBlog.status)}

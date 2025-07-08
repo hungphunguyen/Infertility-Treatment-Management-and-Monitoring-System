@@ -1,17 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { NotificationContext } from "../../App";
 import { managerService } from "../../service/manager.service";
-import {
-  EyeOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  UndoOutlined,
-} from "@ant-design/icons";
+import { EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { path } from "../../common/path";
 import "../../index.scss";
 import { Button, Image, Modal, Popconfirm } from "antd";
-import CreateTreatmentService from "./managerService/CreateTreatmentService";
 import RenderCreateTreatment from "./managerService/RenderCreateTreatment";
 const ServiceManagement = () => {
   const { showNotification } = useContext(NotificationContext);
@@ -20,7 +13,6 @@ const ServiceManagement = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editedService, setEditedService] = useState(null);
-  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);

@@ -1,7 +1,14 @@
-import React from "react";
 import { Form, Input, Select, DatePicker, Radio, Button, Row, Col } from "antd";
-
-const { TextArea } = Input;
+import {
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  HomeOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
+import { useState } from "react";
+import DoctorScheduleModal from "./DoctorScheduleModal";
+import { useLocation } from "react-router-dom";
 
 export default function RegisterForm({
   form,
@@ -11,34 +18,67 @@ export default function RegisterForm({
   onSubmit,
   onDoctorChange,
 }) {
+  const [showModal, setShowModal] = useState(false);
+  const location = useLocation();
+  const selectedServiceId = location.state?.selectedService;
+  const selectedDoctorId = location.state?.selectedDoctor;
+
+  // const selectedServiceName = location.state?.serviceName;
   return (
-    <Form form={form} layout="vertical" onFinish={onSubmit}>
-      {/* Group: Thông tin cá nhân */}
-      <h3>🧍 Thông tin cá nhân</h3>
-      <Row gutter={16}>
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={onSubmit}
+      className="bg-white shadow-xl p-8 rounded-2xl"
+    >
+      {/* SECTION: Thông tin cá nhân */}
+      <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-orange-500">
+        <UserOutlined />
+        Thông tin Cá nhân
+      </h3>
+      <Row gutter={24}>
         <Col xs={24} md={12}>
           <Form.Item
             name="fullName"
-            label="Họ và tên"
+            label="Họ và Tên"
             rules={[{ required: true }]}
           >
-            <Input />
-          </Form.Item>
-        </Col>
-
-        <Col xs={24} md={12}>
-          <Form.Item name="email" label="Email" rules={[{ type: "email" }]}>
-            <Input />
+            <Input
+              disabled
+              placeholder="Nguyễn Văn A"
+              prefix={<UserOutlined />}
+              className="h-[48px] text-base"
+            />
           </Form.Item>
         </Col>
 
         <Col xs={24} md={12}>
           <Form.Item
-            name="phone"
+            name="email"
+            label="Email"
+            rules={[{ required: true, type: "email" }]}
+          >
+            <Input
+              disabled
+              placeholder="example@gmail.com"
+              prefix={<MailOutlined />}
+              className="h-[48px] text-base"
+            />
+          </Form.Item>
+        </Col>
+
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="phoneNumber"
             label="Số điện thoại"
             rules={[{ required: true }]}
           >
-            <Input />
+            <Input
+              disabled
+              placeholder="0123456789"
+              prefix={<PhoneOutlined />}
+              className="h-[48px] text-base"
+            />
           </Form.Item>
         </Col>
 
@@ -48,7 +88,11 @@ export default function RegisterForm({
             label="Ngày sinh"
             rules={[{ required: true }]}
           >
-            <DatePicker className="w-full" />
+            <DatePicker
+              disabled
+              className="w-full h-[48px] text-base"
+              placeholder="Chọn ngày sinh"
+            />
           </Form.Item>
         </Col>
 
@@ -58,9 +102,9 @@ export default function RegisterForm({
             label="Giới tính"
             rules={[{ required: true }]}
           >
-            <Radio.Group className="w-full">
-              <Radio value="male">Nam</Radio>
+            <Radio.Group className="flex gap-6" disabled>
               <Radio value="female">Nữ</Radio>
+              <Radio value="male">Nam</Radio>
               <Radio value="other">Khác</Radio>
             </Radio.Group>
           </Form.Item>
@@ -72,27 +116,72 @@ export default function RegisterForm({
             label="Địa chỉ"
             rules={[{ required: true }]}
           >
-            <Input />
+            <Input
+              disabled
+              placeholder="Nhập địa chỉ của bạn"
+              prefix={<HomeOutlined />}
+              className="h-[48px] text-base"
+            />
           </Form.Item>
         </Col>
       </Row>
 
-      {/* Group: Thông tin lịch khám */}
-      <h3>📅 Lịch khám & Dịch vụ</h3>
-      <Row gutter={16}>
+      {/* SECTION: Thông tin đặt lịch */}
+      <h3 className="text-lg font-bold mt-6 mb-4 flex items-center gap-2 text-orange-500">
+        <CalendarOutlined />
+        Thông tin Đặt lịch
+      </h3>
+      <Row gutter={24}>
         <Col xs={24} md={12}>
           <Form.Item
-            name="appointmentDate"
-            label="Ngày khám"
-            rules={[{ required: true }]}
+            label="Xem lịch làm việc bác sĩ"
+            colon={false}
+            required={false}
           >
-            <DatePicker className="w-full" />
+            <div className="ant-select ant-select-in-form-item w-full h-[48px]">
+              <Button
+                type="default"
+                onClick={() => setShowModal(true)}
+                icon={<CalendarOutlined />}
+                className="w-full h-[46px] text-base font-medium border-orange-500 text-orange-500 hover:bg-orange-50"
+                style={{
+                  borderWidth: 1,
+                  borderRadius: 6,
+                  marginTop: -1, // điều chỉnh chính xác với Select của AntD
+                }}
+              >
+                Xem lịch làm việc bác sĩ
+              </Button>
+            </div>
+          </Form.Item>
+        </Col>
+
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="doctorId"
+            label="Chọn bác sĩ"
+            rules={[{ required: false }]}
+            initialValue={selectedDoctorId}
+          >
+            <Select
+              showSearch
+              disabled={!!selectedDoctorId}
+              placeholder="-- Chọn bác sĩ --"
+              className="h-[48px] text-base"
+              options={doctors.map((d) => ({
+                label: `${d.fullName} - ${d.qualifications || "Chuyên khoa"}`,
+                value: d.id,
+              }))}
+              onChange={onDoctorChange}
+            />
           </Form.Item>
         </Col>
 
         <Col xs={24} md={12}>
           <Form.Item name="shift" label="Ca khám" rules={[{ required: true }]}>
             <Select
+              placeholder="-- Chọn ca khám --"
+              className="h-[48px] text-base"
               options={[
                 { label: "Sáng (08:00 - 12:00)", value: "MORNING" },
                 { label: "Chiều (13:00 - 17:00)", value: "AFTERNOON" },
@@ -103,7 +192,27 @@ export default function RegisterForm({
 
         <Col xs={24} md={12}>
           <Form.Item name="cd1Date" label="Ngày đầu chu kỳ">
-            <DatePicker className="w-full" />
+            <DatePicker
+              className="w-full h-[48px] text-base"
+              placeholder="(Tùy chọn)"
+            />
+            <p className="text-sm text-gray-500 italic mt-1">
+              Thông tin này giúp bác sĩ xác định chu kỳ kinh nguyệt và lập kế
+              hoạch điều trị phù hợp
+            </p>
+          </Form.Item>
+        </Col>
+
+        <Col xs={24} md={12}>
+          <Form.Item
+            name="startDate"
+            label="Ngày bắt đầu điều trị"
+            rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu" }]}
+          >
+            <DatePicker
+              className="w-full h-[48px] text-base"
+              placeholder="Chọn ngày bắt đầu"
+            />
           </Form.Item>
         </Col>
 
@@ -112,48 +221,46 @@ export default function RegisterForm({
             name="serviceId"
             label="Gói dịch vụ điều trị"
             rules={[{ required: true }]}
+            initialValue={selectedServiceId}
           >
             <Select
               showSearch
+              disabled={!!selectedServiceId}
               placeholder="-- Chọn dịch vụ --"
+              className="h-[48px] text-base"
               options={services.map((s) => ({
-                label: s.serviceName,
+                label: s.name,
                 value: s.id,
               }))}
             />
           </Form.Item>
         </Col>
-
-        <Col xs={24} md={12}>
-          <Form.Item name="doctorId" label="Bác sĩ (tuỳ chọn)">
-            <Select
-              allowClear
-              placeholder="-- Hệ thống tự chọn --"
-              options={doctors.map((d) => ({
-                label: d.fullName,
-                value: d.id,
-              }))}
-              onChange={onDoctorChange}
-            />
-          </Form.Item>
-        </Col>
-
-        <Col xs={24}>
-          <Form.Item name="medicalHistory" label="Tiền sử bệnh lý">
-            <TextArea
-              rows={3}
-              placeholder="Ví dụ: u xơ tử cung, vô sinh thứ phát..."
-            />
-          </Form.Item>
-        </Col>
       </Row>
 
-      {/* Submit */}
-      <Form.Item style={{ textAlign: "center", marginTop: 24 }}>
-        <Button type="primary" htmlType="submit" loading={loading} size="large">
+      <Form.Item style={{ textAlign: "center", marginTop: 32 }}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={loading}
+          size="large"
+          className="px-10 rounded-lg"
+          style={{ backgroundColor: "#f97316", borderColor: "#f97316" }}
+        >
           Xác nhận đăng ký
         </Button>
       </Form.Item>
+      <DoctorScheduleModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        onSelect={({ doctorId, startDate, shift }) => {
+          form.setFieldsValue({
+            doctorId,
+            shift,
+            startDate,
+          });
+          setShowModal(false); // hoặc giữ modal nếu muốn chọn thêm
+        }}
+      />
     </Form>
   );
 }

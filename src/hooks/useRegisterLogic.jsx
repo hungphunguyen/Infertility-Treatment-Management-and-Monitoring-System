@@ -1,22 +1,25 @@
-import { useEffect, useState } from "react";
-import { Form, message } from "antd";
-
+import { useContext, useEffect, useState } from "react";
+import { Form } from "antd";
 import { useNavigate } from "react-router-dom";
 import { doctorService } from "../service/doctor.service";
 import { serviceService } from "../service/service.service";
 import { authService } from "../service/auth.service";
-
+import dayjs from "dayjs";
+import { treatmentService } from "../service/treatment.service";
+import { NotificationContext } from "../App";
 export function useRegisterLogic() {
   const [form] = Form.useForm();
   const [doctors, setDoctors] = useState([]);
   const [services, setServices] = useState([]);
+  const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  const { showNotification } = useContext(NotificationContext);
   useEffect(() => {
     fetchDoctors();
     fetchServices();
     preloadUserInfo();
+    fetchScheduleDoctor();
   }, []);
 
   const fetchDoctors = async () => {
@@ -29,6 +32,11 @@ export function useRegisterLogic() {
     setServices(res?.data?.result?.content || []);
   };
 
+  const fetchScheduleDoctor = async () => {
+    const res = await doctorService.getDoctorScheduleById(doctors.id);
+    setSchedules(res.data.result.schedules || []);
+  };
+
   const preloadUserInfo = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -39,8 +47,10 @@ export function useRegisterLogic() {
       form.setFieldsValue({
         fullName: user.fullName || "",
         email: user.email || "",
-        phone: user.phone || "",
+        phoneNumber: user.phoneNumber || "",
         address: user.address || "",
+        dateOfBirth: user.dateOfBirth ? dayjs(user.dateOfBirth) : null,
+        gender: user.gender || "",
       });
     }
   };
@@ -56,19 +66,21 @@ export function useRegisterLogic() {
 
       // Xử lý trực tiếp tại đây – không qua utils
       const payload = {
-        customerId: "current-user-id",
+        // customerId: "current-user-id",
         doctorId: values.doctorId || null,
         treatmentServiceId: parseInt(values.serviceId),
-        startDate: values.appointmentDate.format("YYYY-MM-DD"),
+        startDate: values.startDate.format("YYYY-MM-DD"),
         shift: values.shift.toUpperCase(),
+        cd1Date: values.cd1Date,
       };
 
       await treatmentService.registerTreatmentService(payload);
-      message.success("Đăng ký thành công");
+      showNotification("Đăng kí dịch vụ khám thành công", "success");
       form.resetFields();
       navigate("/customer-dashboard/services");
     } catch (err) {
-      message.error("Đăng ký thất bại");
+      showNotification(err.response.data.message, "error");
+      console.log(err);
     } finally {
       setLoading(false);
     }

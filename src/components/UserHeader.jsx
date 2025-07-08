@@ -2,16 +2,10 @@ import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { path } from "../common/path";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, Button, Dropdown, Menu } from "antd";
+import { Avatar, Dropdown, Menu } from "antd";
 import { NotificationContext } from "../App";
 import { authService } from "../service/auth.service";
-import {
-  SettingOutlined,
-  LogoutOutlined,
-  UserOutlined,
-  DashboardOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
+import { LogoutOutlined, DashboardOutlined } from "@ant-design/icons";
 import { clearAuth, setToken } from "../redux/authSlice";
 
 const UserHeader = () => {
@@ -43,7 +37,9 @@ const UserHeader = () => {
           }, 1000);
         }
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.log(err);
+      });
   }, [token]);
 
   useEffect(() => {

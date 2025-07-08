@@ -49,8 +49,9 @@ const LoginForm = ({ switchToRegister }) => {
                 "Nếu bạn muốn xác nhận otp lại, hãy nhấn vào đây",
                 "warning"
               );
+            } else {
+              showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
             }
-            showNotification(error.response.data.message, "error"); // coi lai respone tu be tra ve
           });
       },
       validationSchema: yup.object({
