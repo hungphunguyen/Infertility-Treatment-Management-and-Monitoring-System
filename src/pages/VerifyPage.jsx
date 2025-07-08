@@ -1,97 +1,123 @@
+import React, { useState, useContext } from "react";
 import { useFormik } from "formik";
-import React, { useContext } from "react";
-import { useSelector } from "react-redux";
 import * as yup from "yup";
-import InputCustom from "../components/Input/InputCustom";
-import { authService } from "../service/auth.service";
-import { NotificationContext } from "../App";
 import { useNavigate } from "react-router-dom";
+import { NotificationContext } from "../App";
+import { authService } from "../service/auth.service";
+import InputCustom from "../components/Input/InputCustom";
 
 const VerifyPage = () => {
   const navigate = useNavigate();
-  const { infoUser } = useSelector((state) => state.authSlice);
   const { showNotification } = useContext(NotificationContext);
+  const [step, setStep] = useState(1); // step = 1: nhập email, step = 2: nhập otp
 
-  const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
-    useFormik({
-      initialValues: {
-        otp: "",
-        email: infoUser.email,
-      },
-      onSubmit: (values) => {
-        authService
-          .verify(values)
-          .then((res) => {
-            showNotification("OTP xác nhận thành công", "success");
-            setTimeout(() => {
-              navigate("/dang-nhap");
-              localStorage.clear();
-              window.location.reload();
-            }, 1000);
-          })
-          .catch((errors) => {
-            showNotification(errors.response.data.message, "error");
+  const formik = useFormik({
+    initialValues: {
+      email: "",
+      otp: "",
+    },
+    validationSchema: yup.object({
+      email: yup
+        .string()
+        .email("Email không hợp lệ")
+        .required("Vui lòng nhập email"),
+      otp:
+        step === 2
+          ? yup.string().required("Vui lòng nhập mã OTP")
+          : yup.string(),
+    }),
+    onSubmit: async (values) => {
+      if (step === 1) {
+        // Bước gửi OTP
+        try {
+          await authService.resendOtp(values.email);
+          showNotification("Đã gửi mã OTP đến email", "success");
+          setStep(2);
+        } catch (error) {
+          showNotification(
+            error?.response?.data?.message || "Lỗi gửi OTP",
+            "error"
+          );
+        }
+      } else {
+        // Bước xác thực OTP
+        try {
+          await authService.verify({
+            email: values.email,
+            otp: values.otp,
           });
-      },
-      validationSchema: yup.object({
-        otp: yup.string().required("Vui lòng không để trống"),
-      }),
-    });
-
-  const resendOtp = async () => {
-    if (!infoUser) {
-      return;
-    }
-    try {
-      const res = await authService.resendOtp(infoUser.email);
-      showNotification("Đã gửi lại mã đến Email của bạn", "success");
-      console.log(res);
-    } catch (error) {
-      console.log(error);
-      showNotification(error.response.data.message, "error");
-    }
-  };
+          showNotification("Xác thực thành công", "success");
+          setTimeout(() => {
+            localStorage.clear();
+            navigate("/dang-nhap");
+            window.location.reload();
+          }, 1000);
+        } catch (error) {
+          showNotification(
+            error?.response?.data?.message || "OTP không đúng",
+            "error"
+          );
+        }
+      }
+    },
+  });
 
   return (
-    <div>
-      <div className="max-w-md mx-auto mt-20 p-8 border rounded-lg shadow-sm bg-white">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">
-          Xác nhận tài khoản của bạn
-        </h2>
-        <p className="text-center text-gray-600 mb-6">
-          Vui lòng nhập mã code OTP chungs tôi đã gửi <br />
-          <span className="font-medium text-gray-900">{infoUser.email}</span> để
-          kích hoạt tài khoản này.
-        </p>
+    <div className="max-w-md mx-auto mt-20 p-8 border rounded-lg shadow-sm bg-white">
+      <h2 className="text-2xl font-bold text-center mb-4">
+        {step === 1 ? "Nhập Email để nhận OTP" : "Xác nhận mã OTP"}
+      </h2>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
+      <form className="space-y-5" onSubmit={formik.handleSubmit}>
+        <InputCustom
+          labelContent="Email"
+          id="email"
+          name="email"
+          placeholder="Nhập email"
+          typeInput="email"
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.errors.email}
+          touched={formik.touched.email}
+          disabled={step === 2}
+        />
+
+        {step === 2 && (
           <InputCustom
-            labelContent="Mã code xác nhận"
+            labelContent="Mã xác thực OTP"
             id="otp"
             name="otp"
-            placeholder="Nhập mã code OTP"
+            placeholder="Nhập mã OTP"
             typeInput="text"
-            value={values.otp}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={errors.otp}
-            touched={touched.otp}
+            value={formik.values.otp}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            error={formik.errors.otp}
+            touched={formik.touched.otp}
           />
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition"
-          >
-            Xác nhận code
-          </button>
+        )}
 
+        <button
+          type="submit"
+          className="w-full bg-blue-500 text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition"
+        >
+          {step === 1 ? "Gửi mã OTP" : "Xác nhận"}
+        </button>
+
+        {step === 2 && (
           <button
-            className="text-center text-sm mt-4 text-blue-500 cursor-pointer hover:underline"
-            onClick={resendOtp}
+            type="button"
+            onClick={async () => {
+              await authService.resendOtp(formik.values.email);
+              showNotification("Đã gửi otp đến email của bạn", "success");
+            }}
+            className="text-sm mt-2 text-blue-500 hover:underline"
           >
-            Gửi lại code
+            Gửi lại mã OTP
           </button>
-        </form>
-      </div>
+        )}
+      </form>
     </div>
   );
 };
