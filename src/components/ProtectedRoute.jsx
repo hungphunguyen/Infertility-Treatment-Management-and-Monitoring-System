@@ -39,7 +39,7 @@ const ProtectedRoute = ({ children }) => {
       "redirectAfterLogin",
       location.pathname + location.search
     );
-    navigate(path.signIn);
+    navigate(path.testLogin);
   };
 
   const handleRegister = () => {
@@ -48,7 +48,7 @@ const ProtectedRoute = ({ children }) => {
       "redirectAfterLogin",
       location.pathname + location.search
     );
-    navigate(path.signUp);
+    navigate("/dang-nhap?mode=register");
   };
 
   const handleClose = () => {
