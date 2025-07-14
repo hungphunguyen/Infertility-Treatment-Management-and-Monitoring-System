@@ -403,7 +403,10 @@ export const treatmentService = {
         `v1/treatment-records/${recordId}/cancel`
       );
       return response;
-    } catch (error) {}
+    } catch (error) {
+      // Throw lại lỗi để phía trên bắt được và show message BE
+      throw error;
+    }
   },
 
   // Lấy chi tiết appointment theo ID - API mới

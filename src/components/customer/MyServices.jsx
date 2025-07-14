@@ -159,22 +159,11 @@ const MyServices = () => {
     if (!userId) return;
     setCancelLoading((l) => ({ ...l, [record.id]: true }));
     try {
-      await treatmentService.cancelTreatmentRecord(record.id);
-      showNotification("Hủy hồ sơ điều trị thành công.", "success");
+      const res = await treatmentService.cancelTreatmentRecord(record.id);
+      showNotification(res?.data?.message || "Hủy hồ sơ điều trị thành công.", "success");
       fetchTreatmentRecords();
     } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "Không thể hủy hồ sơ điều trị này.";
-      if (errorMessage.includes("in progress")) {
-        showNotification(
-          "Hủy thất bại do bạn đang trong quá trình điều trị.",
-          "error"
-        );
-      } else if (errorMessage.includes("completed")) {
-        showNotification("Hủy thất bại do dịch vụ đã hoàn thành.", "error");
-      } else {
-        showNotification(errorMessage, "error");
-      }
+      showNotification(err?.response?.data?.message || "Có lỗi xảy ra.", "error");
     } finally {
       setCancelLoading((l) => ({ ...l, [record.id]: false }));
     }

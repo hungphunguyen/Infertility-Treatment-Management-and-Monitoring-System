@@ -389,40 +389,14 @@ const TreatmentStageDetails = () => {
       if (response?.data?.code === 1000) {
         showNotification("Tạo lịch hẹn thành công", "success");
 
-        // Thay vì reload trang, refresh treatment data
-        try {
-          const detailedResponse =
-            await treatmentService.getTreatmentRecordById(treatmentData.id);
-          const detailedData = detailedResponse?.data?.result;
-          if (detailedData) {
-            setTreatmentData(detailedData);
-
-            // Cập nhật selectedStep nếu nó vẫn đang được chọn
-            if (selectedStep && selectedStep.id === values.treatmentStepId) {
-              const updatedStep = detailedData.treatmentSteps?.find(
-                (step) => String(step.id) === String(values.treatmentStepId)
-              );
-              if (updatedStep) {
-                setSelectedStep(updatedStep);
-              }
-            }
-          }
-        } catch (refreshError) {
-          console.warn("Không thể refresh treatment data:", refreshError);
-        }
-
+        // Thay vì tự set stepAppointments, gọi lại handleStepClick để reload đúng danh sách lịch hẹn cho bước này
         setShowCreateAppointmentModal(false);
-        setShowStepDetailModal(true);
-        setLoadingAppointments(true);
-        try {
-          const refreshed = await treatmentService.getAppointmentsByStepId(
-            values.treatmentStepId
-          );
-          setStepAppointments(refreshed?.data?.result?.content || []);
-        } catch (error) {
-          setStepAppointments([]);
-        } finally {
-          setLoadingAppointments(false);
+        const step = treatmentData.treatmentSteps.find(
+          (step) => String(step.id) === String(values.treatmentStepId)
+        );
+        if (step) {
+          handleStepClick(step);
+          setShowStepDetailModal(true);
         }
         scheduleForm.resetFields();
       } else {
