@@ -247,6 +247,8 @@ const AppointmentManagement = () => {
         return "volcano";
       case "REJECTED":
         return "volcano";
+      case "PLANED":
+        return "orange";
       default:
         return "default";
     }
@@ -268,6 +270,8 @@ const AppointmentManagement = () => {
         return "Từ chối đổi lịch";
       case "REJECTED":
         return "Đã từ chối";
+      case "PLANED":
+        return "Đã đặt lịch";
       default:
         return status;
     }

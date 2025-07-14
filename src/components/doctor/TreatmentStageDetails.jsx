@@ -18,6 +18,7 @@ import {
   Tooltip,
   Badge,
   Switch,
+  Radio,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -72,7 +73,8 @@ const TreatmentStageDetails = () => {
   const [editingStepStageId, setEditingStepStageId] = useState(null);
 
   const statusOptions = [
-    { value: "PLANNED", label: "Chờ xếp lịch" },
+    { value: "PLANED", label: "Đã đặt lịch" },
+    { value: "PENDING_CHANGE", label: "Chờ duyệt đổi lịch" },
     { value: "CONFIRMED", label: "Đã xác nhận" },
     { value: "INPROGRESS", label: "Đang thực hiện" },
     { value: "COMPLETED", label: "Hoàn thành" },
@@ -555,9 +557,11 @@ const TreatmentStageDetails = () => {
   };
 
   const isAllStepsCompleted = () => {
-    return treatmentData?.treatmentSteps?.every(
-      (step) => step.status === "COMPLETED"
+    if (!treatmentData?.treatmentSteps) return false;
+    const activeSteps = treatmentData.treatmentSteps.filter(
+      (step) => step.status !== "CANCELLED"
     );
+    return activeSteps.length > 0 && activeSteps.every((step) => step.status === "COMPLETED");
   };
 
   const calculateProgress = () => {
@@ -1220,27 +1224,18 @@ const TreatmentStageDetails = () => {
                                   Cập nhật trạng thái
                                 </Button>
                                 {app.showStatusSelect && (
-                                  <Select
+                                  <Radio.Group
                                     style={{ width: 160 }}
                                     value={app.status || undefined}
-                                    onChange={(value) =>
-                                      handleAppointmentStatusUpdate(
-                                        app.id,
-                                        value,
-                                        scheduleStep?.id
-                                      )
-                                    }
-                                    options={statusOptions.filter((opt) =>
-                                      [
-                                        "CONFIRMED",
-                                        "COMPLETED",
-                                        "CANCELLED",
-                                      ].includes(opt.value)
-                                    )}
-                                    styles={{
-                                      popup: { root: { zIndex: 2000 } },
-                                    }}
-                                  />
+                                    onChange={e => handleAppointmentStatusUpdate(app.id, e.target.value, scheduleStep?.id)}
+                                    buttonStyle="solid"
+                                  >
+                                    {statusOptions.filter(opt => ["CONFIRMED", "COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
+                                      <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
+                                        {opt.label}
+                                      </Radio.Button>
+                                    ))}
+                                  </Radio.Group>
                                 )}
                               </Space>
                             </Col>
@@ -1456,27 +1451,18 @@ const TreatmentStageDetails = () => {
                             Cập nhật trạng thái
                           </Button>
                           {app.showStatusSelect && (
-                            <Select
+                            <Radio.Group
                               style={{ width: 160 }}
                               value={app.status || undefined}
-                              onChange={(value) =>
-                                handleAppointmentStatusUpdate(
-                                  app.id,
-                                  value,
-                                  scheduleStep?.id
-                                )
-                              }
-                              options={statusOptions.filter((opt) =>
-                                [
-                                  "CONFIRMED",
-                                  "COMPLETED",
-                                  "CANCELLED",
-                                ].includes(opt.value)
-                              )}
-                              styles={{
-                                popup: { root: { zIndex: 2000 } },
-                              }}
-                            />
+                              onChange={e => handleAppointmentStatusUpdate(app.id, e.target.value, scheduleStep?.id)}
+                              buttonStyle="solid"
+                            >
+                              {statusOptions.filter(opt => ["CONFIRMED", "COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
+                                <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
+                                  {opt.label}
+                                </Radio.Button>
+                              ))}
+                            </Radio.Group>
                           )}
                         </Space>
                       </Col>
