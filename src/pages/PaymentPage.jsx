@@ -204,12 +204,18 @@ const PaymentPage = () => {
   // hàm map tiếng việt của status record
   const mapRecordStatusToVN = (status) => {
     switch (status) {
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "COMPLETED":
+        return "Đã hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
-      case "INPROGRESS":
-        return "Đang điều trị";
-      case "COMPLETED":
-        return "Hoàn tất điều trị";
+      case "PLANED":
+        return "Đã lên lịch";
+      case "PENDING_CHANGE":
+        return "Yêu cầu thay đổi";
+      case "REJECTED":
+        return "Đã từ chối";
       default:
         return "Không xác định";
     }

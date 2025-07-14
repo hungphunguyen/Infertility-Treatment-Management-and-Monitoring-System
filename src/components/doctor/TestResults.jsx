@@ -85,38 +85,36 @@ const TestResults = () => {
     };
     fetchDoctorInfo();
   }, []);
+  const fetchDashboardStats = async (page = 0) => {
+    try {
+      const response = await treatmentService.getTreatmentRecordsPagination({
+        doctorId,
+        page,
+        size: 1, // lấy tất cả
+      });
 
+      const data = response?.data?.result?.content || [];
+
+      const formatted = data.map((item) => ({
+        key: item.customerId,
+        customerId: item.customerId,
+        customerName: item.customerName,
+        totalRecord: item.totalRecord,
+        treatments: [], // ban đầu chưa load chi tiết
+      }));
+      setCurrentPage(page);
+      setTotalPages(response.data.result.totalPages);
+      setRecords(formatted);
+    } catch (error) {
+      console.error("❌ Error loading dashboard stats:", error);
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể tải số liệu tổng quan.",
+      });
+    }
+  };
   useEffect(() => {
     if (!doctorId) return;
-
-    const fetchDashboardStats = async (page = 0) => {
-      try {
-        const response = await treatmentService.getTreatmentRecords({
-          doctorId,
-          page,
-          size: 5, // lấy tất cả
-        });
-
-        const data = response?.data?.result?.content || [];
-
-        const formatted = data.map((item) => ({
-          key: item.customerId,
-          customerId: item.customerId,
-          customerName: item.customerName,
-          totalRecord: item.totalRecord,
-          treatments: [], // ban đầu chưa load chi tiết
-        }));
-        setCurrentPage(page);
-        setTotalPages(response.data.result.totalPages);
-        setRecords(formatted);
-      } catch (error) {
-        console.error("❌ Error loading dashboard stats:", error);
-        notification.error({
-          message: "Lỗi",
-          description: "Không thể tải số liệu tổng quan.",
-        });
-      }
-    };
 
     fetchDashboardStats();
   }, [doctorId]);

@@ -26,9 +26,15 @@ const getCalendarGrid = (monthStart) => {
   return grid;
 };
 
-export default function DoctorScheduleModal({ visible, onClose, onSelect }) {
+export default function DoctorScheduleModal({
+  visible,
+  onClose,
+  onSelect,
+  selectedDoctorId,
+  onDoctorChange,
+}) {
   const [doctors, setDoctors] = useState([]);
-  const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  // const [selectedDoctorId, setSelectedDoctorId] = useState(null);
   const [schedules, setSchedules] = useState({});
   const [loading, setLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(dayjs());
@@ -43,18 +49,23 @@ export default function DoctorScheduleModal({ visible, onClose, onSelect }) {
     }
   }, [visible]);
 
-  const handleDoctorChange = async (doctorId) => {
-    setSelectedDoctorId(doctorId);
-    setLoading(true);
-    try {
-      const res = await doctorService.getDoctorScheduleById(doctorId);
-      setSchedules(res?.data?.result?.schedules || {});
-    } catch (err) {
-      console.error("Lỗi lấy lịch:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (!selectedDoctorId) return;
+
+    const fetchSchedule = async () => {
+      setLoading(true);
+      try {
+        const res = await doctorService.getDoctorScheduleById(selectedDoctorId);
+        setSchedules(res?.data?.result?.schedules || {});
+      } catch (err) {
+        console.error("Lỗi lấy lịch:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedule();
+  }, [selectedDoctorId]);
 
   const handleSelectShift = (date, shift) => {
     if (onSelect) {
@@ -82,7 +93,9 @@ export default function DoctorScheduleModal({ visible, onClose, onSelect }) {
           label: `${d.fullName} - ${d.qualifications || "Chuyên khoa"}`,
           value: d.id,
         }))}
-        onChange={handleDoctorChange}
+        onChange={(value) => {
+          onDoctorChange?.(value); // gọi ra ngoài → form.setFieldsValue → prop cập nhật lại
+        }}
         value={selectedDoctorId}
       />
 
