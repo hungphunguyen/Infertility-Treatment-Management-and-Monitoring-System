@@ -376,7 +376,6 @@ const AppointmentSchedule = () => {
               </Descriptions.Item>
 
               <Descriptions.Item label="Ngày hẹn">
-                <CalendarOutlined className="mr-1" />
                 {formatDate(appointmentDetail.appointmentDate)}
               </Descriptions.Item>
               <Descriptions.Item label="Ca yêu cầu">
@@ -395,7 +394,7 @@ const AppointmentSchedule = () => {
               </Descriptions.Item>
 
               <Descriptions.Item label="Ngày tạo">
-                {appointmentDetail.createdAt}
+                {formatDate(appointmentDetail.createdAt)}
               </Descriptions.Item>
 
               <Descriptions.Item label="Trạng thái">
@@ -445,6 +444,7 @@ const AppointmentSchedule = () => {
               );
 
               showNotification("Checkin buổi khám thành công", "success");
+              setNote(null);
               getApointmentCustomer();
             } catch (err) {
               console.error(err);
