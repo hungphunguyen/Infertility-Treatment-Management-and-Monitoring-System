@@ -485,7 +485,7 @@ const AppointmentSchedule = () => {
               requestedShift,
               notes,
             });
-
+            getApointmentCustomer();
             setIsModalOpenUpdate(false);
           }}
           okText="Gửi yêu cầu"

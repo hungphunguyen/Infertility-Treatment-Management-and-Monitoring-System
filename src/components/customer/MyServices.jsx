@@ -45,6 +45,8 @@ const MyServices = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedTreatmentDetail, setSelectedTreatmentDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchTreatmentRecords();
@@ -57,7 +59,7 @@ const MyServices = () => {
     fetchUser();
   }, []);
 
-  const fetchTreatmentRecords = async () => {
+  const fetchTreatmentRecords = async (page = 0) => {
     try {
       setLoading(true);
       const userResponse = await authService.getMyInfo();
@@ -83,8 +85,8 @@ const MyServices = () => {
 
       const response = await treatmentService.getTreatmentRecords({
         customerId: customerId,
-        page: 0,
-        size: 100,
+        page,
+        size: 5,
       });
 
       if (response?.data?.result?.content) {
@@ -97,7 +99,8 @@ const MyServices = () => {
           canFeedback: record.status === "COMPLETED",
         }));
         setTreatmentRecords(enrichedRecords);
-
+        setCurrentPage(page);
+        setTotalPages(response.data.result.totalPages);
         const stats = {
           totalServices: records.length,
           cancelledServices: records.filter((r) => r.status === "CANCELLED")
@@ -401,14 +404,29 @@ const MyServices = () => {
           columns={columns}
           dataSource={treatmentRecords}
           rowKey="id"
-          pagination={{
-            pageSize: 5,
-            showSizeChanger: false,
-            showTotal: (total) => `Tổng số ${total} dịch vụ`,
-          }}
+          pagination={false}
           bordered
           style={{ borderRadius: 12, overflow: "hidden" }}
         />
+        <div className="flex justify-end mt-4">
+          <Button
+            disabled={currentPage === 0}
+            onClick={() => fetchTreatmentRecords(currentPage - 1)}
+            className="mr-2"
+          >
+            Trang trước
+          </Button>
+          <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+            Trang {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage + 1 >= totalPages}
+            onClick={() => fetchTreatmentRecords(currentPage + 1)}
+            className="ml-2"
+          >
+            Trang tiếp
+          </Button>
+        </div>
       </Card>
       <Modal
         open={detailModalVisible}
