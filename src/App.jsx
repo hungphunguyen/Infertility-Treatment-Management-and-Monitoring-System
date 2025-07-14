@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 function App() {
   const routes = UseRoutesCustom();
   const queryClient = new QueryClient();
+
   const showNotification = (Content, type) => {
     toast[type](Content, {
       position: "top-right",

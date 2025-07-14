@@ -142,10 +142,11 @@ export const treatmentService = {
     }
   },
 
-  getAppointmentBycustomer: (customerId, page, size) => {
+  getAppointmentBycustomer: (customerId, status, page, size) => {
     return http.get(`v1/appointments`, {
       params: {
         customerId,
+        status,
         page,
         size,
       },
@@ -332,25 +333,36 @@ export const treatmentService = {
   },
 
   // Lấy danh sách treatment records - API mới
-  getTreatmentRecords: async (params = {}) => {
-    try {
-      const queryParams = new URLSearchParams();
-      if (params.customerId)
-        queryParams.append("customerId", params.customerId);
-      if (params.doctorId) queryParams.append("doctorId", params.doctorId);
-      if (params.status) queryParams.append("status", params.status);
-      if (params.page !== undefined) queryParams.append("page", params.page);
-      if (params.size !== undefined) queryParams.append("size", params.size);
-      // Thử API mới trước
-      const url = `v1/treatment-records?${queryParams.toString()}`;
-      try {
-        const response = await http.get(url);
-        return response;
-      } catch (newApiError) {}
-    } catch (error) {
-      console.error("❌ Error fetching treatment records:", error);
-      throw error;
-    }
+  getTreatmentRecords: async ({
+    customerId,
+    doctorId,
+    page = 0,
+    size = 10,
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (customerId) queryParams.append("customerId", customerId);
+    if (doctorId) queryParams.append("doctorId", doctorId);
+    queryParams.append("page", page);
+    queryParams.append("size", size);
+
+    const url = `v1/treatment-records/dashboard?${queryParams.toString()}`;
+    return await http.get(url);
+  },
+
+  getTreatmentRecordsExpand: async ({
+    customerId,
+    doctorId,
+    page = 0,
+    size = 10,
+  }) => {
+    const params = new URLSearchParams();
+    if (customerId) params.append("customerId", customerId);
+    if (doctorId) params.append("doctorId", doctorId);
+    params.append("page", page);
+    params.append("size", size);
+
+    const url = `v1/treatment-records?${params.toString()}`;
+    return await http.get(url);
   },
 
   // Cập nhật ngày CD1 - API mới

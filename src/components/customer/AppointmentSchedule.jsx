@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { authService } from "../../service/auth.service";
 import { treatmentService } from "../../service/treatment.service";
-import { Modal, Descriptions, Button, Tag, Input, Space } from "antd";
+import { Modal, Descriptions, Button, Tag, Input, Space, Select } from "antd";
 import {
   EyeOutlined,
   CalendarOutlined,
@@ -17,9 +17,10 @@ const AppointmentSchedule = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentId, setCurrentId] = useState(null);
   const [currentStatus, setCurrentStatus] = useState("");
-  const noteRef = useRef("");
+  const [note, setNote] = useState("");
   const { showNotification } = useContext(NotificationContext);
   const [isModalOpenUpdate, setIsModalOpenUpdate] = useState(false);
+  const [loadingIds, setLoadingIds] = useState([]);
   const [changeRequestForm, setChangeRequestForm] = useState({
     requestedDate: null,
     requestedShift: "",
@@ -27,6 +28,7 @@ const AppointmentSchedule = () => {
   });
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
+  const [filterStatus, setFilterStatus] = useState("");
 
   const translateShift = (shift) => {
     switch (shift) {
@@ -58,6 +60,16 @@ const AppointmentSchedule = () => {
     }
   };
 
+  const STATUS_OPTIONS = [
+    { value: "", label: "Tất cả" },
+    { value: "PLANED", label: "Đã lên lịch" },
+    { value: "CONFIRMED", label: "Đã xác nhận" },
+    { value: "COMPLETED", label: "Đã hoàn thành" },
+    { value: "CANCELLED", label: "Đã hủy" },
+    { value: "PENDING_CHANGE", label: "Yêu cầu thay đổi" },
+    { value: "REJECTED", label: "Đã từ chối" },
+  ];
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     const [year, month, day] = dateStr.split("-");
@@ -76,11 +88,12 @@ const AppointmentSchedule = () => {
       });
   }, []);
 
-  const getApointmentCustomer = async (page = 0) => {
+  const getApointmentCustomer = async (page = 0, status = filterStatus) => {
     if (!infoUser?.id) return;
     try {
       const res = await treatmentService.getAppointmentBycustomer(
         infoUser.id,
+        status,
         page,
         5
       );
@@ -94,7 +107,9 @@ const AppointmentSchedule = () => {
   };
 
   useEffect(() => {
-    getApointmentCustomer();
+    if (infoUser?.id) {
+      getApointmentCustomer();
+    }
   }, [infoUser]);
 
   const getAppointmentDetail = async (appointmentId) => {
@@ -131,9 +146,29 @@ const AppointmentSchedule = () => {
 
   return (
     <div className="p-6">
-      <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+      <div className="bg-white shadow-xl rounded-lg border border-gray-300 overflow-hidden">
+        <div className="flex justify-end items-center px-6 py-4 bg-gray-50 border-b border-gray-200 rounded-t-md">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-700">
+              Lọc theo trạng thái:
+            </span>
+            <Select
+              value={filterStatus}
+              onChange={(value) => {
+                setFilterStatus(value);
+                getApointmentCustomer(0, value);
+              }}
+              size="middle"
+              style={{ width: 200 }}
+              options={STATUS_OPTIONS}
+              placeholder="Chọn trạng thái"
+              allowClear
+            />
+          </div>
+        </div>
+
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-50 border-b border-gray-200 shadow-sm">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Bác sĩ
@@ -221,7 +256,7 @@ const AppointmentSchedule = () => {
             ) : (
               <tr>
                 <td
-                  colSpan="5"
+                  colSpan="7"
                   className="text-center px-6 py-4 text-sm text-gray-500"
                 >
                   Không có lịch hẹn nào.
@@ -230,10 +265,10 @@ const AppointmentSchedule = () => {
             )}
           </tbody>
         </table>
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end my-3 mx-4">
           <Button
             disabled={currentPage === 0}
-            onClick={() => getApointmentCustomer(currentPage - 1)}
+            onClick={() => getApointmentCustomer(currentPage - 1, filterStatus)}
             className="mr-2"
           >
             Trang trước
@@ -243,12 +278,13 @@ const AppointmentSchedule = () => {
           </span>
           <Button
             disabled={currentPage + 1 >= totalPages}
-            onClick={() => getApointmentCustomer(currentPage + 1)}
+            onClick={() => getApointmentCustomer(currentPage + 1, filterStatus)}
             className="ml-2"
           >
             Trang tiếp
           </Button>
         </div>
+
         {/* modal xem chi tiết lịch hẹn */}
 
         <Modal
@@ -390,9 +426,8 @@ const AppointmentSchedule = () => {
         </Modal>
 
         {/* modal chọn xác nhận đã checkin */}
-
         <Modal
-          title={currentStatus === "APPROVED" ? "Xác nhận?" : "Hủy"}
+          title={currentStatus === "CONFIRMED" ? "Xác nhận?" : "Hủy"}
           open={modalVisible}
           onCancel={() => setModalVisible(false)}
           onOk={async () => {
@@ -405,7 +440,7 @@ const AppointmentSchedule = () => {
                 currentId,
                 {
                   status: currentStatus,
-                  note: noteRef.current || "",
+                  note: note || "",
                 }
               );
 
@@ -427,12 +462,12 @@ const AppointmentSchedule = () => {
           <Input.TextArea
             rows={4}
             placeholder="Nhập ghi chú"
-            onChange={(e) => (noteRef.current = e.target.value)}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
         </Modal>
 
         {/* modal gửi yêu cầu đổi lịch hẹn */}
-
         <Modal
           title="Gửi yêu cầu thay đổi lịch hẹn"
           open={isModalOpenUpdate}
@@ -445,7 +480,7 @@ const AppointmentSchedule = () => {
               showNotification("Vui lòng chọn ngày và ca làm", "warning");
               return;
             }
-            updateAppointmentChange(appointmentDetail.id, {
+            await updateAppointmentChange(appointmentDetail.id, {
               requestedDate,
               requestedShift,
               notes,
