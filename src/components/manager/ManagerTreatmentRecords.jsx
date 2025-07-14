@@ -60,7 +60,7 @@ const ManagerTreatmentRecords = () => {
   const fetchRecords = async (page = 0) => {
     try {
       setLoading(true);
-      const response = await treatmentService.getTreatmentRecords({
+      const response = await treatmentService.getTreatmentRecordsPagination({
         page,
         size: 5,
       });

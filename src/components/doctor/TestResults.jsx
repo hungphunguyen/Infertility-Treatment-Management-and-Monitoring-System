@@ -159,11 +159,12 @@ const TestResults = () => {
           description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã chuyển sang trạng thái 'Đang điều trị'.`,
         });
         // Refresh the list using new API
-        const updatedRecords = await treatmentService.getTreatmentRecords({
-          doctorId: doctorId,
-          page: 0,
-          size: 100,
-        });
+        const updatedRecords =
+          await treatmentService.getTreatmentRecordsPagination({
+            doctorId: doctorId,
+            page: 0,
+            size: 100,
+          });
 
         if (updatedRecords?.data?.result?.content) {
           const treatmentRecords = updatedRecords.data.result.content;

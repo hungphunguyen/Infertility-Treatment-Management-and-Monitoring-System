@@ -73,6 +73,7 @@ const AppointmentManagement = () => {
 
   const [changeRequestPage, setChangeRequestPage] = useState(0);
   const [changeRequestTotalPages, setChangeRequestTotalPages] = useState(1);
+
   useEffect(() => {
     fetchData();
   }, []);

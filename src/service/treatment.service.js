@@ -331,9 +331,30 @@ export const treatmentService = {
       throw error;
     }
   },
+  // hàm get của lâm
+  getTreatmentRecords: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.customerId)
+        queryParams.append("customerId", params.customerId);
+      if (params.doctorId) queryParams.append("doctorId", params.doctorId);
+      if (params.status) queryParams.append("status", params.status);
+      if (params.page !== undefined) queryParams.append("page", params.page);
+      if (params.size !== undefined) queryParams.append("size", params.size);
+      // Thử API mới trước
+      const url = `v1/treatment-records?${queryParams.toString()}`;
+      try {
+        const response = await http.get(url);
+        return response;
+      } catch (newApiError) {}
+    } catch (error) {
+      console.error("❌ Error fetching treatment records:", error);
+      throw error;
+    }
+  },
 
   // Lấy danh sách treatment records - API mới
-  getTreatmentRecords: async ({
+  getTreatmentRecordsPagination: async ({
     customerId,
     doctorId,
     page = 0,
