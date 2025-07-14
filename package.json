@@ -25,7 +25,7 @@
     "react-router-dom": "^7.6.0",
     "react-star-ratings": "^2.3.0",
     "react-toastify": "^11.0.5",
-    "recharts": "^2.15.3",
+    "recharts": "^2.15.4",
     "sass": "^1.89.0",
     "yup": "^1.6.1"
   },
