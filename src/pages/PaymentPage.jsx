@@ -26,7 +26,11 @@ const PaymentPage = () => {
 
   // hien thi danh sach record cua customer
   useEffect(() => {
-    fetchPaymentInfo();
+    const paymentJustCompleted = sessionStorage.getItem("payment_success");
+    if (paymentJustCompleted === "true") {
+      fetchPaymentInfo();
+      sessionStorage.removeItem("payment_success"); // xóa cờ sau khi dùng
+    }
   }, []);
 
   const fetchPaymentInfo = async () => {

@@ -38,6 +38,8 @@ const PatientList = () => {
   const [doctorName, setDoctorName] = useState("");
   const [purposeData, setPurposeData] = useState({});
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
@@ -45,6 +47,7 @@ const PatientList = () => {
         const res = await authService.getMyInfo();
         const id = res?.data?.result?.id;
         const name = res?.data?.result?.fullName;
+
         if (id) {
           setDoctorId(id);
           setDoctorName(name);
@@ -61,99 +64,105 @@ const PatientList = () => {
 
   useEffect(() => {
     if (!doctorId) return;
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const today = dayjs().format("YYYY-MM-DD");
-
-        // Gọi song song 3 API: appointments, treatment records, và purpose data
-        const [appointmentsRes, treatmentRecordsRes, purposeRes] =
-          await Promise.all([
-            treatmentService.getDoctorAppointmentsByDate(
-              doctorId,
-              today,
-              "CONFIRMED"
-            ),
-            treatmentService.getTreatmentRecordsByDoctor(doctorId, 1000),
-            doctorService
-              .getAppointmentsToday(0, 100)
-              .catch(() => ({ data: { result: { content: [] } } })),
-          ]);
-
-        // Đảm bảo appointments là array
-        let appointments = [];
-        if (appointmentsRes?.data?.result) {
-          if (Array.isArray(appointmentsRes.data.result)) {
-            appointments = appointmentsRes.data.result;
-          } else if (
-            appointmentsRes.data.result.content &&
-            Array.isArray(appointmentsRes.data.result.content)
-          ) {
-            appointments = appointmentsRes.data.result.content;
-          } else {
-            console.warn(
-              "Appointments data format không đúng:",
-              appointmentsRes.data.result
-            );
-            appointments = [];
-          }
-        }
-
-        // Đảm bảo treatmentRecords là array
-        let treatmentRecords = [];
-        if (Array.isArray(treatmentRecordsRes)) {
-          treatmentRecords = treatmentRecordsRes;
-        } else if (treatmentRecordsRes?.data?.result) {
-          if (Array.isArray(treatmentRecordsRes.data.result)) {
-            treatmentRecords = treatmentRecordsRes.data.result;
-          } else if (
-            treatmentRecordsRes.data.result.content &&
-            Array.isArray(treatmentRecordsRes.data.result.content)
-          ) {
-            treatmentRecords = treatmentRecordsRes.data.result.content;
-          }
-        }
-
-        // Xử lý purpose data từ API mới
-        const purposeList = purposeRes?.data?.result?.content || [];
-        const purposeMap = {};
-        purposeList.forEach((item) => {
-          if (item.customerName && item.purpose) {
-            purposeMap[item.customerName] = item.purpose;
-          }
-        });
-        setPurposeData(purposeMap);
-
-        console.log("📅 Appointments:", appointments);
-        console.log("📋 Treatment Records:", treatmentRecords);
-        console.log("🎯 Purpose Data:", purposeMap);
-
-        // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ VÀ status hợp lệ
-        const filtered = appointments.filter((appt) => {
-          return (
-            treatmentRecords.some(
-              (record) =>
-                (record.customerId === appt.customerId ||
-                  record.customerName === appt.customerName) &&
-                record.status !== "PENDING" &&
-                record.status !== "CANCELLED"
-            ) &&
-            appt.status !== "PLANED" &&
-            appt.status !== "CANCELLED"
-          );
-        });
-        console.log("✅ Filtered appointments for today:", filtered);
-        setPatients(filtered);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        message.error("Có lỗi xảy ra khi lấy dữ liệu bệnh nhân");
-        setPatients([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [doctorId]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const today = dayjs().format("YYYY-MM-DD");
+
+      // Gọi song song 3 API: appointments, treatment records, và purpose data
+      const [appointmentsRes, treatmentRecordsRes, purposeRes] =
+        await Promise.all([
+          treatmentService.getDoctorAppointmentsByDate(
+            doctorId,
+            today,
+            "CONFIRMED"
+          ),
+          treatmentService.getTreatmentRecordsByDoctor(doctorId, 100),
+
+          doctorService
+            .getAppointmentsToday(0, 100)
+            .then((res) => {
+              // setCurrentPage(page);
+              // setTotalPages(res.data.result.totalPages);
+            })
+            .catch(() => ({ data: { result: { content: [] } } })),
+        ]);
+
+      // Đảm bảo appointments là array
+      let appointments = [];
+      if (appointmentsRes?.data?.result) {
+        if (Array.isArray(appointmentsRes.data.result)) {
+          appointments = appointmentsRes.data.result;
+        } else if (
+          appointmentsRes.data.result.content &&
+          Array.isArray(appointmentsRes.data.result.content)
+        ) {
+          appointments = appointmentsRes.data.result.content;
+        } else {
+          console.warn(
+            "Appointments data format không đúng:",
+            appointmentsRes.data.result
+          );
+          appointments = [];
+        }
+      }
+
+      // Đảm bảo treatmentRecords là array
+      let treatmentRecords = [];
+      if (Array.isArray(treatmentRecordsRes)) {
+        treatmentRecords = treatmentRecordsRes;
+      } else if (treatmentRecordsRes?.data?.result) {
+        if (Array.isArray(treatmentRecordsRes.data.result)) {
+          treatmentRecords = treatmentRecordsRes.data.result;
+        } else if (
+          treatmentRecordsRes.data.result.content &&
+          Array.isArray(treatmentRecordsRes.data.result.content)
+        ) {
+          treatmentRecords = treatmentRecordsRes.data.result.content;
+        }
+      }
+
+      // Xử lý purpose data từ API mới
+      const purposeList = purposeRes?.data?.result?.content || [];
+      const purposeMap = {};
+      purposeList.forEach((item) => {
+        if (item.customerName && item.purpose) {
+          purposeMap[item.customerName] = item.purpose;
+        }
+      });
+      setPurposeData(purposeMap);
+
+      console.log("📅 Appointments:", appointments);
+      console.log("📋 Treatment Records:", treatmentRecords);
+      console.log("🎯 Purpose Data:", purposeMap);
+
+      // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ VÀ status hợp lệ
+      const filtered = appointments.filter((appt) => {
+        return (
+          treatmentRecords.some(
+            (record) =>
+              (record.customerId === appt.customerId ||
+                record.customerName === appt.customerName) &&
+              record.status !== "PENDING" &&
+              record.status !== "CANCELLED"
+          ) &&
+          appt.status !== "PLANED" &&
+          appt.status !== "CANCELLED"
+        );
+      });
+      console.log("✅ Filtered appointments for today:", filtered);
+      setPatients(filtered);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      message.error("Có lỗi xảy ra khi lấy dữ liệu bệnh nhân");
+      setPatients([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter data
   const filteredData = patients.filter((patient) => {
@@ -363,15 +372,36 @@ const PatientList = () => {
               <p>Không có bệnh nhân nào cần điều trị hôm nay.</p>
             </div>
           ) : (
-            <Table
-              columns={columns}
-              dataSource={filteredData}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-              scroll={{ x: 1000 }}
-              bordered
-              style={{ borderRadius: 12, overflow: "hidden" }}
-            />
+            <>
+              <Table
+                columns={columns}
+                dataSource={filteredData}
+                rowKey="id"
+                pagination={false}
+                scroll={{ x: 1000 }}
+                bordered
+                style={{ borderRadius: 12, overflow: "hidden" }}
+              />
+              {/* <div className="flex justify-end mt-4">
+                <Button
+                  disabled={currentPage === 0}
+                  onClick={() => fetchData(currentPage - 1)}
+                  className="mr-2"
+                >
+                  Trang trước
+                </Button>
+                <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+                  Trang {currentPage + 1} / {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage + 1 >= totalPages}
+                  onClick={() => fetchData(currentPage + 1)}
+                  className="ml-2"
+                >
+                  Trang tiếp
+                </Button>
+              </div> */}
+            </>
           )}
         </Spin>
       </Card>
