@@ -17,6 +17,9 @@ export default function RegisterForm({
   loading,
   onSubmit,
   onDoctorChange,
+  availableDoctors,
+  setSelectedDate,
+  setSelectedShift,
 }) {
   const [showModal, setShowModal] = useState(false);
   const location = useLocation();
@@ -191,6 +194,10 @@ export default function RegisterForm({
                 { label: "Sáng (08:00 - 12:00)", value: "MORNING" },
                 { label: "Chiều (13:00 - 17:00)", value: "AFTERNOON" },
               ]}
+              // onChange={(shift) => {
+              //   setSelectedShift(shift);
+              //   form.setFieldsValue({ shift });
+              // }}
             />
           </Form.Item>
         </Col>
@@ -217,6 +224,10 @@ export default function RegisterForm({
             <DatePicker
               className="w-full h-[48px] text-base"
               placeholder="Chọn ngày bắt đầu"
+              // onChange={(date) => {
+              //   setSelectedDate(date);
+              //   form.setFieldsValue({ startDate: date });
+              // }}
             />
           </Form.Item>
         </Col>
@@ -260,7 +271,7 @@ export default function RegisterForm({
         selectedDoctorId={form.getFieldValue("doctorId")}
         onDoctorChange={(id) => {
           form.setFieldsValue({ doctorId: id });
-          onDoctorChange?.(id); // gọi hàm ngoài nếu cần fetch gì đó thêm
+          onDoctorChange?.(id);
         }}
         onClose={() => setShowModal(false)}
         onSelect={({ doctorId, startDate, shift }) => {

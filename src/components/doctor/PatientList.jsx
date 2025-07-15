@@ -128,10 +128,8 @@ const PatientList = () => {
         const filtered = appointments.filter((appt) => {
           return treatmentRecords.some(
             (record) =>
-              (record.customerId === appt.customerId ||
-                record.customerName === appt.customerName) &&
-              record.status !== "PENDING" &&
-              record.status !== "CANCELLED"
+              record.customerId === appt.customerId ||
+              record.customerName === appt.customerName
           );
         });
 

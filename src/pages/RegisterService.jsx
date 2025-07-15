@@ -4,8 +4,17 @@ import { HeartFilled } from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 export default function RegisterServicePage() {
-  const { form, doctors, services, loading, onSubmit, onDoctorChange } =
-    useRegisterLogic();
+  const {
+    form,
+    doctors,
+    services,
+    loading,
+    availableDoctors,
+    setSelectedDate,
+    setSelectedShift,
+    onSubmit,
+    onDoctorChange,
+  } = useRegisterLogic();
 
   return (
     <>
@@ -37,10 +46,13 @@ export default function RegisterServicePage() {
           <RegisterForm
             form={form}
             doctors={doctors}
+            availableDoctors={availableDoctors}
             services={services}
             loading={loading}
             onSubmit={onSubmit}
             onDoctorChange={onDoctorChange}
+            setSelectedDate={setSelectedDate}
+            setSelectedShift={setSelectedShift}
           />
         </div>
       </div>
