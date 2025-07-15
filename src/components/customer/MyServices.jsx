@@ -160,10 +160,16 @@ const MyServices = () => {
     setCancelLoading((l) => ({ ...l, [record.id]: true }));
     try {
       const res = await treatmentService.cancelTreatmentRecord(record.id);
-      showNotification(res?.data?.message || "Hủy hồ sơ điều trị thành công.", "success");
+      showNotification(
+        res?.data?.message || "Hủy hồ sơ điều trị thành công.",
+        "success"
+      );
       fetchTreatmentRecords();
     } catch (err) {
-      showNotification(err?.response?.data?.message || "Có lỗi xảy ra.", "error");
+      showNotification(
+        err?.response?.data?.message || "Có lỗi xảy ra.",
+        "error"
+      );
     } finally {
       setCancelLoading((l) => ({ ...l, [record.id]: false }));
     }
@@ -303,84 +309,6 @@ const MyServices = () => {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <Title
-        level={4}
-        style={{
-          marginBottom: 24,
-          color: "#1890ff",
-          fontWeight: 700,
-          letterSpacing: 1,
-        }}
-      >
-        Dịch vụ của tôi
-      </Title>
-
-      <Row gutter={32} style={{ marginBottom: 32, justifyContent: "center" }}>
-        <Col xs={24} sm={8}>
-          <Card
-            variant="outlined"
-            style={{
-              borderRadius: 16,
-              boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
-              background: "#fff",
-            }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#1890ff", fontWeight: 600 }}>
-                  Tổng số dịch vụ
-                </span>
-              }
-              value={statistics.totalServices}
-              prefix={<ExperimentOutlined style={{ color: "#1890ff" }} />}
-              valueStyle={{ fontSize: 32, color: "#1890ff", fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card
-            variant="outlined"
-            style={{
-              borderRadius: 16,
-              boxShadow: "0 4px 16px rgba(255,77,79,0.08)",
-              background: "#fff",
-            }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#ff4d4f", fontWeight: 600 }}>
-                  Đã hủy
-                </span>
-              }
-              value={statistics.cancelledServices}
-              prefix={<CloseCircleOutlined style={{ color: "#ff4d4f" }} />}
-              valueStyle={{ fontSize: 32, color: "#ff4d4f", fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card
-            variant="outlined"
-            style={{
-              borderRadius: 16,
-              boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
-              background: "#fff",
-            }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#1890ff", fontWeight: 600 }}>
-                  Đang thực hiện
-                </span>
-              }
-              value={statistics.inProgressServices}
-              prefix={<CheckCircleOutlined style={{ color: "#1890ff" }} />}
-              valueStyle={{ fontSize: 32, color: "#1890ff", fontWeight: 700 }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
       <Card
         variant="outlined"
         style={{
