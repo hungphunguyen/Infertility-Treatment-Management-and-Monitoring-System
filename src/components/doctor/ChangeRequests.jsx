@@ -181,7 +181,6 @@ const ChangeRequests = () => {
       key: "customerName",
       render: (name, record) => (
         <Space>
-          <Avatar size="small" icon={<UserOutlined />} />
           <div>
             <Text strong>{name}</Text>
             {record.customerEmail && (
@@ -202,11 +201,6 @@ const ChangeRequests = () => {
       key: "doctorName",
       render: (name, record) => (
         <Space>
-          <Avatar
-            size="small"
-            style={{ background: "#a084ee" }}
-            icon={<UserOutlined />}
-          />
           <div>
             <Text strong>{name}</Text>
             {record.doctorEmail && (

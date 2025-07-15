@@ -23,6 +23,11 @@ export default function RegisterForm({
   const selectedServiceId = location.state?.selectedService;
   const selectedDoctorId = location.state?.selectedDoctor;
 
+  const handleDoctorChange = (doctorId) => {
+    form.setFieldsValue({ doctorId });
+    onDoctorChange?.(doctorId);
+  };
+
   // const selectedServiceName = location.state?.serviceName;
   return (
     <Form
@@ -172,7 +177,7 @@ export default function RegisterForm({
                 label: `${d.fullName} - ${d.qualifications || "Chuyên khoa"}`,
                 value: d.id,
               }))}
-              onChange={onDoctorChange}
+              onChange={handleDoctorChange}
             />
           </Form.Item>
         </Col>
@@ -249,16 +254,19 @@ export default function RegisterForm({
           Xác nhận đăng ký
         </Button>
       </Form.Item>
+
       <DoctorScheduleModal
         visible={showModal}
+        selectedDoctorId={form.getFieldValue("doctorId")}
+        onDoctorChange={(id) => {
+          form.setFieldsValue({ doctorId: id });
+          onDoctorChange?.(id); // gọi hàm ngoài nếu cần fetch gì đó thêm
+        }}
         onClose={() => setShowModal(false)}
         onSelect={({ doctorId, startDate, shift }) => {
-          form.setFieldsValue({
-            doctorId,
-            shift,
-            startDate,
-          });
-          setShowModal(false); // hoặc giữ modal nếu muốn chọn thêm
+          form.setFieldsValue({ doctorId, startDate, shift });
+          onDoctorChange?.(doctorId);
+          setShowModal(false);
         }}
       />
     </Form>

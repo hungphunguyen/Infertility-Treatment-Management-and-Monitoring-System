@@ -23,7 +23,7 @@ const FeedbackManagement = () => {
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
   const [feedbackDetail, setFeedbackDetail] = useState(null);
-
+  const [loadingIds, setLoadingIds] = useState([]);
   useEffect(() => {
     authService
       .getMyInfo()
@@ -97,7 +97,7 @@ const FeedbackManagement = () => {
 
   const openDetailModal = async (feedback) => {
     try {
-      setSelectedFeedback(feedback);
+      // setSelectedFeedback(feedback);
       await getFeedbackDetail(feedback.id);
       setDetailModalVisible(true);
     } catch (error) {
@@ -267,6 +267,7 @@ const FeedbackManagement = () => {
                       Từ chối
                     </Button>
                     <Button
+                      loading={loadingIds.includes(item.id)}
                       type="primary"
                       onClick={() =>
                         openApprovalModal(feedbackDetail.id, "APPROVED")

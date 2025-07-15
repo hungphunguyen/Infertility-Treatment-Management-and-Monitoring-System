@@ -75,7 +75,6 @@ const ManagerTreatmentRecords = () => {
         treatments: [
           {
             id: item.customerId + "-summary",
-            customerId: item.customerId,
             customerName: item.customerName,
             totalRecord: item.totalRecord,
           },
@@ -481,90 +480,6 @@ const ManagerTreatmentRecords = () => {
 
   return (
     <div>
-      {/* Statistics Section */}
-      <Row gutter={24} style={{ marginBottom: 10 }}>
-        <Col span={6}>
-          <Card
-            variant="bordered"
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
-            }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#1890ff", fontWeight: 600 }}>
-                  Tổng hồ sơ điều trị
-                </span>
-              }
-              value={stats.totalRecords}
-              prefix={<FileTextOutlined style={{ color: "#1890ff" }} />}
-              valueStyle={{ fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card
-            variant="bordered"
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
-            }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#faad14", fontWeight: 600 }}>
-                  Chờ xử lý
-                </span>
-              }
-              value={stats.pendingRecords}
-              prefix={<ClockCircleOutlined style={{ color: "#faad14" }} />}
-              valueStyle={{ fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card
-            variant="bordered"
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
-            }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#1890ff", fontWeight: 600 }}>
-                  Đang điều trị
-                </span>
-              }
-              value={stats.inProgressRecords}
-              prefix={<TeamOutlined style={{ color: "#1890ff" }} />}
-              valueStyle={{ fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card
-            variant="bordered"
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
-            }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "#52c41a", fontWeight: 600 }}>
-                  Hoàn thành
-                </span>
-              }
-              value={stats.completedRecords}
-              prefix={<CheckCircleOutlined style={{ color: "#52c41a" }} />}
-              valueStyle={{ fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
       <Card>
         <Space style={{ marginBottom: 16 }}>
           <Search
@@ -574,18 +489,7 @@ const ManagerTreatmentRecords = () => {
             allowClear
             style={{ width: 300 }}
           />
-          <Select
-            style={{ width: 150 }}
-            value={statusFilter}
-            onChange={setStatusFilter}
-            options={[
-              { value: "all", label: "Tất cả trạng thái" },
-              { value: "PENDING", label: "Chờ xử lý" },
-              { value: "INPROGRESS", label: "Đang điều trị" },
-              { value: "COMPLETED", label: "Hoàn thành" },
-              { value: "CANCELLED", label: "Đã hủy" },
-            ]}
-          />
+
           <Button
             onClick={() => {
               setSearchText("");
@@ -593,13 +497,6 @@ const ManagerTreatmentRecords = () => {
             }}
           >
             Đặt lại
-          </Button>
-          <Button
-            type="primary"
-            onClick={fetchRecords}
-            icon={<FileTextOutlined />}
-          >
-            Làm mới
           </Button>
         </Space>
 
