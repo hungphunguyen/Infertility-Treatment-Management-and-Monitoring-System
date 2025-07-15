@@ -69,8 +69,12 @@ const PatientList = () => {
         // Gọi song song 3 API: appointments, treatment records, và purpose data
         const [appointmentsRes, treatmentRecordsRes, purposeRes] =
           await Promise.all([
-            treatmentService.getDoctorAppointmentsByDate(doctorId, today),
-            treatmentService.getTreatmentRecordsByDoctor(doctorId),
+            treatmentService.getDoctorAppointmentsByDate(
+              doctorId,
+              today,
+              "CONFIRMED"
+            ),
+            treatmentService.getTreatmentRecordsByDoctor(doctorId, 1000),
             doctorService
               .getAppointmentsToday(0, 100)
               .catch(() => ({ data: { result: { content: [] } } })),
@@ -124,16 +128,21 @@ const PatientList = () => {
         console.log("📋 Treatment Records:", treatmentRecords);
         console.log("🎯 Purpose Data:", purposeMap);
 
-        // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ
+        // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ VÀ status hợp lệ
         const filtered = appointments.filter((appt) => {
-          return treatmentRecords.some(
-            (record) =>
-              record.customerId === appt.customerId ||
-              record.customerName === appt.customerName
+          return (
+            treatmentRecords.some(
+              (record) =>
+                (record.customerId === appt.customerId ||
+                  record.customerName === appt.customerName) &&
+                record.status !== "PENDING" &&
+                record.status !== "CANCELLED"
+            ) &&
+            appt.status !== "PLANED" &&
+            appt.status !== "CANCELLED"
           );
         });
-
-        console.log("✅ Filtered patients:", filtered);
+        console.log("✅ Filtered appointments for today:", filtered);
         setPatients(filtered);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -160,6 +169,7 @@ const PatientList = () => {
     const statusMap = {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       PENDING: { color: "orange", text: "Chờ xác nhận" },
+      PLANED: { color: "orange", text: "Đã đặt lịch" },
       REJECTED: { color: "red", text: "Đã từ chối" },
       REJECTED_CHANGE: { color: "red", text: "Từ chối thay đổi" },
       PENDING_CHANGE: { color: "gold", text: "Yêu cầu thay đổi" },
@@ -320,6 +330,7 @@ const PatientList = () => {
               <Option value="all">Tất cả trạng thái</Option>
               <Option value="CONFIRMED">Đã xác nhận</Option>
               <Option value="PENDING">Chờ xác nhận</Option>
+              <Option value="PLANED">Đã đặt lịch</Option>
               <Option value="REJECTED_CHANGE">Từ chối thay đổi</Option>
               <Option value="CANCELLED">Đã hủy</Option>
             </Select>

@@ -358,8 +358,8 @@ const TreatmentProgress = () => {
       case "CONFIRMED":
         return <Tag color="#1890ff">Đã xác nhận</Tag>;
       case "PENDING":
-      case "PLANNED":
-        return <Tag color="orange">Đang chờ</Tag>;
+      case "PLANED":
+        return <Tag color="orange">Đã đặt lịch</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       case "PENDING_CHANGE":
@@ -382,8 +382,8 @@ const TreatmentProgress = () => {
       case "CONFIRMED":
         return <Tag color="#1890ff">Đang điều trị</Tag>;
       case "PENDING":
-      case "PLANNED":
-        return <Tag color="warning">Đang chờ điều trị</Tag>;
+      case "PLANED":
+        return <Tag color="warning">Đã đặt lịch</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       default:
@@ -1003,16 +1003,17 @@ const TreatmentProgress = () => {
       <Modal
         title={`Gửi yêu cầu thay đổi lịch hẹn: ${changeStep?.name || ""}`}
         open={changeModalVisible}
-        onCancel={() => {
-          setChangeModalVisible(false);
-          setSelectedAppointment(null);
-          changeForm.resetFields();
-        }}
+        onCancel={() => setChangeModalVisible(false)}
         onOk={handleSubmitChange}
         okText="Gửi yêu cầu"
         confirmLoading={changeLoading}
         destroyOnHidden
         width={800}
+        footer={[
+          <Button key="submit" type="primary" loading={changeLoading} onClick={handleSubmitChange}>
+            Gửi yêu cầu
+          </Button>
+        ]}
       >
         {changeLoading ? (
           <Spin />
@@ -1046,6 +1047,8 @@ const TreatmentProgress = () => {
                         return <Tag color="#1890ff">Đã xác nhận</Tag>;
                       case "PENDING":
                         return <Tag color="orange">Đang chờ</Tag>;
+                      case "PLANED":
+                        return <Tag color="orange">Đã đặt lịch</Tag>;
                       case "PENDING_CHANGE":
                         return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
                       case "REJECTED_CHANGE":
