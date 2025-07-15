@@ -22,9 +22,7 @@ import {
   EyeOutlined,
   DownOutlined,
   UpOutlined,
-  CalendarOutlined,
   FileTextOutlined,
-  MedicineBoxOutlined,
   CheckOutlined,
   CloseOutlined,
   ExclamationCircleOutlined,
@@ -33,15 +31,11 @@ import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
+import TreatmentDetailRow from "./TreatmentDetailRow";
 
-const { Search } = Input;
-const { Option } = Select;
-const { Title, Text } = Typography;
-const { Panel } = Collapse;
+const { Text } = Typography;
 
 const TestResults = () => {
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [records, setRecords] = useState([]);
@@ -90,7 +84,7 @@ const TestResults = () => {
       const response = await treatmentService.getTreatmentRecordsPagination({
         doctorId,
         page,
-        size: 1, // lấy tất cả
+        size: 5, // lấy tất cả
       });
 
       const data = response?.data?.result?.content || [];
@@ -237,91 +231,100 @@ const TestResults = () => {
     });
   };
 
-  const handleExpandChange = async (expanded, record, page = 0) => {
-    const customerId = record.customerId;
+  // const handleExpandChange = async (expanded, record, page = 0) => {
+  //   const customerId = record.customerId;
 
-    if (expanded) {
-      setLoadingExpanded((prev) => [...prev, customerId]);
+  //   if (expanded) {
+  //     setLoadingExpanded((prev) => [...prev, customerId]);
 
-      try {
-        const response = await treatmentService.getTreatmentRecordsExpand({
-          customerId,
-          doctorId,
-          page,
-          size: 5,
-        });
+  //     try {
+  //       const response = await treatmentService.getTreatmentRecordsExpand({
+  //         customerId,
+  //         doctorId,
+  //         page,
+  //         size: 5,
+  //       });
 
-        const details = response?.data?.result?.content || [];
+  //       const details = response?.data?.result?.content || [];
 
-        setCurrentPageExpand(page);
-        setTotalPagesExpand(response.data.result.totalPages);
+  //       setCurrentPageExpand(page);
+  //       setTotalPagesExpand(response.data.result.totalPages);
 
-        setTreatmentDetails((prev) => ({
-          ...prev,
-          [customerId]: details.map((item) => ({
-            ...item,
-            key: item.id,
-          })),
-        }));
-      } catch (err) {
-        notification.error({
-          message: "Lỗi khi tải chi tiết hồ sơ",
-          description: err.message || "Không thể lấy dữ liệu dịch vụ.",
-        });
-      } finally {
-        setLoadingExpanded((prev) => prev.filter((id) => id !== customerId));
-      }
-    }
-  };
+  //       setTreatmentDetails((prev) => ({
+  //         ...prev,
+  //         [customerId]: details.map((item) => ({
+  //           ...item,
+  //           key: item.id,
+  //         })),
+  //       }));
+  //     } catch (err) {
+  //       notification.error({
+  //         message: "Lỗi khi tải chi tiết hồ sơ",
+  //         description: err.message || "Không thể lấy dữ liệu dịch vụ.",
+  //       });
+  //     } finally {
+  //       setLoadingExpanded((prev) => prev.filter((id) => id !== customerId));
+  //     }
+  //   }
+  // };
 
   const expandedRowRender = (record) => {
-    const customerId = record.customerId;
-    const isLoading = loadingExpanded.includes(customerId);
-    const treatments = treatmentDetails[customerId] || [];
+    // const customerId = record.customerId;
+    // const isLoading = loadingExpanded.includes(customerId);
+    // const treatments = treatmentDetails[customerId] || [];
 
+    // return (
+    //   <div
+    //     style={{
+    //       padding: "16px",
+    //       background: "#ffffff",
+    //       borderRadius: "8px",
+    //       margin: "8px 0",
+    //       border: "1px solid #dee2e6",
+    //     }}
+    //   >
+    //     <Spin spinning={isLoading}>
+    //       <Table
+    //         columns={columnsChiTiet}
+    //         dataSource={treatments}
+    //         pagination={false}
+    //         size="small"
+    //       />
+    //       <div className="flex justify-end mt-4">
+    //         <Button
+    //           disabled={currentPageExpand === 0}
+    //           onClick={() =>
+    //             handleExpandChange(true, record, currentPageExpand - 1)
+    //           }
+    //           className="mr-2"
+    //         >
+    //           Trang trước
+    //         </Button>
+    //         <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+    //           Trang {currentPageExpand + 1} / {totalPagesExpand}
+    //         </span>
+
+    //         <Button
+    //           disabled={currentPageExpand + 1 >= totalPagesExpand}
+    //           onClick={async () => {
+    //             await handleExpandChange(true, record, currentPageExpand + 1);
+    //           }}
+    //           className="ml-2"
+    //         >
+    //           Trang tiếp
+    //         </Button>
+    //       </div>
+    //     </Spin>
+    //   </div>
+    // );
     return (
-      <div
-        style={{
-          padding: "16px",
-          background: "#ffffff",
-          borderRadius: "8px",
-          margin: "8px 0",
-          border: "1px solid #dee2e6",
-        }}
-      >
-        <Spin spinning={isLoading}>
-          <Table
-            columns={columnsChiTiet}
-            dataSource={treatments}
-            pagination={false}
-            size="small"
-          />
-          <div className="flex justify-end mt-4">
-            <Button
-              disabled={currentPageExpand === 0}
-              onClick={() =>
-                handleExpandChange(true, record, currentPageExpand - 1)
-              }
-              className="mr-2"
-            >
-              Trang trước
-            </Button>
-            <span className="px-4 py-1 bg-gray-100 rounded text-sm">
-              Trang {currentPageExpand + 1} / {totalPagesExpand}
-            </span>
-
-            <Button
-              disabled={currentPageExpand + 1 >= totalPagesExpand}
-              onClick={async () => {
-                await handleExpandChange(true, record, currentPageExpand + 1);
-              }}
-              className="ml-2"
-            >
-              Trang tiếp
-            </Button>
-          </div>
-        </Spin>
-      </div>
+      <TreatmentDetailRow
+        customerId={record.customerId}
+        doctorId={doctorId}
+        viewRecord={viewRecord}
+        handleApprove={handleApprove}
+        handleCancelService={handleCancelService}
+      />
     );
   };
 
@@ -361,7 +364,7 @@ const TestResults = () => {
               setExpandedRows(newExpanded);
 
               // GỌI LẠI onExpand() ĐỂ FETCH API
-              handleExpandChange(!isExpanded, record);
+              // handleExpandChange(!isExpanded, record);
             }}
           >
             {isExpanded ? "Thu gọn" : "Xem thêm"}
@@ -443,31 +446,6 @@ const TestResults = () => {
   return (
     <div style={{ padding: "24px" }}>
       <Card>
-        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-          <Col xs={24} sm={12} md={8}>
-            <Search
-              placeholder="Tìm kiếm theo tên bệnh nhân"
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: "100%" }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={8}>
-            <Select
-              style={{ width: "100%" }}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="Lọc theo trạng thái"
-            >
-              <Option value="all">Tất cả trạng thái</Option>
-              <Option value="PENDING">Đang chờ xử lý</Option>
-              <Option value="INPROGRESS">Đang điều trị</Option>
-              <Option value="COMPLETED">Hoàn thành</Option>
-              <Option value="CANCELLED">Đã hủy</Option>
-            </Select>
-          </Col>
-        </Row>
-
         <Table
           dataSource={records.filter((record) => {
             const matchesSearch = record.customerName
@@ -489,44 +467,9 @@ const TestResults = () => {
                 ? [...expandedRows, record.key]
                 : expandedRows.filter((key) => key !== record.key);
               setExpandedRows(newExpandedRows);
-
-              // Nếu expand thì gọi API lấy chi tiết nếu chưa có
-              // if (expanded && !treatmentDetails[customerId]) {
-              //   try {
-              //     // Bắt đầu loading
-              //     setLoadingExpanded((prev) => [...prev, customerId]);
-
-              //     const response =
-              //       await treatmentService.getTreatmentRecordsExpand({
-              //         customerId,
-              //         doctorId,
-              //         page: 0,
-              //         size: 100,
-              //       });
-
-              //     const details = response?.data?.result?.content || [];
-
-              //     // Cập nhật state
-              //     setTreatmentDetails((prev) => ({
-              //       ...prev,
-              //       [customerId]: details.map((item) => ({
-              //         ...item,
-              //         key: item.id,
-              //       })),
-              //     }));
-              //   } catch (err) {
-              //     notification.error({
-              //       message: "Lỗi khi tải chi tiết hồ sơ",
-              //       description:
-              //         err.message || "Không thể lấy dữ liệu dịch vụ.",
-              //     });
-              //   } finally {
-              //     // Kết thúc loading
-              //     setLoadingExpanded((prev) =>
-              //       prev.filter((id) => id !== customerId)
-              //     );
-              //   }
-              // }
+            },
+            expandIcon: () => {
+              null;
             },
           }}
           pagination={false}
