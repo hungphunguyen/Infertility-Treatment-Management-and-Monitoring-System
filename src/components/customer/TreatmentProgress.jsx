@@ -1003,16 +1003,17 @@ const TreatmentProgress = () => {
       <Modal
         title={`Gửi yêu cầu thay đổi lịch hẹn: ${changeStep?.name || ""}`}
         open={changeModalVisible}
-        onCancel={() => {
-          setChangeModalVisible(false);
-          setSelectedAppointment(null);
-          changeForm.resetFields();
-        }}
+        onCancel={() => setChangeModalVisible(false)}
         onOk={handleSubmitChange}
         okText="Gửi yêu cầu"
         confirmLoading={changeLoading}
         destroyOnHidden
         width={800}
+        footer={[
+          <Button key="submit" type="primary" loading={changeLoading} onClick={handleSubmitChange}>
+            Gửi yêu cầu
+          </Button>
+        ]}
       >
         {changeLoading ? (
           <Spin />

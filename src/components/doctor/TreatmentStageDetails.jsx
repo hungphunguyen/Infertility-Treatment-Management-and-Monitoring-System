@@ -19,6 +19,7 @@ import {
   Badge,
   Switch,
   Radio,
+  Dropdown,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -689,6 +690,47 @@ const TreatmentStageDetails = () => {
     }
   };
 
+  // Hàm cập nhật trạng thái dịch vụ
+  const handleUpdateTreatmentStatus = async (status) => {
+    try {
+      console.log("🔍 Updating treatment status:", {
+        treatmentId: treatmentData.id,
+        status: status,
+      });
+
+      const response = await treatmentService.updateTreatmentStatus(
+        treatmentData.id,
+        status
+      );
+
+      console.log("🔍 Update treatment status response:", response);
+
+      if (response?.data?.code === 1000 || response?.code === 1000) {
+        console.log("✅ Treatment status updated successfully");
+        showNotification(response?.data?.message || "Cập nhật trạng thái dịch vụ thành công", "success");
+
+        // Refresh data
+        try {
+          const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
+          const detailedData = detailedResponse?.data?.result;
+
+          if (detailedData) {
+            console.log("✅ Setting updated treatment data:", detailedData);
+            setTreatmentData(detailedData);
+          }
+        } catch (refreshError) {
+          console.warn("❌ Không thể refresh data after status update:", refreshError);
+        }
+      } else {
+        console.warn("❌ Treatment status update failed - invalid response code:", response?.code || response?.data?.code);
+        showNotification(response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+      }
+    } catch (error) {
+      console.error("❌ Error updating treatment status:", error);
+      showNotification(error.response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+    }
+  };
+
   // Khi mở modal thêm step, load stage theo serviceId (API mới)
   useEffect(() => {
     if (showAddStepModal && treatmentData?.treatmentServiceId) {
@@ -855,15 +897,6 @@ const TreatmentStageDetails = () => {
             }}
           >
             <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-              {/* <Button
-                type="default"
-                icon={<EditOutlined />}
-                onClick={handleShowChangeService}
-                size="large"
-                style={{ borderRadius: 8, minWidth: 180 }}
-              >
-                Chọn dịch vụ phù hợp
-              </Button> */}
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -873,6 +906,37 @@ const TreatmentStageDetails = () => {
               >
                 Thêm bước điều trị mới
               </Button>
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: "INPROGRESS",
+                      label: "Đang thực hiện",
+                      onClick: () => handleUpdateTreatmentStatus("INPROGRESS"),
+                    },
+                    {
+                      key: "COMPLETED",
+                      label: "Hoàn thành",
+                      onClick: () => handleUpdateTreatmentStatus("COMPLETED"),
+                    },
+                    {
+                      key: "CANCELLED",
+                      label: "Đã hủy",
+                      onClick: () => handleUpdateTreatmentStatus("CANCELLED"),
+                    },
+                  ],
+                }}
+                placement="bottomLeft"
+              >
+                <Button
+                  type="default"
+                  icon={<EditOutlined />}
+                  size="large"
+                  style={{ borderRadius: 8, minWidth: 180 }}
+                >
+                  Cập nhật trạng thái dịch vụ
+                </Button>
+              </Dropdown>
             </div>
             <div
               style={{
@@ -957,50 +1021,7 @@ const TreatmentStageDetails = () => {
             </div>
           </Card>
 
-          {/* Complete Treatment Button */}
-          {isAllStepsCompleted() && treatmentData.status !== "COMPLETED" && (
-            <Card
-              style={{
-                borderRadius: 14,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                background: "linear-gradient(135deg, #52c41a 0%, #73d13d 100%)",
-                textAlign: "center",
-                border: "none",
-                width: 800,
-                maxWidth: "98vw",
-                minWidth: 320,
-                marginBottom: 16,
-              }}
-            >
-              <Space
-                direction="vertical"
-                align="center"
-                style={{ width: "100%" }}
-              >
-                <Title level={4} style={{ color: "white", margin: 0 }}>
-                  🎉 Tất cả các bước đã hoàn thành!
-                </Title>
-                <Button
-                  type="primary"
-                  icon={<CheckCircleOutlined />}
-                  onClick={handleCompleteTreatment}
-                  size="large"
-                  style={{
-                    background: "white",
-                    borderColor: "white",
-                    color: "#52c41a",
-                    borderRadius: 10,
-                    minWidth: 200,
-                    fontWeight: 600,
-                    fontSize: 15,
-                    height: 44,
-                  }}
-                >
-                  Hoàn thành điều trị
-                </Button>
-              </Space>
-            </Card>
-          )}
+          {/* Complete Treatment Button - ĐÃ XÓA */}
         </>
       ) : (
         <Card
