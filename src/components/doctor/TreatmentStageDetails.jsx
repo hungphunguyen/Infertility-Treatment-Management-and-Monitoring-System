@@ -200,7 +200,7 @@ const TreatmentStageDetails = () => {
       case "CANCELLED":
         return "Đã hủy";
       case "INPROGRESS":
-        return "Đang thực hiện";
+        return "Đang điều trị";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
       default:
@@ -911,18 +911,13 @@ const TreatmentStageDetails = () => {
                   items: [
                     {
                       key: "INPROGRESS",
-                      label: "Đang thực hiện",
+                      label: "Đang điều trị",
                       onClick: () => handleUpdateTreatmentStatus("INPROGRESS"),
                     },
                     {
                       key: "COMPLETED",
                       label: "Hoàn thành",
                       onClick: () => handleUpdateTreatmentStatus("COMPLETED"),
-                    },
-                    {
-                      key: "CANCELLED",
-                      label: "Đã hủy",
-                      onClick: () => handleUpdateTreatmentStatus("CANCELLED"),
                     },
                   ],
                 }}

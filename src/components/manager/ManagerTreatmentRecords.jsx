@@ -99,12 +99,13 @@ const ManagerTreatmentRecords = () => {
   const getStatusTag = (status) => {
     const statusMap = {
       PENDING: { color: "orange", text: "Đang chờ xử lý" },
+      CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       INPROGRESS: { color: "blue", text: "Đang điều trị" },
       CANCELLED: { color: "red", text: "Đã hủy" },
       COMPLETED: { color: "green", text: "Hoàn thành" },
     };
     return (
-      <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>
+      <Tag color={statusMap[status]?.color}>{statusMap[status]?.text || status}</Tag>
     );
   };
 
