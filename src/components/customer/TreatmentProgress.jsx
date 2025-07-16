@@ -456,63 +456,52 @@ const TreatmentProgress = () => {
               </Descriptions.Item>
             </Descriptions>
 
-            {/* Nút đổi lịch nếu cần giữ lại */}
-            {/* ... giữ lại nút đổi lịch nếu bạn muốn ... */}
-
-            {/* Mục Lịch hẹn mới: chỉ hiển thị danh sách lấy từ API */}
-            {phase.appointment && phase.statusRaw !== "COMPLETED" && (
-              <div style={{ marginTop: 16 }}>
-                {phase.appointment.status !== "PENDING_CHANGE" &&
-                  phase.appointment.status !== "REJECTED_CHANGE" && (
-                    <Button
-                      type="primary"
-                      icon={<EditOutlined />}
-                      onClick={() => handleOpenChangeModal(phase)}
+            {/* Nút gửi yêu cầu đổi lịch hẹn: chỉ 1 nút trên mỗi phase, không phụ thuộc status */}
+            {phase.statusRaw !== "COMPLETED" && (
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                style={{ marginBottom: 12, backgroundColor: "#1890ff", borderColor: "#1890ff" }}
+                onClick={() => handleOpenChangeModal(phase)}
+              >
+                Gửi yêu cầu thay đổi lịch hẹn
+              </Button>
+            )}
+            {/* Danh sách lịch hẹn */}
+            {Array.isArray(stepAppointments[phase.id]) && stepAppointments[phase.id].length > 0 && (
+              <div style={{ marginTop: 4 }}>
+                <Text strong>Lịch hẹn:</Text>
+                {stepAppointments[phase.id].map((appointment, idx) => (
+                  <div
+                    key={appointment.id || idx}
+                    style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}
+                  >
+                    <span
                       style={{
-                        backgroundColor: "#1890ff",
-                        borderColor: "#1890ff",
+                        display: "inline-block",
+                        width: 12,
+                        height: 12,
+                        borderRadius: "50%",
+                        background:
+                          appointment.status === "CONFIRMED"
+                            ? "#1890ff"
+                            : appointment.status === "PENDING"
+                            ? "#faad14"
+                            : appointment.status === "COMPLETED"
+                            ? "#52c41a"
+                            : appointment.status === "CANCELLED"
+                            ? "#ff4d4f"
+                            : "#d9d9d9",
+                        marginRight: 4,
                       }}
-                    >
-                      Gửi yêu cầu thay đổi lịch hẹn
-                    </Button>
-                  )}
-                {/* Mục Lịch hẹn mới: chỉ hiển thị danh sách lấy từ API */}
-                {Array.isArray(stepAppointments[phase.id]) && stepAppointments[phase.id].length > 0 && (
-                  <div style={{ marginTop: 16 }}>
-                    <Text strong>Lịch hẹn:</Text>
-                    {stepAppointments[phase.id].map((appointment, idx) => (
-                      <div
-                        key={appointment.id || idx}
-                        style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}
-                      >
-                        <span
-                          style={{
-                            display: "inline-block",
-                            width: 12,
-                            height: 12,
-                            borderRadius: "50%",
-                            background:
-                              appointment.status === "CONFIRMED"
-                                ? "#1890ff"
-                                : appointment.status === "PENDING"
-                                ? "#faad14"
-                                : appointment.status === "COMPLETED"
-                                ? "#52c41a"
-                                : appointment.status === "CANCELLED"
-                                ? "#ff4d4f"
-                                : "#d9d9d9",
-                            marginRight: 4,
-                          }}
-                        />
-                        <span style={{ fontWeight: 500 }}>{appointment.purpose || phase.name}</span>
-                        {getStatusTag(appointment.status)}
-                        <CalendarOutlined style={{ marginLeft: 8, marginRight: 4 }} />
-                        <span>{dayjs(appointment.appointmentDate).format("DD/MM/YYYY")}</span>
-                        <span style={{ marginLeft: 8 }}>- Ca: {appointment.shift === "MORNING" ? "Sáng" : "Chiều"}</span>
-                      </div>
-                    ))}
+                    />
+                    <span style={{ fontWeight: 500 }}>{appointment.purpose || phase.name}</span>
+                    {getStatusTag(appointment.status)}
+                    <CalendarOutlined style={{ marginLeft: 8, marginRight: 4 }} />
+                    <span>{dayjs(appointment.appointmentDate).format("DD/MM/YYYY")}</span>
+                    <span style={{ marginLeft: 8 }}>- Ca: {appointment.shift === "MORNING" ? "Sáng" : "Chiều"}</span>
                   </div>
-                )}
+                ))}
               </div>
             )}
 
