@@ -29,6 +29,7 @@ import {
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { useNavigate } from "react-router-dom";
+import ManagerTreatmentDetailRow from "./ManagerTreatmentDetailRow";
 
 const { Search } = Input;
 const { Text } = Typography;
@@ -99,12 +100,15 @@ const ManagerTreatmentRecords = () => {
   const getStatusTag = (status) => {
     const statusMap = {
       PENDING: { color: "orange", text: "Đang chờ xử lý" },
+      CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       INPROGRESS: { color: "blue", text: "Đang điều trị" },
       CANCELLED: { color: "red", text: "Đã hủy" },
       COMPLETED: { color: "green", text: "Hoàn thành" },
     };
     return (
-      <Tag color={statusMap[status]?.color}>{statusMap[status]?.text}</Tag>
+      <Tag color={statusMap[status]?.color}>
+        {statusMap[status]?.text || status}
+      </Tag>
     );
   };
 
@@ -219,52 +223,61 @@ const ManagerTreatmentRecords = () => {
   };
 
   const expandedRowRender = (record) => {
-    const isLoading = loadingRows.includes(record.customerId);
-    const treatments = treatmentDetails[record.customerId] || [];
+    // const isLoading = loadingRows.includes(record.customerId);
+    // const treatments = treatmentDetails[record.customerId] || [];
+
+    // return (
+    //   <div
+    //     style={{
+    //       padding: "16px",
+    //       background: "#ffffff",
+    //       borderRadius: "8px",
+    //       margin: "8px 0",
+    //       border: "1px solid #dee2e6",
+    //     }}
+    //   >
+    //     <Spin spinning={isLoading}>
+    //       <Table
+    //         columns={columnsChiTiet}
+    //         dataSource={treatments}
+    //         pagination={false}
+    //         size="small"
+    //       />
+    //       <div className="flex justify-end mt-4">
+    //         <Button
+    //           disabled={currentPageExpand === 0}
+    //           onClick={() =>
+    //             handleExpandChange(true, record, currentPageExpand - 1)
+    //           }
+    //           className="mr-2"
+    //         >
+    //           Trang trước
+    //         </Button>
+    //         <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+    //           Trang {currentPageExpand + 1} / {totalPagesExpand}
+    //         </span>
+
+    //         <Button
+    //           disabled={currentPageExpand + 1 >= totalPagesExpand}
+    //           onClick={async () => {
+    //             await handleExpandChange(true, record, currentPageExpand + 1);
+    //           }}
+    //           className="ml-2"
+    //         >
+    //           Trang tiếp
+    //         </Button>
+    //       </div>
+    //     </Spin>
+    //   </div>
+    // );
 
     return (
-      <div
-        style={{
-          padding: "16px",
-          background: "#ffffff",
-          borderRadius: "8px",
-          margin: "8px 0",
-          border: "1px solid #dee2e6",
-        }}
-      >
-        <Spin spinning={isLoading}>
-          <Table
-            columns={columnsChiTiet}
-            dataSource={treatments}
-            pagination={false}
-            size="small"
-          />
-          <div className="flex justify-end mt-4">
-            <Button
-              disabled={currentPageExpand === 0}
-              onClick={() =>
-                handleExpandChange(true, record, currentPageExpand - 1)
-              }
-              className="mr-2"
-            >
-              Trang trước
-            </Button>
-            <span className="px-4 py-1 bg-gray-100 rounded text-sm">
-              Trang {currentPageExpand + 1} / {totalPagesExpand}
-            </span>
-
-            <Button
-              disabled={currentPageExpand + 1 >= totalPagesExpand}
-              onClick={async () => {
-                await handleExpandChange(true, record, currentPageExpand + 1);
-              }}
-              className="ml-2"
-            >
-              Trang tiếp
-            </Button>
-          </div>
-        </Spin>
-      </div>
+      <ManagerTreatmentDetailRow
+        customerId={record.customerId}
+        viewRecord={viewRecord}
+        handleApprove={handleApprove}
+        handleCancel={handleCancel}
+      />
     );
   };
 
@@ -552,6 +565,9 @@ const ManagerTreatmentRecords = () => {
                   );
                 }
               },
+              expandIcon: () => {
+                null;
+              },
             }}
             pagination={
               // pageSize: 10,
@@ -560,6 +576,7 @@ const ManagerTreatmentRecords = () => {
               false
             }
           />
+
           <div className="flex justify-end mt-4">
             <Button
               disabled={currentPage === 0}

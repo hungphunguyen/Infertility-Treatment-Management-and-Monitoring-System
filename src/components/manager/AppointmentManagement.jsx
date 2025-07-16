@@ -201,6 +201,8 @@ const AppointmentManagement = () => {
         return "volcano";
       case "REJECTED":
         return "volcano";
+      case "PLANED":
+        return "orange";
       default:
         return "default";
     }
@@ -222,6 +224,8 @@ const AppointmentManagement = () => {
         return "Từ chối đổi lịch";
       case "REJECTED":
         return "Đã từ chối";
+      case "PLANED":
+        return "Đã đặt lịch";
       default:
         return status;
     }
@@ -645,131 +649,6 @@ const AppointmentManagement = () => {
   return (
     <div style={{ padding: "24px", background: "#f5f5f5", minHeight: "100vh" }}>
       {/* Statistics */}
-      <Row gutter={24} style={{ marginBottom: 24 }}>
-        <Col span={4}>
-          <Card
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            }}
-            styles={{ body: { padding: "20px" } }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "white", fontWeight: 600 }}>
-                  Tổng lịch hẹn
-                </span>
-              }
-              value={stats.totalAppointments}
-              prefix={<CalendarOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white", fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(52,201,58,0.08)",
-              background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-            }}
-            styles={{ body: { padding: "20px" } }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "white", fontWeight: 600 }}>Hôm nay</span>
-              }
-              value={stats.todayAppointments}
-              prefix={<ScheduleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white", fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(250,173,20,0.08)",
-              background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-            }}
-            styles={{ body: { padding: "20px" } }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "white", fontWeight: 600 }}>
-                  Chờ xử lý
-                </span>
-              }
-              value={stats.pendingAppointments}
-              prefix={<ClockCircleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white", fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(82,196,26,0.08)",
-              background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-            }}
-            styles={{ body: { padding: "20px" } }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "white", fontWeight: 600 }}>
-                  Hoàn thành
-                </span>
-              }
-              value={stats.completedAppointments}
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white", fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(250,173,20,0.08)",
-              background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-            }}
-            styles={{ body: { padding: "20px" } }}
-          >
-            <Statistic
-              title={
-                <span style={{ color: "white", fontWeight: 600 }}>
-                  Yêu cầu thay đổi
-                </span>
-              }
-              value={stats.changeRequests}
-              prefix={<SwapOutlined style={{ color: "white" }} />}
-              valueStyle={{ color: "white", fontSize: 28 }}
-            />
-          </Card>
-        </Col>
-        <Col span={4}>
-          <Card
-            style={{
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
-              background: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-            }}
-            styles={{ body: { padding: "20px" } }}
-          >
-            <Button
-              type="primary"
-              size="large"
-              icon={<ReloadOutlined />}
-              onClick={fetchData}
-              style={{ width: "100%", height: "60px", borderRadius: "8px" }}
-            >
-              Làm mới
-            </Button>
-          </Card>
-        </Col>
-      </Row>
 
       {/* Main Content */}
       <Card

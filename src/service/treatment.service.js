@@ -2,8 +2,8 @@ import { http } from "./config";
 import axios from "axios";
 
 export const treatmentService = {
-  getTreatmentRecordsByDoctor: async (doctorId) => {
-    return await http.get(`v1/treatment-records?doctorId=${doctorId}`);
+  getTreatmentRecordsByDoctor: async (doctorId, size = 1000) => {
+    return await http.get(`v1/treatment-records?doctorId=${doctorId}&size=${size}`);
   },
 
   getTreatmentRecordById: async (id) => {

@@ -26,18 +26,23 @@ const PaymentPage = () => {
 
   // hien thi danh sach record cua customer
   useEffect(() => {
-    const fetchPaymentInfo = async () => {
-      try {
-        const res = await customerService.getPaymentInfo();
-        setPaymentList(res.data.result.content);
-        console.log(res);
-      } catch (err) {
-        console.error("Lỗi lấy danh sách thanh toán:", err);
-      }
-    };
-
+    const paymentJustCompleted = sessionStorage.getItem("payment_success");
+    if (paymentJustCompleted === "true") {
+      fetchPaymentInfo();
+      sessionStorage.removeItem("payment_success"); // xóa cờ sau khi dùng
+    }
     fetchPaymentInfo();
   }, []);
+
+  const fetchPaymentInfo = async () => {
+    try {
+      const res = await customerService.getPaymentInfo();
+      setPaymentList(res.data.result.content);
+      console.log(res);
+    } catch (err) {
+      console.error("Lỗi lấy danh sách thanh toán:", err);
+    }
+  };
 
   // hien thi thong bao khi thanh toan momo
   useEffect(() => {
@@ -52,10 +57,10 @@ const PaymentPage = () => {
               showNotification("Đã thanh toán thành công", "success");
               setShowModal(false);
               sessionStorage.clear();
-              fetchPaymentInfo();
               setQrCodeUrl("");
               setSelectedTreatment(null);
               clearInterval(intervalRef.current);
+              fetchPaymentInfo();
             }
             console.log(res.data);
           })
@@ -108,8 +113,7 @@ const PaymentPage = () => {
         showNotification("Không lấy được link thanh toán VNPAY", "error");
       }
     } catch (error) {
-      console.error("VNPAY error:", error);
-      showNotification("Thanh toán VNPAY thất bại", "error");
+      showNotification(error.response.data.message, "error");
     }
   };
 

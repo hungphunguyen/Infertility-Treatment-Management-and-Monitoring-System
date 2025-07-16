@@ -15,12 +15,22 @@ export function useRegisterLogic() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
+  const [availableDoctors, setAvailableDoctors] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedShift, setSelectedShift] = useState(null);
+
   useEffect(() => {
     fetchDoctors();
     fetchServices();
     preloadUserInfo();
     fetchScheduleDoctor();
   }, []);
+
+  useEffect(() => {
+    if (selectedDate && selectedShift) {
+      fetchDoctorsByDateAndShift(selectedDate, selectedShift);
+    }
+  }, [selectedDate, selectedShift]);
 
   const fetchDoctors = async () => {
     const res = await doctorService.getDoctorForCard();
@@ -54,6 +64,23 @@ export function useRegisterLogic() {
       });
     }
   };
+  // // fetch danh sách doctor khi đã chọn ngày và ca khám
+  // const fetchDoctorsByDateAndShift = async (date, shift) => {
+  //   if (!date || !shift) return;
+
+  //   try {
+  //     setLoading(true);
+  //     const res = await doctorService.getDoctorByDateAndShift({
+  //       date: dayjs(date).format("YYYY-MM-DD"),
+  //       shift: shift.toUpperCase(),
+  //     });
+  //     setAvailableDoctors(res?.data?.result?.content || []);
+  //   } catch (err) {
+  //     showNotification("Không thể tải bác sĩ phù hợp", "error");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const onDoctorChange = async (doctorId) => {
     console.log("Bác sĩ được chọn:", doctorId);
@@ -91,7 +118,10 @@ export function useRegisterLogic() {
     doctors,
     services,
     loading,
+    availableDoctors,
     onSubmit,
     onDoctorChange,
+    setSelectedDate,
+    setSelectedShift,
   };
 }

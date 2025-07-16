@@ -95,7 +95,7 @@ const AppointmentSchedule = () => {
         infoUser.id,
         status,
         page,
-        5
+        10
       );
       setTotalPages(res.data.result.totalPages);
       setCurrentPage(page);

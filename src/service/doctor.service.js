@@ -197,7 +197,7 @@ export const doctorService = {
   },
 
   // Lấy appointments hôm nay - API mới
-  getAppointmentsToday: async (page = 0, size = 10) => {
+  getAppointmentsToday: async (page = 0, size = 100) => {
     try {
       // Thử API mới trước
       try {

@@ -12,6 +12,7 @@ import {
   DatePicker,
   Spin,
   message,
+  Button,
 } from "antd";
 import {
   CalendarOutlined,
@@ -23,6 +24,8 @@ import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
 import { doctorService } from "../../service/doctor.service";
 import "dayjs/locale/vi";
+import { useInfiniteQuery } from "@tanstack/react-query";
+
 dayjs.locale("vi");
 
 const shiftMap = {
@@ -47,10 +50,6 @@ const DashboardOverview = () => {
   const [schedule, setSchedule] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [doctorId, setDoctorId] = useState(null);
-
-  // Lịch khám hôm nay
-  const [loadingToday, setLoadingToday] = useState(true);
-  const [todayAppointments, setTodayAppointments] = useState([]);
 
   // Dashboard stats
   const [dashboardStats, setDashboardStats] = useState({
@@ -121,24 +120,6 @@ const DashboardOverview = () => {
       })
       .finally(() => setLoadingSchedule(false));
   }, [doctorId, selectedMonth]);
-
-  // Lấy lịch khám hôm nay
-  useEffect(() => {
-    if (!doctorId) return;
-    setLoadingToday(true);
-
-    // Sử dụng API mới
-    doctorService
-      .getAppointmentsToday(0, 10)
-      .then((res) => {
-        const data = res?.data?.result?.content || [];
-        // Log dữ liệu để debug
-        console.log("[Lịch Khám Hôm Nay] todayAppointments:", data);
-        setTodayAppointments(data);
-      })
-      .catch(() => setTodayAppointments([]))
-      .finally(() => setLoadingToday(false));
-  }, [doctorId]);
 
   // Lấy dashboard statics
   useEffect(() => {
@@ -257,11 +238,42 @@ const DashboardOverview = () => {
       title: "Mục đích",
       key: "purpose",
       render: (record) => {
-        // Lấy trường 'purpose' từ API thay vì 'step'
         return <Tag color="purple">{record.purpose || "Chưa có"}</Tag>;
       },
     },
   ];
+
+  const {
+    data: appointmentPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: loading,
+  } = useInfiniteQuery({
+    queryKey: ["appointmentsToday", doctorId],
+    queryFn: async ({ pageParam = 0 }) => {
+      const res = await doctorService.getAppointmentsToday(pageParam, 5);
+      const data = res?.data?.result;
+      return {
+        list: data?.content || [],
+        hasNextPage: !data?.last,
+      };
+    },
+    enabled: !!doctorId,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.hasNextPage ? pages.length : undefined,
+
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    staleTime: Infinity, // hoặc vài phút nếu muốn
+  });
+
+  const todayAppointment = Array.isArray(appointmentPages?.pages)
+    ? appointmentPages.pages.flatMap((page) =>
+        Array.isArray(page.list) ? page.list : []
+      )
+    : [];
 
   return (
     <div>
@@ -314,13 +326,23 @@ const DashboardOverview = () => {
           >
             <Table
               columns={todayColumns}
-              dataSource={todayAppointments}
-              loading={loadingToday}
+              dataSource={todayAppointment}
+              loading={loading}
               pagination={false}
               rowKey="id"
               size="small"
               scroll={{ x: 600 }}
             />
+            {hasNextPage && (
+              <div className="text-center mt-4">
+                <Button
+                  onClick={() => fetchNextPage()}
+                  loading={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
+                </Button>
+              </div>
+            )}
           </Card>
         </Col>
 

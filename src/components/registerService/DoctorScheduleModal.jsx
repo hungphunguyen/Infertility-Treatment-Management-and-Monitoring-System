@@ -1,46 +1,47 @@
+import { useState, useEffect, useMemo } from "react";
 import { Modal, Select, Spin } from "antd";
-import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { doctorService } from "../../service/doctor.service";
-
-// Helper để tạo lưới lịch
-const getCalendarGrid = (monthStart) => {
-  const startOfMonth = dayjs(monthStart).startOf("month");
-  const endOfMonth = dayjs(monthStart).endOf("month");
-
-  const startDate = startOfMonth.startOf("week");
-  const endDate = endOfMonth.endOf("week");
-
-  const grid = [];
-  let current = startDate;
-
-  while (current.isBefore(endDate)) {
-    const week = [];
-    for (let i = 0; i < 7; i++) {
-      week.push(current);
-      current = current.add(1, "day");
-    }
-    grid.push(week);
-  }
-
-  return grid;
-};
 
 export default function DoctorScheduleModal({
   visible,
   onClose,
   onSelect,
-  selectedDoctorId,
+  selectedDoctorId: propDoctorId,
   onDoctorChange,
 }) {
   const [doctors, setDoctors] = useState([]);
-  // const [selectedDoctorId, setSelectedDoctorId] = useState(null);
+  const [localDoctorId, setLocalDoctorId] = useState(null);
   const [schedules, setSchedules] = useState({});
   const [loading, setLoading] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(dayjs());
 
+  // Helper để tạo lưới lịch theo tuần (7xN)
+  const getCalendarGrid = (monthStart) => {
+    const startOfMonth = dayjs(monthStart).startOf("month");
+    const endOfMonth = dayjs(monthStart).endOf("month");
+
+    const startDate = startOfMonth.startOf("week");
+    const endDate = endOfMonth.endOf("week");
+
+    const grid = [];
+    let current = startDate;
+
+    while (current.isBefore(endDate)) {
+      const week = [];
+      for (let i = 0; i < 7; i++) {
+        week.push(current);
+        current = current.add(1, "day");
+      }
+      grid.push(week);
+    }
+
+    return grid;
+  };
+
   const grid = useMemo(() => getCalendarGrid(currentMonth), [currentMonth]);
 
+  // Lấy danh sách bác sĩ khi mở modal
   useEffect(() => {
     if (visible) {
       doctorService.getDoctorForCard().then((res) => {
@@ -49,13 +50,21 @@ export default function DoctorScheduleModal({
     }
   }, [visible]);
 
+  // Đồng bộ localDoctorId khi modal mở ra
   useEffect(() => {
-    if (!selectedDoctorId) return;
+    if (visible && propDoctorId) {
+      setLocalDoctorId(propDoctorId); // sync từ form sang
+    }
+  }, [visible, propDoctorId]);
+
+  // Load lịch khi localDoctorId đổi
+  useEffect(() => {
+    if (!localDoctorId) return;
 
     const fetchSchedule = async () => {
       setLoading(true);
       try {
-        const res = await doctorService.getDoctorScheduleById(selectedDoctorId);
+        const res = await doctorService.getDoctorScheduleById(localDoctorId);
         setSchedules(res?.data?.result?.schedules || {});
       } catch (err) {
         console.error("Lỗi lấy lịch:", err);
@@ -65,16 +74,19 @@ export default function DoctorScheduleModal({
     };
 
     fetchSchedule();
-  }, [selectedDoctorId]);
+  }, [localDoctorId]);
+
+  const handleDoctorSelect = (value) => {
+    setLocalDoctorId(value); // cập nhật trong modal
+    onDoctorChange?.(value); // cập nhật ngược ra form
+  };
 
   const handleSelectShift = (date, shift) => {
-    if (onSelect) {
-      onSelect({
-        doctorId: selectedDoctorId,
-        startDate: date,
-        shift,
-      });
-    }
+    onSelect?.({
+      doctorId: localDoctorId,
+      startDate: date,
+      shift,
+    });
   };
 
   return (
@@ -93,10 +105,8 @@ export default function DoctorScheduleModal({
           label: `${d.fullName} - ${d.qualifications || "Chuyên khoa"}`,
           value: d.id,
         }))}
-        onChange={(value) => {
-          onDoctorChange?.(value); // gọi ra ngoài → form.setFieldsValue → prop cập nhật lại
-        }}
-        value={selectedDoctorId}
+        value={localDoctorId}
+        onChange={handleDoctorSelect}
       />
 
       {loading ? (
@@ -104,7 +114,8 @@ export default function DoctorScheduleModal({
           <Spin size="large" />
         </div>
       ) : (
-        <div>
+        <>
+          {/* Navigation tháng */}
           <div className="flex justify-between items-center mb-4">
             <button
               onClick={() => setCurrentMonth(currentMonth.subtract(1, "month"))}
@@ -121,18 +132,19 @@ export default function DoctorScheduleModal({
             </button>
           </div>
 
-          {/* Table lịch */}
+          {/* Grid lịch */}
           <div className="grid grid-cols-7 gap-2 text-center text-sm font-semibold mb-2">
             {["CN", "T2", "T3", "T4", "T5", "T6", "T7"].map((d) => (
               <div key={d}>{d}</div>
             ))}
           </div>
           <div className="grid grid-cols-7 gap-2 text-sm">
-            {grid.map((week, wi) =>
-              week.map((date, di) => {
+            {grid.map((week) =>
+              week.map((date) => {
                 const key = date.format("YYYY-MM-DD");
                 const isInMonth = date.month() === currentMonth.month();
                 const shifts = schedules[key] || [];
+
                 return (
                   <div
                     key={key}
@@ -162,13 +174,14 @@ export default function DoctorScheduleModal({
               })
             )}
           </div>
+
           {/* Ghi chú */}
           <div className="mt-4 text-xs text-gray-600 flex items-center gap-4">
             <span>🟧 S: Ca sáng</span>
             <span>🟧 C: Ca chiều</span>
             <span>⬜ Không có lịch</span>
           </div>
-        </div>
+        </>
       )}
     </Modal>
   );

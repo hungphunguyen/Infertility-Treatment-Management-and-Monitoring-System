@@ -59,7 +59,8 @@ const BlogManagement = () => {
   const [isActionModalVisible, setIsActionModalVisible] = useState(false);
   const [actionType, setActionType] = useState(""); // approve, reject
   const navigate = useNavigate();
-
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
   useEffect(() => {
     fetchBlogs();
   }, []);
@@ -85,7 +86,8 @@ const BlogManagement = () => {
         page: page,
         size: 5,
       });
-
+      setCurrentPage(page);
+      setTotalPages(response.data.result.totalPages);
       console.log("getAllBlogs response:", response);
 
       if (response.data && response.data.result?.content) {
@@ -489,9 +491,26 @@ const BlogManagement = () => {
           // showTotal: (total) => `Tổng số ${total} bài viết`,
           false
         }
-        scroll={{ x: 1000 }}
       />
-
+      <div className="flex justify-end mt-4">
+        <Button
+          disabled={currentPage === 0}
+          onClick={() => fetchBlogs(currentPage - 1)}
+          className="mr-2"
+        >
+          Trang trước
+        </Button>
+        <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+          Trang {currentPage + 1} / {totalPages}
+        </span>
+        <Button
+          disabled={currentPage + 1 >= totalPages}
+          onClick={() => fetchBlogs(currentPage + 1)}
+          className="ml-2"
+        >
+          Trang tiếp
+        </Button>
+      </div>
       <Modal
         title={
           modalType === "create"

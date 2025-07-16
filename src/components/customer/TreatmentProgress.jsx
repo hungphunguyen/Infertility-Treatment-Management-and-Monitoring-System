@@ -60,7 +60,9 @@ const TreatmentProgress = () => {
   const [viewMode, setViewMode] = useState("list");
   const [treatments, setTreatments] = useState([]);
   const { showNotification } = useContext(NotificationContext);
-
+  const [stepAppointments, setStepAppointments] = useState({});
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
   useEffect(() => {
     if (location.state?.treatmentRecord && location.state?.treatmentId) {
       setViewMode("detail");
@@ -69,7 +71,7 @@ const TreatmentProgress = () => {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (page = 0) => {
     try {
       setLoading(true);
 
@@ -155,10 +157,11 @@ const TreatmentProgress = () => {
 
         const response = await treatmentService.getTreatmentRecords({
           customerId: customerId,
-          page: 0,
-          size: 100,
+          page,
+          size: 5,
         });
-
+        setCurrentPage(page);
+        setTotalPages(response.data.result.totalPages);
         if (response?.data?.code === 1000 && response.data.result?.content) {
           const treatmentRecords = response.data.result.content
             .filter((treatment) => treatment.status !== "CANCELLED")
@@ -211,23 +214,11 @@ const TreatmentProgress = () => {
     setChangeLoading(true);
 
     try {
-      // Lấy appointments thật cho step này
-      if (step.appointment?.id) {
-        // Nếu đã có appointment, sử dụng luôn
-        setChangeAppointment([step.appointment]);
-      } else {
-        // Lấy appointments theo step ID
-        const appointmentsResponse = await treatmentService.getAppointments({
-          stepId: step.id,
-          customerId: treatmentData.customerId,
-          status: "CONFIRMED,PENDING", // Chỉ lấy appointments có thể đổi
-          page: 0,
-          size: 10,
-        });
-
-        const appointments = appointmentsResponse?.data?.result?.content || [];
-        setChangeAppointment(appointments);
-      }
+      // Lấy appointments thật cho step này bằng API mới
+      const appointmentsResponse =
+        await treatmentService.getAppointmentsByStepId(step.id);
+      const appointments = appointmentsResponse?.data?.result || [];
+      setChangeAppointment(appointments);
     } catch (error) {
       console.error("Lỗi khi mở modal đổi lịch:", error);
       message.error("Không thể mở form đổi lịch hẹn");
@@ -284,6 +275,18 @@ const TreatmentProgress = () => {
         setChangeModalVisible(false);
         setSelectedAppointment(null);
         changeForm.resetFields();
+        // Reload lại lịch hẹn cho step vừa đổi
+        try {
+          const res = await treatmentService.getAppointmentsByStepId(
+            changeStep.id
+          );
+          setStepAppointments((prev) => ({
+            ...prev,
+            [changeStep.id]: res?.data?.result || [],
+          }));
+        } catch (error) {
+          setStepAppointments((prev) => ({ ...prev, [changeStep.id]: [] }));
+        }
         // Cập nhật trực tiếp trạng thái appointment trong treatmentData
         setTreatmentData((prev) => {
           if (!prev) return prev;
@@ -348,6 +351,20 @@ const TreatmentProgress = () => {
     }
   };
 
+  const handleExpandPhase = async (phase) => {
+    if (!stepAppointments[phase.id]) {
+      try {
+        const res = await treatmentService.getAppointmentsByStepId(phase.id);
+        setStepAppointments((prev) => ({
+          ...prev,
+          [phase.id]: res?.data?.result || [],
+        }));
+      } catch (error) {
+        setStepAppointments((prev) => ({ ...prev, [phase.id]: [] }));
+      }
+    }
+  };
+
   const getStatusTag = (status) => {
     switch ((status || "").toUpperCase()) {
       case "COMPLETED":
@@ -358,8 +375,8 @@ const TreatmentProgress = () => {
       case "CONFIRMED":
         return <Tag color="#1890ff">Đã xác nhận</Tag>;
       case "PENDING":
-      case "PLANNED":
-        return <Tag color="orange">Đang chờ</Tag>;
+      case "PLANED":
+        return <Tag color="orange">Đã đặt lịch</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       case "PENDING_CHANGE":
@@ -382,8 +399,8 @@ const TreatmentProgress = () => {
       case "CONFIRMED":
         return <Tag color="#1890ff">Đang điều trị</Tag>;
       case "PENDING":
-      case "PLANNED":
-        return <Tag color="warning">Đang chờ điều trị</Tag>;
+      case "PLANED":
+        return <Tag color="warning">Đã đặt lịch</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       default:
@@ -444,31 +461,34 @@ const TreatmentProgress = () => {
               </Descriptions.Item>
             </Descriptions>
 
-            {phase.appointment && phase.statusRaw !== "COMPLETED" && (
-              <div style={{ marginTop: 16 }}>
-                {phase.appointment.status !== "PENDING_CHANGE" &&
-                  phase.appointment.status !== "REJECTED_CHANGE" && (
-                    <Button
-                      type="primary"
-                      icon={<EditOutlined />}
-                      onClick={() => handleOpenChangeModal(phase)}
-                      style={{
-                        backgroundColor: "#1890ff",
-                        borderColor: "#1890ff",
-                      }}
-                    >
-                      Gửi yêu cầu thay đổi lịch hẹn
-                    </Button>
-                  )}
-                {phase.appointment.appointmentDate && (
-                  <div style={{ marginTop: 16 }}>
-                    <Text strong>Lịch hẹn:</Text>
+            {/* Nút gửi yêu cầu đổi lịch hẹn: chỉ 1 nút trên mỗi phase, không phụ thuộc status */}
+            {phase.statusRaw !== "COMPLETED" && (
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                style={{
+                  marginBottom: 12,
+                  backgroundColor: "#1890ff",
+                  borderColor: "#1890ff",
+                }}
+                onClick={() => handleOpenChangeModal(phase)}
+              >
+                Gửi yêu cầu thay đổi lịch hẹn
+              </Button>
+            )}
+            {/* Danh sách lịch hẹn */}
+            {Array.isArray(stepAppointments[phase.id]) &&
+              stepAppointments[phase.id].length > 0 && (
+                <div style={{ marginTop: 4 }}>
+                  <Text strong>Lịch hẹn:</Text>
+                  {stepAppointments[phase.id].map((appointment, idx) => (
                     <div
+                      key={appointment.id || idx}
                       style={{
-                        marginTop: 8,
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
+                        marginTop: 8,
                       }}
                     >
                       <span
@@ -478,62 +498,38 @@ const TreatmentProgress = () => {
                           height: 12,
                           borderRadius: "50%",
                           background:
-                            phase.appointment.status === "CONFIRMED"
+                            appointment.status === "CONFIRMED"
                               ? "#1890ff"
-                              : phase.appointment.status === "PENDING"
+                              : appointment.status === "PENDING"
                               ? "#faad14"
-                              : phase.appointment.status === "COMPLETED"
+                              : appointment.status === "COMPLETED"
                               ? "#52c41a"
-                              : phase.appointment.status === "CANCELLED"
+                              : appointment.status === "CANCELLED"
                               ? "#ff4d4f"
-                              : phase.appointment.status === "PENDING_CHANGE"
-                              ? "#722ed1"
-                              : phase.appointment.status === "REJECTED_CHANGE"
-                              ? "#ff7875"
-                              : phase.appointment.status === "REJECTED"
-                              ? "#ff7875"
                               : "#d9d9d9",
                           marginRight: 4,
                         }}
                       />
-                      <span style={{ fontWeight: 500 }}>{phase.name}</span>
-                      {getStatusTag(phase.appointment.status)}
+                      <span style={{ fontWeight: 500 }}>
+                        {appointment.purpose || phase.name}
+                      </span>
+                      {getStatusTag(appointment.status)}
                       <CalendarOutlined
                         style={{ marginLeft: 8, marginRight: 4 }}
                       />
                       <span>
-                        {dayjs(phase.appointment.appointmentDate).format(
+                        {dayjs(appointment.appointmentDate).format(
                           "DD/MM/YYYY"
                         )}
                       </span>
-                      {phase.appointment.shift && (
-                        <span style={{ marginLeft: 8 }}>
-                          - Ca:{" "}
-                          {phase.appointment.shift === "MORNING"
-                            ? "Sáng"
-                            : "Chiều"}
-                        </span>
-                      )}
-                      {/* Nếu có requestedDate (đang chờ duyệt đổi lịch), hiển thị thêm */}
-                      {phase.appointment.status === "PENDING_CHANGE" &&
-                        phase.appointment.requestedDate && (
-                          <span style={{ marginLeft: 16, color: "#722ed1" }}>
-                            (Yêu cầu đổi sang:{" "}
-                            {dayjs(phase.appointment.requestedDate).format(
-                              "DD/MM/YYYY"
-                            )}{" "}
-                            - Ca:{" "}
-                            {phase.appointment.requestedShift === "MORNING"
-                              ? "Sáng"
-                              : "Chiều"}
-                            )
-                          </span>
-                        )}
+                      <span style={{ marginLeft: 8 }}>
+                        - Ca:{" "}
+                        {appointment.shift === "MORNING" ? "Sáng" : "Chiều"}
+                      </span>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
             {phase.activities.length === 0 && (
               <div style={{ marginTop: 16, color: "#666" }}>
@@ -542,6 +538,7 @@ const TreatmentProgress = () => {
             )}
           </div>
         ),
+        onClick: () => handleExpandPhase(phase),
       }))
     );
   };
@@ -812,20 +809,13 @@ const TreatmentProgress = () => {
       const overallProgress =
         totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
-      // Lấy appointments cho từng step
+      // Lấy appointments cho từng step (dùng API get-by-step/{stepId})
       const stepsWithAppointments = await Promise.all(
         treatmentSteps.map(async (step) => {
           try {
-            const appointmentsResponse = await treatmentService.getAppointments(
-              {
-                stepId: step.id,
-                customerId: detailData.customerId,
-                page: 0,
-                size: 10,
-              }
-            );
-            const appointments =
-              appointmentsResponse?.data?.result?.content || [];
+            const appointmentsResponse =
+              await treatmentService.getAppointmentsByStepId(step.id);
+            const appointments = appointmentsResponse?.data?.result || [];
             return {
               ...step,
               appointments: appointments,
@@ -891,18 +881,31 @@ const TreatmentProgress = () => {
   const renderListView = () => (
     <div style={{ padding: "24px" }}>
       <Card>
-        <Title level={3}>
-          <Space>
-            <MedicineBoxOutlined />
-            Tiến trình điều trị
-          </Space>
-        </Title>
         <Table
           columns={columns}
           dataSource={treatments}
           loading={loading}
           pagination={false}
         />
+        <div className="flex justify-end mt-4">
+          <Button
+            disabled={currentPage === 0}
+            onClick={() => fetchData(currentPage - 1)}
+            className="mr-2"
+          >
+            Trang trước
+          </Button>
+          <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+            Trang {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage + 1 >= totalPages}
+            onClick={() => fetchData(currentPage + 1)}
+            className="ml-2"
+          >
+            Trang tiếp
+          </Button>
+        </div>
       </Card>
     </div>
   );
@@ -1003,16 +1006,22 @@ const TreatmentProgress = () => {
       <Modal
         title={`Gửi yêu cầu thay đổi lịch hẹn: ${changeStep?.name || ""}`}
         open={changeModalVisible}
-        onCancel={() => {
-          setChangeModalVisible(false);
-          setSelectedAppointment(null);
-          changeForm.resetFields();
-        }}
+        onCancel={() => setChangeModalVisible(false)}
         onOk={handleSubmitChange}
         okText="Gửi yêu cầu"
         confirmLoading={changeLoading}
         destroyOnHidden
         width={800}
+        footer={[
+          <Button
+            key="submit"
+            type="primary"
+            loading={changeLoading}
+            onClick={handleSubmitChange}
+          >
+            Gửi yêu cầu
+          </Button>,
+        ]}
       >
         {changeLoading ? (
           <Spin />
@@ -1046,6 +1055,8 @@ const TreatmentProgress = () => {
                         return <Tag color="#1890ff">Đã xác nhận</Tag>;
                       case "PENDING":
                         return <Tag color="orange">Đang chờ</Tag>;
+                      case "PLANED":
+                        return <Tag color="orange">Đã đặt lịch</Tag>;
                       case "PENDING_CHANGE":
                         return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
                       case "REJECTED_CHANGE":
