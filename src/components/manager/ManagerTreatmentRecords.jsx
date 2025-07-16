@@ -299,7 +299,18 @@ const ManagerTreatmentRecords = () => {
       key: "totalRecord",
       render: (treatments) => {
         const record = treatments?.[0];
-        return <Text>{record?.totalRecord ?? 0}</Text>;
+        return (
+          <Text
+            style={{
+              backgroundColor: "#90EE90",
+              padding: "5px 20px",
+              color: "#28a745",
+              fontWeight: "500",
+            }}
+          >
+            {record?.totalRecord ?? 0}
+          </Text>
+        );
       },
     },
 
@@ -308,13 +319,6 @@ const ManagerTreatmentRecords = () => {
       key: "action",
       render: (_, record) => (
         <Space>
-          <Button
-            type="primary"
-            icon={<EyeOutlined />}
-            onClick={() => viewRecord(record.treatments[0])}
-          >
-            Xem chi tiết
-          </Button>
           <Button
             icon={
               expandedRows.includes(record.key) ? (

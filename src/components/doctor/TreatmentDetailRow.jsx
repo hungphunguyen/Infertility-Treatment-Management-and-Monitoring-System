@@ -13,6 +13,12 @@ const statusMap = {
   CONFIRMED: { text: "Đã xác nhận", color: "cyan" },
 };
 
+const resultMap = {
+  SUCCESS: { text: "Thành công", color: "green" },
+  FAILURE: { text: "Thất bại", color: "red" },
+  UNDETERMINED: { text: "Chưa xác định", color: "gold" },
+};
+
 const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
   {
     title: "Dịch vụ",
@@ -31,6 +37,15 @@ const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
     key: "status",
     render: (status) => {
       const item = statusMap[status] || { text: status, color: "default" };
+      return <Tag color={item.color}>{item.text}</Tag>;
+    },
+  },
+  {
+    title: "Kết quả",
+    dataIndex: "result",
+    key: "result",
+    render: (result) => {
+      const item = resultMap[result] || { text: result, color: "default" };
       return <Tag color={item.color}>{item.text}</Tag>;
     },
   },
