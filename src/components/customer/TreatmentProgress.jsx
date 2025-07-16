@@ -60,6 +60,7 @@ const TreatmentProgress = () => {
   const [viewMode, setViewMode] = useState("list");
   const [treatments, setTreatments] = useState([]);
   const { showNotification } = useContext(NotificationContext);
+  const [stepAppointments, setStepAppointments] = useState({});
 
   useEffect(() => {
     if (location.state?.treatmentRecord && location.state?.treatmentId) {
@@ -211,23 +212,10 @@ const TreatmentProgress = () => {
     setChangeLoading(true);
 
     try {
-      // Lấy appointments thật cho step này
-      if (step.appointment?.id) {
-        // Nếu đã có appointment, sử dụng luôn
-        setChangeAppointment([step.appointment]);
-      } else {
-        // Lấy appointments theo step ID
-        const appointmentsResponse = await treatmentService.getAppointments({
-          stepId: step.id,
-          customerId: treatmentData.customerId,
-          status: "CONFIRMED,PENDING", // Chỉ lấy appointments có thể đổi
-          page: 0,
-          size: 10,
-        });
-
-        const appointments = appointmentsResponse?.data?.result?.content || [];
-        setChangeAppointment(appointments);
-      }
+      // Lấy appointments thật cho step này bằng API mới
+      const appointmentsResponse = await treatmentService.getAppointmentsByStepId(step.id);
+      const appointments = appointmentsResponse?.data?.result || [];
+      setChangeAppointment(appointments);
     } catch (error) {
       console.error("Lỗi khi mở modal đổi lịch:", error);
       message.error("Không thể mở form đổi lịch hẹn");
@@ -284,6 +272,16 @@ const TreatmentProgress = () => {
         setChangeModalVisible(false);
         setSelectedAppointment(null);
         changeForm.resetFields();
+        // Reload lại lịch hẹn cho step vừa đổi
+        try {
+          const res = await treatmentService.getAppointmentsByStepId(changeStep.id);
+          setStepAppointments((prev) => ({
+            ...prev,
+            [changeStep.id]: res?.data?.result || [],
+          }));
+        } catch (error) {
+          setStepAppointments((prev) => ({ ...prev, [changeStep.id]: [] }));
+        }
         // Cập nhật trực tiếp trạng thái appointment trong treatmentData
         setTreatmentData((prev) => {
           if (!prev) return prev;
@@ -345,6 +343,20 @@ const TreatmentProgress = () => {
       }
     } finally {
       setChangeLoading(false);
+    }
+  };
+
+  const handleExpandPhase = async (phase) => {
+    if (!stepAppointments[phase.id]) {
+      try {
+        const res = await treatmentService.getAppointmentsByStepId(phase.id);
+        setStepAppointments((prev) => ({
+          ...prev,
+          [phase.id]: res?.data?.result || [],
+        }));
+      } catch (error) {
+        setStepAppointments((prev) => ({ ...prev, [phase.id]: [] }));
+      }
     }
   };
 
@@ -444,6 +456,10 @@ const TreatmentProgress = () => {
               </Descriptions.Item>
             </Descriptions>
 
+            {/* Nút đổi lịch nếu cần giữ lại */}
+            {/* ... giữ lại nút đổi lịch nếu bạn muốn ... */}
+
+            {/* Mục Lịch hẹn mới: chỉ hiển thị danh sách lấy từ API */}
             {phase.appointment && phase.statusRaw !== "COMPLETED" && (
               <div style={{ marginTop: 16 }}>
                 {phase.appointment.status !== "PENDING_CHANGE" &&
@@ -460,76 +476,41 @@ const TreatmentProgress = () => {
                       Gửi yêu cầu thay đổi lịch hẹn
                     </Button>
                   )}
-                {phase.appointment.appointmentDate && (
+                {/* Mục Lịch hẹn mới: chỉ hiển thị danh sách lấy từ API */}
+                {Array.isArray(stepAppointments[phase.id]) && stepAppointments[phase.id].length > 0 && (
                   <div style={{ marginTop: 16 }}>
                     <Text strong>Lịch hẹn:</Text>
-                    <div
-                      style={{
-                        marginTop: 8,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: 12,
-                          height: 12,
-                          borderRadius: "50%",
-                          background:
-                            phase.appointment.status === "CONFIRMED"
-                              ? "#1890ff"
-                              : phase.appointment.status === "PENDING"
-                              ? "#faad14"
-                              : phase.appointment.status === "COMPLETED"
-                              ? "#52c41a"
-                              : phase.appointment.status === "CANCELLED"
-                              ? "#ff4d4f"
-                              : phase.appointment.status === "PENDING_CHANGE"
-                              ? "#722ed1"
-                              : phase.appointment.status === "REJECTED_CHANGE"
-                              ? "#ff7875"
-                              : phase.appointment.status === "REJECTED"
-                              ? "#ff7875"
-                              : "#d9d9d9",
-                          marginRight: 4,
-                        }}
-                      />
-                      <span style={{ fontWeight: 500 }}>{phase.name}</span>
-                      {getStatusTag(phase.appointment.status)}
-                      <CalendarOutlined
-                        style={{ marginLeft: 8, marginRight: 4 }}
-                      />
-                      <span>
-                        {dayjs(phase.appointment.appointmentDate).format(
-                          "DD/MM/YYYY"
-                        )}
-                      </span>
-                      {phase.appointment.shift && (
-                        <span style={{ marginLeft: 8 }}>
-                          - Ca:{" "}
-                          {phase.appointment.shift === "MORNING"
-                            ? "Sáng"
-                            : "Chiều"}
-                        </span>
-                      )}
-                      {/* Nếu có requestedDate (đang chờ duyệt đổi lịch), hiển thị thêm */}
-                      {phase.appointment.status === "PENDING_CHANGE" &&
-                        phase.appointment.requestedDate && (
-                          <span style={{ marginLeft: 16, color: "#722ed1" }}>
-                            (Yêu cầu đổi sang:{" "}
-                            {dayjs(phase.appointment.requestedDate).format(
-                              "DD/MM/YYYY"
-                            )}{" "}
-                            - Ca:{" "}
-                            {phase.appointment.requestedShift === "MORNING"
-                              ? "Sáng"
-                              : "Chiều"}
-                            )
-                          </span>
-                        )}
-                    </div>
+                    {stepAppointments[phase.id].map((appointment, idx) => (
+                      <div
+                        key={appointment.id || idx}
+                        style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}
+                      >
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: 12,
+                            height: 12,
+                            borderRadius: "50%",
+                            background:
+                              appointment.status === "CONFIRMED"
+                                ? "#1890ff"
+                                : appointment.status === "PENDING"
+                                ? "#faad14"
+                                : appointment.status === "COMPLETED"
+                                ? "#52c41a"
+                                : appointment.status === "CANCELLED"
+                                ? "#ff4d4f"
+                                : "#d9d9d9",
+                            marginRight: 4,
+                          }}
+                        />
+                        <span style={{ fontWeight: 500 }}>{appointment.purpose || phase.name}</span>
+                        {getStatusTag(appointment.status)}
+                        <CalendarOutlined style={{ marginLeft: 8, marginRight: 4 }} />
+                        <span>{dayjs(appointment.appointmentDate).format("DD/MM/YYYY")}</span>
+                        <span style={{ marginLeft: 8 }}>- Ca: {appointment.shift === "MORNING" ? "Sáng" : "Chiều"}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -542,6 +523,7 @@ const TreatmentProgress = () => {
             )}
           </div>
         ),
+        onClick: () => handleExpandPhase(phase),
       }))
     );
   };
@@ -812,20 +794,12 @@ const TreatmentProgress = () => {
       const overallProgress =
         totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
-      // Lấy appointments cho từng step
+      // Lấy appointments cho từng step (dùng API get-by-step/{stepId})
       const stepsWithAppointments = await Promise.all(
         treatmentSteps.map(async (step) => {
           try {
-            const appointmentsResponse = await treatmentService.getAppointments(
-              {
-                stepId: step.id,
-                customerId: detailData.customerId,
-                page: 0,
-                size: 10,
-              }
-            );
-            const appointments =
-              appointmentsResponse?.data?.result?.content || [];
+            const appointmentsResponse = await treatmentService.getAppointmentsByStepId(step.id);
+            const appointments = appointmentsResponse?.data?.result || [];
             return {
               ...step,
               appointments: appointments,

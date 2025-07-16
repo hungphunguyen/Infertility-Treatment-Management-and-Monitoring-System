@@ -808,7 +808,7 @@ const AppointmentManagement = () => {
             }}
             styles={{ body: { padding: "20px" } }}
           >
-            <Button
+            {/* <Button
               type="primary"
               size="large"
               icon={<ReloadOutlined />}
@@ -816,7 +816,7 @@ const AppointmentManagement = () => {
               style={{ width: "100%", height: "60px", borderRadius: "8px" }}
             >
               Làm mới
-            </Button>
+            </Button> */}
           </Card>
         </Col>
       </Row>

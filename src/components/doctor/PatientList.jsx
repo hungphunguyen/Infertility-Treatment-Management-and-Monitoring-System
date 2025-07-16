@@ -36,7 +36,6 @@ const PatientList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [doctorId, setDoctorId] = useState("");
   const [doctorName, setDoctorName] = useState("");
-  const [purposeData, setPurposeData] = useState({});
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
@@ -64,6 +63,29 @@ const PatientList = () => {
 
   useEffect(() => {
     if (!doctorId) return;
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Sử dụng API mới để lấy lịch hẹn hôm nay
+        const response = await doctorService.getAppointmentsToday(0, 100);
+
+        if (response?.data?.result?.content) {
+          const appointments = response.data.result.content;
+          console.log("✅ Appointments loaded from new API:", appointments);
+          setPatients(appointments);
+        } else {
+          console.warn("No appointments data from API");
+          setPatients([]);
+        }
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+        message.error("Có lỗi xảy ra khi lấy dữ liệu lịch hẹn");
+        setPatients([]);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchData();
   }, [doctorId]);
 
@@ -241,17 +263,11 @@ const PatientList = () => {
             <Text strong>{name}</Text>
             <br />
             <Text type="secondary" style={{ fontSize: "12px" }}>
-              {record.customerEmail}
+              ID: {record.id}
             </Text>
           </div>
         </div>
       ),
-    },
-    {
-      title: "Ngày khám",
-      dataIndex: "appointmentDate",
-      key: "appointmentDate",
-      render: (date) => dayjs(date).format("DD/MM/YYYY"),
     },
     {
       title: "Ca khám",
@@ -274,22 +290,9 @@ const PatientList = () => {
     },
     {
       title: "Mục đích",
-      key: "serviceName",
+      key: "purpose",
       render: (record) => {
-        // Ưu tiên lấy purpose từ API mới
-        const purpose = purposeData[record.customerName];
-        if (purpose) {
-          return <Tag color="purple">{purpose}</Tag>;
-        }
-
-        // Fallback về logic cũ nếu không có purpose từ API mới
-        const serviceName =
-          record.purpose ||
-          record.serviceName ||
-          record.treatmentServiceName ||
-          record.treatmentService?.name ||
-          "Chưa có";
-        return <Tag color="purple">{serviceName}</Tag>;
+        return <Tag color="purple">{record.purpose || "Chưa có"}</Tag>;
       },
     },
     {
@@ -340,7 +343,7 @@ const PatientList = () => {
               <Option value="CONFIRMED">Đã xác nhận</Option>
               <Option value="PENDING">Chờ xác nhận</Option>
               <Option value="PLANED">Đã đặt lịch</Option>
-              <Option value="REJECTED_CHANGE">Từ chối thay đổi</Option>
+              <Option value="COMPLETED">Đã hoàn thành</Option>
               <Option value="CANCELLED">Đã hủy</Option>
             </Select>
           </Col>
@@ -424,29 +427,17 @@ const PatientList = () => {
             <Descriptions.Item label="Họ tên">
               {selectedPatient.customerName}
             </Descriptions.Item>
-            <Descriptions.Item label="Email">
-              {selectedPatient.customerEmail}
-            </Descriptions.Item>
-            <Descriptions.Item label="Bác sĩ">
-              {selectedPatient.doctorName}
-            </Descriptions.Item>
-            <Descriptions.Item label="Mục đích">
-              {selectedPatient.serviceName || "Chưa có"}
+            <Descriptions.Item label="ID">
+              {selectedPatient.id}
             </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
               {getStatusTag(selectedPatient.status)}
             </Descriptions.Item>
-            <Descriptions.Item label="Ngày khám">
-              {dayjs(selectedPatient.appointmentDate).format("DD/MM/YYYY")}
-            </Descriptions.Item>
             <Descriptions.Item label="Ca khám">
-              {selectedPatient.shift}
+              {selectedPatient.shift === "MORNING" ? "Sáng" : "Chiều"}
             </Descriptions.Item>
             <Descriptions.Item label="Mục đích">
               {selectedPatient.purpose || "Chưa có"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Ghi chú">
-              {selectedPatient.notes || "Chưa có"}
             </Descriptions.Item>
           </Descriptions>
         )}
