@@ -438,8 +438,8 @@ const TreatmentStagesView = () => {
                     }
                   >
                     <Descriptions column={2} size="small">
-                      <Descriptions.Item label="Mô tả">
-                        {step.description || "Không có mô tả"}
+                      <Descriptions.Item label="Bước điều trị">
+                        {step.stageName || step.name || "Không xác định"}
                       </Descriptions.Item>
                       <Descriptions.Item label="Ngày bắt đầu">
                         {step.startDate

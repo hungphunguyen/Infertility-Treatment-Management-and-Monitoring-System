@@ -241,11 +241,12 @@ export const treatmentService = {
     return await http.get(`v1/appointments/get-by-step/${stepId}`);
   },
 
-  updateTreatmentStatus: async (recordId, status) => {
-    // Thử API mới với query params
+  updateTreatmentStatus: async (recordId, status, result) => {
     try {
+      let url = `v1/treatment-records/${recordId}/status?status=${status}`;
+      if (result) url += `&result=${result}`;
       const response = await http.put(
-        `v1/treatment-records/${recordId}/status?status=${status}`,
+        url,
         null,
         {
           headers: {
@@ -254,13 +255,10 @@ export const treatmentService = {
           },
         }
       );
-      console.log("✅ API mới với query params thành công:", response);
       return response;
-    } catch (queryError) {
-      console.warn(
-        "❌ API mới với query params cũng không hoạt động:",
-        queryError.response?.data
-      );
+    } catch (error) {
+      console.warn("❌ API updateTreatmentStatus error:", error?.response?.data);
+      throw error;
     }
   },
 
