@@ -31,6 +31,7 @@ const PaymentPage = () => {
       fetchPaymentInfo();
       sessionStorage.removeItem("payment_success"); // xóa cờ sau khi dùng
     }
+    fetchPaymentInfo();
   }, []);
 
   const fetchPaymentInfo = async () => {
