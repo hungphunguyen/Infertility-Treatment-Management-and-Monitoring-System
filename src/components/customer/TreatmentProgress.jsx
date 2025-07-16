@@ -61,7 +61,8 @@ const TreatmentProgress = () => {
   const [treatments, setTreatments] = useState([]);
   const { showNotification } = useContext(NotificationContext);
   const [stepAppointments, setStepAppointments] = useState({});
-
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
   useEffect(() => {
     if (location.state?.treatmentRecord && location.state?.treatmentId) {
       setViewMode("detail");
@@ -70,7 +71,7 @@ const TreatmentProgress = () => {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (page = 0) => {
     try {
       setLoading(true);
 
@@ -156,10 +157,11 @@ const TreatmentProgress = () => {
 
         const response = await treatmentService.getTreatmentRecords({
           customerId: customerId,
-          page: 0,
-          size: 100,
+          page,
+          size: 5,
         });
-
+        setCurrentPage(page);
+        setTotalPages(response.data.result.totalPages);
         if (response?.data?.code === 1000 && response.data.result?.content) {
           const treatmentRecords = response.data.result.content
             .filter((treatment) => treatment.status !== "CANCELLED")
@@ -213,7 +215,8 @@ const TreatmentProgress = () => {
 
     try {
       // Lấy appointments thật cho step này bằng API mới
-      const appointmentsResponse = await treatmentService.getAppointmentsByStepId(step.id);
+      const appointmentsResponse =
+        await treatmentService.getAppointmentsByStepId(step.id);
       const appointments = appointmentsResponse?.data?.result || [];
       setChangeAppointment(appointments);
     } catch (error) {
@@ -274,7 +277,9 @@ const TreatmentProgress = () => {
         changeForm.resetFields();
         // Reload lại lịch hẹn cho step vừa đổi
         try {
-          const res = await treatmentService.getAppointmentsByStepId(changeStep.id);
+          const res = await treatmentService.getAppointmentsByStepId(
+            changeStep.id
+          );
           setStepAppointments((prev) => ({
             ...prev,
             [changeStep.id]: res?.data?.result || [],
@@ -461,49 +466,70 @@ const TreatmentProgress = () => {
               <Button
                 type="primary"
                 icon={<EditOutlined />}
-                style={{ marginBottom: 12, backgroundColor: "#1890ff", borderColor: "#1890ff" }}
+                style={{
+                  marginBottom: 12,
+                  backgroundColor: "#1890ff",
+                  borderColor: "#1890ff",
+                }}
                 onClick={() => handleOpenChangeModal(phase)}
               >
                 Gửi yêu cầu thay đổi lịch hẹn
               </Button>
             )}
             {/* Danh sách lịch hẹn */}
-            {Array.isArray(stepAppointments[phase.id]) && stepAppointments[phase.id].length > 0 && (
-              <div style={{ marginTop: 4 }}>
-                <Text strong>Lịch hẹn:</Text>
-                {stepAppointments[phase.id].map((appointment, idx) => (
-                  <div
-                    key={appointment.id || idx}
-                    style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}
-                  >
-                    <span
+            {Array.isArray(stepAppointments[phase.id]) &&
+              stepAppointments[phase.id].length > 0 && (
+                <div style={{ marginTop: 4 }}>
+                  <Text strong>Lịch hẹn:</Text>
+                  {stepAppointments[phase.id].map((appointment, idx) => (
+                    <div
+                      key={appointment.id || idx}
                       style={{
-                        display: "inline-block",
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        background:
-                          appointment.status === "CONFIRMED"
-                            ? "#1890ff"
-                            : appointment.status === "PENDING"
-                            ? "#faad14"
-                            : appointment.status === "COMPLETED"
-                            ? "#52c41a"
-                            : appointment.status === "CANCELLED"
-                            ? "#ff4d4f"
-                            : "#d9d9d9",
-                        marginRight: 4,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginTop: 8,
                       }}
-                    />
-                    <span style={{ fontWeight: 500 }}>{appointment.purpose || phase.name}</span>
-                    {getStatusTag(appointment.status)}
-                    <CalendarOutlined style={{ marginLeft: 8, marginRight: 4 }} />
-                    <span>{dayjs(appointment.appointmentDate).format("DD/MM/YYYY")}</span>
-                    <span style={{ marginLeft: 8 }}>- Ca: {appointment.shift === "MORNING" ? "Sáng" : "Chiều"}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+                    >
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 12,
+                          height: 12,
+                          borderRadius: "50%",
+                          background:
+                            appointment.status === "CONFIRMED"
+                              ? "#1890ff"
+                              : appointment.status === "PENDING"
+                              ? "#faad14"
+                              : appointment.status === "COMPLETED"
+                              ? "#52c41a"
+                              : appointment.status === "CANCELLED"
+                              ? "#ff4d4f"
+                              : "#d9d9d9",
+                          marginRight: 4,
+                        }}
+                      />
+                      <span style={{ fontWeight: 500 }}>
+                        {appointment.purpose || phase.name}
+                      </span>
+                      {getStatusTag(appointment.status)}
+                      <CalendarOutlined
+                        style={{ marginLeft: 8, marginRight: 4 }}
+                      />
+                      <span>
+                        {dayjs(appointment.appointmentDate).format(
+                          "DD/MM/YYYY"
+                        )}
+                      </span>
+                      <span style={{ marginLeft: 8 }}>
+                        - Ca:{" "}
+                        {appointment.shift === "MORNING" ? "Sáng" : "Chiều"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
             {phase.activities.length === 0 && (
               <div style={{ marginTop: 16, color: "#666" }}>
@@ -787,7 +813,8 @@ const TreatmentProgress = () => {
       const stepsWithAppointments = await Promise.all(
         treatmentSteps.map(async (step) => {
           try {
-            const appointmentsResponse = await treatmentService.getAppointmentsByStepId(step.id);
+            const appointmentsResponse =
+              await treatmentService.getAppointmentsByStepId(step.id);
             const appointments = appointmentsResponse?.data?.result || [];
             return {
               ...step,
@@ -854,18 +881,31 @@ const TreatmentProgress = () => {
   const renderListView = () => (
     <div style={{ padding: "24px" }}>
       <Card>
-        <Title level={3}>
-          <Space>
-            <MedicineBoxOutlined />
-            Tiến trình điều trị
-          </Space>
-        </Title>
         <Table
           columns={columns}
           dataSource={treatments}
           loading={loading}
           pagination={false}
         />
+        <div className="flex justify-end mt-4">
+          <Button
+            disabled={currentPage === 0}
+            onClick={() => fetchData(currentPage - 1)}
+            className="mr-2"
+          >
+            Trang trước
+          </Button>
+          <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+            Trang {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage + 1 >= totalPages}
+            onClick={() => fetchData(currentPage + 1)}
+            className="ml-2"
+          >
+            Trang tiếp
+          </Button>
+        </div>
       </Card>
     </div>
   );
@@ -973,9 +1013,14 @@ const TreatmentProgress = () => {
         destroyOnHidden
         width={800}
         footer={[
-          <Button key="submit" type="primary" loading={changeLoading} onClick={handleSubmitChange}>
+          <Button
+            key="submit"
+            type="primary"
+            loading={changeLoading}
+            onClick={handleSubmitChange}
+          >
             Gửi yêu cầu
-          </Button>
+          </Button>,
         ]}
       >
         {changeLoading ? (
