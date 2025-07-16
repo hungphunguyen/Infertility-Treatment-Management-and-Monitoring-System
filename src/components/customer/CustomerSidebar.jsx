@@ -7,14 +7,9 @@ import {
   MedicineBoxOutlined,
   CalendarOutlined,
   HeartOutlined,
-  StarOutlined,
-  BellOutlined,
   MessageOutlined,
-  FileTextOutlined,
   CreditCardOutlined,
   LogoutOutlined,
-  SettingOutlined,
-  EditOutlined,
   HomeOutlined,
   ReadOutlined,
 } from "@ant-design/icons";
@@ -194,7 +189,9 @@ const CustomerSidebar = ({
           }}
           onClick={handleLogout}
         >
-          {!collapsed && <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>}
+          {!collapsed && (
+            <span style={{ marginLeft: 8, color: "#fff" }}>Đăng Xuất</span>
+          )}
         </Button>
       </div>
 

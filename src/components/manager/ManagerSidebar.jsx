@@ -56,7 +56,7 @@ const ManagerSidebar = ({
     {
       key: "doctor-schedule",
       icon: <UserOutlined />,
-      label: "Lịch Khám Hôm Nay",
+      label: "Lịch Khám Bác Sĩ Hôm Nay",
       path: "/manager/doctor-schedule",
     },
 

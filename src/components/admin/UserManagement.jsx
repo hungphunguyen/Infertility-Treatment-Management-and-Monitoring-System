@@ -75,7 +75,7 @@ const UserManagement = () => {
   const handleDelete = (id) => {
     adminService
       .deleteUser(id)
-      .then((res) => {
+      .then(() => {
         showNotification("Đã tắt tài khoản này thành công", "success");
         setTimeout(() => {
           fetchUsers(showRemoved);
@@ -90,7 +90,7 @@ const UserManagement = () => {
   const handleRestore = (id) => {
     adminService
       .restoreUser(id, token.token)
-      .then((res) => {
+      .then(() => {
         showNotification("Đã khôi phục tài khoản này thành công", "success");
 
         setTimeout(() => {

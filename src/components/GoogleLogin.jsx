@@ -1,7 +1,7 @@
 // src/components/GoogleLogin.jsx
 import { useContext, useEffect } from "react";
 import { authService } from "../service/auth.service";
-import { getLocgetlStorage, setLocalStorage } from "../utils/util";
+import { setLocalStorage } from "../utils/util";
 import { useNavigate } from "react-router-dom";
 import { NotificationContext } from "../App";
 import { useDispatch } from "react-redux";

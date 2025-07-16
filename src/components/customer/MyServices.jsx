@@ -9,13 +9,15 @@ import {
   Statistic,
   Spin,
   Button,
+  Modal,
+  Descriptions,
+  Collapse,
+  Progress,
+  Space,
 } from "antd";
 import {
   ExperimentOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined,
-  UserOutlined,
-  CalendarOutlined,
   CloseCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
@@ -23,7 +25,6 @@ import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
-import { customerService } from "../../service/customer.service";
 import { path } from "../../common/path";
 import { NotificationContext } from "../../App";
 
@@ -41,6 +42,11 @@ const MyServices = () => {
   const [cancelLoading, setCancelLoading] = useState({});
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [selectedTreatmentDetail, setSelectedTreatmentDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchTreatmentRecords();
@@ -53,7 +59,7 @@ const MyServices = () => {
     fetchUser();
   }, []);
 
-  const fetchTreatmentRecords = async () => {
+  const fetchTreatmentRecords = async (page = 0) => {
     try {
       setLoading(true);
       const userResponse = await authService.getMyInfo();
@@ -79,8 +85,8 @@ const MyServices = () => {
 
       const response = await treatmentService.getTreatmentRecords({
         customerId: customerId,
-        page: 0,
-        size: 100,
+        page,
+        size: 5,
       });
 
       if (response?.data?.result?.content) {
@@ -93,7 +99,8 @@ const MyServices = () => {
           canFeedback: record.status === "COMPLETED",
         }));
         setTreatmentRecords(enrichedRecords);
-
+        setCurrentPage(page);
+        setTotalPages(response.data.result.totalPages);
         const stats = {
           totalServices: records.length,
           cancelledServices: records.filter((r) => r.status === "CANCELLED")
@@ -121,6 +128,28 @@ const MyServices = () => {
         return <Tag color="warning">Đang chờ điều trị</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
+      case "PLANED":
+        return <Tag color="gold">Đã lên lịch</Tag>;
+      case "CONFIRMED":
+        return <Tag color="blue">Đã xác nhận</Tag>;
+      default:
+        return <Tag color="default">{status}</Tag>;
+    }
+  };
+
+  const getStepStatusTag = (status) => {
+    switch ((status || "").toUpperCase()) {
+      case "COMPLETED":
+        return <Tag color="success">Hoàn thành</Tag>;
+      case "INPROGRESS":
+      case "IN_PROGRESS":
+      case "CONFIRMED":
+        return <Tag color="#1890ff">Đang điều trị</Tag>;
+      case "PENDING":
+      case "PLANNED":
+        return <Tag color="warning">Đang chờ điều trị</Tag>;
+      case "CANCELLED":
+        return <Tag color="error">Đã hủy</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -130,22 +159,11 @@ const MyServices = () => {
     if (!userId) return;
     setCancelLoading((l) => ({ ...l, [record.id]: true }));
     try {
-      await treatmentService.cancelTreatmentRecord(record.id);
-      showNotification("Hủy hồ sơ điều trị thành công.", "success");
+      const res = await treatmentService.cancelTreatmentRecord(record.id);
+      showNotification(res?.data?.message || "Hủy hồ sơ điều trị thành công.", "success");
       fetchTreatmentRecords();
     } catch (err) {
-      const errorMessage =
-        err?.response?.data?.message || "Không thể hủy hồ sơ điều trị này.";
-      if (errorMessage.includes("in progress")) {
-        showNotification(
-          "Hủy thất bại do bạn đang trong quá trình điều trị.",
-          "error"
-        );
-      } else if (errorMessage.includes("completed")) {
-        showNotification("Hủy thất bại do dịch vụ đã hoàn thành.", "error");
-      } else {
-        showNotification(errorMessage, "error");
-      }
+      showNotification(err?.response?.data?.message || "Có lỗi xảy ra.", "error");
     } finally {
       setCancelLoading((l) => ({ ...l, [record.id]: false }));
     }
@@ -160,13 +178,17 @@ const MyServices = () => {
     });
   };
 
-  const handleViewTreatmentProgress = (record) => {
-    navigate(path.customerTreatment, {
-      state: {
-        treatmentRecord: record,
-        treatmentId: record.id,
-      },
-    });
+  const handleViewTreatmentDetail = async (record) => {
+    setDetailLoading(true);
+    setDetailModalVisible(true);
+    try {
+      const res = await treatmentService.getTreatmentRecordById(record.id);
+      setSelectedTreatmentDetail(res?.data?.result || record);
+    } catch (err) {
+      setSelectedTreatmentDetail(record);
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const columns = [
@@ -223,7 +245,7 @@ const MyServices = () => {
           }}
           onClick={(e) => {
             e.stopPropagation();
-            handleViewTreatmentProgress(record);
+            handleViewTreatmentDetail(record);
           }}
         >
           Xem
@@ -241,7 +263,12 @@ const MyServices = () => {
             e.stopPropagation();
             handleCancelTreatment(record);
           }}
-          disabled={!userId || record.status === "Cancelled"}
+          disabled={!userId || record.status === "CANCELLED"}
+          style={
+            record.status === "CANCELLED"
+              ? { opacity: 0.5, cursor: "not-allowed" }
+              : {}
+          }
         >
           Hủy dịch vụ
         </Button>
@@ -366,15 +393,109 @@ const MyServices = () => {
           columns={columns}
           dataSource={treatmentRecords}
           rowKey="id"
-          pagination={{
-            pageSize: 5,
-            showSizeChanger: false,
-            showTotal: (total) => `Tổng số ${total} dịch vụ`,
-          }}
+          pagination={false}
           bordered
           style={{ borderRadius: 12, overflow: "hidden" }}
         />
+        <div className="flex justify-end mt-4">
+          <Button
+            disabled={currentPage === 0}
+            onClick={() => fetchTreatmentRecords(currentPage - 1)}
+            className="mr-2"
+          >
+            Trang trước
+          </Button>
+          <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+            Trang {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage + 1 >= totalPages}
+            onClick={() => fetchTreatmentRecords(currentPage + 1)}
+            className="ml-2"
+          >
+            Trang tiếp
+          </Button>
+        </div>
       </Card>
+      <Modal
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={null}
+        title="Chi tiết quá trình điều trị"
+        width={900}
+      >
+        {detailLoading ? (
+          <Spin />
+        ) : selectedTreatmentDetail ? (
+          <div>
+            <Descriptions bordered column={2} size="small">
+              <Descriptions.Item label="Gói điều trị">
+                {selectedTreatmentDetail.treatmentServiceName ||
+                  selectedTreatmentDetail.serviceName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Bác sĩ">
+                {selectedTreatmentDetail.doctorName}
+              </Descriptions.Item>
+              <Descriptions.Item label="Ngày bắt đầu">
+                {selectedTreatmentDetail.startDate
+                  ? dayjs(selectedTreatmentDetail.startDate).format(
+                      "DD/MM/YYYY"
+                    )
+                  : "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Trạng thái">
+                {getStatusTag(selectedTreatmentDetail.status)}
+              </Descriptions.Item>
+            </Descriptions>
+            <div style={{ margin: "24px 0" }}>
+              <Progress
+                percent={(() => {
+                  const steps = selectedTreatmentDetail.treatmentSteps || [];
+                  const total = steps.length;
+                  const completed = steps.filter(
+                    (s) => s.status === "COMPLETED"
+                  ).length;
+                  return total > 0 ? Math.round((completed / total) * 100) : 0;
+                })()}
+                status="active"
+              />
+            </div>
+            <Collapse
+              items={(selectedTreatmentDetail.treatmentSteps || []).map(
+                (step, idx) => ({
+                  key: step.id || idx,
+                  label: (
+                    <Space>
+                      <b>{step.name}</b> {getStepStatusTag(step.status)}
+                    </Space>
+                  ),
+                  children: (
+                    <div>
+                      <Descriptions size="small" column={1} bordered>
+                        <Descriptions.Item label="Ngày bắt đầu">
+                          {step.startDate
+                            ? dayjs(step.startDate).format("DD/MM/YYYY")
+                            : "-"}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Ngày hoàn thành">
+                          {step.endDate
+                            ? dayjs(step.endDate).format("DD/MM/YYYY")
+                            : "-"}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Ghi chú">
+                          {step.notes || "-"}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    </div>
+                  ),
+                })
+              )}
+            />
+          </div>
+        ) : (
+          <Text type="secondary">Không có dữ liệu chi tiết</Text>
+        )}
+      </Modal>
     </div>
   );
 };

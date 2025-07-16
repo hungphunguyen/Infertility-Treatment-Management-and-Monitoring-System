@@ -1,17 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { NotificationContext } from "../../App";
 import { managerService } from "../../service/manager.service";
-import {
-  EyeOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  UndoOutlined,
-} from "@ant-design/icons";
+import { EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { path } from "../../common/path";
 import "../../index.scss";
 import { Button, Image, Modal, Popconfirm } from "antd";
-import CreateTreatmentService from "./managerService/CreateTreatmentService";
 import RenderCreateTreatment from "./managerService/RenderCreateTreatment";
 const ServiceManagement = () => {
   const { showNotification } = useContext(NotificationContext);
@@ -20,7 +13,6 @@ const ServiceManagement = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editedService, setEditedService] = useState(null);
-  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -32,11 +24,14 @@ const ServiceManagement = () => {
 
   const [isCreateServiceModalOpen, setIsCreateServiceModalOpen] =
     useState(false);
-
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
   const fetchTreatmentService = async (page = 0) => {
     try {
       const res = await managerService.getTreatmentService(page, 5);
       setTreatmentService(res.data.result.content);
+      setTotalPages(res.data.result.totalPages);
+      setCurrentPage(page);
     } catch (error) {
       showNotification("Lỗi khi tải dịch vụ", "error");
     }
@@ -340,6 +335,25 @@ const ServiceManagement = () => {
             )}
           </tbody>
         </table>
+        <div className="flex justify-end mt-4">
+          <Button
+            disabled={currentPage === 0}
+            onClick={() => fetchTreatmentService(currentPage - 1)}
+            className="mr-2"
+          >
+            Trang trước
+          </Button>
+          <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+            Trang {currentPage + 1} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage + 1 >= totalPages}
+            onClick={() => fetchTreatmentService(currentPage + 1)}
+            className="ml-2"
+          >
+            Trang tiếp
+          </Button>
+        </div>
       </div>
 
       <RenderCreateTreatment

@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import FeedbackCustomer from "./FeedbackCustomer";
 
 const Feedback = () => {

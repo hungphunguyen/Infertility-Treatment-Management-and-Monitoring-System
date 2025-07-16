@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { NotificationContext } from "../../App";
 import { useFormik } from "formik";
 import { adminService } from "../../service/admin.service";
@@ -21,7 +21,7 @@ const EditUserFormAdmin = ({ userDetail, token, onUpdated, onClose }) => {
       onSubmit: (values) => {
         adminService
           .updateUserById(userDetail.id, values, token)
-          .then((res) => {
+          .then(() => {
             showNotification("Cập nhật thành công", "success");
             onUpdated?.();
             onClose?.();

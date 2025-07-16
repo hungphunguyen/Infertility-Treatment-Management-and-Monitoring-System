@@ -15,10 +15,9 @@ import {
   Row,
   Col,
   Avatar,
-  Divider,
-  Progress,
   Tooltip,
   Badge,
+  Switch,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -27,7 +26,6 @@ import {
   UserOutlined,
   CalendarOutlined,
   MedicineBoxOutlined,
-  ExclamationCircleOutlined,
   ExperimentOutlined,
   ClockCircleOutlined,
   CheckOutlined,
@@ -50,29 +48,28 @@ const TreatmentStageDetails = () => {
   const [doctorId, setDoctorId] = useState(null);
   const [editingStep, setEditingStep] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [nextStep, setNextStep] = useState(null);
   const [form] = Form.useForm();
   const [scheduleForm] = Form.useForm();
   const [scheduleStep, setScheduleStep] = useState(null);
   const [stepAppointments, setStepAppointments] = useState([]);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedStep, setSelectedStep] = useState(null);
   const [showStepDetailModal, setShowStepDetailModal] = useState(false);
   const [showCreateAppointmentModal, setShowCreateAppointmentModal] =
     useState(false);
+  const [showAddStepModal, setShowAddStepModal] = useState(false);
+  const [addStepForm] = Form.useForm();
+  const [showChangeServiceModal, setShowChangeServiceModal] = useState(false);
+  const [serviceOptions, setServiceOptions] = useState([]);
+  const [selectedServiceId, setSelectedServiceId] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { showNotification } = useContext(NotificationContext);
   const dataLoadedRef = React.useRef(false);
-
-  // Debug log khi treatmentData thay đổi
-  useEffect(() => {
-    console.log("🔄 TreatmentData state changed:", treatmentData);
-    console.log("🔄 Has treatmentSteps?", !!treatmentData?.treatmentSteps);
-    console.log("🔄 Steps count:", treatmentData?.treatmentSteps?.length || 0);
-    console.log("🔄 Steps data:", treatmentData?.treatmentSteps);
-  }, [treatmentData]);
+  const [addStepAuto, setAddStepAuto] = useState(false);
+  const [addStepLoading, setAddStepLoading] = useState(false);
+  const [stageOptions, setStageOptions] = useState([]);
+  const [editingStepStageId, setEditingStepStageId] = useState(null);
 
   const statusOptions = [
     { value: "PLANNED", label: "Chờ xếp lịch" },
@@ -106,7 +103,6 @@ const TreatmentStageDetails = () => {
       if (!doctorId || dataLoadedRef.current) return;
 
       dataLoadedRef.current = true;
-      console.log("🚀 Starting to fetch treatment data...");
 
       try {
         const {
@@ -128,17 +124,11 @@ const TreatmentStageDetails = () => {
 
         // Chỉ sử dụng treatmentData được truyền từ PatientList
         if (passedTreatmentData && passedTreatmentData.id) {
-          console.log(
-            "✅ Using treatmentData from PatientList:",
-            passedTreatmentData.id
-          );
-
           // Nếu đã có đủ steps thì dùng luôn
           if (
             passedTreatmentData.treatmentSteps &&
             passedTreatmentData.treatmentSteps.length > 0
           ) {
-            console.log("✅ TreatmentData already has steps, using directly");
             setTreatmentData(passedTreatmentData);
             setLoading(false);
             return;
@@ -153,12 +143,10 @@ const TreatmentStageDetails = () => {
               );
             const detailedData = detailedResponse?.data?.result;
             if (detailedData) {
-              console.log("✅ Got detailed treatment data with steps");
               setTreatmentData(detailedData);
               setLoading(false);
               return;
             } else {
-              console.log("⚠️ API call failed, using passed treatmentData");
               setTreatmentData(passedTreatmentData);
               setLoading(false);
               return;
@@ -167,14 +155,12 @@ const TreatmentStageDetails = () => {
         }
 
         // Nếu không có treatmentData từ PatientList, báo lỗi
-        console.log("❌ No treatmentData received from PatientList");
         showNotification(
           "Không nhận được dữ liệu điều trị từ danh sách bệnh nhân",
           "error"
         );
         navigate(-1);
       } catch (error) {
-        console.error("❌ Error fetching treatment data:", error);
         showNotification("Không thể lấy thông tin điều trị", "error");
         setLoading(false);
       }
@@ -227,8 +213,8 @@ const TreatmentStageDetails = () => {
         return "Hoàn thành";
       case "INPROGRESS":
         return "Đang thực hiện";
-      case "PLANNED":
-        return "Chờ xếp lịch";
+      case "PLANED":
+        return "Đã lên lịch";
       case "CANCELLED":
         return "Đã hủy";
       case "PENDING_CHANGE":
@@ -244,25 +230,22 @@ const TreatmentStageDetails = () => {
 
   const handleUpdateStep = async (values) => {
     if (!editingStep) return;
-
-    console.log("🔍 handleUpdateStep called:", { editingStep, values });
-
     try {
       const updateData = {
-        scheduledDate: values.scheduledDate?.format("YYYY-MM-DD"),
-        actualDate: values.actualDate?.format("YYYY-MM-DD"),
+        stageId: editingStepStageId,
+        startDate: values.startDate
+          ? values.startDate.format("YYYY-MM-DD")
+          : undefined,
+        endDate: values.endDate
+          ? values.endDate.format("YYYY-MM-DD")
+          : undefined,
         status: values.status,
         notes: values.notes,
       };
-
-      console.log("🔍 Update data prepared:", updateData);
-      console.log("🔍 Calling updateTreatmentStep with id:", editingStep.id);
-
       const response = await treatmentService.updateTreatmentStep(
         editingStep.id,
         updateData
       );
-
       console.log("🔍 Update response:", response);
       console.log("🔍 Response code:", response?.code || response?.data?.code);
 
@@ -352,6 +335,7 @@ const TreatmentStageDetails = () => {
 
         setEditingStep(null);
         form.resetFields();
+        setEditingStepStageId(null);
         showNotification("Cập nhật thành công", "success");
       } else {
         console.warn(
@@ -361,29 +345,27 @@ const TreatmentStageDetails = () => {
         showNotification("Cập nhật thất bại", "error");
       }
     } catch (error) {
-      console.error("❌ Error updating step:", error);
-      console.error("❌ Error details:");
       showNotification(error.response?.data.message, "error");
     }
   };
 
-  const showScheduleModalForStep = async (step) => {
-    setScheduleStep(step);
-    setShowScheduleModal(true);
-    setShowCreateForm(false);
-    scheduleForm.resetFields();
-    setLoadingAppointments(true);
+  // const showScheduleModalForStep = async (step) => {
+  //   setScheduleStep(step);
+  //   setShowScheduleModal(true);
+  //   setShowCreateForm(false);
+  //   scheduleForm.resetFields();
+  //   setLoadingAppointments(true);
 
-    try {
-      const response = await treatmentService.getAppointmentsByStepId(step.id);
-      setStepAppointments(response?.data?.result?.content || []);
-    } catch (error) {
-      showNotification("Không thể lấy danh sách lịch hẹn", "error");
-      setStepAppointments([]);
-    } finally {
-      setLoadingAppointments(false);
-    }
-  };
+  //   try {
+  //     const response = await treatmentService.getAppointmentsByStepId(step.id);
+  //     setStepAppointments(response?.data?.result?.content || []);
+  //   } catch (error) {
+  //     showNotification("Không thể lấy danh sách lịch hẹn", "error");
+  //     setStepAppointments([]);
+  //   } finally {
+  //     setLoadingAppointments(false);
+  //   }
+  // };
 
   const handleScheduleAppointment = async (values) => {
     try {
@@ -397,7 +379,7 @@ const TreatmentStageDetails = () => {
         doctorId: doctorId,
         appointmentDate: values.appointmentDate.format("YYYY-MM-DD"),
         shift: values.shift,
-        purpose: stepObj?.name || "", // Luôn lấy tên tiếng Việt
+        purpose: values.purpose, // Lấy từ form
         notes: values.notes,
         treatmentStepId: values.treatmentStepId,
       };
@@ -406,19 +388,15 @@ const TreatmentStageDetails = () => {
       );
       if (response?.data?.code === 1000) {
         showNotification("Tạo lịch hẹn thành công", "success");
-        window.location.reload();
+
+        // Thay vì tự set stepAppointments, gọi lại handleStepClick để reload đúng danh sách lịch hẹn cho bước này
         setShowCreateAppointmentModal(false);
-        setShowStepDetailModal(true);
-        setLoadingAppointments(true);
-        try {
-          const refreshed = await treatmentService.getAppointmentsByStepId(
-            values.treatmentStepId
-          );
-          setStepAppointments(refreshed?.data?.result?.content || []);
-        } catch (error) {
-          setStepAppointments([]);
-        } finally {
-          setLoadingAppointments(false);
+        const step = treatmentData.treatmentSteps.find(
+          (step) => String(step.id) === String(values.treatmentStepId)
+        );
+        if (step) {
+          handleStepClick(step);
+          setShowStepDetailModal(true);
         }
         scheduleForm.resetFields();
       } else {
@@ -432,14 +410,28 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  const showEditModal = (step) => {
+  const showEditModal = async (step) => {
     setEditingStep(step);
-    form.setFieldsValue({
-      scheduledDate: step.scheduledDate ? dayjs(step.scheduledDate) : null,
-      actualDate: step.actualDate ? dayjs(step.actualDate) : null,
-      status: step.status,
-      notes: step.notes,
-    });
+    // Lấy treatmentStageId từ API
+    try {
+      const res = await treatmentService.getTreatmentStepById(step.id);
+      const detail = res?.data?.result;
+      setEditingStepStageId(detail?.treatmentStageId);
+      form.setFieldsValue({
+        startDate: detail?.startDate ? dayjs(detail.startDate) : null,
+        endDate: detail?.endDate ? dayjs(detail.endDate) : null,
+        status: detail?.status,
+        notes: detail?.notes,
+      });
+    } catch {
+      setEditingStepStageId(step.stageId);
+      form.setFieldsValue({
+        startDate: step.startDate ? dayjs(step.startDate) : null,
+        endDate: step.endDate ? dayjs(step.endDate) : null,
+        status: step.status,
+        notes: step.notes,
+      });
+    }
   };
 
   const handleCompleteTreatment = async () => {
@@ -586,32 +578,10 @@ const TreatmentStageDetails = () => {
     setShowCreateAppointmentModal(false);
     setLoadingAppointments(true);
     try {
-      console.log("🔍 Calling getAppointmentsByStepId with stepId:", step.id);
       const response = await treatmentService.getAppointmentsByStepId(step.id);
-      console.log("🔍 Appointments response:", response);
-      console.log("🔍 Appointments response.data:", response?.data);
-      console.log(
-        "🔍 Appointments response.data.result:",
-        response?.data?.result
-      );
-      console.log(
-        "🔍 Appointments response.data.result.content:",
-        response?.data?.result?.content
-      );
-      console.log(
-        "🔍 Appointments response.data.result type:",
-        typeof response?.data?.result
-      );
-      console.log("🔍 Is result array?", Array.isArray(response?.data?.result));
-      console.log(
-        "🔍 Is content array?",
-        Array.isArray(response?.data?.result?.content)
-      );
 
       // Lấy content array từ paginated response
-      const appointments = response?.data?.result?.content || [];
-      console.log("🔍 Final appointments array:", appointments);
-      console.log("🔍 Appointments length:", appointments.length);
+      const appointments = response?.data?.result || [];
 
       setStepAppointments(appointments);
     } catch (error) {
@@ -624,9 +594,18 @@ const TreatmentStageDetails = () => {
   };
 
   const handleShowCreateAppointment = () => {
+    console.log(
+      "🔍 handleShowCreateAppointment called with selectedStep:",
+      selectedStep
+    );
     setShowStepDetailModal(false);
     setShowCreateAppointmentModal(true);
     scheduleForm.resetFields();
+    // Đảm bảo form có treatmentStepId đúng
+    scheduleForm.setFieldsValue({
+      treatmentStepId: selectedStep?.id,
+      shift: "MORNING",
+    });
   };
 
   // Helper function to handle appointment status updates
@@ -669,6 +648,75 @@ const TreatmentStageDetails = () => {
       showNotification(err.response.data.message, "error");
     }
   };
+
+  // Hàm mở modal và load danh sách dịch vụ
+  const handleShowChangeService = async () => {
+    setShowChangeServiceModal(true);
+    try {
+      const res = await treatmentService.getAllServicesForSelect();
+      if (res?.data?.result) {
+        setServiceOptions(res.data.result);
+      } else {
+        setServiceOptions([]);
+      }
+    } catch {
+      setServiceOptions([]);
+    }
+  };
+
+  // Hàm xác nhận đổi dịch vụ
+  const handleChangeService = async () => {
+    if (!selectedServiceId) return;
+    try {
+      await treatmentService.updateTreatmentRecordService(
+        treatmentData.id,
+        selectedServiceId
+      );
+      showNotification("Đã chọn dịch vụ thành công!", "success");
+      setShowChangeServiceModal(false);
+      setSelectedServiceId(null);
+      // Reload treatment record
+      const detail = await treatmentService.getTreatmentRecordById(
+        treatmentData.id
+      );
+      setTreatmentData(detail?.data?.result);
+    } catch {
+      showNotification("Đổi dịch vụ thất bại!", "error");
+    }
+  };
+
+  // Khi mở modal thêm step, load stage theo serviceId (API mới)
+  useEffect(() => {
+    if (showAddStepModal && treatmentData?.treatmentServiceId) {
+      treatmentService
+        .getSelectableStagesByServiceId(treatmentData.treatmentServiceId)
+        .then((res) => {
+          setStageOptions(res?.data?.result || []);
+        })
+        .catch(() => setStageOptions([]));
+    }
+    if (!showAddStepModal) {
+      setAddStepAuto(false);
+      setStageOptions([]);
+      addStepForm.resetFields();
+    }
+  }, [showAddStepModal, treatmentData?.treatmentServiceId]);
+
+  // Tự động cập nhật selectedStep khi treatmentData thay đổi
+  useEffect(() => {
+    if (selectedStep && treatmentData?.treatmentSteps) {
+      const updatedStep = treatmentData.treatmentSteps.find(
+        (step) => String(step.id) === String(selectedStep.id)
+      );
+      if (
+        updatedStep &&
+        JSON.stringify(updatedStep) !== JSON.stringify(selectedStep)
+      ) {
+        console.log("🔄 Updating selectedStep with new data:", updatedStep);
+        setSelectedStep(updatedStep);
+      }
+    }
+  }, [treatmentData, selectedStep]);
 
   if (loading) {
     return (
@@ -786,129 +834,124 @@ const TreatmentStageDetails = () => {
                   </Tag>
                 </Space>
               </Col>
-              <Col>
-                <Progress
-                  type="circle"
-                  percent={calculateProgress()}
-                  size={60}
-                  strokeColor={{
-                    "0%": "#108ee9",
-                    "100%": "#87d068",
-                  }}
-                />
-              </Col>
             </Row>
           </Card>
 
           {/* Timeline */}
-          {(() => {
-            console.log("🎯 Rendering timeline...");
-            console.log("🎯 treatmentData:", treatmentData);
-            console.log("🎯 treatmentSteps:", treatmentData?.treatmentSteps);
-            console.log(
-              "🎯 Steps count:",
-              treatmentData?.treatmentSteps?.length || 0
-            );
-            console.log(
-              "🎯 Will render timeline?",
-              !!treatmentData?.treatmentSteps?.length
-            );
-
-            return (
-              <Card
-                style={{
-                  borderRadius: 14,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                  background: "#fff",
-                  width: 800,
-                  maxWidth: "98vw",
-                  minWidth: 320,
-                  marginBottom: "24px",
-                  padding: "24px 0 8px 0",
-                }}
+          <Card
+            style={{
+              borderRadius: 14,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+              background: "#fff",
+              width: 800,
+              maxWidth: "98vw",
+              minWidth: 320,
+              marginBottom: "24px",
+              padding: "24px 0 8px 0",
+            }}
+          >
+            <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+              {/* <Button
+                type="default"
+                icon={<EditOutlined />}
+                onClick={handleShowChangeService}
+                size="large"
+                style={{ borderRadius: 8, minWidth: 180 }}
               >
+                Chọn dịch vụ phù hợp
+              </Button> */}
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setShowAddStepModal(true)}
+                size="large"
+                style={{ borderRadius: 8, minWidth: 180 }}
+              >
+                Thêm bước điều trị mới
+              </Button>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                padding: "0 16px",
+                marginBottom: 24,
+                justifyContent: "flex-start",
+              }}
+            >
+              {treatmentData.treatmentSteps?.map((step, index) => (
                 <div
+                  key={step.id}
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
+                    flexDirection: "column",
                     alignItems: "center",
-                    padding: "0 16px",
-                    marginBottom: 24,
                   }}
                 >
-                  {treatmentData.treatmentSteps?.map((step, index) => (
+                  <Tooltip title={`Bước ${index + 1}: ${step.name}`}>
                     <div
-                      key={step.id}
+                      onClick={() => handleStepClick(step)}
                       style={{
+                        width: 54,
+                        height: 54,
+                        borderRadius: "50%",
+                        background: `linear-gradient(135deg, ${getStatusColor(
+                          step.status
+                        )} 0%, ${getStatusColor(step.status)}dd 100%)`,
                         display: "flex",
-                        flexDirection: "column",
                         alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                        transition: "all 0.3s ease",
+                        position: "relative",
+                        border: "3px solid white",
                       }}
                     >
-                      <Tooltip title={`Bước ${index + 1}: ${step.name}`}>
-                        <div
-                          onClick={() => handleStepClick(step)}
-                          style={{
-                            width: 54,
-                            height: 54,
-                            borderRadius: "50%",
-                            background: `linear-gradient(135deg, ${getStatusColor(
-                              step.status
-                            )} 0%, ${getStatusColor(step.status)}dd 100%)`,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-                            transition: "all 0.3s ease",
-                            position: "relative",
-                            border: "3px solid white",
-                          }}
-                        >
-                          <ExperimentOutlined
-                            style={{
-                              fontSize: 22,
-                              color: "white",
-                              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
-                            }}
-                          />
-                          <Badge
-                            count={index + 1}
-                            style={{
-                              position: "absolute",
-                              top: -8,
-                              right: -8,
-                              backgroundColor: "#1890ff",
-                              color: "white",
-                              fontSize: 11,
-                              fontWeight: "bold",
-                            }}
-                          />
-                        </div>
-                      </Tooltip>
-                      <div style={{ marginTop: 6 }}>
-                        {step.status === "COMPLETED" && (
-                          <CheckOutlined
-                            style={{ color: "#52c41a", fontSize: 16 }}
-                          />
-                        )}
-                        {step.status === "CANCELLED" && (
-                          <CloseOutlined
-                            style={{ color: "#ff4d4f", fontSize: 16 }}
-                          />
-                        )}
-                        {step.status === "INPROGRESS" && (
-                          <ClockCircleOutlined
-                            style={{ color: "#fa8c16", fontSize: 16 }}
-                          />
-                        )}
-                      </div>
+                      <ExperimentOutlined
+                        style={{
+                          fontSize: 22,
+                          color: "white",
+                          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+                        }}
+                      />
+                      <Badge
+                        count={index + 1}
+                        style={{
+                          position: "absolute",
+                          top: -8,
+                          right: -8,
+                          backgroundColor: "#1890ff",
+                          color: "white",
+                          fontSize: 11,
+                          fontWeight: "bold",
+                        }}
+                      />
                     </div>
-                  ))}
+                  </Tooltip>
+                  <div style={{ marginTop: 6 }}>
+                    {step.status === "COMPLETED" && (
+                      <CheckOutlined
+                        style={{ color: "#52c41a", fontSize: 16 }}
+                      />
+                    )}
+                    {step.status === "CANCELLED" && (
+                      <CloseOutlined
+                        style={{ color: "#ff4d4f", fontSize: 16 }}
+                      />
+                    )}
+                    {step.status === "INPROGRESS" && (
+                      <ClockCircleOutlined
+                        style={{ color: "#fa8c16", fontSize: 16 }}
+                      />
+                    )}
+                  </div>
                 </div>
-              </Card>
-            );
-          })()}
+              ))}
+            </div>
+          </Card>
 
           {/* Complete Treatment Button */}
           {isAllStepsCompleted() && treatmentData.status !== "COMPLETED" && (
@@ -1028,20 +1071,20 @@ const TreatmentStageDetails = () => {
                 </Col>
                 <Col span={12}>
                   <div style={{ marginBottom: 12 }}>
-                    <Text strong>Ngày dự kiến:</Text>
+                    <Text strong>Ngày bắt đầu:</Text>
                     <br />
                     <Text style={{ marginTop: 4 }}>
-                      {selectedStep.scheduledDate
-                        ? dayjs(selectedStep.scheduledDate).format("DD/MM/YYYY")
+                      {selectedStep.startDate
+                        ? dayjs(selectedStep.startDate).format("DD/MM/YYYY")
                         : "Chưa có"}
                     </Text>
                   </div>
                   <div>
-                    <Text strong>Ngày thực hiện:</Text>
+                    <Text strong>Ngày kết thúc:</Text>
                     <br />
                     <Text style={{ marginTop: 4 }}>
-                      {selectedStep.actualDate
-                        ? dayjs(selectedStep.actualDate).format("DD/MM/YYYY")
+                      {selectedStep.endDate
+                        ? dayjs(selectedStep.endDate).format("DD/MM/YYYY")
                         : "Chưa có"}
                     </Text>
                   </div>
@@ -1055,7 +1098,7 @@ const TreatmentStageDetails = () => {
                   textAlign: "left",
                 }}
               >
-                📅 Các lần hẹn đã đăng ký cho bước này:
+                Các lần hẹn đã đăng ký cho bước này:
               </div>
               <div
                 style={{
@@ -1139,10 +1182,12 @@ const TreatmentStageDetails = () => {
                                     <b>Ghi chú:</b> {app.notes || "Không có"}
                                   </div>
                                   <div>
-                                    <b>Bệnh nhân:</b> {app.customerName}
+                                    <b>Mục đích:</b>{" "}
+                                    {app.purpose ? app.purpose : "Không có"}
                                   </div>
                                   <div>
-                                    <b>Mục đích:</b> {selectedStep.name}
+                                    <b>Bước điều trị:</b>{" "}
+                                    {app.step || "Không có"}
                                   </div>
                                 </Col>
                               </Row>
@@ -1185,7 +1230,13 @@ const TreatmentStageDetails = () => {
                                         scheduleStep?.id
                                       )
                                     }
-                                    options={statusOptions}
+                                    options={statusOptions.filter((opt) =>
+                                      [
+                                        "CONFIRMED",
+                                        "COMPLETED",
+                                        "CANCELLED",
+                                      ].includes(opt.value)
+                                    )}
                                     styles={{
                                       popup: { root: { zIndex: 2000 } },
                                     }}
@@ -1234,38 +1285,34 @@ const TreatmentStageDetails = () => {
         onCancel={() => {
           setEditingStep(null);
           form.resetFields();
+          setEditingStepStageId(null);
         }}
         footer={null}
         width={500}
         centered
       >
         <Form form={form} layout="vertical" onFinish={handleUpdateStep}>
-          <Form.Item name="scheduledDate" label="Ngày dự kiến">
+          <Form.Item name="startDate" label="Ngày bắt đầu">
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
-
-          <Form.Item name="actualDate" label="Ngày thực hiện">
+          <Form.Item name="endDate" label="Ngày kết thúc">
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
-
           <Form.Item
             name="status"
             label="Trạng thái"
             rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
           >
             <Select>
-              <Select.Option value="PLANNED">Chờ xếp lịch</Select.Option>
               <Select.Option value="CONFIRMED">Đã xác nhận</Select.Option>
               <Select.Option value="COMPLETED">Hoàn thành</Select.Option>
               <Select.Option value="CANCELLED">Đã hủy</Select.Option>
             </Select>
           </Form.Item>
-
           <Form.Item name="notes" label="Ghi chú">
             <TextArea rows={4} />
           </Form.Item>
-
-          <Form.Item>
+          <Form.Item style={{ textAlign: "right" }}>
             <Space>
               <Button type="primary" htmlType="submit">
                 Cập nhật
@@ -1274,6 +1321,7 @@ const TreatmentStageDetails = () => {
                 onClick={() => {
                   setEditingStep(null);
                   form.resetFields();
+                  setEditingStepStageId(null);
                 }}
               >
                 Hủy
@@ -1371,10 +1419,11 @@ const TreatmentStageDetails = () => {
                               <b>Ghi chú:</b> {app.notes || "Không có"}
                             </div>
                             <div>
-                              <b>Bệnh nhân:</b> {app.customerName}
+                              <b>Mục đích:</b>{" "}
+                              {app.purpose ? app.purpose : "Không có"}
                             </div>
                             <div>
-                              <b>Mục đích:</b> {scheduleStep?.name}
+                              <b>Bước điều trị:</b> {app.step || "Không có"}
                             </div>
                           </Col>
                         </Row>
@@ -1417,8 +1466,16 @@ const TreatmentStageDetails = () => {
                                   scheduleStep?.id
                                 )
                               }
-                              options={statusOptions}
-                              styles={{ popup: { root: { zIndex: 2000 } } }}
+                              options={statusOptions.filter((opt) =>
+                                [
+                                  "CONFIRMED",
+                                  "COMPLETED",
+                                  "CANCELLED",
+                                ].includes(opt.value)
+                              )}
+                              styles={{
+                                popup: { root: { zIndex: 2000 } },
+                              }}
                             />
                           )}
                         </Space>
@@ -1472,6 +1529,13 @@ const TreatmentStageDetails = () => {
                 </Form.Item>
               </Col>
             </Row>
+            <Form.Item
+              name="purpose"
+              label="Mục đích"
+              rules={[{ required: true, message: "Vui lòng nhập mục đích" }]}
+            >
+              <Input placeholder="Nhập mục đích của lịch hẹn" />
+            </Form.Item>
             <Form.Item name="notes" label="Ghi chú">
               <TextArea rows={2} />
             </Form.Item>
@@ -1540,6 +1604,13 @@ const TreatmentStageDetails = () => {
                 </Form.Item>
               </Col>
             </Row>
+            <Form.Item
+              name="purpose"
+              label="Mục đích"
+              rules={[{ required: true, message: "Vui lòng nhập mục đích" }]}
+            >
+              <Input placeholder="Nhập mục đích của lịch hẹn" />
+            </Form.Item>
             <Form.Item name="notes" label="Ghi chú">
               <TextArea rows={2} />
             </Form.Item>
@@ -1558,6 +1629,165 @@ const TreatmentStageDetails = () => {
           </Form>
         </Modal>
       )}
+
+      {/* Modal Thêm Step */}
+      <Modal
+        title="Thêm bước điều trị mới"
+        open={showAddStepModal}
+        onCancel={() => setShowAddStepModal(false)}
+        footer={null}
+        width={400}
+        centered
+      >
+        <Form
+          form={addStepForm}
+          layout="vertical"
+          onFinish={async (values) => {
+            setAddStepLoading(true);
+            try {
+              const data = {
+                treatmentRecordId: treatmentData.id,
+                stageId: values.stageId,
+                startDate: values.startDate
+                  ? values.startDate.format("YYYY-MM-DD")
+                  : undefined,
+                status: "CONFIRMED",
+                notes: values.notes,
+                auto: addStepAuto,
+              };
+              if (addStepAuto) {
+                data.purpose = values.purpose;
+                data.shift = values.shift;
+              }
+
+              console.log("🔍 Creating treatment step with data:", data);
+              const response = await treatmentService.createTreatmentStep(data);
+              console.log("🔍 Create treatment step response:", response);
+
+              if (response?.data?.code === 1000 || response?.code === 1000) {
+                showNotification("Đã thêm bước điều trị mới!", "success");
+                setShowAddStepModal(false);
+                addStepForm.resetFields();
+
+                // Reload treatment record
+                try {
+                  console.log(
+                    "🔄 Reloading treatment record after creating step..."
+                  );
+                  const detail = await treatmentService.getTreatmentRecordById(
+                    treatmentData.id
+                  );
+                  const detailData = detail?.data?.result;
+                  console.log("🔍 Reloaded treatment data:", detailData);
+
+                  if (detailData) {
+                    setTreatmentData(detailData);
+                    console.log("✅ Treatment data updated successfully");
+                  } else {
+                    console.warn("⚠️ No treatment data returned from reload");
+                  }
+                } catch (reloadError) {
+                  console.error(
+                    "❌ Error reloading treatment data:",
+                    reloadError
+                  );
+                  showNotification(
+                    "Đã thêm bước nhưng không thể cập nhật giao diện",
+                    "warning"
+                  );
+                }
+              } else {
+                console.warn("❌ Create treatment step failed:", response);
+                showNotification("Thêm bước điều trị thất bại!", "error");
+              }
+            } catch (err) {
+              console.error("❌ Error creating treatment step:", err);
+              showNotification("Thêm bước điều trị thất bại!", "error");
+            } finally {
+              setAddStepLoading(false);
+            }
+          }}
+        >
+          <Form.Item
+            name="stageId"
+            label="Tên bước điều trị"
+            rules={[{ required: true, message: "Chọn bước điều trị" }]}
+          >
+            <Select placeholder="Chọn bước điều trị">
+              {stageOptions.map((s) => (
+                <Select.Option key={s.id} value={s.id}>
+                  {s.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="startDate"
+            label="Ngày dự kiến"
+            rules={[{ required: true, message: "Chọn ngày dự kiến" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item label="Tạo lịch hẹn tự động">
+            <Switch checked={addStepAuto} onChange={setAddStepAuto} />
+          </Form.Item>
+          {addStepAuto && (
+            <>
+              <Form.Item
+                name="purpose"
+                label="Mục đích"
+                rules={[{ required: true, message: "Nhập mục đích" }]}
+              >
+                <Input placeholder="Nhập mục đích" />
+              </Form.Item>
+              <Form.Item
+                name="shift"
+                label="Ca khám"
+                rules={[{ required: true, message: "Chọn ca khám" }]}
+              >
+                <Select placeholder="Chọn ca khám">
+                  <Select.Option value="MORNING">Sáng</Select.Option>
+                  <Select.Option value="AFTERNOON">Chiều</Select.Option>
+                </Select>
+              </Form.Item>
+            </>
+          )}
+          <Form.Item name="notes" label="Ghi chú">
+            <TextArea rows={2} placeholder="Ghi chú (nếu có)" />
+          </Form.Item>
+          <Form.Item style={{ textAlign: "right" }}>
+            <Button type="primary" htmlType="submit" loading={addStepLoading}>
+              Thêm bước
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal chọn dịch vụ phù hợp */}
+      <Modal
+        title="Chọn dịch vụ phù hợp"
+        open={showChangeServiceModal}
+        onCancel={() => {
+          setShowChangeServiceModal(false);
+          setSelectedServiceId(null);
+        }}
+        onOk={handleChangeService}
+        okText="Xác nhận"
+        cancelText="Hủy"
+        width={400}
+        centered
+      >
+        <Select
+          style={{ width: "100%" }}
+          placeholder="Chọn dịch vụ..."
+          value={selectedServiceId}
+          onChange={setSelectedServiceId}
+          options={serviceOptions.map((s) => ({
+            value: s.id,
+            label: `${s.name} - ${s.price?.toLocaleString()}đ`,
+          }))}
+        />
+      </Modal>
     </div>
   );
 };

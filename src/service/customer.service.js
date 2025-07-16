@@ -9,7 +9,6 @@ export const customerService = {
     return http.get("v1/feedbacks", {
       params: {
         customerId,
-
         page,
         size,
       },

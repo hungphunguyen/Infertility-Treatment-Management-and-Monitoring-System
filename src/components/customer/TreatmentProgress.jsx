@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import {
   Card,
-  Steps,
   Row,
   Col,
   Typography,
   Descriptions,
   Tag,
-  Timeline,
   Space,
   Divider,
   Progress,
@@ -24,18 +22,12 @@ import {
   Table,
 } from "antd";
 import {
-  CheckCircleOutlined,
-  ClockCircleOutlined,
   HeartOutlined,
   MedicineBoxOutlined,
-  ExperimentOutlined,
   CalendarOutlined,
-  FileTextOutlined,
   UserOutlined,
   ClockCircleOutlined as ClockIcon,
   CheckCircleOutlined as CheckIcon,
-  InfoCircleOutlined,
-  AppstoreOutlined,
   DeploymentUnitOutlined,
   ExperimentOutlined as TestTubeIcon,
   ArrowLeftOutlined,
@@ -46,11 +38,10 @@ import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { useNavigate, useLocation } from "react-router-dom";
-import { path } from "../../common/path";
 import { NotificationContext } from "../../App";
 
-const { Title, Text, Paragraph } = Typography;
-const { Panel } = Collapse;
+const { Title, Text } = Typography;
+const {} = Collapse;
 const { Option } = Select;
 
 const TreatmentProgress = () => {
@@ -65,7 +56,6 @@ const TreatmentProgress = () => {
   const [changeForm] = Form.useForm();
   const [changeLoading, setChangeLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const navigate = useNavigate();
   const location = useLocation();
   const [viewMode, setViewMode] = useState("list");
   const [treatments, setTreatments] = useState([]);
@@ -438,22 +428,20 @@ const TreatmentProgress = () => {
         ),
         children: (
           <div>
-            <Descriptions column={2} size="small" bordered>
-              <Descriptions.Item label="Trạng thái">
-                {getStepStatusTag(phase.statusRaw)}
+            <Descriptions size="small" column={3} bordered>
+              <Descriptions.Item label="Ngày bắt đầu">
+                {phase.startDate
+                  ? dayjs(phase.startDate).format("DD/MM/YYYY")
+                  : "-"}
               </Descriptions.Item>
-              {(idx === 0 || phase.hasDate) && (
-                <Descriptions.Item label="Ngày dự kiến">
-                  {phase.displayDate
-                    ? dayjs(phase.displayDate).format("DD/MM/YYYY")
-                    : "-"}
-                </Descriptions.Item>
-              )}
-              {phase.endDate && (
-                <Descriptions.Item label="Ngày thực hiện">
-                  {dayjs(phase.endDate).format("DD/MM/YYYY")}
-                </Descriptions.Item>
-              )}
+              <Descriptions.Item label="Ngày hoàn thành">
+                {phase.endDate
+                  ? dayjs(phase.endDate).format("DD/MM/YYYY")
+                  : "-"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Ghi chú">
+                {phase.notes || "-"}
+              </Descriptions.Item>
             </Descriptions>
 
             {phase.appointment && phase.statusRaw !== "COMPLETED" && (
@@ -875,16 +863,14 @@ const TreatmentProgress = () => {
           name: step.name,
           statusRaw: step.status,
           status: step.status,
-          displayDate: step.scheduledDate || null,
-          hasDate: !!step.scheduledDate,
-          startDate: step.scheduledDate,
-          endDate: step.actualDate,
+          startDate: step.startDate,
+          endDate: step.endDate,
           notes: step.notes || "",
-          appointment: step.appointments[0] || null, // Lấy appointment đầu tiên
+          appointment: step.appointments[0] || null,
           activities: [
             {
               name: step.name,
-              date: step.scheduledDate,
+              date: step.startDate,
               status: step.status,
               notes: step.notes || "",
             },
@@ -966,7 +952,10 @@ const TreatmentProgress = () => {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => setViewMode("list")}
+            onClick={() => {
+              setViewMode("list");
+              setTreatmentData(null); // dọn data chi tiết
+            }}
             style={{ border: "none", boxShadow: "none" }}
           />
           <Title level={4} style={{ margin: 0 }}>

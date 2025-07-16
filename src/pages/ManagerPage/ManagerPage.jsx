@@ -62,6 +62,8 @@ const ManagerPage = () => {
   // Update selected menu based on current path
   useEffect(() => {
     const pathname = location.pathname;
+    console.log("🔍 Current pathname:", pathname);
+
     if (pathname.includes("/dashboard")) {
       setSelectedMenu("report");
     } else if (pathname.includes("/schedule")) {
@@ -83,10 +85,11 @@ const ManagerPage = () => {
       setSelectedMenu("blog");
     } else if (pathname.includes("/update-profile")) {
       setSelectedMenu("update-profile");
-    } else if (pathname.includes("/treatment-records")) {
+    } else if (
+      pathname.includes("/treatment-records") ||
+      pathname.includes("/treatment-stages-view")
+    ) {
       setSelectedMenu("treatment-records");
-    } else if (pathname.includes("/treatment-stages")) {
-      setSelectedMenu("treatment-stages");
     } else {
       // Default to report if no match
       setSelectedMenu("report");
@@ -95,9 +98,23 @@ const ManagerPage = () => {
         navigate(path.managerDashboard);
       }
     }
+
+    console.log("🔍 Selected menu set to:", selectedMenu);
   }, [location, navigate]);
 
+  // Debug selectedMenu changes
+  useEffect(() => {
+    console.log("🔄 SelectedMenu changed to:", selectedMenu);
+  }, [selectedMenu]);
+
   const getPageTitle = () => {
+    const pathname = location.pathname;
+
+    // Xử lý riêng cho treatment-stages-view
+    if (pathname.includes("/treatment-stages-view")) {
+      return "Chi Tiết Quy Trình Điều Trị";
+    }
+
     switch (selectedMenu) {
       case "report":
         return "Báo Cáo Doanh Thu";
@@ -120,9 +137,7 @@ const ManagerPage = () => {
       case "blog-approval":
         return "Duyệt Bài Viết";
       case "treatment-records":
-        return "Quản Lý Lịch Điều Trị";
-      case "treatment-stages":
-        return "Quản Lý Các Giai Đoạn Điều Trị";
+        return "Quản Lý Hồ Sơ Điều Trị";
       default:
         return "Dashboard";
     }
@@ -201,8 +216,14 @@ const ManagerPage = () => {
             <Route path="services" element={<ServiceManagement />} />
             <Route path="blog-management" element={<BlogManagement />} />
             <Route path="blog-approval" element={<BlogApproval />} />
-            <Route path="treatment-records" element={<ManagerTreatmentRecords />} />
-            <Route path="treatment-stages-view" element={<TreatmentStagesView />} />
+            <Route
+              path="treatment-records"
+              element={<ManagerTreatmentRecords />}
+            />
+            <Route
+              path="treatment-stages-view"
+              element={<TreatmentStagesView />}
+            />
           </Routes>
         </Content>
       </Layout>

@@ -48,53 +48,56 @@ const CreateBlogPage = () => {
     loadUserInfo();
   }, [token, navigate, showNotification]);
 
-  const {
-    handleSubmit,
-    handleChange,
-    values,
-    errors,
-    touched,
-    handleBlur,
-  } = useFormik({
-    initialValues: {
-      title: "",
-      content: "",
-      sourceReference: ""
-    },
-    onSubmit: async (values, { setSubmitting }) => {
-      try {
-        if (!currentUser) {
-          showNotification("Vui lòng đăng nhập để tạo bài viết", "error");
-          navigate("/sign-in");
-          return;
+  const { handleSubmit, handleChange, values, errors, touched, handleBlur } =
+    useFormik({
+      initialValues: {
+        title: "",
+        content: "",
+        sourceReference: "",
+      },
+      onSubmit: async (values, { setSubmitting }) => {
+        try {
+          if (!currentUser) {
+            showNotification("Vui lòng đăng nhập để tạo bài viết", "error");
+            navigate("/sign-in");
+            return;
+          }
+
+          const response = await blogService.createBlog({
+            title: values.title,
+            content: values.content,
+            sourceReference: values.sourceReference,
+            status: "pending",
+          });
+          if (response.data) {
+            showNotification(
+              "Bài viết đã được gửi, chờ quản lý duyệt!",
+              "success"
+            );
+            navigate(getDashboardPath(currentUser.role));
+          }
+        } catch (error) {
+          console.error("Blog create error:", error);
+          if (error.response?.data?.message) {
+            showNotification(error.response.data.message, "error");
+          } else {
+            showNotification(
+              "Tạo bài viết thất bại. Vui lòng thử lại!",
+              "error"
+            );
+          }
+        } finally {
+          setSubmitting(false);
         }
-        const response = await blogService.createBlog({
-          title: values.title,
-          content: values.content,
-          sourceReference: values.sourceReference,
-          status: 'pending'
-        });
-        if (response.data) {
-          showNotification("Bài viết đã được gửi, chờ quản lý duyệt!", "success");
-          navigate(getDashboardPath(currentUser.role));
-        }
-      } catch (error) {
-        console.error("Blog create error:", error);
-        if (error.response?.data?.message) {
-          showNotification(error.response.data.message, "error");
-        } else {
-          showNotification("Tạo bài viết thất bại. Vui lòng thử lại!", "error");
-        }
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    validationSchema: yup.object({
-      title: yup.string().required("Vui lòng nhập tiêu đề!"),
-      content: yup.string().required("Vui lòng nhập nội dung!"),
-      sourceReference: yup.string().required("Vui lòng nhập nguồn tham khảo!")
-    }),
-  });
+      },
+      validationSchema: yup.object({
+        title: yup.string().required("Vui lòng nhập tiêu đề!"),
+        content: yup.string().required("Vui lòng nhập nội dung!"),
+        sourceReference: yup
+          .string()
+          .required("Vui lòng nhập nguồn tham khảo!"),
+      }),
+    });
 
   const handleSaveDraft = async () => {
     try {
@@ -108,7 +111,7 @@ const CreateBlogPage = () => {
         title: values.title,
         content: values.content,
         sourceReference: values.sourceReference,
-        status: 'draft'
+        status: "draft",
       });
       if (response.data) {
         showNotification("Bài viết đã được lưu dưới dạng nháp!", "success");
@@ -257,4 +260,4 @@ const CreateBlogPage = () => {
   );
 };
 
-export default CreateBlogPage; 
+export default CreateBlogPage;

@@ -4,16 +4,11 @@ import {
   Row,
   Col,
   Table,
-  Calendar,
-  Badge,
   Typography,
   Statistic,
   Tag,
   Avatar,
   Space,
-  Button,
-  Timeline,
-  Progress,
   DatePicker,
   Spin,
   message,
@@ -21,21 +16,15 @@ import {
 import {
   CalendarOutlined,
   UserOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
   MedicineBoxOutlined,
-  PhoneOutlined,
   StarFilled,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
-import { treatmentService } from "../../service/treatment.service";
-import { authService } from "../../service/auth.service";
 import { doctorService } from "../../service/doctor.service";
 import "dayjs/locale/vi";
 dayjs.locale("vi");
 
-const { Title, Text } = Typography;
 const shiftMap = {
   MORNING: { color: "green", text: "Sáng" },
   AFTERNOON: { color: "orange", text: "Chiều" },
@@ -138,16 +127,9 @@ const DashboardOverview = () => {
     if (!doctorId) return;
     setLoadingToday(true);
 
-    // Lấy ngày hôm nay
-    const today = dayjs().format("YYYY-MM-DD");
-    // Gọi API /api/v1/appointments lấy lịch khám hôm nay
-    treatmentService
-      .getAppointmentsV1({
-        doctorId,
-        date: today,
-        page: 0,
-        size: 10,
-      })
+    // Sử dụng API mới
+    doctorService
+      .getAppointmentsToday(0, 10)
       .then((res) => {
         const data = res?.data?.result?.content || [];
         // Log dữ liệu để debug
@@ -261,6 +243,7 @@ const DashboardOverview = () => {
         const statusMap = {
           CONFIRMED: { color: "blue", text: "Đã xác nhận" },
           PLANNED: { color: "orange", text: "Chờ thực hiện" },
+          PLANED: { color: "gold", text: "Đã lên lịch" },
           COMPLETED: { color: "green", text: "Hoàn thành" },
           CANCELLED: { color: "red", text: "Đã hủy" },
           INPROGRESS: { color: "blue", text: "Đang thực hiện" },
@@ -271,11 +254,11 @@ const DashboardOverview = () => {
       },
     },
     {
-      title: "Dịch vụ",
-      key: "serviceName",
+      title: "Mục đích",
+      key: "purpose",
       render: (record) => {
-        // Lấy trường 'step' từ API
-        return <Tag color="purple">{record.step || "Chưa có"}</Tag>;
+        // Lấy trường 'purpose' từ API thay vì 'step'
+        return <Tag color="purple">{record.purpose || "Chưa có"}</Tag>;
       },
     },
   ];
@@ -308,7 +291,7 @@ const DashboardOverview = () => {
           <Card>
             <Statistic
               title="Đánh giá"
-              value={dashboardStats.avgRating}
+              value={dashboardStats.avgRating || 0}
               prefix={<StarFilled style={{ color: "#faad14" }} />}
               valueStyle={{ color: "#faad14" }}
               precision={1}

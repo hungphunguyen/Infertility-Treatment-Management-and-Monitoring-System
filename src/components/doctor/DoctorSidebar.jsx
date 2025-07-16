@@ -1,32 +1,19 @@
 import React, { useEffect, useState } from "react";
-import {
-  Menu,
-  Avatar,
-  Typography,
-  Divider,
-  Button,
-  Spin,
-  Dropdown,
-} from "antd";
-import { Link, useNavigate } from "react-router-dom";
+import { Menu, Avatar, Typography, Divider, Button } from "antd";
+import { useNavigate } from "react-router-dom";
 import { path } from "../../common/path";
 import {
   DashboardOutlined,
   TeamOutlined,
   FileTextOutlined,
   UserOutlined,
-  CalendarOutlined,
-  MedicineBoxOutlined,
   HomeOutlined,
-  EditOutlined,
   ReadOutlined,
   ClockCircleOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
 import { authService } from "../../service/auth.service";
 import { useSelector } from "react-redux";
-
-const { Text } = Typography;
 
 const DoctorSidebar = ({
   selectedMenuItem,

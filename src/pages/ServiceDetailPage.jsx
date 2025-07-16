@@ -193,11 +193,11 @@ const ServiceDetailPage = () => {
       return;
     }
 
-    // Nếu có quyền thì chuyển hướng
+    // Nếu có quyền thì chuyển hướng - sử dụng đúng field names từ API
     navigate("/register-service", {
       state: {
-        selectedService: service.id,
-        serviceName: service.name,
+        selectedService: service?.serviceId,
+        serviceName: service?.serviceName,
       },
     });
   };

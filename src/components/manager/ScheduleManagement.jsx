@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Typography, Select, Popconfirm, Modal } from "antd";
+import { Select, Popconfirm, Modal } from "antd";
 import { doctorService } from "../../service/doctor.service";
 import { NotificationContext } from "../../App";
 import { useSelector } from "react-redux";
@@ -17,7 +17,7 @@ const ScheduleManagement = () => {
       .then((res) => {
         setInfoUser(res.data.result);
       })
-      .catch((err) => {});
+      .catch(() => {});
   }, [token]);
   const days = [
     "MONDAY",
@@ -89,7 +89,7 @@ const ScheduleManagement = () => {
       );
       return;
     }
-    const rules = Object.entries(shiftByDay)
+    const shiftRules = Object.entries(shiftByDay)
       .filter(([_, shift]) => shift)
       .map(([weekday, shift]) => ({
         weekday,
@@ -98,7 +98,7 @@ const ScheduleManagement = () => {
     const payload = {
       doctorId: selectedDoctor.id,
       month: selectedMonth,
-      rules,
+      shiftRules,
       createdBy: infoUser.id,
     };
 
@@ -141,7 +141,7 @@ const ScheduleManagement = () => {
   const handleDelete = (date, doctorId) => {
     managerService
       .deleteWorkSchedule(date, doctorId)
-      .then((res) => {
+      .then(() => {
         showNotification("Xóa lịch làm việc thành công", "success");
         getWorkScheduleMonth();
       })
@@ -151,7 +151,7 @@ const ScheduleManagement = () => {
   const handleUpdate = (doctorId, data) => {
     managerService
       .updateWorkSchedule(doctorId, data)
-      .then((res) => {
+      .then(() => {
         showNotification("Cập nhật lịch làm việc thành công", "success");
         getWorkScheduleMonth();
       })
@@ -169,7 +169,7 @@ const ScheduleManagement = () => {
         shift: data.shift,
         createdBy: infoUser.id,
       })
-      .then((res) => {
+      .then(() => {
         showNotification("Tạo lịch làm việc thành công", "success");
         getWorkScheduleMonth();
       })
@@ -217,12 +217,6 @@ const ScheduleManagement = () => {
 
   return (
     <div className="max-w-5xl mx-auto my-10 bg-white p-6 rounded shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Thiết lập lịch mẫu
-        </h2>
-      </div>
-
       <>
         <h1 className="text-center text-white text-2xl font-semibold bg-blue-600 py-4 rounded">
           Bảng ca phân ca làm theo tháng

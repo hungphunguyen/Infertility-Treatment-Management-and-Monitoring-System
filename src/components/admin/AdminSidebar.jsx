@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Layout, Menu, Avatar, Typography, Button } from "antd";
 import {
   DashboardOutlined,
@@ -54,7 +54,9 @@ const AdminSidebar = ({
       .then((res) => {
         setInfoUser(res.data.result);
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.log(err);
+      });
   }, [token]);
 
   const getCustomInfo = () => {

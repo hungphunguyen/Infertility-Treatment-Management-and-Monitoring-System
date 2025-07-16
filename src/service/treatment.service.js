@@ -142,10 +142,11 @@ export const treatmentService = {
     }
   },
 
-  getAppointmentBycustomer: (customerId, page, size) => {
+  getAppointmentBycustomer: (customerId, status, page, size) => {
     return http.get(`v1/appointments`, {
       params: {
         customerId,
+        status,
         page,
         size,
       },
@@ -178,26 +179,32 @@ export const treatmentService = {
     return response;
   },
 
+  updateAppointmentStatusCustomer: (appointmentId, data) => {
+    return http.put(`v1/appointments/${appointmentId}/status`, data);
+  },
+
   updateTreatmentStep: async (id, data) => {
     try {
-      console.log("🔍 Updating treatment step:", { id, data });
-
-      // Sử dụng query parameters như curl command
+      // Luôn truyền đủ stageId, startDate, endDate, status, notes
+      const params = {
+        stageId: data.stageId,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        status: data.status,
+        notes: data.notes,
+      };
       const response = await http.put(`v1/treatment-steps/${id}`, null, {
-        params: {
-          scheduledDate: data.scheduledDate,
-          actualDate: data.actualDate,
-          status: data.status,
-          notes: data.notes,
-        },
+        params,
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
       });
-
       return response;
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error updating treatment step:", error);
+      throw error;
+    }
   },
 
   // API cập nhật trạng thái treatment step theo format mới
@@ -231,82 +238,35 @@ export const treatmentService = {
   },
 
   getAppointmentsByStepId: async (stepId) => {
-    return await http.get(`v1/appointments?stepId=${stepId}`);
+    return await http.get(`v1/appointments/get-by-step/${stepId}`);
   },
 
   updateTreatmentStatus: async (recordId, status) => {
+    // Thử API mới với query params
     try {
-      console.log("🔍 Updating treatment status:", { recordId, status });
-
-      // Thử API mới trước
-      try {
-        const response = await http.put(
-          `v1/treatment-records/${recordId}/status`,
-          { status },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
-        console.log("✅ API mới thành công:", response);
-        return response;
-      } catch (newApiError) {
-        console.warn(
-          "❌ API mới không hoạt động, thử format khác:",
-          newApiError.response?.data
-        );
-
-        // Thử API mới với query params
-        try {
-          const response = await http.put(
-            `v1/treatment-records/${recordId}/status?status=${status}`,
-            null,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-            }
-          );
-          console.log("✅ API mới với query params thành công:", response);
-          return response;
-        } catch (queryError) {
-          console.warn(
-            "❌ API mới với query params cũng không hoạt động:",
-            queryError.response?.data
-          );
-
-          // Thử API mới với body khác
-          try {
-            const response = await http.put(
-              `v1/treatment-records/${recordId}/status`,
-              {
-                recordId: recordId,
-                status: status,
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Accept: "application/json",
-                },
-              }
-            );
-            console.log("✅ API mới với body khác thành công:", response);
-            return response;
-          } catch (bodyError) {}
+      const response = await http.put(
+        `v1/treatment-records/${recordId}/status?status=${status}`,
+        null,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
         }
-      }
-    } catch (error) {
-      console.error("❌ Error updating treatment status:", error);
-      console.error("❌ Error response:", error.response?.data);
-      throw error;
+      );
+      console.log("✅ API mới với query params thành công:", response);
+      return response;
+    } catch (queryError) {
+      console.warn(
+        "❌ API mới với query params cũng không hoạt động:",
+        queryError.response?.data
+      );
     }
   },
 
   // Gửi yêu cầu đổi lịch hẹn (customer)
   requestChangeAppointment: async (appointmentId, data) => {
+    console.log("first");
     const response = await http.put(
       `v1/appointments/${appointmentId}/customer-change`,
       data,
@@ -371,8 +331,7 @@ export const treatmentService = {
       throw error;
     }
   },
-
-  // Lấy danh sách treatment records - API mới
+  // hàm get của lâm
   getTreatmentRecords: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
@@ -394,6 +353,39 @@ export const treatmentService = {
     }
   },
 
+  // Lấy danh sách treatment records - API mới
+  getTreatmentRecordsPagination: async ({
+    customerId,
+    doctorId,
+    page = 0,
+    size = 10,
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (customerId) queryParams.append("customerId", customerId);
+    if (doctorId) queryParams.append("doctorId", doctorId);
+    queryParams.append("page", page);
+    queryParams.append("size", size);
+
+    const url = `v1/treatment-records/dashboard?${queryParams.toString()}`;
+    return await http.get(url);
+  },
+
+  getTreatmentRecordsExpand: async ({
+    customerId,
+    doctorId,
+    page = 0,
+    size = 10,
+  }) => {
+    const params = new URLSearchParams();
+    if (customerId) params.append("customerId", customerId);
+    if (doctorId) params.append("doctorId", doctorId);
+    params.append("page", page);
+    params.append("size", size);
+
+    const url = `v1/treatment-records?${params.toString()}`;
+    return await http.get(url);
+  },
+
   // Cập nhật ngày CD1 - API mới
   updateCd1Date: async (recordId, cd1Date) => {
     try {
@@ -411,7 +403,10 @@ export const treatmentService = {
         `v1/treatment-records/${recordId}/cancel`
       );
       return response;
-    } catch (error) {}
+    } catch (error) {
+      // Throw lại lỗi để phía trên bắt được và show message BE
+      throw error;
+    }
   },
 
   // Lấy chi tiết appointment theo ID - API mới
@@ -608,6 +603,78 @@ export const treatmentService = {
       return response;
     } catch (error) {
       console.error("Error fetching appointments v1:", error);
+      throw error;
+    }
+  },
+
+  // Lấy danh sách dịch vụ điều trị cho select (API mới)
+  getAllServicesForSelect: async () => {
+    try {
+      const response = await http.get("v1/treatment-services/select");
+      return response;
+    } catch (error) {
+      console.error("Error fetching all services for select:", error);
+      throw error;
+    }
+  },
+
+  // Đổi dịch vụ điều trị cho treatment record (API mới)
+  updateTreatmentRecordService: async (recordId, serviceId) => {
+    try {
+      const response = await http.put(`v1/treatment-records/${recordId}`, {
+        serviceId,
+      });
+      return response;
+    } catch (error) {
+      console.error("Error updating treatment record service:", error);
+      throw error;
+    }
+  },
+
+  // Lấy danh sách stage theo serviceId (API mới)
+  getStagesByServiceId: async (serviceId) => {
+    try {
+      const response = await http.get(
+        `v1/treatment-stages/${serviceId}/find-by-service`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching stages by serviceId:", error);
+      throw error;
+    }
+  },
+
+  // Tạo bước điều trị mới (API mới)
+  createTreatmentStep: async (data) => {
+    try {
+      const response = await http.post("v1/treatment-steps", data);
+      return response;
+    } catch (error) {
+      console.error("Error creating treatment step:", error);
+      throw error;
+    }
+  },
+
+  // Lấy danh sách stage cho select khi tạo bước điều trị
+  getSelectableStagesByServiceId: async (serviceId) => {
+    try {
+      const response = await http.get(
+        `v1/treatment-stages/${serviceId}/select`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching selectable stages by serviceId:", error);
+      throw error;
+    }
+  },
+
+  // Lấy chi tiết step theo id (lấy treatmentStageId)
+  getTreatmentStepById: async (stepId) => {
+    try {
+      const response = await http.get(`v1/treatment-steps/${stepId}`);
+      return response;
+    } catch (error) {
+      console.error("Error fetching treatment step by id:", error);
       throw error;
     }
   },
