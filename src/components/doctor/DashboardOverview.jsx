@@ -24,7 +24,6 @@ import { managerService } from "../../service/manager.service";
 import { doctorService } from "../../service/doctor.service";
 import "dayjs/locale/vi";
 dayjs.locale("vi");
-import { treatmentService } from "../../service/treatment.service";
 
 const shiftMap = {
   MORNING: { color: "green", text: "Sáng" },
@@ -127,80 +126,25 @@ const DashboardOverview = () => {
   useEffect(() => {
     if (!doctorId) return;
     setLoadingToday(true);
-    const today = dayjs().format("YYYY-MM-DD");
-    (async () => {
-      try {
-        // Gọi song song 3 API: appointments, treatment records, và purpose data
-        const [appointmentsRes, treatmentRecordsRes, purposeRes] = await Promise.all([
-          treatmentService.getDoctorAppointmentsByDate(doctorId, today, 'CONFIRMED'),
-          treatmentService.getTreatmentRecordsByDoctor(doctorId, 1000),
-          doctorService.getAppointmentsToday(0, 100).catch(() => ({ data: { result: { content: [] } } })),
-        ]);
-
-        // Đảm bảo appointments là array
-        let appointments = [];
-        if (appointmentsRes?.data?.result) {
-          if (Array.isArray(appointmentsRes.data.result)) {
-            appointments = appointmentsRes.data.result;
-          } else if (
-            appointmentsRes.data.result.content &&
-            Array.isArray(appointmentsRes.data.result.content)
-          ) {
-            appointments = appointmentsRes.data.result.content;
-          } else {
-            appointments = [];
-          }
+    
+    // Sử dụng API mới để lấy lịch hẹn hôm nay
+    doctorService
+      .getAppointmentsToday(0, 100)
+      .then((response) => {
+        if (response?.data?.result?.content) {
+          const appointments = response.data.result.content;
+          console.log("✅ Appointments loaded from new API:", appointments);
+          setTodayAppointments(appointments);
+        } else {
+          console.warn("No appointments data from API");
+          setTodayAppointments([]);
         }
-
-        // Đảm bảo treatmentRecords là array
-        let treatmentRecords = [];
-        if (Array.isArray(treatmentRecordsRes)) {
-          treatmentRecords = treatmentRecordsRes;
-        } else if (treatmentRecordsRes?.data?.result) {
-          if (Array.isArray(treatmentRecordsRes.data.result)) {
-            treatmentRecords = treatmentRecordsRes.data.result;
-          } else if (
-            treatmentRecordsRes.data.result.content &&
-            Array.isArray(treatmentRecordsRes.data.result.content)
-          ) {
-            treatmentRecords = treatmentRecordsRes.data.result.content;
-          }
-        }
-
-        // Xử lý purpose data từ API mới
-        const purposeList = purposeRes?.data?.result?.content || [];
-        const purposeMap = {};
-        purposeList.forEach((item) => {
-          if (item.customerName && item.purpose) {
-            purposeMap[item.customerName] = item.purpose;
-          }
-        });
-
-        // Lọc: chỉ giữ lịch hẹn mà bệnh nhân có treatment record hợp lệ VÀ status hợp lệ
-        const filtered = appointments.filter((appt) => {
-          return treatmentRecords.some(
-            (record) =>
-              (record.customerId === appt.customerId ||
-                record.customerName === appt.customerName) &&
-              record.status !== "PENDING" &&
-              record.status !== "CANCELLED"
-          ) && appt.status !== "PLANED" && appt.status !== "CANCELLED";
-        });
-        console.log("✅ Filtered appointments for today:", filtered);
-
-        // Map purpose vào từng record
-        const mapped = filtered.map((appt) => ({
-          ...appt,
-          purpose: purposeMap[appt.customerName] || appt.purpose || "",
-        }));
-
-        setTodayAppointments(mapped);
-      } catch (error) {
+      })
+      .catch((error) => {
+        console.error("Error fetching appointments:", error);
         setTodayAppointments([]);
-      } finally {
-        setLoadingToday(false);
-      }
-    })();
+      })
+      .finally(() => setLoadingToday(false));
   }, [doctorId]);
 
   // Lấy dashboard statics
@@ -320,7 +264,6 @@ const DashboardOverview = () => {
       title: "Mục đích",
       key: "purpose",
       render: (record) => {
-        // Lấy trường 'purpose' từ API thay vì 'step'
         return <Tag color="purple">{record.purpose || "Chưa có"}</Tag>;
       },
     },
