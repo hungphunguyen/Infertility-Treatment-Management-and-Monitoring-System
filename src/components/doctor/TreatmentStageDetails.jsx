@@ -831,6 +831,15 @@ const TreatmentStageDetails = () => {
     }
   }, [treatmentData, selectedStep]);
 
+  const getResultText = (result) => {
+    switch ((result || '').toUpperCase()) {
+      case 'SUCCESS': return 'Thành công';
+      case 'FAILURE': return 'Thất bại';
+      case 'UNDETERMINED': return 'Chưa xác định';
+      default: return 'Chưa có';
+    }
+  };
+
   if (loading) {
     return (
       <div
@@ -944,6 +953,10 @@ const TreatmentStageDetails = () => {
                     style={{ fontSize: 13, padding: "6px 12px" }}
                   >
                     {getStatusText(treatmentData.status)}
+                  </Tag>
+                  {/* Thêm mục Kết quả */}
+                  <Tag color={treatmentData.result === 'SUCCESS' ? 'green' : treatmentData.result === 'FAILURE' ? 'red' : treatmentData.result === 'UNDETERMINED' ? 'orange' : 'default'}>
+                    Kết quả: {getResultText(treatmentData.result)}
                   </Tag>
                 </Space>
               </Col>
@@ -1325,23 +1338,11 @@ const TreatmentStageDetails = () => {
                                     }
                                     buttonStyle="solid"
                                   >
-                                    {statusOptions
-                                      .filter((opt) =>
-                                        [
-                                          "CONFIRMED",
-                                          "COMPLETED",
-                                          "CANCELLED",
-                                        ].includes(opt.value)
-                                      )
-                                      .map((opt) => (
-                                        <Radio.Button
-                                          key={opt.value}
-                                          value={opt.value}
-                                          style={{ margin: 2, width: "100%" }}
-                                        >
-                                          {opt.label}
-                                        </Radio.Button>
-                                      ))}
+                                    {statusOptions.filter(opt => ["COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
+                                      <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
+                                        {opt.label}
+                                      </Radio.Button>
+                                    ))}
                                   </Radio.Group>
                                 )}
                               </Space>
@@ -1406,7 +1407,7 @@ const TreatmentStageDetails = () => {
             rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
           >
             <Select>
-              <Select.Option value="CONFIRMED">Đã xác nhận</Select.Option>
+              <Select.Option value="INPROGRESS">Đang thực hiện</Select.Option>
               <Select.Option value="COMPLETED">Hoàn thành</Select.Option>
               <Select.Option value="CANCELLED">Đã hủy</Select.Option>
             </Select>
@@ -1570,23 +1571,11 @@ const TreatmentStageDetails = () => {
                               }
                               buttonStyle="solid"
                             >
-                              {statusOptions
-                                .filter((opt) =>
-                                  [
-                                    "CONFIRMED",
-                                    "COMPLETED",
-                                    "CANCELLED",
-                                  ].includes(opt.value)
-                                )
-                                .map((opt) => (
-                                  <Radio.Button
-                                    key={opt.value}
-                                    value={opt.value}
-                                    style={{ margin: 2, width: "100%" }}
-                                  >
-                                    {opt.label}
-                                  </Radio.Button>
-                                ))}
+                              {statusOptions.filter(opt => ["COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
+                                <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
+                                  {opt.label}
+                                </Radio.Button>
+                              ))}
                             </Radio.Group>
                           )}
                         </Space>
@@ -1839,7 +1828,7 @@ const TreatmentStageDetails = () => {
           >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
-          <Form.Item label="Tạo lịch hẹn tự động">
+          <Form.Item label="Tạo lịch hẹn:">
             <Switch checked={addStepAuto} onChange={setAddStepAuto} />
           </Form.Item>
           {addStepAuto && (

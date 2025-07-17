@@ -399,7 +399,7 @@ const TreatmentProgress = () => {
       case "INPROGRESS":
       case "IN_PROGRESS":
       case "CONFIRMED":
-        return <Tag color="#1890ff">Đang điều trị</Tag>;
+        return <Tag color="#1890ff">Đã xác nhận</Tag>;
       case "PENDING":
       case "PLANED":
         return <Tag color="warning">Đã đặt lịch</Tag>;
