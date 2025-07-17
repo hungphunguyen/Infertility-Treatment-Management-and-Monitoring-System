@@ -227,6 +227,15 @@ const TreatmentStagesView = () => {
     }
   };
 
+  const getResultText = (result) => {
+    switch ((result || '').toUpperCase()) {
+      case 'SUCCESS': return 'Thành công';
+      case 'FAILURE': return 'Thất bại';
+      case 'UNDETERMINED': return 'Chưa xác định';
+      default: return 'Chưa có';
+    }
+  };
+
   const fetchAppointmentsForStep = async (stepId) => {
     if (stepAppointments[stepId]) return; // Already loaded
 
@@ -375,12 +384,14 @@ const TreatmentStagesView = () => {
             </Col>
             <Col xs={24} md={8}>
               <Space>
-                <CalendarOutlined style={{ color: "#13c2c2" }} />
-                <Text strong>Ngày tạo:</Text>
-                <Text>
-                  {dayjs(treatmentData.createdDate).format("DD/MM/YYYY")}
-                </Text>
+                <Text strong>Kết quả:</Text>
+                <Tag color={treatmentData.result === 'SUCCESS' ? 'green' : treatmentData.result === 'FAILURE' ? 'red' : treatmentData.result === 'UNDETERMINED' ? 'orange' : 'default'}>
+                  {getResultText(treatmentData.result)}
+                </Tag>
               </Space>
+            </Col>
+            <Col xs={24} md={8}>
+              
             </Col>
           </Row>
         </Card>
