@@ -33,6 +33,7 @@ import {
   CheckOutlined,
   CloseOutlined,
   PlusOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
@@ -76,6 +77,7 @@ const TreatmentStageDetails = () => {
   const [showResultModal, setShowResultModal] = useState(false);
   const [pendingCompleteStatus, setPendingCompleteStatus] = useState(null);
   const [selectedResult, setSelectedResult] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const statusOptions = [
     { value: "PLANED", label: "Đã đặt lịch" },
@@ -694,7 +696,33 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  // 2. Sửa hàm handleUpdateTreatmentStatus để nếu status === 'COMPLETED' thì show modal chọn kết quả
+  // Thêm hàm hủy dịch vụ tương tự như trong TestResults
+  const handleCancelService = (treatment) => {
+    Modal.confirm({
+      title: "Bạn có chắc chắn muốn hủy hồ sơ/dịch vụ này?",
+      icon: <ExclamationCircleOutlined />,
+      content: `Bệnh nhân: ${treatment.customerName || treatment.customerName}`,
+      okText: "Hủy hồ sơ",
+      okType: "danger",
+      cancelText: "Không",
+      confirmLoading: cancelLoading,
+      onOk: async () => {
+        setCancelLoading(true);
+        try {
+          await treatmentService.cancelTreatmentRecord(treatment.id);
+          showNotification("Hủy hồ sơ thành công!", "success");
+          // Reload danh sách
+          setTimeout(() => window.location.reload(), 800);
+        } catch (err) {
+          showNotification("Hủy hồ sơ thất bại!", "error");
+        } finally {
+          setCancelLoading(false);
+        }
+      },
+    });
+  };
+
+  //2a hàm handleUpdateTreatmentStatus để nếu status === 'COMPLETED' thì show modal chọn kết quả
   const handleUpdateTreatmentStatus = async (status) => {
     if (status === "COMPLETED") {
       setShowResultModal(true);
@@ -940,6 +968,12 @@ const TreatmentStageDetails = () => {
                       key: "COMPLETED",
                       label: "Hoàn thành",
                       onClick: () => handleUpdateTreatmentStatus("COMPLETED"),
+                    },
+                    {
+                      key: "CANCELLED",
+                      label: "Hủy",
+                      onClick: () => handleCancelService(treatmentData),
+                      danger: true,
                     },
                   ],
                 }}
