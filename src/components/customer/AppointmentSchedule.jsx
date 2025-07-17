@@ -54,7 +54,7 @@ const AppointmentSchedule = () => {
       case "PENDING_CHANGE":
         return "Yêu cầu thay đổi";
       case "REJECTED":
-        return "Đã từ chối";
+        return "Từ chối yêu cầu thay đổi";
       default:
         return "Không xác định";
     }

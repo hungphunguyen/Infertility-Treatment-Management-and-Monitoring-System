@@ -294,23 +294,12 @@ const ManagerTreatmentRecords = () => {
       ),
     },
     {
-      title: "Số hồ sơ",
+      title: "Số dịch vụ",
       dataIndex: "treatments",
       key: "totalRecord",
       render: (treatments) => {
         const record = treatments?.[0];
-        return (
-          <Text
-            style={{
-              backgroundColor: "#90EE90",
-              padding: "5px 20px",
-              color: "#28a745",
-              fontWeight: "500",
-            }}
-          >
-            {record?.totalRecord ?? 0}
-          </Text>
-        );
+        return <Tag color="blue">{record.totalRecord} dịch vụ</Tag>;
       },
     },
 

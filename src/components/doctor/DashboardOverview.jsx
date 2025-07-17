@@ -223,12 +223,13 @@ const DashboardOverview = () => {
       render: (status) => {
         const statusMap = {
           CONFIRMED: { color: "blue", text: "Đã xác nhận" },
-          PLANNED: { color: "orange", text: "Chờ thực hiện" },
           PLANED: { color: "gold", text: "Đã lên lịch" },
           COMPLETED: { color: "green", text: "Hoàn thành" },
           CANCELLED: { color: "red", text: "Đã hủy" },
           INPROGRESS: { color: "blue", text: "Đang thực hiện" },
           IN_PROGRESS: { color: "blue", text: "Đang thực hiện" },
+          PENDING_CHANGE: { color: "yellow", text: "Yêu cầu thay đổi" },
+          REJECTED: { color: "red", text: "Từ chối yêu cầu thay đổi" },
         };
         const s = statusMap[status] || { color: "default", text: status };
         return <Tag color={s.color}>{s.text}</Tag>;

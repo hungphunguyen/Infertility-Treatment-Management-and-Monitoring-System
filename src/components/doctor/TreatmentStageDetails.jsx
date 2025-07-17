@@ -229,7 +229,7 @@ const TreatmentStageDetails = () => {
       case "REJECTED_CHANGE":
         return "Từ chối đổi lịch";
       case "REJECTED":
-        return "Đã từ chối";
+        return "Từ chối yêu cầu đổi lịch";
       default:
         return status;
     }
@@ -566,7 +566,10 @@ const TreatmentStageDetails = () => {
     const activeSteps = treatmentData.treatmentSteps.filter(
       (step) => step.status !== "CANCELLED"
     );
-    return activeSteps.length > 0 && activeSteps.every((step) => step.status === "COMPLETED");
+    return (
+      activeSteps.length > 0 &&
+      activeSteps.every((step) => step.status === "COMPLETED")
+    );
   };
 
   const calculateProgress = () => {
@@ -710,15 +713,22 @@ const TreatmentStageDetails = () => {
         showNotification("Cập nhật trạng thái dịch vụ thành công", "success");
         // Refresh data
         try {
-          const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
+          const detailedResponse =
+            await treatmentService.getTreatmentRecordById(treatmentData.id);
           const detailedData = detailedResponse?.data?.result;
           if (detailedData) setTreatmentData(detailedData);
         } catch {}
       } else {
-        showNotification(response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+        showNotification(
+          response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại",
+          "error"
+        );
       }
     } catch (error) {
-      showNotification(error.response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+      showNotification(
+        error.response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại",
+        "error"
+      );
     }
   };
 
@@ -741,15 +751,22 @@ const TreatmentStageDetails = () => {
         setPendingCompleteStatus(null);
         // Refresh data
         try {
-          const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
+          const detailedResponse =
+            await treatmentService.getTreatmentRecordById(treatmentData.id);
           const detailedData = detailedResponse?.data?.result;
           if (detailedData) setTreatmentData(detailedData);
         } catch {}
       } else {
-        showNotification(response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+        showNotification(
+          response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại",
+          "error"
+        );
       }
     } catch (error) {
-      showNotification(error.response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+      showNotification(
+        error.response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại",
+        "error"
+      );
     }
   };
 
@@ -1265,14 +1282,32 @@ const TreatmentStageDetails = () => {
                                   <Radio.Group
                                     style={{ width: 160 }}
                                     value={app.status || undefined}
-                                    onChange={e => handleAppointmentStatusUpdate(app.id, e.target.value, scheduleStep?.id)}
+                                    onChange={(e) =>
+                                      handleAppointmentStatusUpdate(
+                                        app.id,
+                                        e.target.value,
+                                        scheduleStep?.id
+                                      )
+                                    }
                                     buttonStyle="solid"
                                   >
-                                    {statusOptions.filter(opt => ["CONFIRMED", "COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
-                                      <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
-                                        {opt.label}
-                                      </Radio.Button>
-                                    ))}
+                                    {statusOptions
+                                      .filter((opt) =>
+                                        [
+                                          "CONFIRMED",
+                                          "COMPLETED",
+                                          "CANCELLED",
+                                        ].includes(opt.value)
+                                      )
+                                      .map((opt) => (
+                                        <Radio.Button
+                                          key={opt.value}
+                                          value={opt.value}
+                                          style={{ margin: 2, width: "100%" }}
+                                        >
+                                          {opt.label}
+                                        </Radio.Button>
+                                      ))}
                                   </Radio.Group>
                                 )}
                               </Space>
@@ -1492,14 +1527,32 @@ const TreatmentStageDetails = () => {
                             <Radio.Group
                               style={{ width: 160 }}
                               value={app.status || undefined}
-                              onChange={e => handleAppointmentStatusUpdate(app.id, e.target.value, scheduleStep?.id)}
+                              onChange={(e) =>
+                                handleAppointmentStatusUpdate(
+                                  app.id,
+                                  e.target.value,
+                                  scheduleStep?.id
+                                )
+                              }
                               buttonStyle="solid"
                             >
-                              {statusOptions.filter(opt => ["CONFIRMED", "COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
-                                <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
-                                  {opt.label}
-                                </Radio.Button>
-                              ))}
+                              {statusOptions
+                                .filter((opt) =>
+                                  [
+                                    "CONFIRMED",
+                                    "COMPLETED",
+                                    "CANCELLED",
+                                  ].includes(opt.value)
+                                )
+                                .map((opt) => (
+                                  <Radio.Button
+                                    key={opt.value}
+                                    value={opt.value}
+                                    style={{ margin: 2, width: "100%" }}
+                                  >
+                                    {opt.label}
+                                  </Radio.Button>
+                                ))}
                             </Radio.Group>
                           )}
                         </Space>
@@ -1817,7 +1870,11 @@ const TreatmentStageDetails = () => {
       <Modal
         title="Chọn kết quả:"
         open={showResultModal}
-        onCancel={() => { setShowResultModal(false); setSelectedResult(null); setPendingCompleteStatus(null); }}
+        onCancel={() => {
+          setShowResultModal(false);
+          setSelectedResult(null);
+          setPendingCompleteStatus(null);
+        }}
         onOk={handleConfirmCompleteWithResult}
         okText="Xác nhận"
         cancelText="Hủy"
@@ -1825,8 +1882,8 @@ const TreatmentStageDetails = () => {
       >
         <Radio.Group
           value={selectedResult}
-          onChange={e => setSelectedResult(e.target.value)}
-          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+          onChange={(e) => setSelectedResult(e.target.value)}
+          style={{ display: "flex", flexDirection: "column", gap: 12 }}
         >
           <Radio value="SUCCESS">Thành công </Radio>
           <Radio value="FAILURE">Thất bại</Radio>

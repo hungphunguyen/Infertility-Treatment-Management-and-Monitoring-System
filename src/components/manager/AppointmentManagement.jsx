@@ -269,7 +269,7 @@ const AppointmentManagement = () => {
       case "REJECTED_CHANGE":
         return "Từ chối đổi lịch";
       case "REJECTED":
-        return "Đã từ chối";
+        return "Từ chối yêu cầu thay đổi";
       case "PLANED":
         return "Đã đặt lịch";
       default:

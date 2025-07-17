@@ -386,7 +386,7 @@ const TreatmentProgress = () => {
       case "REJECTED_CHANGE":
         return <Tag color="red">Từ chối đổi lịch</Tag>;
       case "REJECTED":
-        return <Tag color="red">Đã từ chối</Tag>;
+        return <Tag color="red">Từ chối thay đổi lịch hẹn</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -590,11 +590,15 @@ const TreatmentProgress = () => {
 
   // Thêm hàm chuyển đổi result sang tiếng Việt
   const getResultText = (result) => {
-    switch ((result || '').toUpperCase()) {
-      case 'SUCCESS': return 'Thành công';
-      case 'FAILURE': return 'Thất bại';
-      case 'UNDETERMINED': return 'Chưa xác định';
-      default: return 'Chưa có';
+    switch ((result || "").toUpperCase()) {
+      case "SUCCESS":
+        return "Thành công";
+      case "FAILURE":
+        return "Thất bại";
+      case "UNDETERMINED":
+        return "Chưa xác định";
+      default:
+        return "Chưa có";
     }
   };
 
@@ -642,7 +646,17 @@ const TreatmentProgress = () => {
               {getStatusTag(treatmentData.status)}
             </Descriptions.Item>
             <Descriptions.Item label="Kết quả">
-              <Tag color={treatmentData.result === 'SUCCESS' ? 'green' : treatmentData.result === 'FAILURE' ? 'red' : treatmentData.result === 'UNDETERMINED' ? 'orange' : 'default'}>
+              <Tag
+                color={
+                  treatmentData.result === "SUCCESS"
+                    ? "green"
+                    : treatmentData.result === "FAILURE"
+                    ? "red"
+                    : treatmentData.result === "UNDETERMINED"
+                    ? "orange"
+                    : "default"
+                }
+              >
                 {getResultText(treatmentData.result)}
               </Tag>
             </Descriptions.Item>
@@ -780,7 +794,17 @@ const TreatmentProgress = () => {
       dataIndex: "result",
       key: "result",
       render: (result) => (
-        <Tag color={result === 'SUCCESS' ? 'green' : result === 'FAILURE' ? 'red' : result === 'UNDETERMINED' ? 'orange' : 'default'}>
+        <Tag
+          color={
+            result === "SUCCESS"
+              ? "green"
+              : result === "FAILURE"
+              ? "red"
+              : result === "UNDETERMINED"
+              ? "orange"
+              : "default"
+          }
+        >
           {getResultText(result)}
         </Tag>
       ),

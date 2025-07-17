@@ -147,7 +147,7 @@ const TreatmentStagesView = () => {
     switch (status) {
       case "CONFIRMED":
         return "#1890ff";
-      case "PLANNED":
+      case "PLANED":
         return "#d9d9d9";
       case "COMPLETED":
         return "#52c41a";
@@ -164,7 +164,7 @@ const TreatmentStagesView = () => {
     switch (status) {
       case "CONFIRMED":
         return "Đã xác nhận";
-      case "PLANNED":
+      case "PLANED":
         return "Chờ xếp lịch";
       case "COMPLETED":
         return "Hoàn thành";
@@ -478,12 +478,7 @@ const TreatmentStagesView = () => {
       {/* Modal xem lịch hẹn của bước điều trị */}
       <Modal
         title={
-          <div style={{ textAlign: "center" }}>
-            <FileTextOutlined
-              style={{ fontSize: 24, color: "#faad14", marginRight: 8 }}
-            />
-            Lịch hẹn của bước điều trị
-          </div>
+          <div style={{ textAlign: "center" }}>Lịch hẹn của bước điều trị</div>
         }
         open={showScheduleModal}
         onCancel={() => {
@@ -496,7 +491,7 @@ const TreatmentStagesView = () => {
       >
         <div style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
           <div style={{ fontWeight: 600, marginBottom: 16, fontSize: 16 }}>
-            📅 Các lần hẹn đã đăng ký cho bước này:
+            Các lần hẹn đã đăng ký cho bước này:
           </div>
           {loadingAppointments ? (
             <div style={{ textAlign: "center", padding: 20 }}>
