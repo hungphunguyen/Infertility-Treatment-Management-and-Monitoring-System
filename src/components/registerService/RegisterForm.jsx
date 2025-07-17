@@ -245,7 +245,7 @@ export default function RegisterForm({
               placeholder="-- Chọn dịch vụ --"
               className="h-[48px] text-base"
               options={services.map((s) => ({
-                label: s.name,
+                label: `${s.name} - ${s.price.toLocaleString()} ₫`,
                 value: s.id,
               }))}
             />

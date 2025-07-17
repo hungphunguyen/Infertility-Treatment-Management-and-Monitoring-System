@@ -12,6 +12,7 @@ import {
   DatePicker,
   Spin,
   message,
+  Button,
 } from "antd";
 import {
   CalendarOutlined,
@@ -23,6 +24,8 @@ import dayjs from "dayjs";
 import { managerService } from "../../service/manager.service";
 import { doctorService } from "../../service/doctor.service";
 import "dayjs/locale/vi";
+import { useInfiniteQuery } from "@tanstack/react-query";
+
 dayjs.locale("vi");
 
 const shiftMap = {
@@ -47,10 +50,6 @@ const DashboardOverview = () => {
   const [schedule, setSchedule] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [doctorId, setDoctorId] = useState(null);
-
-  // Lịch khám hôm nay
-  const [loadingToday, setLoadingToday] = useState(true);
-  const [todayAppointments, setTodayAppointments] = useState([]);
 
   // Dashboard stats
   const [dashboardStats, setDashboardStats] = useState({
@@ -121,31 +120,6 @@ const DashboardOverview = () => {
       })
       .finally(() => setLoadingSchedule(false));
   }, [doctorId, selectedMonth]);
-
-  // Lấy lịch khám hôm nay
-  useEffect(() => {
-    if (!doctorId) return;
-    setLoadingToday(true);
-    
-    // Sử dụng API mới để lấy lịch hẹn hôm nay
-    doctorService
-      .getAppointmentsToday(0, 100)
-      .then((response) => {
-        if (response?.data?.result?.content) {
-          const appointments = response.data.result.content;
-          console.log("✅ Appointments loaded from new API:", appointments);
-          setTodayAppointments(appointments);
-        } else {
-          console.warn("No appointments data from API");
-          setTodayAppointments([]);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching appointments:", error);
-        setTodayAppointments([]);
-      })
-      .finally(() => setLoadingToday(false));
-  }, [doctorId]);
 
   // Lấy dashboard statics
   useEffect(() => {
@@ -249,12 +223,13 @@ const DashboardOverview = () => {
       render: (status) => {
         const statusMap = {
           CONFIRMED: { color: "blue", text: "Đã xác nhận" },
-          PLANNED: { color: "orange", text: "Chờ thực hiện" },
           PLANED: { color: "gold", text: "Đã lên lịch" },
           COMPLETED: { color: "green", text: "Hoàn thành" },
           CANCELLED: { color: "red", text: "Đã hủy" },
           INPROGRESS: { color: "blue", text: "Đang thực hiện" },
           IN_PROGRESS: { color: "blue", text: "Đang thực hiện" },
+          PENDING_CHANGE: { color: "yellow", text: "Yêu cầu thay đổi" },
+          REJECTED: { color: "red", text: "Từ chối yêu cầu thay đổi" },
         };
         const s = statusMap[status] || { color: "default", text: status };
         return <Tag color={s.color}>{s.text}</Tag>;
@@ -268,6 +243,38 @@ const DashboardOverview = () => {
       },
     },
   ];
+
+  const {
+    data: appointmentPages,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: loading,
+  } = useInfiniteQuery({
+    queryKey: ["appointmentsToday", doctorId],
+    queryFn: async ({ pageParam = 0 }) => {
+      const res = await doctorService.getAppointmentsToday(pageParam, 5);
+      const data = res?.data?.result;
+      return {
+        list: data?.content || [],
+        hasNextPage: !data?.last,
+      };
+    },
+    enabled: !!doctorId,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.hasNextPage ? pages.length : undefined,
+
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    staleTime: Infinity, // hoặc vài phút nếu muốn
+  });
+
+  const todayAppointment = Array.isArray(appointmentPages?.pages)
+    ? appointmentPages.pages.flatMap((page) =>
+        Array.isArray(page.list) ? page.list : []
+      )
+    : [];
 
   return (
     <div>
@@ -320,13 +327,23 @@ const DashboardOverview = () => {
           >
             <Table
               columns={todayColumns}
-              dataSource={todayAppointments}
-              loading={loadingToday}
+              dataSource={todayAppointment}
+              loading={loading}
               pagination={false}
               rowKey="id"
               size="small"
               scroll={{ x: 600 }}
             />
+            {hasNextPage && (
+              <div className="text-center mt-4">
+                <Button
+                  onClick={() => fetchNextPage()}
+                  loading={isFetchingNextPage}
+                >
+                  {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
+                </Button>
+              </div>
+            )}
           </Card>
         </Col>
 

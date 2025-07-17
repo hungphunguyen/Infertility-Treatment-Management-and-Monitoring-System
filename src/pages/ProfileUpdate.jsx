@@ -235,9 +235,9 @@ const ProfileUpdate = () => {
             selectedMenu={selectedMenu}
             onMenuSelect={(menuKey) => setSelectedMenu(menuKey)}
           />
-        )} */}
+        )}
 
-        {/* {role === "CUSTOMER" && (
+        {role === "CUSTOMER" && (
           <CustomerSidebar
             collapsed={false}
             onCollapse={() => {}}

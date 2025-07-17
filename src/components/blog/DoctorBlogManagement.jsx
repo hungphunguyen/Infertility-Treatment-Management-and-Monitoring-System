@@ -50,6 +50,8 @@ const DoctorBlogManagement = () => {
   const [preview, setPreview] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const loadUserInfo = async () => {
@@ -72,16 +74,17 @@ const DoctorBlogManagement = () => {
     }
   }, [currentUser]);
 
-  const fetchMyBlogs = async (authorId) => {
+  const fetchMyBlogs = async (authorId, page = 0) => {
     try {
       setLoading(true);
 
       // Sử dụng getAllBlogs thay vì getBlogsByAuthor vì API getBlogsByAuthor có vấn đề
       const response = await blogService.getAllBlogs({
-        page: 0,
-        size: 100,
+        page,
+        size: 9,
       });
-
+      setCurrentPage(page);
+      setTotalPages(response.data.result.totalPages);
       if (response.data && response.data.result?.content) {
         // Filter blogs theo authorId hoặc authorName
         const allBlogs = response.data.result.content;
@@ -639,13 +642,28 @@ const DoctorBlogManagement = () => {
         dataSource={filteredData}
         rowKey="id"
         loading={loading || actionLoading}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `Tổng số ${total} bài viết`,
-        }}
+        pagination={false}
         scroll={{ x: 1000 }}
       />
+      <div className="flex justify-end mt-4">
+        <Button
+          disabled={currentPage === 0}
+          onClick={() => fetchMyBlogs(currentPage - 1)}
+          className="mr-2"
+        >
+          Trang trước
+        </Button>
+        <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+          Trang {currentPage + 1} / {totalPages}
+        </span>
+        <Button
+          disabled={currentPage + 1 >= totalPages}
+          onClick={() => fetchMyBlogs(currentPage + 1)}
+          className="ml-2"
+        >
+          Trang tiếp
+        </Button>
+      </div>
 
       <Modal
         title={

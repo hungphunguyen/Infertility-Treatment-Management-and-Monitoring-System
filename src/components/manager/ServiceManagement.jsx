@@ -28,7 +28,7 @@ const ServiceManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const fetchTreatmentService = async (page = 0) => {
     try {
-      const res = await managerService.getTreatmentService(page, 5);
+      const res = await managerService.getTreatmentService(page, 10);
       setTreatmentService(res.data.result.content);
       setTotalPages(res.data.result.totalPages);
       setCurrentPage(page);

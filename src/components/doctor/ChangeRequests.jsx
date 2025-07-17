@@ -41,6 +41,8 @@ const ChangeRequests = () => {
   const [doctorId, setDoctorId] = useState(null);
   const { showNotification } = useContext(NotificationContext);
   const [actionType, setActionType] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchDoctor = async () => {
@@ -57,17 +59,18 @@ const ChangeRequests = () => {
     // eslint-disable-next-line
   }, [doctorId]);
 
-  const fetchRequests = async () => {
+  const fetchRequests = async (page = 0) => {
     setLoading(true);
     try {
       // Bước 1: Lấy danh sách PENDING_CHANGE appointments cho doctor này
       const changeRequestsResponse = await treatmentService.getAppointments({
         status: "PENDING_CHANGE",
         doctorId: doctorId,
-        page: 0,
-        size: 100,
+        page,
+        size: 5,
       });
-
+      setCurrentPage(page);
+      setTotalPages(changeRequestsResponse.data.result.totalPages);
       const pendingChangeAppointments =
         changeRequestsResponse?.data?.result?.content || [];
       console.log(
@@ -302,12 +305,31 @@ const ChangeRequests = () => {
             columns={columns}
             dataSource={requests}
             rowKey="id"
-            pagination={{ pageSize: 8 }}
+            pagination={false}
             bordered
             size="middle"
             style={{ background: "white", borderRadius: 8 }}
             scroll={{ x: "max-content" }}
           />
+          <div className="flex justify-end mt-4">
+            <Button
+              disabled={currentPage === 0}
+              onClick={() => fetchRequests(currentPage - 1)}
+              className="mr-2"
+            >
+              Trang trước
+            </Button>
+            <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+              Trang {currentPage + 1} / {totalPages}
+            </span>
+            <Button
+              disabled={currentPage + 1 >= totalPages}
+              onClick={() => fetchRequests(currentPage + 1)}
+              className="ml-2"
+            >
+              Trang tiếp
+            </Button>
+          </div>
         </Spin>
         <Modal
           title="Chi tiết yêu cầu đổi lịch"

@@ -1,10 +1,23 @@
 // components/TreatmentDetailRow.jsx
 import React from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Table, Button, Spin, notification } from "antd";
+import { Table, Button, Spin, notification, Tag } from "antd";
 import { treatmentService } from "../../service/treatment.service";
 import dayjs from "dayjs";
 import { EyeOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
+const statusMap = {
+  PENDING: { text: "Đang chờ xử lý", color: "gold" },
+  INPROGRESS: { text: "Đang điều trị", color: "blue" },
+  CANCELLED: { text: "Đã hủy", color: "red" },
+  COMPLETED: { text: "Hoàn thành", color: "green" },
+  CONFIRMED: { text: "Đã xác nhận", color: "cyan" },
+};
+
+const resultMap = {
+  SUCCESS: { text: "Thành công", color: "green" },
+  FAILURE: { text: "Thất bại", color: "red" },
+  UNDETERMINED: { text: "Chưa xác định", color: "gold" },
+};
 
 const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
   {
@@ -23,14 +36,17 @@ const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
     dataIndex: "status",
     key: "status",
     render: (status) => {
-      const map = {
-        PENDING: "Đang chờ xử lý",
-        INPROGRESS: "Đang điều trị",
-        CANCELLED: "Đã hủy",
-        COMPLETED: "Hoàn thành",
-        CONFIRMED: "Đã xác nhận",
-      };
-      return map[status] || status;
+      const item = statusMap[status] || { text: status, color: "default" };
+      return <Tag color={item.color}>{item.text}</Tag>;
+    },
+  },
+  {
+    title: "Kết quả",
+    dataIndex: "result",
+    key: "result",
+    render: (result) => {
+      const item = resultMap[result] || { text: result, color: "default" };
+      return <Tag color={item.color}>{item.text}</Tag>;
     },
   },
   {
@@ -71,7 +87,7 @@ export default function TreatmentDetailRow({
         customerId,
         doctorId,
         page: pageParam,
-        size: 1,
+        size: 5,
       });
       const data = res?.data?.result;
       return {

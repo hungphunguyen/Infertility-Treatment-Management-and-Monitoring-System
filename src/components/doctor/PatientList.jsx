@@ -37,6 +37,8 @@ const PatientList = () => {
   const [doctorId, setDoctorId] = useState("");
   const [doctorName, setDoctorName] = useState("");
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
@@ -44,6 +46,7 @@ const PatientList = () => {
         const res = await authService.getMyInfo();
         const id = res?.data?.result?.id;
         const name = res?.data?.result?.fullName;
+
         if (id) {
           setDoctorId(id);
           setDoctorName(name);
@@ -60,31 +63,33 @@ const PatientList = () => {
 
   useEffect(() => {
     if (!doctorId) return;
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Sử dụng API mới để lấy lịch hẹn hôm nay
-        const response = await doctorService.getAppointmentsToday(0, 100);
-        
-        if (response?.data?.result?.content) {
-          const appointments = response.data.result.content;
-          console.log("✅ Appointments loaded from new API:", appointments);
-          setPatients(appointments);
-        } else {
-          console.warn("No appointments data from API");
-          setPatients([]);
-        }
-      } catch (error) {
-        console.error("Error fetching appointments:", error);
-        message.error("Có lỗi xảy ra khi lấy dữ liệu lịch hẹn");
-        setPatients([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [doctorId]);
+
+  const fetchData = async (page = 0) => {
+    try {
+      setLoading(true);
+
+      // Sử dụng API mới để lấy lịch hẹn hôm nay
+      const response = await doctorService.getAppointmentsToday(page, 8);
+      setCurrentPage(page);
+      setTotalPages(response.data.result.totalPages);
+      if (response?.data?.result?.content) {
+        const appointments = response.data.result.content;
+        console.log("✅ Appointments loaded from new API:", appointments);
+        setPatients(appointments);
+      } else {
+        console.warn("No appointments data from API");
+        setPatients([]);
+      }
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      message.error("Có lỗi xảy ra khi lấy dữ liệu lịch hẹn");
+      setPatients([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter data
   const filteredData = patients.filter((patient) => {
@@ -101,7 +106,7 @@ const PatientList = () => {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       PENDING: { color: "orange", text: "Chờ xác nhận" },
       PLANED: { color: "orange", text: "Đã đặt lịch" },
-      REJECTED: { color: "red", text: "Đã từ chối" },
+      REJECTED: { color: "red", text: "Từ chối yêu cầu thay đổi" },
       REJECTED_CHANGE: { color: "red", text: "Từ chối thay đổi" },
       PENDING_CHANGE: { color: "gold", text: "Yêu cầu thay đổi" },
       CANCELLED: { color: "red", text: "Đã hủy" },
@@ -117,14 +122,8 @@ const PatientList = () => {
 
   const handleDetail = async (record) => {
     try {
-      if (!record.recordId) {
-        message.error("Không tìm thấy recordId cho lịch hẹn này!");
-        return;
-      }
       // Lấy chi tiết treatment record theo recordId
-      const detailRes = await treatmentService.getTreatmentRecordById(
-        record.recordId
-      );
+      const detailRes = await treatmentService.getTreatmentRecordById(record);
       const detail = detailRes?.data?.result;
       if (!detail) {
         message.error("Không lấy được chi tiết hồ sơ điều trị!");
@@ -203,7 +202,9 @@ const PatientList = () => {
           <Button
             type="primary"
             size="small"
-            onClick={() => handleDetail(record)}
+            onClick={() => {
+              handleDetail(record.recordId);
+            }}
           >
             Chi Tiết
           </Button>
@@ -275,15 +276,36 @@ const PatientList = () => {
               <p>Không có bệnh nhân nào cần điều trị hôm nay.</p>
             </div>
           ) : (
-            <Table
-              columns={columns}
-              dataSource={filteredData}
-              rowKey="id"
-              pagination={{ pageSize: 10 }}
-              scroll={{ x: 1000 }}
-              bordered
-              style={{ borderRadius: 12, overflow: "hidden" }}
-            />
+            <>
+              <Table
+                columns={columns}
+                dataSource={filteredData}
+                rowKey="id"
+                pagination={false}
+                scroll={{ x: 1000 }}
+                bordered
+                style={{ borderRadius: 12, overflow: "hidden" }}
+              />
+              <div className="flex justify-end mt-4">
+                <Button
+                  disabled={currentPage === 0}
+                  onClick={() => fetchData(currentPage - 1)}
+                  className="mr-2"
+                >
+                  Trang trước
+                </Button>
+                <span className="px-4 py-1 bg-gray-100 rounded text-sm">
+                  Trang {currentPage + 1} / {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage + 1 >= totalPages}
+                  onClick={() => fetchData(currentPage + 1)}
+                  className="ml-2"
+                >
+                  Trang tiếp
+                </Button>
+              </div>
+            </>
           )}
         </Spin>
       </Card>

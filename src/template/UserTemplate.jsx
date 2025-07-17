@@ -1,27 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  Carousel,
-  Typography,
-  Row,
-  Col,
-  Card,
-  Button,
-  Input,
-  Form,
-  Checkbox,
-  Space,
-  Statistic,
-  Avatar,
-  Tag,
-  Rate,
-  Spin,
-} from "antd";
-import {
-  UserOutlined,
-  MailOutlined,
-  PhoneOutlined,
-  ArrowRightOutlined,
-} from "@ant-design/icons";
+import { Carousel, Typography, Row, Col, Card, Button, Spin } from "antd";
+import { ArrowRightOutlined } from "@ant-design/icons";
 import UserHeader from "../components/UserHeader";
 import UserFooter from "../components/UserFooter";
 import { Outlet, useNavigate, Link } from "react-router-dom";
@@ -34,8 +13,9 @@ import StarRatings from "react-star-ratings";
 import { path } from "../common/path";
 import { NotificationContext } from "../App";
 import { useSelector } from "react-redux";
-
-const { Title, Paragraph, Text } = Typography;
+import banner1 from "../../public/images/features/pc9.jpg";
+import banner2 from "../../public/images/features/pc1.jpg";
+import banner3 from "../../public/images/features/pc7.jpg";
 
 const UserTemplate = () => {
   const navigate = useNavigate();
@@ -130,7 +110,7 @@ const UserTemplate = () => {
           <div className="relative h-[600px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/images/features/pc9.jpg')" }}
+              style={{ backgroundImage: `url(${banner1})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -155,7 +135,7 @@ const UserTemplate = () => {
           <div className="relative h-[600px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/images/features/Pc1.jpg')" }}
+              style={{ backgroundImage: `url(${banner2})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -180,7 +160,7 @@ const UserTemplate = () => {
           <div className="relative h-[600px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/images/features/pc7.jpg')" }}
+              style={{ backgroundImage: `url(${banner3})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
             <div className="absolute inset-0 flex items-center justify-center">

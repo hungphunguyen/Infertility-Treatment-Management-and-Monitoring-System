@@ -54,7 +54,7 @@ const AppointmentSchedule = () => {
       case "PENDING_CHANGE":
         return "Yêu cầu thay đổi";
       case "REJECTED":
-        return "Đã từ chối";
+        return "Từ chối yêu cầu thay đổi";
       default:
         return "Không xác định";
     }
@@ -95,7 +95,7 @@ const AppointmentSchedule = () => {
         infoUser.id,
         status,
         page,
-        5
+        10
       );
       setTotalPages(res.data.result.totalPages);
       setCurrentPage(page);
