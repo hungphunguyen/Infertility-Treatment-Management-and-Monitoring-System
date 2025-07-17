@@ -111,6 +111,7 @@ const TreatmentProgress = () => {
             nextAppointment: null,
             overallProgress: overallProgress,
             customerId: detailData.customerId,
+            result: detailData.result, // <--- Bổ sung dòng này
             phases:
               detailData.treatmentSteps?.map((step, index) => ({
                 id: step.id,
@@ -191,6 +192,7 @@ const TreatmentProgress = () => {
                 totalSteps: treatment.totalSteps,
                 completedSteps: treatment.completedSteps,
                 customerId: customerId,
+                result: treatment.result, // <--- Bổ sung dòng này
               };
             })
           );
@@ -586,6 +588,16 @@ const TreatmentProgress = () => {
     return "#1890ff";
   };
 
+  // Thêm hàm chuyển đổi result sang tiếng Việt
+  const getResultText = (result) => {
+    switch ((result || '').toUpperCase()) {
+      case 'SUCCESS': return 'Thành công';
+      case 'FAILURE': return 'Thất bại';
+      case 'UNDETERMINED': return 'Chưa xác định';
+      default: return 'Chưa có';
+    }
+  };
+
   const renderTreatmentOverview = () => (
     <Card
       style={{
@@ -628,6 +640,11 @@ const TreatmentProgress = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
               {getStatusTag(treatmentData.status)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Kết quả">
+              <Tag color={treatmentData.result === 'SUCCESS' ? 'green' : treatmentData.result === 'FAILURE' ? 'red' : treatmentData.result === 'UNDETERMINED' ? 'orange' : 'default'}>
+                {getResultText(treatmentData.result)}
+              </Tag>
             </Descriptions.Item>
           </Descriptions>
         </Col>
@@ -759,6 +776,16 @@ const TreatmentProgress = () => {
       render: (status) => getStatusTag(status),
     },
     {
+      title: "Kết quả",
+      dataIndex: "result",
+      key: "result",
+      render: (result) => (
+        <Tag color={result === 'SUCCESS' ? 'green' : result === 'FAILURE' ? 'red' : result === 'UNDETERMINED' ? 'orange' : 'default'}>
+          {getResultText(result)}
+        </Tag>
+      ),
+    },
+    {
       title: "Tiến độ",
       dataIndex: "progress",
       key: "progress",
@@ -848,6 +875,7 @@ const TreatmentProgress = () => {
         nextAppointment: null,
         overallProgress: overallProgress,
         customerId: detailData.customerId,
+        result: detailData.result, // <--- Bổ sung dòng này
         phases: stepsWithAppointments.map((step, index) => ({
           id: step.id,
           name: step.name,

@@ -72,6 +72,10 @@ const TreatmentStageDetails = () => {
   const [addStepLoading, setAddStepLoading] = useState(false);
   const [stageOptions, setStageOptions] = useState([]);
   const [editingStepStageId, setEditingStepStageId] = useState(null);
+  // 1. Thêm state cho modal chọn kết quả
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [pendingCompleteStatus, setPendingCompleteStatus] = useState(null);
+  const [selectedResult, setSelectedResult] = useState(null);
 
   const statusOptions = [
     { value: "PLANED", label: "Đã đặt lịch" },
@@ -690,43 +694,61 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  // Hàm cập nhật trạng thái dịch vụ
+  // 2. Sửa hàm handleUpdateTreatmentStatus để nếu status === 'COMPLETED' thì show modal chọn kết quả
   const handleUpdateTreatmentStatus = async (status) => {
+    if (status === "COMPLETED") {
+      setShowResultModal(true);
+      setPendingCompleteStatus(status);
+      return;
+    }
     try {
-      console.log("🔍 Updating treatment status:", {
-        treatmentId: treatmentData.id,
-        status: status,
-      });
-
       const response = await treatmentService.updateTreatmentStatus(
         treatmentData.id,
         status
       );
-
-      console.log("🔍 Update treatment status response:", response);
-
       if (response?.data?.code === 1000 || response?.code === 1000) {
-        console.log("✅ Treatment status updated successfully");
-        showNotification(response?.data?.message || "Cập nhật trạng thái dịch vụ thành công", "success");
-
+        showNotification("Cập nhật trạng thái dịch vụ thành công", "success");
         // Refresh data
         try {
           const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
           const detailedData = detailedResponse?.data?.result;
-
-          if (detailedData) {
-            console.log("✅ Setting updated treatment data:", detailedData);
-            setTreatmentData(detailedData);
-          }
-        } catch (refreshError) {
-          console.warn("❌ Không thể refresh data after status update:", refreshError);
-        }
+          if (detailedData) setTreatmentData(detailedData);
+        } catch {}
       } else {
-        console.warn("❌ Treatment status update failed - invalid response code:", response?.code || response?.data?.code);
         showNotification(response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
       }
     } catch (error) {
-      console.error("❌ Error updating treatment status:", error);
+      showNotification(error.response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+    }
+  };
+
+  // 3. Hàm xác nhận hoàn thành với kết quả
+  const handleConfirmCompleteWithResult = async () => {
+    if (!selectedResult) {
+      showNotification("Vui lòng chọn kết quả cuối cùng!", "warning");
+      return;
+    }
+    try {
+      const response = await treatmentService.updateTreatmentStatus(
+        treatmentData.id,
+        "COMPLETED",
+        selectedResult
+      );
+      if (response?.data?.code === 1000 || response?.code === 1000) {
+        showNotification("Hoàn thành điều trị thành công", "success");
+        setShowResultModal(false);
+        setSelectedResult(null);
+        setPendingCompleteStatus(null);
+        // Refresh data
+        try {
+          const detailedResponse = await treatmentService.getTreatmentRecordById(treatmentData.id);
+          const detailedData = detailedResponse?.data?.result;
+          if (detailedData) setTreatmentData(detailedData);
+        } catch {}
+      } else {
+        showNotification(response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
+      }
+    } catch (error) {
       showNotification(error.response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại", "error");
     }
   };
@@ -1789,6 +1811,26 @@ const TreatmentStageDetails = () => {
             label: `${s.name} - ${s.price?.toLocaleString()}đ`,
           }))}
         />
+      </Modal>
+
+      {/* Modal chọn kết quả điều trị cuối cùng */}
+      <Modal
+        title="Chọn kết quả:"
+        open={showResultModal}
+        onCancel={() => { setShowResultModal(false); setSelectedResult(null); setPendingCompleteStatus(null); }}
+        onOk={handleConfirmCompleteWithResult}
+        okText="Xác nhận"
+        cancelText="Hủy"
+        destroyOnClose
+      >
+        <Radio.Group
+          value={selectedResult}
+          onChange={e => setSelectedResult(e.target.value)}
+          style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+        >
+          <Radio value="SUCCESS">Thành công </Radio>
+          <Radio value="FAILURE">Thất bại</Radio>
+        </Radio.Group>
       </Modal>
     </div>
   );
