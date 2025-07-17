@@ -183,4 +183,9 @@ export const blogService = {
       skipAuth: true,
     });
   },
+  getBlogPublicId: (id) => {
+    return http.get(`v1/public/blogs/${id}`, {
+      skipAuth: true,
+    });
+  },
 };
