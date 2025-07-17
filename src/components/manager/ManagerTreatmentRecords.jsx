@@ -63,7 +63,7 @@ const ManagerTreatmentRecords = () => {
       setLoading(true);
       const response = await treatmentService.getTreatmentRecordsPagination({
         page,
-        size: 5,
+        size: 8,
       });
 
       const data = response?.data?.result;

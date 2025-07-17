@@ -35,7 +35,7 @@ const FeedbackManagement = () => {
 
   const getAllFeedBack = async (page = 0) => {
     try {
-      const res = await managerService.getAllFeedback(page, 5);
+      const res = await managerService.getAllFeedback(page, 10);
       console.log(res);
       if (res?.data?.result?.content) {
         setFeedbacks(res.data.result.content);

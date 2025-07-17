@@ -114,7 +114,13 @@ export const serviceService = {
     try {
       const url = "v1/public/services";
       const params = { page, size, name };
-      const response = await http.get(url, { params });
+      const response = await http.get(
+        url,
+        { params },
+        {
+          skipAuth: true,
+        }
+      );
       return response;
     } catch (error) {
       throw error;
@@ -125,7 +131,9 @@ export const serviceService = {
   getPublicServiceById: async (id) => {
     try {
       const url = `v1/public/services/${id}`;
-      const response = await http.get(url);
+      const response = await http.get(url, {
+        skipAuth: true,
+      });
       return response;
     } catch (error) {
       throw error;

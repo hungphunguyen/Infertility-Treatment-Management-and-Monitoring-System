@@ -81,7 +81,7 @@ const DoctorBlogManagement = () => {
       // Sử dụng getAllBlogs thay vì getBlogsByAuthor vì API getBlogsByAuthor có vấn đề
       const response = await blogService.getAllBlogs({
         page,
-        size: 5,
+        size: 9,
       });
       setCurrentPage(page);
       setTotalPages(response.data.result.totalPages);

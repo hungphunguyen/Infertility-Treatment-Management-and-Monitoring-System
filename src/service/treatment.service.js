@@ -1,9 +1,10 @@
 import { http } from "./config";
-import axios from "axios";
 
 export const treatmentService = {
   getTreatmentRecordsByDoctor: async (doctorId, size = 1000) => {
-    return await http.get(`v1/treatment-records?doctorId=${doctorId}&size=${size}`);
+    return await http.get(
+      `v1/treatment-records?doctorId=${doctorId}&size=${size}`
+    );
   },
 
   getTreatmentRecordById: async (id) => {
@@ -245,19 +246,18 @@ export const treatmentService = {
     try {
       let url = `v1/treatment-records/${recordId}/status?status=${status}`;
       if (result) url += `&result=${result}`;
-      const response = await http.put(
-        url,
-        null,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
+      const response = await http.put(url, null, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
       return response;
     } catch (error) {
-      console.warn("❌ API updateTreatmentStatus error:", error?.response?.data);
+      console.warn(
+        "❌ API updateTreatmentStatus error:",
+        error?.response?.data
+      );
       throw error;
     }
   },

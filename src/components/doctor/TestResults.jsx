@@ -80,7 +80,7 @@ const TestResults = () => {
       const response = await treatmentService.getTreatmentRecordsPagination({
         doctorId,
         page,
-        size: 5, // lấy tất cả
+        size: 10, // lấy tất cả
       });
 
       const data = response?.data?.result?.content || [];

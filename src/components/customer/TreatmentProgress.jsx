@@ -159,7 +159,7 @@ const TreatmentProgress = () => {
         const response = await treatmentService.getTreatmentRecords({
           customerId: customerId,
           page,
-          size: 5,
+          size: 10,
         });
         setCurrentPage(page);
         setTotalPages(response.data.result.totalPages);

@@ -86,7 +86,7 @@ const MyServices = () => {
       const response = await treatmentService.getTreatmentRecords({
         customerId: customerId,
         page,
-        size: 5,
+        size: 10,
       });
 
       if (response?.data?.result?.content) {

@@ -85,7 +85,7 @@ const AppointmentManagement = () => {
       // Bước 1: Lấy tất cả appointments
       const response = await treatmentService.getAppointments({
         page: page, // API backend thường dùng 0-based
-        size: 5,
+        size: 8,
       });
 
       const appointmentData = response?.data?.result?.content || [];
@@ -95,7 +95,7 @@ const AppointmentManagement = () => {
       const changeRequestsResponse = await treatmentService.getAppointments({
         status: "PENDING_CHANGE",
         page: page,
-        size: 5,
+        size: 8,
       });
 
       const pendingChangeAppointments =
