@@ -17,8 +17,9 @@ import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { path } from "../common/path";
+import banner1 from "../../public/images/features/pc7.jpg";
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph } = Typography;
 
 const OurStaffPage = () => {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ const OurStaffPage = () => {
       {/* Hero Banner */}
       <div className="relative h-[400px] w-full overflow-hidden mb-0">
         <img
-          src="/images/features/pc7.jpg"
+          src={banner1}
           alt="Băng rôn Blog"
           className="w-full h-full object-cover object-top"
         />

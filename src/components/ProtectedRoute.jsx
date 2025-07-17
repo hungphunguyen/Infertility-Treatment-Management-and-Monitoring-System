@@ -195,7 +195,7 @@ const ProtectedRoute = ({ children }) => {
           <div className="mt-6">
             <Paragraph style={{ fontSize: "14px", color: "#999" }}>
               Chưa có tài khoản?{" "}
-              <a href={path.signUp} style={{ color: "#1890ff" }}>
+              <a href={path.testLogin} style={{ color: "#1890ff" }}>
                 Đăng ký ngay
               </a>{" "}
               để bắt đầu hành trình điều trị.
