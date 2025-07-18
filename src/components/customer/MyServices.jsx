@@ -123,15 +123,15 @@ const MyServices = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-        return <Tag color="#1890ff">Đang điều trị</Tag>;
+        return <Tag color="processing">Đang điều trị</Tag>;
       case "PENDING":
         return <Tag color="warning">Đang chờ điều trị</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       case "PLANED":
-        return <Tag color="gold">Đã lên lịch</Tag>;
+        return <Tag color="warning">Đã lên lịch</Tag>;
       case "CONFIRMED":
-        return <Tag color="blue">Đã xác nhận</Tag>;
+        return <Tag color="processing">Đã xác nhận</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -142,11 +142,11 @@ const MyServices = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-      case "IN_PROGRESS":
+        return <Tag color="processing">Đang thực hiện</Tag>;
       case "CONFIRMED":
-        return <Tag color="#1890ff">Đang điều trị</Tag>;
+        return <Tag color="processing">Đã xác nhận</Tag>;
       case "PENDING":
-      case "PLANNED":
+      case "PLANED":
         return <Tag color="warning">Đang chờ điều trị</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
@@ -222,7 +222,7 @@ const MyServices = () => {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (status, record) => getStatusTag(status),
+      render: (status) => getStatusTag(status),
     },
     {
       title: "Tiến độ",

@@ -146,17 +146,17 @@ const TreatmentStagesView = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "CONFIRMED":
-        return "#1890ff";
+        return "processing";
       case "PLANED":
-        return "#d9d9d9";
+        return "warning";
       case "COMPLETED":
-        return "#52c41a";
+        return "success";
       case "CANCELLED":
-        return "#ff4d4f";
+        return "error";
       case "INPROGRESS":
-        return "#fa8c16";
+        return "#processing";
       default:
-        return "#d9d9d9";
+        return "#processing";
     }
   };
 
@@ -203,6 +203,8 @@ const TreatmentStagesView = () => {
         return "green";
       case "CANCELLED":
         return "red";
+      case "PLANED":
+        return "yellow";
       case "PENDING_CHANGE":
         return "gold";
       default:
@@ -220,6 +222,8 @@ const TreatmentStagesView = () => {
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "PLANED":
+        return "Đã lên lịch";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
       default:
@@ -228,11 +232,15 @@ const TreatmentStagesView = () => {
   };
 
   const getResultText = (result) => {
-    switch ((result || '').toUpperCase()) {
-      case 'SUCCESS': return 'Thành công';
-      case 'FAILURE': return 'Thất bại';
-      case 'UNDETERMINED': return 'Chưa xác định';
-      default: return 'Chưa có';
+    switch ((result || "").toUpperCase()) {
+      case "SUCCESS":
+        return "Thành công";
+      case "FAILURE":
+        return "Thất bại";
+      case "UNDETERMINED":
+        return "Chưa xác định";
+      default:
+        return "Chưa có";
     }
   };
 
@@ -319,13 +327,6 @@ const TreatmentStagesView = () => {
           >
             Quay lại
           </Button>
-
-          <Title level={3}>
-            <Space>
-              <MedicineBoxOutlined />
-              Chi tiết quy trình điều trị
-            </Space>
-          </Title>
         </div>
 
         {/* Patient Information */}
@@ -368,16 +369,7 @@ const TreatmentStagesView = () => {
             <Col xs={24} md={8}>
               <Space>
                 <Text strong>Trạng thái:</Text>
-                <Tag
-                  color={getStatusColor(treatmentData.status)}
-                  style={{
-                    fontWeight: "bold",
-                    borderRadius: "6px",
-                    padding: "4px 12px",
-                    fontSize: "14px",
-                  }}
-                  icon={getStatusIcon(treatmentData.status)}
-                >
+                <Tag color={getStatusColor(treatmentData.status)}>
                   {getStatusText(treatmentData.status)}
                 </Tag>
               </Space>
@@ -385,43 +377,24 @@ const TreatmentStagesView = () => {
             <Col xs={24} md={8}>
               <Space>
                 <Text strong>Kết quả:</Text>
-                <Tag color={treatmentData.result === 'SUCCESS' ? 'green' : treatmentData.result === 'FAILURE' ? 'red' : treatmentData.result === 'UNDETERMINED' ? 'orange' : 'default'}>
+                <Tag
+                  color={
+                    treatmentData.result === "SUCCESS"
+                      ? "green"
+                      : treatmentData.result === "FAILURE"
+                      ? "red"
+                      : treatmentData.result === "UNDETERMINED"
+                      ? "orange"
+                      : "default"
+                  }
+                >
                   {getResultText(treatmentData.result)}
                 </Tag>
               </Space>
             </Col>
-            <Col xs={24} md={8}>
-              
-            </Col>
+            <Col xs={24} md={8}></Col>
           </Row>
         </Card>
-
-        {/* Progress Bar */}
-        {treatmentData.treatmentSteps &&
-          treatmentData.treatmentSteps.length > 0 && (
-            <Card
-              title="Tiến độ điều trị"
-              style={{ marginBottom: 24 }}
-              size="small"
-            >
-              <Progress
-                percent={calculateProgress()}
-                status={calculateProgress() === 100 ? "success" : "active"}
-                strokeColor={{
-                  "0%": "#108ee9",
-                  "100%": "#87d068",
-                }}
-              />
-              <Text type="secondary" style={{ marginTop: 8, display: "block" }}>
-                {
-                  treatmentData.treatmentSteps.filter(
-                    (step) => step.status === "COMPLETED"
-                  ).length
-                }{" "}
-                / {treatmentData.treatmentSteps.length} bước đã hoàn thành
-              </Text>
-            </Card>
-          )}
 
         {/* Treatment Steps Timeline */}
         {treatmentData.treatmentSteps &&

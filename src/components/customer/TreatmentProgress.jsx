@@ -372,13 +372,12 @@ const TreatmentProgress = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-      case "IN_PROGRESS":
-        return <Tag color="#1890ff">Đang thực hiện</Tag>;
+        return <Tag color="processing">Đang thực hiện</Tag>;
       case "CONFIRMED":
-        return <Tag color="#1890ff">Đã xác nhận</Tag>;
+        return <Tag color="processing">Đã xác nhận</Tag>;
       case "PENDING":
       case "PLANED":
-        return <Tag color="orange">Đã đặt lịch</Tag>;
+        return <Tag color="warning">Đã đặt lịch</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       case "PENDING_CHANGE":
@@ -386,7 +385,7 @@ const TreatmentProgress = () => {
       case "REJECTED_CHANGE":
         return <Tag color="red">Từ chối đổi lịch</Tag>;
       case "REJECTED":
-        return <Tag color="red">Từ chối thay đổi lịch hẹn</Tag>;
+        return <Tag color="error">Từ chối thay đổi lịch hẹn</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -397,9 +396,9 @@ const TreatmentProgress = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-      case "IN_PROGRESS":
+        return <Tag color="processing">Đang thực hiện</Tag>;
       case "CONFIRMED":
-        return <Tag color="#1890ff">Đã xác nhận</Tag>;
+        return <Tag color="processing">Đã xác nhận</Tag>;
       case "PENDING":
       case "PLANED":
         return <Tag color="warning">Đã đặt lịch</Tag>;
