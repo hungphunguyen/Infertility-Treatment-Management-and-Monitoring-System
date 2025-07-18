@@ -120,7 +120,7 @@ const ProtectedRoute = ({ children }) => {
               }}
             />
             <Title level={2} style={{ color: "#333", marginBottom: "8px" }}>
-              🔒 Yêu cầu đăng nhập
+              Yêu cầu đăng nhập
             </Title>
             <Paragraph
               style={{ fontSize: "16px", color: "#666", marginBottom: "24px" }}
@@ -133,7 +133,7 @@ const ProtectedRoute = ({ children }) => {
 
           <div className="mb-6">
             <Title level={4} style={{ color: "#333", marginBottom: "16px" }}>
-              🎯 Lợi ích khi đăng nhập:
+              Lợi ích khi đăng nhập:
             </Title>
             <div className="text-left space-y-3">
               <div className="flex items-center">

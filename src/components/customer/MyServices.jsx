@@ -14,6 +14,7 @@ import {
   Collapse,
   Progress,
   Space,
+  Input,
 } from "antd";
 import {
   ExperimentOutlined,
@@ -47,6 +48,11 @@ const MyServices = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [selectedTreatment, setSelectedTreatment] = useState(null);
+  const [cancelLoadingRecord, setCancelLoadingRecord] = useState(false);
 
   useEffect(() => {
     fetchTreatmentRecords();
@@ -155,24 +161,53 @@ const MyServices = () => {
     }
   };
 
-  const handleCancelTreatment = async (record) => {
-    if (!userId) return;
-    setCancelLoading((l) => ({ ...l, [record.id]: true }));
-    try {
-      const res = await treatmentService.cancelTreatmentRecord(record.id);
-      showNotification(
-        res?.data?.message || "Hủy hồ sơ điều trị thành công.",
-        "success"
-      );
-      fetchTreatmentRecords();
-    } catch (err) {
-      showNotification(
-        err?.response?.data?.message || "Có lỗi xảy ra.",
-        "error"
-      );
-    } finally {
-      setCancelLoading((l) => ({ ...l, [record.id]: false }));
+  // const handleCancelTreatment = async (record) => {
+  //   if (!userId) return;
+  //   setCancelLoading((l) => ({ ...l, [record.id]: true }));
+  //   try {
+  //     const res = await treatmentService.cancelTreatmentRecord(record.id);
+  //     showNotification(
+  //       res?.data?.message || "Hủy hồ sơ điều trị thành công.",
+  //       "success"
+  //     );
+  //     fetchTreatmentRecords();
+  //   } catch (err) {
+  //     showNotification(err?.response?.data?.message, "error");
+  //   } finally {
+  //     setCancelLoading((l) => ({ ...l, [record.id]: false }));
+  //   }
+  // };
+
+  const handleCancelTreatment = (treatment) => {
+    setSelectedTreatment(treatment);
+    setIsModalVisible(true);
+  };
+
+  const handleOk = async () => {
+    if (!cancelReason.trim()) {
+      showNotification("Vui lòng nhập lý do huỷ!", "warning");
+      return;
     }
+    setCancelLoadingRecord(true);
+    try {
+      await treatmentService.cancelTreatmentRecord(
+        selectedTreatment.id,
+        cancelReason
+      );
+      showNotification("Hủy hồ sơ thành công!", "success");
+      setIsModalVisible(false);
+      setCancelReason("");
+      setTimeout(() => window.location.reload(), 800);
+    } catch (err) {
+      showNotification(err.response?.data?.message, "error");
+    } finally {
+      setCancelLoadingRecord(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setCancelReason("");
   };
 
   const handleOpenFeedbackForm = (record) => {
@@ -423,6 +458,26 @@ const MyServices = () => {
         ) : (
           <Text type="secondary">Không có dữ liệu chi tiết</Text>
         )}
+      </Modal>
+      {/* Modal hủy hồ sơ */}
+      <Modal
+        title="Bạn có chắc chắn muốn hủy hồ sơ/dịch vụ này?"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        confirmLoading={cancelLoadingRecord}
+        okText="Hủy hồ sơ"
+        okType="danger"
+        cancelText="Không"
+      >
+        <div>Bệnh nhân: {selectedTreatment?.customerName}</div>
+        <Input.TextArea
+          rows={3}
+          placeholder="Nhập lý do huỷ"
+          value={cancelReason}
+          onChange={(e) => setCancelReason(e.target.value)}
+          style={{ marginTop: 16 }}
+        />
       </Modal>
     </div>
   );

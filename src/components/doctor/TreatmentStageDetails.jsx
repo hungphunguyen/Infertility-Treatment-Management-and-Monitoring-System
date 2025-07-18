@@ -79,6 +79,10 @@ const TreatmentStageDetails = () => {
   const [selectedResult, setSelectedResult] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
 
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [selectedTreatment, setSelectedTreatment] = useState(null);
+
   const statusOptions = [
     { value: "PLANED", label: "Đã đặt lịch" },
     { value: "PENDING_CHANGE", label: "Chờ duyệt đổi lịch" },
@@ -701,28 +705,35 @@ const TreatmentStageDetails = () => {
 
   // Thêm hàm hủy dịch vụ tương tự như trong TestResults
   const handleCancelService = (treatment) => {
-    Modal.confirm({
-      title: "Bạn có chắc chắn muốn hủy hồ sơ/dịch vụ này?",
-      icon: <ExclamationCircleOutlined />,
-      content: `Bệnh nhân: ${treatment.customerName || treatment.customerName}`,
-      okText: "Hủy hồ sơ",
-      okType: "danger",
-      cancelText: "Không",
-      confirmLoading: cancelLoading,
-      onOk: async () => {
-        setCancelLoading(true);
-        try {
-          await treatmentService.cancelTreatmentRecord(treatment.id);
-          showNotification("Hủy hồ sơ thành công!", "success");
-          // Reload danh sách
-          setTimeout(() => window.location.reload(), 800);
-        } catch (err) {
-          showNotification(err.response?.data?.message, "error");
-        } finally {
-          setCancelLoading(false);
-        }
-      },
-    });
+    setSelectedTreatment(treatment);
+    setIsModalVisible(true);
+  };
+
+  const handleOk = async () => {
+    if (!cancelReason.trim()) {
+      showNotification("Vui lòng nhập lý do huỷ!", "warning");
+      return;
+    }
+    setCancelLoading(true);
+    try {
+      await treatmentService.cancelTreatmentRecord(
+        selectedTreatment.id,
+        cancelReason
+      );
+      showNotification("Hủy hồ sơ thành công!", "success");
+      setIsModalVisible(false);
+      setCancelReason("");
+      setTimeout(() => window.location.reload(), 800);
+    } catch (err) {
+      showNotification(err.response?.data?.message, "error");
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setCancelReason("");
   };
 
   //2a hàm handleUpdateTreatmentStatus để nếu status === 'COMPLETED' thì show modal chọn kết quả
@@ -1943,6 +1954,27 @@ const TreatmentStageDetails = () => {
           <Radio value="SUCCESS">Thành công </Radio>
           <Radio value="FAILURE">Thất bại</Radio>
         </Radio.Group>
+      </Modal>
+
+      {/* Modal hủy hồ sơ */}
+      <Modal
+        title="Bạn có chắc chắn muốn hủy hồ sơ/dịch vụ này?"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        confirmLoading={cancelLoading}
+        okText="Hủy hồ sơ"
+        okType="danger"
+        cancelText="Không"
+      >
+        <div>Bệnh nhân: {selectedTreatment?.customerName}</div>
+        <Input.TextArea
+          rows={3}
+          placeholder="Nhập lý do huỷ"
+          value={cancelReason}
+          onChange={(e) => setCancelReason(e.target.value)}
+          style={{ marginTop: 16 }}
+        />
       </Modal>
     </div>
   );
