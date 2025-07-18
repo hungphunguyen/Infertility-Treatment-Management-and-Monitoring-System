@@ -111,6 +111,7 @@ const TreatmentProgress = () => {
             nextAppointment: null,
             overallProgress: overallProgress,
             customerId: detailData.customerId,
+            result: detailData.result, // <--- Bổ sung dòng này
             phases:
               detailData.treatmentSteps?.map((step, index) => ({
                 id: step.id,
@@ -158,7 +159,7 @@ const TreatmentProgress = () => {
         const response = await treatmentService.getTreatmentRecords({
           customerId: customerId,
           page,
-          size: 5,
+          size: 10,
         });
         setCurrentPage(page);
         setTotalPages(response.data.result.totalPages);
@@ -191,6 +192,7 @@ const TreatmentProgress = () => {
                 totalSteps: treatment.totalSteps,
                 completedSteps: treatment.completedSteps,
                 customerId: customerId,
+                result: treatment.result, // <--- Bổ sung dòng này
               };
             })
           );
@@ -370,13 +372,12 @@ const TreatmentProgress = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-      case "IN_PROGRESS":
-        return <Tag color="#1890ff">Đang thực hiện</Tag>;
+        return <Tag color="processing">Đang thực hiện</Tag>;
       case "CONFIRMED":
-        return <Tag color="#1890ff">Đã xác nhận</Tag>;
+        return <Tag color="processing">Đã xác nhận</Tag>;
       case "PENDING":
       case "PLANED":
-        return <Tag color="orange">Đã đặt lịch</Tag>;
+        return <Tag color="warning">Đã đặt lịch</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       case "PENDING_CHANGE":
@@ -384,7 +385,7 @@ const TreatmentProgress = () => {
       case "REJECTED_CHANGE":
         return <Tag color="red">Từ chối đổi lịch</Tag>;
       case "REJECTED":
-        return <Tag color="red">Đã từ chối</Tag>;
+        return <Tag color="error">Từ chối thay đổi lịch hẹn</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -395,9 +396,9 @@ const TreatmentProgress = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-      case "IN_PROGRESS":
+        return <Tag color="processing">Đang thực hiện</Tag>;
       case "CONFIRMED":
-        return <Tag color="#1890ff">Đang điều trị</Tag>;
+        return <Tag color="processing">Đã xác nhận</Tag>;
       case "PENDING":
       case "PLANED":
         return <Tag color="warning">Đã đặt lịch</Tag>;
@@ -586,6 +587,20 @@ const TreatmentProgress = () => {
     return "#1890ff";
   };
 
+  // Thêm hàm chuyển đổi result sang tiếng Việt
+  const getResultText = (result) => {
+    switch ((result || "").toUpperCase()) {
+      case "SUCCESS":
+        return "Thành công";
+      case "FAILURE":
+        return "Thất bại";
+      case "UNDETERMINED":
+        return "Chưa xác định";
+      default:
+        return "Chưa có";
+    }
+  };
+
   const renderTreatmentOverview = () => (
     <Card
       style={{
@@ -628,6 +643,21 @@ const TreatmentProgress = () => {
             </Descriptions.Item>
             <Descriptions.Item label="Trạng thái">
               {getStatusTag(treatmentData.status)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Kết quả">
+              <Tag
+                color={
+                  treatmentData.result === "SUCCESS"
+                    ? "green"
+                    : treatmentData.result === "FAILURE"
+                    ? "red"
+                    : treatmentData.result === "UNDETERMINED"
+                    ? "orange"
+                    : "default"
+                }
+              >
+                {getResultText(treatmentData.result)}
+              </Tag>
             </Descriptions.Item>
           </Descriptions>
         </Col>
@@ -759,6 +789,26 @@ const TreatmentProgress = () => {
       render: (status) => getStatusTag(status),
     },
     {
+      title: "Kết quả",
+      dataIndex: "result",
+      key: "result",
+      render: (result) => (
+        <Tag
+          color={
+            result === "SUCCESS"
+              ? "green"
+              : result === "FAILURE"
+              ? "red"
+              : result === "UNDETERMINED"
+              ? "orange"
+              : "default"
+          }
+        >
+          {getResultText(result)}
+        </Tag>
+      ),
+    },
+    {
       title: "Tiến độ",
       dataIndex: "progress",
       key: "progress",
@@ -848,6 +898,7 @@ const TreatmentProgress = () => {
         nextAppointment: null,
         overallProgress: overallProgress,
         customerId: detailData.customerId,
+        result: detailData.result, // <--- Bổ sung dòng này
         phases: stepsWithAppointments.map((step, index) => ({
           id: step.id,
           name: step.name,

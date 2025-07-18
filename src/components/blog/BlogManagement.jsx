@@ -84,7 +84,7 @@ const BlogManagement = () => {
 
       const response = await blogService.getAllBlogs({
         page: page,
-        size: 5,
+        size: 9,
       });
       setCurrentPage(page);
       setTotalPages(response.data.result.totalPages);

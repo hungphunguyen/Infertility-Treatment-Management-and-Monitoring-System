@@ -145,7 +145,7 @@ const LoginForm = ({ switchToRegister }) => {
 
           <button
             type="submit"
-            className="w-full py-2 bg-orange-600 hover:brightness-110 hover:scale-[1.02] transition-all duration-200 ease-in-out rounded-md text-white font-semibold"
+            className="w-full py-1 bg-orange-600 hover:brightness-110 hover:scale-[1.02] transition-all duration-200 ease-in-out rounded-md text-white font-semibold"
           >
             Đăng nhập
           </button>
@@ -171,7 +171,7 @@ const LoginForm = ({ switchToRegister }) => {
 
         {isResend && (
           <Link to={path.verify}>
-            <div className="mt-2 px-4 py-2 text-center text-white text-sm font-semibold bg-orange-500 rounded-lg hover:bg-orange-600 transition duration-200">
+            <div className="px-4 py-1 text-center text-white text-sm font-semibold bg-orange-500 rounded-lg hover:bg-orange-600 transition duration-200">
               Nếu bạn muốn xác nhận OTP lại, hãy nhấn vào đây
             </div>
           </Link>

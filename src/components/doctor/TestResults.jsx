@@ -50,12 +50,8 @@ const TestResults = () => {
     cancelled: 0,
   });
 
-  const [treatmentDetails, setTreatmentDetails] = useState({}); // lưu chi tiết theo customerId
-  const [loadingExpanded, setLoadingExpanded] = useState([]);
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
-  const [currentPageExpand, setCurrentPageExpand] = useState(0); // backend page = 0-based
-  const [totalPagesExpand, setTotalPagesExpand] = useState(1);
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
@@ -84,7 +80,7 @@ const TestResults = () => {
       const response = await treatmentService.getTreatmentRecordsPagination({
         doctorId,
         page,
-        size: 5, // lấy tất cả
+        size: 10, // lấy tất cả
       });
 
       const data = response?.data?.result?.content || [];

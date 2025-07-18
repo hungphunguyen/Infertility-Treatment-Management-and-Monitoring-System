@@ -63,7 +63,7 @@ const ManagerTreatmentRecords = () => {
       setLoading(true);
       const response = await treatmentService.getTreatmentRecordsPagination({
         page,
-        size: 5,
+        size: 8,
       });
 
       const data = response?.data?.result;
@@ -294,12 +294,12 @@ const ManagerTreatmentRecords = () => {
       ),
     },
     {
-      title: "Số hồ sơ",
+      title: "Số dịch vụ",
       dataIndex: "treatments",
       key: "totalRecord",
       render: (treatments) => {
         const record = treatments?.[0];
-        return <Text>{record?.totalRecord ?? 0}</Text>;
+        return <Tag color="blue">{record.totalRecord} dịch vụ</Tag>;
       },
     },
 
@@ -308,13 +308,6 @@ const ManagerTreatmentRecords = () => {
       key: "action",
       render: (_, record) => (
         <Space>
-          <Button
-            type="primary"
-            icon={<EyeOutlined />}
-            onClick={() => viewRecord(record.treatments[0])}
-          >
-            Xem chi tiết
-          </Button>
           <Button
             icon={
               expandedRows.includes(record.key) ? (

@@ -1,5 +1,5 @@
 // components/ManagerTreatmentDetailRow.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Table, Button, Spin, notification, Tag, Typography } from "antd";
 import { EyeOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
@@ -14,6 +14,12 @@ const statusMap = {
   INPROGRESS: { text: "Đang điều trị", color: "blue" },
   CANCELLED: { text: "Đã hủy", color: "red" },
   COMPLETED: { text: "Hoàn thành", color: "green" },
+};
+
+const resultMap = {
+  SUCCESS: { text: "Thành công", color: "green" },
+  FAILURE: { text: "Thất bại", color: "red" },
+  UNDETERMINED: { text: "Chưa xác định", color: "gold" },
 };
 
 const columnsChiTiet = (viewRecord, handleApprove, handleCancel) => [
@@ -112,6 +118,19 @@ const columnsChiTiet = (viewRecord, handleApprove, handleCancel) => [
     },
   },
   {
+    title: "Kết quả",
+    dataIndex: "result",
+    key: "result",
+    render: (result) => {
+      const s = resultMap[result] || { text: result, color: "default" };
+      return (
+        <div>
+          <Tag color={s.color}>{s.text}</Tag>
+        </div>
+      );
+    },
+  },
+  {
     title: "Thao tác",
     key: "action",
     render: (_, treatment) => (
@@ -163,6 +182,8 @@ export default function ManagerTreatmentDetailRow({
   handleApprove,
   handleCancel,
 }) {
+  const [recordExpand, setRecordExpand] = useState([]);
+
   const fetchTreatments = async ({ pageParam = 0 }) => {
     try {
       const res = await treatmentService.getTreatmentRecordsExpand({
@@ -171,6 +192,7 @@ export default function ManagerTreatmentDetailRow({
         size: 5,
       });
       const data = res?.data?.result;
+      setRecordExpand(data.content);
       return {
         list: data?.content || [],
         hasNextPage: !data?.last,
@@ -189,6 +211,11 @@ export default function ManagerTreatmentDetailRow({
       queryFn: fetchTreatments,
       getNextPageParam: (_, allPages) => allPages.length,
       enabled: !!customerId,
+
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+      staleTime: Infinity, // hoặc vài phút nếu muốn
     });
 
   const treatments = data?.pages.flatMap((page) => page.list) || [];
@@ -208,6 +235,7 @@ export default function ManagerTreatmentDetailRow({
             <Button
               onClick={() => fetchNextPage()}
               loading={isFetchingNextPage}
+              disabled={recordExpand.length === 0}
             >
               {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
             </Button>

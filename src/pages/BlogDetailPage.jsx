@@ -44,7 +44,7 @@ const BlogDetailPage = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await blogService.getBlogById(blogSlug); // Use blogSlug as blogId
+        const response = await blogService.getBlogPublicId(blogSlug); // Use blogSlug as blogId
         if (response.data && response.data.result) {
           setBlogPost(response.data.result);
           // For related posts, you might need another API call or backend logic to fetch them.

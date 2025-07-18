@@ -146,17 +146,17 @@ const TreatmentStagesView = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "CONFIRMED":
-        return "#1890ff";
-      case "PLANNED":
-        return "#d9d9d9";
+        return "processing";
+      case "PLANED":
+        return "warning";
       case "COMPLETED":
-        return "#52c41a";
+        return "success";
       case "CANCELLED":
-        return "#ff4d4f";
+        return "error";
       case "INPROGRESS":
-        return "#fa8c16";
+        return "#processing";
       default:
-        return "#d9d9d9";
+        return "#processing";
     }
   };
 
@@ -164,7 +164,7 @@ const TreatmentStagesView = () => {
     switch (status) {
       case "CONFIRMED":
         return "Đã xác nhận";
-      case "PLANNED":
+      case "PLANED":
         return "Chờ xếp lịch";
       case "COMPLETED":
         return "Hoàn thành";
@@ -203,6 +203,8 @@ const TreatmentStagesView = () => {
         return "green";
       case "CANCELLED":
         return "red";
+      case "PLANED":
+        return "yellow";
       case "PENDING_CHANGE":
         return "gold";
       default:
@@ -220,10 +222,25 @@ const TreatmentStagesView = () => {
         return "Hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
+      case "PLANED":
+        return "Đã lên lịch";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
       default:
         return status;
+    }
+  };
+
+  const getResultText = (result) => {
+    switch ((result || "").toUpperCase()) {
+      case "SUCCESS":
+        return "Thành công";
+      case "FAILURE":
+        return "Thất bại";
+      case "UNDETERMINED":
+        return "Chưa xác định";
+      default:
+        return "Chưa có";
     }
   };
 
@@ -310,13 +327,6 @@ const TreatmentStagesView = () => {
           >
             Quay lại
           </Button>
-
-          <Title level={3}>
-            <Space>
-              <MedicineBoxOutlined />
-              Chi tiết quy trình điều trị
-            </Space>
-          </Title>
         </div>
 
         {/* Patient Information */}
@@ -359,58 +369,32 @@ const TreatmentStagesView = () => {
             <Col xs={24} md={8}>
               <Space>
                 <Text strong>Trạng thái:</Text>
-                <Tag
-                  color={getStatusColor(treatmentData.status)}
-                  style={{
-                    fontWeight: "bold",
-                    borderRadius: "6px",
-                    padding: "4px 12px",
-                    fontSize: "14px",
-                  }}
-                  icon={getStatusIcon(treatmentData.status)}
-                >
+                <Tag color={getStatusColor(treatmentData.status)}>
                   {getStatusText(treatmentData.status)}
                 </Tag>
               </Space>
             </Col>
             <Col xs={24} md={8}>
               <Space>
-                <CalendarOutlined style={{ color: "#13c2c2" }} />
-                <Text strong>Ngày tạo:</Text>
-                <Text>
-                  {dayjs(treatmentData.createdDate).format("DD/MM/YYYY")}
-                </Text>
+                <Text strong>Kết quả:</Text>
+                <Tag
+                  color={
+                    treatmentData.result === "SUCCESS"
+                      ? "green"
+                      : treatmentData.result === "FAILURE"
+                      ? "red"
+                      : treatmentData.result === "UNDETERMINED"
+                      ? "orange"
+                      : "default"
+                  }
+                >
+                  {getResultText(treatmentData.result)}
+                </Tag>
               </Space>
             </Col>
+            <Col xs={24} md={8}></Col>
           </Row>
         </Card>
-
-        {/* Progress Bar */}
-        {treatmentData.treatmentSteps &&
-          treatmentData.treatmentSteps.length > 0 && (
-            <Card
-              title="Tiến độ điều trị"
-              style={{ marginBottom: 24 }}
-              size="small"
-            >
-              <Progress
-                percent={calculateProgress()}
-                status={calculateProgress() === 100 ? "success" : "active"}
-                strokeColor={{
-                  "0%": "#108ee9",
-                  "100%": "#87d068",
-                }}
-              />
-              <Text type="secondary" style={{ marginTop: 8, display: "block" }}>
-                {
-                  treatmentData.treatmentSteps.filter(
-                    (step) => step.status === "COMPLETED"
-                  ).length
-                }{" "}
-                / {treatmentData.treatmentSteps.length} bước đã hoàn thành
-              </Text>
-            </Card>
-          )}
 
         {/* Treatment Steps Timeline */}
         {treatmentData.treatmentSteps &&
@@ -438,8 +422,8 @@ const TreatmentStagesView = () => {
                     }
                   >
                     <Descriptions column={2} size="small">
-                      <Descriptions.Item label="Mô tả">
-                        {step.description || "Không có mô tả"}
+                      <Descriptions.Item label="Bước điều trị">
+                        {step.stageName || step.name || "Không xác định"}
                       </Descriptions.Item>
                       <Descriptions.Item label="Ngày bắt đầu">
                         {step.startDate
@@ -478,12 +462,7 @@ const TreatmentStagesView = () => {
       {/* Modal xem lịch hẹn của bước điều trị */}
       <Modal
         title={
-          <div style={{ textAlign: "center" }}>
-            <FileTextOutlined
-              style={{ fontSize: 24, color: "#faad14", marginRight: 8 }}
-            />
-            Lịch hẹn của bước điều trị
-          </div>
+          <div style={{ textAlign: "center" }}>Lịch hẹn của bước điều trị</div>
         }
         open={showScheduleModal}
         onCancel={() => {
@@ -496,7 +475,7 @@ const TreatmentStagesView = () => {
       >
         <div style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
           <div style={{ fontWeight: 600, marginBottom: 16, fontSize: 16 }}>
-            📅 Các lần hẹn đã đăng ký cho bước này:
+            Các lần hẹn đã đăng ký cho bước này:
           </div>
           {loadingAppointments ? (
             <div style={{ textAlign: "center", padding: 20 }}>

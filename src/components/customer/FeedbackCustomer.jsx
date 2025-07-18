@@ -17,6 +17,7 @@ const FeedbackCustomer = () => {
   // const recordId =
   //   state?.recordId || sessionStorage.getItem("feedback_record_id");
   const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [feedbackDetails, setFeedbackDetails] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   useEffect(() => {
     authService
@@ -34,6 +35,15 @@ const FeedbackCustomer = () => {
         setFeedbacks(res.data.result.content);
         // getDoctorNames(res.data.result.content);
       }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getFeedbackDetails = async (id) => {
+    try {
+      const res = await customerService.getFeedbackById(id);
+      setFeedbackDetails(res.data.result);
     } catch (error) {
       console.log(error);
     }
@@ -243,6 +253,7 @@ const FeedbackCustomer = () => {
                       onClick={() => {
                         setSelectedFeedback(fb);
                         setViewModalOpen(true);
+                        getFeedbackDetails(fb.id);
                       }}
                       className="text-blue-600 hover:underline"
                     >
@@ -261,28 +272,43 @@ const FeedbackCustomer = () => {
         onCancel={() => setViewModalOpen(false)}
         footer={null}
       >
-        {selectedFeedback && (
+        {feedbackDetails && (
           <div className="space-y-4">
             <div>
               <strong>Rating:</strong>{" "}
-              <Rate disabled defaultValue={selectedFeedback.rating} />
+              <Rate disabled defaultValue={feedbackDetails.rating} />
             </div>
 
             <div>
-              <strong>Comment:</strong> <span>{selectedFeedback.comment}</span>
+              <strong>Comment:</strong> <span>{feedbackDetails.comment}</span>
             </div>
 
             <div>
-              <strong>Note:</strong> <span>{selectedFeedback.note}</span>
+              <strong>Note:</strong> <span>{feedbackDetails.note}</span>
             </div>
 
             <div>
-              <strong>Status:</strong> <span>{selectedFeedback.status}</span>
+              <strong>Status: </strong>
+              <span
+                className={`text-sm font-medium ${
+                  feedbackDetails.status === "APPROVED"
+                    ? "text-green-600"
+                    : feedbackDetails.status === "REJECTED"
+                    ? "text-red-500"
+                    : "text-yellow-500"
+                }`}
+              >
+                {feedbackDetails.status === "APPROVED"
+                  ? "Đã chấp nhận"
+                  : feedbackDetails.status === "REJECTED"
+                  ? "Đã từ chối"
+                  : "Chờ duyệt"}
+              </span>
             </div>
 
             <div>
               <strong>Ngày duyệt:</strong>{" "}
-              <span>{selectedFeedback.submitDate}</span>
+              <span>{feedbackDetails.submitDate}</span>
             </div>
 
             <hr />
@@ -291,15 +317,15 @@ const FeedbackCustomer = () => {
               <strong>Cập nhật đánh giá</strong>
             </label>
             <Rate
-              value={selectedFeedback.rating}
+              value={feedbackDetails.rating}
               onChange={(value) =>
-                setSelectedFeedback((prev) => ({ ...prev, rating: value }))
+                setFeedbackDetails((prev) => ({ ...prev, rating: value }))
               }
             />
             <textarea
-              value={selectedFeedback.comment}
+              value={feedbackDetails.comment}
               onChange={(e) =>
-                setSelectedFeedback((prev) => ({
+                setFeedbackDetails((prev) => ({
                   ...prev,
                   comment: e.target.value,
                 }))
@@ -312,11 +338,11 @@ const FeedbackCustomer = () => {
               onClick={async () => {
                 try {
                   const res = await customerService.updateFeedback(
-                    selectedFeedback.id,
+                    feedbackDetails.id,
                     {
-                      rating: selectedFeedback.rating,
-                      comment: selectedFeedback.comment,
-                      recordId: selectedFeedback.id,
+                      rating: feedbackDetails.rating,
+                      comment: feedbackDetails.comment,
+                      recordId: feedbackDetails.id,
                     }
                   );
 
@@ -325,9 +351,9 @@ const FeedbackCustomer = () => {
                   setViewModalOpen(false);
                 } catch (err) {
                   console.error(err);
-                  console.log(selectedFeedback.rating);
-                  console.log(selectedFeedback.comment);
-                  console.log(selectedFeedback.id);
+                  console.log(feedbackDetails.rating);
+                  console.log(feedbackDetails.comment);
+                  console.log(feedbackDetails.id);
                   showNotification("Cập nhật thất bại", "error");
                 }
               }}

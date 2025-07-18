@@ -42,6 +42,8 @@ const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const AppointmentManagement = () => {
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [loadingChangeRequests, setLoadingChangeRequests] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [changeRequests, setChangeRequests] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
@@ -69,82 +71,71 @@ const AppointmentManagement = () => {
   const [changeRequestPage, setChangeRequestPage] = useState(0);
   const [changeRequestTotalPages, setChangeRequestTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async (page = 0) => {
+  // Fetch Appointments (không lấy PENDING_CHANGE)
+  const fetchAppointments = async (page = 0) => {
     try {
-      setLoading(true);
-
-      // Bước 1: Lấy tất cả appointments
+      setLoadingAppointments(true);
       const response = await treatmentService.getAppointments({
-        page: page, // API backend thường dùng 0-based
-        size: 5,
-      });
-
-      const appointmentData = response?.data?.result?.content || [];
-      console.log("✅ Appointments loaded:", appointmentData.length);
-
-      // Bước 2: Lấy danh sách PENDING_CHANGE appointments
-      const changeRequestsResponse = await treatmentService.getAppointments({
-        status: "PENDING_CHANGE",
         page: page,
-        size: 5,
+        size: 8,
+        // Nếu backend chưa hỗ trợ filter loại trừ status, phải filter ở FE:
+        // status: "NOT_PENDING_CHANGE" // hoặc bỏ tham số này
       });
-
-      const pendingChangeAppointments =
-        changeRequestsResponse?.data?.result?.content || [];
-
-      setAppointments(appointmentData);
-      setChangeRequests(pendingChangeAppointments);
-      setFilteredAppointments(appointmentData);
-      setFilteredChangeRequests(pendingChangeAppointments);
-
-      setTotalPages(response?.data?.result?.totalPages);
+      const data = response?.data?.result?.content || [];
+      // Nếu API trả về cả PENDING_CHANGE, filter ở đây:
+      const appointmentsOnly = data.filter(
+        (x) => x.status !== "PENDING_CHANGE"
+      );
+      setAppointments(appointmentsOnly);
+      setFilteredAppointments(appointmentsOnly);
       setCurrentPage(page);
-
-      setChangeRequestPage(page);
-      setChangeRequestTotalPages(
-        changeRequestsResponse?.data?.result.totalPages
-      );
-      // Calculate statistics
-      const today = dayjs().format("YYYY-MM-DD");
-      const todayAppointments = appointmentData.filter(
-        (apt) => apt.appointmentDate === today
-      );
-
-      setStats({
-        totalAppointments: appointmentData.length,
-        todayAppointments: appointmentData.filter(a => dayjs(a.date).isSame(dayjs(), 'day')).length,
-        pendingAppointments: appointmentData.filter(a => a.status === "PENDING").length,
-        completedAppointments: appointmentData.filter(a => a.status === "COMPLETED").length,
-        changeRequests: pendingChangeAppointments.length,
-      });
-      setLoading(false);
-    } catch (error) {
-      setAppointments([]);
-      setChangeRequests([]);
-      setStats({
-        totalAppointments: 0,
-        todayAppointments: 0,
-        pendingAppointments: 0,
-        completedAppointments: 0,
-        changeRequests: 0,
-      });
-      setLoading(false);
+      setTotalPages(response?.data?.result?.totalPages);
+    } catch (err) {
+      notification.error({ message: "Lỗi khi tải lịch hẹn." });
+    } finally {
+      setLoadingAppointments(false);
     }
   };
 
-  const fetchChangeRequests = async () => {
-    // Không cần gọi API riêng nữa vì đã xử lý trong fetchData
-    // Chỉ cần cập nhật filtered data
-    setFilteredChangeRequests(changeRequests);
+  // Fetch Change Requests (PENDING_CHANGE, lấy cả detail từng item)
+  const fetchChangeRequests = async (page = 0) => {
+    try {
+      setLoadingChangeRequests(true);
+      const response = await treatmentService.getAppointments({
+        status: "PENDING_CHANGE",
+        page: page,
+        size: 8,
+      });
+      const pendingChangeAppointments = response?.data?.result?.content || [];
+      // Lấy detail từng item (có thể song song, tối ưu performance):
+      const detailPromises = pendingChangeAppointments.map(
+        async (appointment) => {
+          try {
+            const detail = await http.get(`v1/appointments/${appointment.id}`);
+            const detailData = detail?.data?.result;
+            return { ...appointment, ...detailData };
+          } catch (error) {
+            return appointment; // fallback
+          }
+        }
+      );
+      const detailedChangeRequests = await Promise.all(detailPromises);
+
+      setChangeRequests(detailedChangeRequests);
+      setFilteredChangeRequests(detailedChangeRequests);
+      setChangeRequestPage(page);
+      setChangeRequestTotalPages(response?.data?.result?.totalPages);
+    } catch (err) {
+      notification.error({ message: "Lỗi khi tải yêu cầu đổi lịch." });
+    } finally {
+      setLoadingChangeRequests(false);
+    }
   };
 
+  // useEffect độc lập cho mỗi loại
   useEffect(() => {
-    if (appointments.length > 0) fetchChangeRequests();
-  }, [appointments]);
+    fetchAppointments();
+  }, []);
 
   const handleApproveClick = (request) => {
     setSelectedChangeRequest(request);
@@ -174,7 +165,7 @@ const AppointmentManagement = () => {
       });
       setChangeRequestModalVisible(false);
       setChangeRequestNotes("");
-      await fetchData();
+      await fetchChangeRequests();
     } catch (err) {
       notification.error({ 
         message: 'Không thể cập nhật yêu cầu!',
@@ -223,7 +214,7 @@ const AppointmentManagement = () => {
       case "REJECTED_CHANGE":
         return "Từ chối đổi lịch";
       case "REJECTED":
-        return "Đã từ chối";
+        return "Từ chối yêu cầu thay đổi";
       case "PLANED":
         return "Đã đặt lịch";
       default:
@@ -551,14 +542,14 @@ const AppointmentManagement = () => {
             </Row>
           </Card>
 
-          <Spin spinning={loading}>
+          <Spin spinning={loadingAppointments}>
             <Table
               pagination={false}
               columns={appointmentColumns}
               dataSource={filteredAppointments}
               rowKey="id"
               locale={{
-                emptyText: loading
+                emptyText: loadingAppointments
                   ? ""
                   : "Không có lịch hẹn nào phù hợp hoặc dữ liệu chưa sẵn sàng.",
               }}
@@ -567,7 +558,7 @@ const AppointmentManagement = () => {
             <div className="flex justify-end mt-4">
               <Button
                 disabled={currentPage === 0}
-                onClick={() => fetchData(currentPage - 1)}
+                onClick={() => fetchAppointments(currentPage - 1)}
                 className="mr-2"
               >
                 Trang trước
@@ -577,7 +568,7 @@ const AppointmentManagement = () => {
               </span>
               <Button
                 disabled={currentPage + 1 >= totalPages}
-                onClick={() => fetchData(currentPage + 1)}
+                onClick={() => fetchAppointments(currentPage + 1)}
                 className="ml-2"
               >
                 Trang tiếp
@@ -609,14 +600,14 @@ const AppointmentManagement = () => {
             />
           )}
 
-          <Spin spinning={loading}>
+          <Spin spinning={loadingChangeRequests}>
             <Table
               columns={changeRequestColumns}
               pagination={false}
               dataSource={filteredChangeRequests}
               rowKey="id"
               locale={{
-                emptyText: loading
+                emptyText: loadingChangeRequests
                   ? ""
                   : "Không có yêu cầu thay đổi lịch hẹn nào hoặc dữ liệu chưa sẵn sàng.",
               }}
@@ -624,7 +615,7 @@ const AppointmentManagement = () => {
             <div className="flex justify-end mt-4">
               <Button
                 disabled={changeRequestPage === 0}
-                onClick={() => fetchData(changeRequestPage - 1)}
+                onClick={() => fetchChangeRequests(changeRequestPage - 1)}
                 className="mr-2"
               >
                 Trang trước
@@ -634,7 +625,7 @@ const AppointmentManagement = () => {
               </span>
               <Button
                 disabled={changeRequestPage + 1 >= changeRequestTotalPages}
-                onClick={() => fetchData(changeRequestPage + 1)}
+                onClick={() => fetchChangeRequests(changeRequestPage + 1)}
                 className="ml-2"
               >
                 Trang tiếp
@@ -654,7 +645,16 @@ const AppointmentManagement = () => {
       <Card
         style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
       >
-        <Tabs defaultActiveKey="appointments" size="large" items={tabItems} />
+        <Tabs
+          defaultActiveKey="appointments"
+          size="large"
+          items={tabItems}
+          onChange={(key) => {
+            if (key === "changeRequests") {
+              fetchChangeRequests();
+            }
+          }}
+        />
       </Card>
 
       {/* Appointment Detail Modal */}

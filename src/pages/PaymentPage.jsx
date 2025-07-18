@@ -214,10 +214,8 @@ const PaymentPage = () => {
         return "Đã hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
-      case "PLANED":
-        return "Đã lên lịch";
-      case "PENDING_CHANGE":
-        return "Yêu cầu thay đổi";
+      case "INPROGRESS":
+        return "Đang điều trị";
       case "REJECTED":
         return "Đã từ chối";
       default:
