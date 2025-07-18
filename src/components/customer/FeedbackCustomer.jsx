@@ -14,8 +14,6 @@ const FeedbackCustomer = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [feedbackInfo, setFeedbackInfo] = useState(null);
   const { state } = useLocation();
-  // const recordId =
-  //   state?.recordId || sessionStorage.getItem("feedback_record_id");
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [feedbackDetails, setFeedbackDetails] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -33,7 +31,6 @@ const FeedbackCustomer = () => {
       const res = await customerService.getAllFeedback(infoUser.id, page, 5);
       if (res?.data?.result?.content) {
         setFeedbacks(res.data.result.content);
-        // getDoctorNames(res.data.result.content);
       }
     } catch (error) {
       console.log(error);

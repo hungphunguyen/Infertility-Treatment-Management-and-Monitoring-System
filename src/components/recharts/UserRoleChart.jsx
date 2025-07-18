@@ -22,6 +22,22 @@ const UserRoleChart = () => {
 
   const [barData, setBarData] = useState([]);
   const [pieData, setPieData] = useState([]);
+
+  const translateRole = (role) => {
+    switch (role) {
+      case "CUSTOMER":
+        return "Khách hàng";
+      case "ADMIN":
+        return "Người quản trị";
+      case "DOCTOR":
+        return "BÁC SĨ";
+      case "MANAGER":
+        return "Người quản lý";
+      default:
+        return "Khách";
+    }
+  };
+
   useEffect(() => {
     if (!token) return;
     const fetchData = async () => {
@@ -29,7 +45,7 @@ const UserRoleChart = () => {
         // Gọi API thống kê theo vai trò
         const roleRes = await adminService.adminStatisticsRole(); // new method
         const barFormatted = roleRes.data.result.map((item) => ({
-          role: item.role,
+          role: translateRole(item.role),
           users: item.count,
         }));
         setBarData(barFormatted);

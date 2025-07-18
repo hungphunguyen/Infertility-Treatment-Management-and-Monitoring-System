@@ -38,9 +38,15 @@ const LoginForm = ({ switchToRegister }) => {
 
             // thực hiên thông báo chuyển hướng người dùng
             showNotification("Đăng nhập thành công", "success");
-            setTimeout(() => {
-              navigate("/");
-            }, 1000);
+            const redirectUrl = localStorage.getItem("redirectAfterLogin");
+            if (redirectUrl) {
+              localStorage.removeItem("redirectAfterLogin"); // Xóa để tránh redirect lặp
+              navigate(redirectUrl, { replace: true });
+            } else {
+              setTimeout(() => {
+                navigate("/");
+              }, 1000);
+            }
           })
           .catch((error) => {
             if (error.response.data.code == 1014) {

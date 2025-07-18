@@ -33,28 +33,28 @@ const EditUserFormAdmin = ({ userDetail, token, onUpdated, onClose }) => {
       validationSchema: yup.object({
         fullName: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Full name is required"),
+          .trim("Vui lòng không để ô trống")
+          .required("Vui lòng nhập họ tên"),
         email: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Email is required"),
+          .trim("Vui lòng không để ô trống")
+          .required("Vui lòng nhập email"),
         phoneNumber: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Phone is required"),
+          .trim("Vui lòng không để ô trống")
+          .required("Vui lòng nhập số điện thoại"),
         gender: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Please choose your gender"),
+          .trim("Vui lòng không để ô trống")
+          .required("Vui lòng chọn giới tính"),
         dateOfBirth: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Date of birth is required"),
+          .trim("Vui lòng không để ô trống")
+          .required("Vui lòng nhập ngày sinh"),
         address: yup
           .string()
-          .trim("Please do not leave blank")
-          .required("Address is required"),
+          .trim("Vui lòng không để ô trống")
+          .required("Vui lòng nhập địa chỉ"),
       }),
     });
 

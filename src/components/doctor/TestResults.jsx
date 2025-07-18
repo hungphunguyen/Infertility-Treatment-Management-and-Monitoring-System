@@ -6,16 +6,9 @@ import {
   Space,
   Tag,
   Modal,
-  Descriptions,
-  Row,
-  Col,
   Input,
-  Select,
   Typography,
   notification,
-  Drawer,
-  Collapse,
-  Spin,
 } from "antd";
 import {
   UserOutlined,
@@ -25,7 +18,6 @@ import {
   FileTextOutlined,
   CheckOutlined,
   CloseOutlined,
-  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";

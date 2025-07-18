@@ -23,12 +23,27 @@ const UserManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [isFetched, setIsFetched] = useState(false);
 
+  const translateRole = (role) => {
+    switch (role) {
+      case "CUSTOMER":
+        return "Khách hàng";
+      case "ADMIN":
+        return "Người quản trị";
+      case "DOCTOR":
+        return "BÁC SĨ";
+      case "MANAGER":
+        return "Người quản lý";
+      default:
+        return "Khách";
+    }
+  };
+
   // thực hiện chức năng gọi danh sách User
   const fetchUsers = async (isRemove, page = 0) => {
     if (!token) return;
 
     try {
-      const res = await adminService.getUsers(isRemove, page, 5);
+      const res = await adminService.getUsers(isRemove, page, 12);
       setUsers(res.data.result.content);
       setTotalPages(res.data.result.totalPages);
 
@@ -48,7 +63,9 @@ const UserManagement = () => {
       return (
         (user.username || "").toLowerCase().includes(q) ||
         (user.email || "").toLowerCase().includes(q) ||
-        (user.roleName || "").toLowerCase().includes(q)
+        translateRole(user.roleName || "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [users, searchText]);
@@ -205,7 +222,7 @@ const UserManagement = () => {
                     user.roleName
                   )}`}
                 >
-                  {user.roleName}
+                  {translateRole(user.roleName)}
                 </span>
               </td>
               <td className="p-2">

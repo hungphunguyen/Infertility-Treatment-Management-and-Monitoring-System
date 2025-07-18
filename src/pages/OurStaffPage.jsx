@@ -66,7 +66,7 @@ const OurStaffPage = () => {
         <img
           src={banner1}
           alt="Băng rôn Blog"
-          className="w-full h-full bg-cover bg-top "
+          className="w-full h-full bg-cover bg-top"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">

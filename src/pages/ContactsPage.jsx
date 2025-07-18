@@ -45,11 +45,11 @@ const ContactsPage = () => {
       <UserHeader />
 
       {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden">
+      <div className="relative h-[660px] w-full overflow-hidden">
         <img
           src="/images/features/pc7.jpg"
           alt="Băng rôn Liên hệ"
-          className="w-full h-full object-cover"
+          className="w-full h-full  bg-top"
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">

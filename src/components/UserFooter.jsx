@@ -14,29 +14,29 @@ const UserFooter = () => {
   return (
     <footer className="bg-orange-50 pt-12 pb-8 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className="rounded-full flex items-center justify-center w-16 h-16 overflow-hidden border-2"
+            style={{ borderColor: "#FF8460" }}
+          >
+            <img
+              src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
+              alt="Logo Bệnh viện Sinh sản NewLife"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <div className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-300 bg-clip-text text-transparent">
+              NewLife
+            </div>
+            <div className="text-gray-600 text-sm font-medium">
+              Bệnh viện Hỗ Trợ Sinh sản
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 items-start">
           {/* Logo & Description */}
           <div className="flex flex-col">
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="rounded-full flex items-center justify-center w-16 h-16 overflow-hidden border-2"
-                style={{ borderColor: "#FF8460" }}
-              >
-                <img
-                  src="https://res.cloudinary.com/di6hi1r0g/image/upload/v1748665959/icon_pch2gc.png"
-                  alt="Logo Bệnh viện Sinh sản NewLife"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <div className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-orange-300 bg-clip-text text-transparent">
-                  NewLife
-                </div>
-                <div className="text-gray-600 text-sm font-medium">
-                  Bệnh viện Hỗ Trợ Sinh sản
-                </div>
-              </div>
-            </div>
             <div className="text-gray-500 text-sm mt-3 pr-4">
               Chúng tôi là một trung tâm sinh sản hoàn toàn mới. Chúng tôi cung
               cấp cho khách hàng công nghệ sinh sản tiên tiến nhất và sự thoải
@@ -67,7 +67,9 @@ const UserFooter = () => {
                 <a href="tel:0346810167">+84 0346810167</a>
               </p>
               <h3 className="font-bold mb-2">
+                Email liên hệ:
                 <a href="mailto:infertilitytreatmentmonitoring@gmail.com">
+                  <br />
                   infertilitytreatmentmonitoring@gmail.com
                 </a>
               </h3>

@@ -36,10 +36,16 @@ const RegisterForm = ({ switchToLogin }) => {
             dispatch(getInfoUser(res.data.result));
 
             showNotification("Register successful", "success");
-            setTimeout(() => {
-              navigate("/verify-otp");
-              window.location.reload();
-            }, 1000);
+            const redirectUrl = localStorage.getItem("redirectAfterLogin");
+            if (redirectUrl) {
+              localStorage.removeItem("redirectAfterLogin"); // Xóa để tránh redirect lặp
+              navigate(redirectUrl, { replace: true });
+            } else {
+              setTimeout(() => {
+                navigate("/verify-otp");
+                window.location.reload();
+              }, 1000);
+            }
           })
           .catch((errors) => {
             showNotification(errors.response.data.message, "error");
