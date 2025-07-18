@@ -1,5 +1,5 @@
 // components/ManagerTreatmentDetailRow.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Table, Button, Spin, notification, Tag, Typography } from "antd";
 import { EyeOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
@@ -182,6 +182,8 @@ export default function ManagerTreatmentDetailRow({
   handleApprove,
   handleCancel,
 }) {
+  const [recordExpand, setRecordExpand] = useState([]);
+
   const fetchTreatments = async ({ pageParam = 0 }) => {
     try {
       const res = await treatmentService.getTreatmentRecordsExpand({
@@ -190,6 +192,7 @@ export default function ManagerTreatmentDetailRow({
         size: 5,
       });
       const data = res?.data?.result;
+      setRecordExpand(data.content);
       return {
         list: data?.content || [],
         hasNextPage: !data?.last,
@@ -208,6 +211,11 @@ export default function ManagerTreatmentDetailRow({
       queryFn: fetchTreatments,
       getNextPageParam: (_, allPages) => allPages.length,
       enabled: !!customerId,
+
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      refetchInterval: false,
+      staleTime: Infinity, // hoặc vài phút nếu muốn
     });
 
   const treatments = data?.pages.flatMap((page) => page.list) || [];
@@ -227,6 +235,7 @@ export default function ManagerTreatmentDetailRow({
             <Button
               onClick={() => fetchNextPage()}
               loading={isFetchingNextPage}
+              disabled={recordExpand.length === 0}
             >
               {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
             </Button>

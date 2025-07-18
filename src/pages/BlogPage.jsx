@@ -21,8 +21,11 @@ import banner1 from "../../public/images/features/pc8.jpg";
 const { Title, Paragraph } = Typography;
 
 const BlogPage = () => {
+  const [blogExpand, setBlogExpand] = useState([]);
+
   const fetchBlogs = async ({ pageParam = 0 }) => {
     const res = await blogService.getBlogPublic("", pageParam, 3);
+    setBlogExpand(res.data.result.content);
     return res.data.result;
   };
 
@@ -41,6 +44,10 @@ const BlogPage = () => {
       // Nếu lastPage.last === true thì đã hết data (chuẩn theo Spring pagination)
       return lastPage.last ? undefined : pages.length;
     },
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    staleTime: Infinity, // hoặc vài phút nếu muốn
   });
 
   const blogPosts = data?.pages.flatMap((page) => page.content) || [];
@@ -222,6 +229,7 @@ const BlogPage = () => {
             <Button
               onClick={() => fetchNextPage()}
               loading={isFetchingNextPage}
+              disabled={blogExpand.length === 0}
             >
               {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
             </Button>

@@ -20,14 +20,15 @@ import { path } from "../common/path";
 import banner1 from "../../public/images/features/pc7.jpg";
 
 const { Title, Paragraph } = Typography;
-
 const OurStaffPage = () => {
+  const [doctorExpand, setDoctorExpand] = useState([]);
+
   const navigate = useNavigate();
 
   // Fetch doctors data from API
   const fetchDoctor = async ({ pageParam = 0 }) => {
     const res = await doctorService.getDoctorForCard(pageParam, 3);
-    console.log(res);
+    setDoctorExpand(res.data.result.content);
     return res.data.result;
   };
 
@@ -45,6 +46,11 @@ const OurStaffPage = () => {
       // Kiểm tra xem còn trang tiếp theo không dựa trên totalPages
       return lastPage.page < lastPage.totalPages - 1 ? pages.length : undefined;
     },
+
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    staleTime: Infinity, // hoặc vài phút nếu muốn
   });
 
   const doctors = data?.pages.flatMap((page) => page.content) || [];
@@ -142,6 +148,7 @@ const OurStaffPage = () => {
               <Button
                 onClick={() => fetchNextPage()}
                 loading={isFetchingNextPage}
+                // disabled={doctorExpand.length === 0}
               >
                 {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
               </Button>

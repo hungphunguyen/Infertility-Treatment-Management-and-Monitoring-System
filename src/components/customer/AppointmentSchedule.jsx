@@ -52,7 +52,7 @@ const AppointmentSchedule = () => {
       case "PLANED":
         return "Đã lên lịch";
       case "PENDING_CHANGE":
-        return "Yêu cầu thay đổi";
+        return "Chờ duyệt đổi lịch";
       case "REJECTED":
         return "Từ chối yêu cầu thay đổi";
       default:

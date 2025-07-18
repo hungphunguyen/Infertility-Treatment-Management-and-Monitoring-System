@@ -50,13 +50,14 @@ const DashboardOverview = () => {
   const [schedule, setSchedule] = useState({});
   const [loadingSchedule, setLoadingSchedule] = useState(false);
   const [doctorId, setDoctorId] = useState(null);
-
   // Dashboard stats
   const [dashboardStats, setDashboardStats] = useState({
     workShiftsThisMonth: 0,
     patients: 0,
     avgRating: 0,
   });
+
+  const [appointments, setAppointments] = useState([]);
 
   // Lấy doctorId từ token
   useEffect(() => {
@@ -255,6 +256,8 @@ const DashboardOverview = () => {
     queryFn: async ({ pageParam = 0 }) => {
       const res = await doctorService.getAppointmentsToday(pageParam, 5);
       const data = res?.data?.result;
+      setAppointments(data?.content || []);
+
       return {
         list: data?.content || [],
         hasNextPage: !data?.last,
@@ -275,7 +278,6 @@ const DashboardOverview = () => {
         Array.isArray(page.list) ? page.list : []
       )
     : [];
-
   return (
     <div>
       {/* Statistics Cards */}
@@ -334,11 +336,16 @@ const DashboardOverview = () => {
               size="small"
               scroll={{ x: 600 }}
             />
+
             {hasNextPage && (
               <div className="text-center mt-4">
                 <Button
-                  onClick={() => fetchNextPage()}
+                  onClick={() => {
+                    fetchNextPage();
+                    console.log(appointments);
+                  }}
                   loading={isFetchingNextPage}
+                  disabled={appointments.length === 0}
                 >
                   {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
                 </Button>

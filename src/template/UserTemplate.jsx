@@ -207,26 +207,6 @@ const UserTemplate = () => {
                 trứng hiến tặng hay người mang thai hộ.
               </p>
             </div>
-            <div className="md:w-1/2 flex justify-center">
-              <div className="relative">
-                <div className="rounded-full border-4 border-[#ff8460] p-2 w-64 h-64 flex flex-col items-center justify-center shadow-lg bg-white">
-                  <span className="text-gray-400 text-sm">HƠN</span>
-                  <div className="text-6xl text-[#ff8460] font-bold">
-                    87<span className="text-2xl">%</span>
-                  </div>
-                  <span className="text-gray-400 text-sm">
-                    Thai Kỳ Thành Công
-                  </span>
-                </div>
-                <div className="absolute -right-12 bottom-4">
-                  <img
-                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-                    alt="Bác sĩ"
-                    className="rounded-full w-40 h-40 object-cover border-4 border-white shadow-lg"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
