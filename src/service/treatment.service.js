@@ -395,10 +395,13 @@ export const treatmentService = {
   },
 
   // Hủy treatment record - API mới
-  cancelTreatmentRecord: async (recordId) => {
+  cancelTreatmentRecord: async (recordId, notes) => {
     try {
       const response = await http.delete(
-        `v1/treatment-records/${recordId}/cancel`
+        `v1/treatment-records/${recordId}/cancel`,
+        {
+          params: { notes },
+        }
       );
       return response;
     } catch (error) {

@@ -197,7 +197,6 @@ const MyServices = () => {
       showNotification("Hủy hồ sơ thành công!", "success");
       setIsModalVisible(false);
       setCancelReason("");
-      setTimeout(() => window.location.reload(), 800);
     } catch (err) {
       showNotification(err.response?.data?.message, "error");
     } finally {

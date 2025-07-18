@@ -370,7 +370,7 @@ const UserTemplate = () => {
               className="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-3 px-8 rounded-full shadow-lg text-lg border-none"
               size="large"
             >
-              Xem Toàn Bộ Đội Ngũ ({doctors.length} bác sĩ)
+              Xem Toàn Bộ Đội Ngũ
             </Button>
           </div>
         </div>
