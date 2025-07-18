@@ -33,7 +33,7 @@ const UserFooter = () => {
                   NewLife
                 </div>
                 <div className="text-gray-600 text-sm font-medium">
-                  Bệnh viện Sinh sản
+                  Bệnh viện Hỗ Trợ Sinh sản
                 </div>
               </div>
             </div>
@@ -51,7 +51,7 @@ const UserFooter = () => {
               Vị trí của chúng tôi
             </h3>
             <p className="text-gray-500 text-sm">
-              D1, Long Thạnh Mỹ
+              Số 7, D1, Long Thạnh Mỹ
               <br />
               Thủ Đức, Hồ Chí Minh
               <br />
@@ -60,16 +60,17 @@ const UserFooter = () => {
           </div>
 
           {/* Contact */}
-          <div className="flex flex-col">
-            <div>
+          <div className="flex flex-col items-center">
+            <div className="text-center">
               <h3 className="font-bold text-gray-700 mb-4">Gọi miễn phí</h3>
               <p className="text-[#ff8460] text-lg font-semibold mb-4">
-                123-456-7890
+                <a href="tel:0346810167">+84 0346810167</a>
               </p>
-              <h3 className="font-bold text-gray-700 mb-2">
-                Gửi email cho chúng tôi
+              <h3 className="font-bold mb-2">
+                <a href="mailto:infertilitytreatmentmonitoring@gmail.com">
+                  infertilitytreatmentmonitoring@gmail.com
+                </a>
               </h3>
-              <p className="text-gray-500 text-sm">info@yoursite.com</p>
             </div>
           </div>
 
@@ -98,36 +99,9 @@ const UserFooter = () => {
         </div>
 
         {/* Bottom section */}
-        <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-center">
+        <div className="border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-center items-center">
           <div className="text-gray-500 text-sm mb-4 md:mb-0">
             Bệnh viện Sinh sản NewLife © 2025. Mọi quyền được bảo lưu.
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="font-medium text-sm mr-2">Theo dõi chúng tôi</span>
-            <a
-              href="#"
-              className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300"
-            >
-              X
-            </a>
-            <a
-              href="#"
-              className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300"
-            >
-              f
-            </a>
-            <a
-              href="#"
-              className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300"
-            >
-              📷
-            </a>
-            <a
-              href="#"
-              className="bg-lime-200 rounded-full w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-lime-300"
-            >
-              🟢
-            </a>
           </div>
         </div>
       </div>

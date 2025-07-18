@@ -55,7 +55,7 @@ const ServicesPage = () => {
       <UserHeader />
 
       {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden mb-0">
+      <div className="relative h-[660px] w-full overflow-hidden mb-0">
         <img
           src={banner1}
           alt="Băng rôn Dịch vụ"

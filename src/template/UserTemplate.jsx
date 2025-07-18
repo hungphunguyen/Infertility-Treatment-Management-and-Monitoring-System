@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import banner1 from "../../public/images/features/pc9.jpg";
 import banner2 from "../../public/images/features/pc1.jpg";
 import banner3 from "../../public/images/features/pc7.jpg";
+import banner4 from "../../public/images/features/20191217_quy-trinh-kham-vo-sinh-hiem-muon-1.jpeg";
 
 const UserTemplate = () => {
   const navigate = useNavigate();
@@ -107,9 +108,9 @@ const UserTemplate = () => {
         className="mb-0"
       >
         <div>
-          <div className="relative h-[600px]">
+          <div className="relative h-[660px]">
             <div
-              className="absolute inset-0 bg-cover bg-center"
+              className="absolute inset-0 bg-cover bg-top"
               style={{ backgroundImage: `url(${banner1})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
@@ -132,9 +133,9 @@ const UserTemplate = () => {
           </div>
         </div>
         <div>
-          <div className="relative h-[600px]">
+          <div className="relative h-[660px]">
             <div
-              className="absolute inset-0 bg-cover bg-center"
+              className="absolute inset-0 bg-cover bg-top"
               style={{ backgroundImage: `url(${banner2})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
@@ -157,9 +158,9 @@ const UserTemplate = () => {
           </div>
         </div>
         <div>
-          <div className="relative h-[600px]">
+          <div className="relative h-[660px]">
             <div
-              className="absolute inset-0 bg-cover bg-center"
+              className="absolute inset-0 bg-cover bg-top"
               style={{ backgroundImage: `url(${banner3})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/30 opacity-80" />
@@ -272,9 +273,9 @@ const UserTemplate = () => {
             <Col xs={24} md={12}>
               <div className="relative flex justify-center">
                 <img
-                  src="/images/features/pc5.jpg"
+                  src={banner4}
                   alt="Mẹ và bé"
-                  className="w-full max-w-md rounded-lg shadow-xl"
+                  className="w-full h-full object-contain drop-shadow-lg group-hover:scale-110 transition-transform duration-300"
                 />
               </div>
             </Col>

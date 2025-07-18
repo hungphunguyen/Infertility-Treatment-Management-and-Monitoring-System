@@ -717,7 +717,7 @@ const TreatmentStageDetails = () => {
           // Reload danh sách
           setTimeout(() => window.location.reload(), 800);
         } catch (err) {
-          showNotification("Hủy hồ sơ thất bại!", "error");
+          showNotification(err.response?.data?.message, "error");
         } finally {
           setCancelLoading(false);
         }
@@ -832,11 +832,15 @@ const TreatmentStageDetails = () => {
   }, [treatmentData, selectedStep]);
 
   const getResultText = (result) => {
-    switch ((result || '').toUpperCase()) {
-      case 'SUCCESS': return 'Thành công';
-      case 'FAILURE': return 'Thất bại';
-      case 'UNDETERMINED': return 'Chưa xác định';
-      default: return 'Chưa có';
+    switch ((result || "").toUpperCase()) {
+      case "SUCCESS":
+        return "Thành công";
+      case "FAILURE":
+        return "Thất bại";
+      case "UNDETERMINED":
+        return "Chưa xác định";
+      default:
+        return "Chưa có";
     }
   };
 
@@ -955,7 +959,17 @@ const TreatmentStageDetails = () => {
                     {getStatusText(treatmentData.status)}
                   </Tag>
                   {/* Thêm mục Kết quả */}
-                  <Tag color={treatmentData.result === 'SUCCESS' ? 'green' : treatmentData.result === 'FAILURE' ? 'red' : treatmentData.result === 'UNDETERMINED' ? 'orange' : 'default'}>
+                  <Tag
+                    color={
+                      treatmentData.result === "SUCCESS"
+                        ? "green"
+                        : treatmentData.result === "FAILURE"
+                        ? "red"
+                        : treatmentData.result === "UNDETERMINED"
+                        ? "orange"
+                        : "default"
+                    }
+                  >
                     Kết quả: {getResultText(treatmentData.result)}
                   </Tag>
                 </Space>
@@ -1338,11 +1352,21 @@ const TreatmentStageDetails = () => {
                                     }
                                     buttonStyle="solid"
                                   >
-                                    {statusOptions.filter(opt => ["COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
-                                      <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
-                                        {opt.label}
-                                      </Radio.Button>
-                                    ))}
+                                    {statusOptions
+                                      .filter((opt) =>
+                                        ["COMPLETED", "CANCELLED"].includes(
+                                          opt.value
+                                        )
+                                      )
+                                      .map((opt) => (
+                                        <Radio.Button
+                                          key={opt.value}
+                                          value={opt.value}
+                                          style={{ margin: 2, width: "100%" }}
+                                        >
+                                          {opt.label}
+                                        </Radio.Button>
+                                      ))}
                                   </Radio.Group>
                                 )}
                               </Space>
@@ -1571,11 +1595,19 @@ const TreatmentStageDetails = () => {
                               }
                               buttonStyle="solid"
                             >
-                              {statusOptions.filter(opt => ["COMPLETED", "CANCELLED"].includes(opt.value)).map(opt => (
-                                <Radio.Button key={opt.value} value={opt.value} style={{ margin: 2, width: '100%' }}>
-                                  {opt.label}
-                                </Radio.Button>
-                              ))}
+                              {statusOptions
+                                .filter((opt) =>
+                                  ["COMPLETED", "CANCELLED"].includes(opt.value)
+                                )
+                                .map((opt) => (
+                                  <Radio.Button
+                                    key={opt.value}
+                                    value={opt.value}
+                                    style={{ margin: 2, width: "100%" }}
+                                  >
+                                    {opt.label}
+                                  </Radio.Button>
+                                ))}
                             </Radio.Group>
                           )}
                         </Space>

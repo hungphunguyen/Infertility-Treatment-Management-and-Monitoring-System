@@ -89,7 +89,7 @@ const LoginForm = ({ switchToRegister }) => {
           </div>
 
           <h2 className="text-2xl text-orange-500 font-bold">
-            Chào mừng đến đây
+            Chào mừng đến với chúng tôi
           </h2>
           <p className="text-sm text-gray-500">
             Vui lòng đăng nhập để tiếp tục

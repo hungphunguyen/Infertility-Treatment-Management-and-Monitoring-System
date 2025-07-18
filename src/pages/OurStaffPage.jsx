@@ -17,7 +17,7 @@ import { doctorService } from "../service/doctor.service";
 import StarRatings from "react-star-ratings";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { path } from "../common/path";
-import banner1 from "../../public/images/features/pc7.jpg";
+import banner1 from "../../public/images/features/09ccadac-cfb8-4b09-9880-e62e779e02c3.png";
 
 const { Title, Paragraph } = Typography;
 const OurStaffPage = () => {
@@ -62,11 +62,11 @@ const OurStaffPage = () => {
     <div className="w-full min-h-screen bg-orange-50">
       <UserHeader />
       {/* Hero Banner */}
-      <div className="relative h-[400px] w-full overflow-hidden mb-0">
+      <div className="relative h-[660px] w-full overflow-hidden mb-0">
         <img
           src={banner1}
           alt="Băng rôn Blog"
-          className="w-full h-full object-cover object-top"
+          className="w-full h-full bg-cover bg-top "
         />
         <div className="absolute inset-0 bg-black opacity-40" />
         <div className="absolute inset-0 flex items-center justify-center">

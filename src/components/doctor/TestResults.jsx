@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Card,
   Table,
@@ -32,6 +32,7 @@ import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
 import { useNavigate } from "react-router-dom";
 import TreatmentDetailRow from "./TreatmentDetailRow";
+import { NotificationContext } from "../../App";
 
 const { Text } = Typography;
 
@@ -52,6 +53,7 @@ const TestResults = () => {
 
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
+  const { showNotification } = useContext(NotificationContext);
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
@@ -215,11 +217,11 @@ const TestResults = () => {
         setCancelLoading(true);
         try {
           await treatmentService.cancelTreatmentRecord(treatment.id);
-          notification.success({ message: "Hủy hồ sơ thành công!" });
+          showNotification("Hủy hồ sơ thành công!", "success");
           // Reload danh sách
           setTimeout(() => window.location.reload(), 800);
         } catch (err) {
-          notification.error({ message: "Hủy hồ sơ thất bại!" });
+          showNotification(err.response?.data?.message, "error");
         } finally {
           setCancelLoading(false);
         }
