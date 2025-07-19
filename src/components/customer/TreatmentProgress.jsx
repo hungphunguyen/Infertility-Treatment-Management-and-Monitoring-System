@@ -20,19 +20,24 @@ import {
   Input,
   Alert,
   Table,
+  Timeline,
 } from "antd";
 import {
   HeartOutlined,
   MedicineBoxOutlined,
   CalendarOutlined,
   UserOutlined,
-  ClockCircleOutlined as ClockIcon,
-  CheckCircleOutlined as CheckIcon,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
   DeploymentUnitOutlined,
   ExperimentOutlined as TestTubeIcon,
   ArrowLeftOutlined,
   EditOutlined,
   RightOutlined,
+  FileTextOutlined,
+  CloseOutlined,
+  ExclamationCircleOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { treatmentService } from "../../service/treatment.service";
@@ -63,6 +68,9 @@ const TreatmentProgress = () => {
   const [stepAppointments, setStepAppointments] = useState({});
   const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
   const [totalPages, setTotalPages] = useState(1);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleStep, setScheduleStep] = useState(null);
+  const [showAllAppointments, setShowAllAppointments] = useState(false);
   useEffect(() => {
     if (location.state?.treatmentRecord && location.state?.treatmentId) {
       setViewMode("detail");
@@ -112,6 +120,7 @@ const TreatmentProgress = () => {
             overallProgress: overallProgress,
             customerId: detailData.customerId,
             result: detailData.result, // <--- Bổ sung dòng này
+            notes: detailData.notes || "", // <--- Bổ sung dòng này
             phases:
               detailData.treatmentSteps?.map((step, index) => ({
                 id: step.id,
@@ -193,6 +202,7 @@ const TreatmentProgress = () => {
                 completedSteps: treatment.completedSteps,
                 customerId: customerId,
                 result: treatment.result, // <--- Bổ sung dòng này
+                notes: treatment.notes, // <--- Thêm dòng này
               };
             })
           );
@@ -396,16 +406,91 @@ const TreatmentProgress = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-        return <Tag color="processing">Đang thực hiện</Tag>;
+        return <Tag color="orange">Đang điều trị</Tag>;
       case "CONFIRMED":
         return <Tag color="processing">Đã xác nhận</Tag>;
-      case "PENDING":
-      case "PLANED":
-        return <Tag color="warning">Đã đặt lịch</Tag>;
       case "CANCELLED":
         return <Tag color="error">Đã hủy</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "CONFIRMED":
+        return "processing";
+      case "PLANED":
+        return "warning";
+      case "COMPLETED":
+        return "success";
+      case "CANCELLED":
+        return "error";
+      case "INPROGRESS":
+        return "orange";
+      default:
+        return "processing";
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "PLANED":
+        return "Chờ xếp lịch";
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "CANCELLED":
+        return "Đã hủy";
+      case "INPROGRESS":
+        return "Đang điều trị";
+      case "PENDING_CHANGE":
+        return "Chờ duyệt đổi lịch";
+      default:
+        return status;
+    }
+  };
+
+  const getAppointmentStatusColor = (status) => {
+    switch (status) {
+      case "PENDING":
+        return "orange";
+      case "CONFIRMED":
+        return "blue";
+      case "COMPLETED":
+        return "green";
+      case "CANCELLED":
+        return "red";
+      case "PLANED":
+        return "yellow";
+      case "PENDING_CHANGE":
+        return "gold";
+      default:
+        return "default";
+    }
+  };
+
+  const getAppointmentStatusText = (status) => {
+    switch (status) {
+      case "CONFIRMED":
+        return "Đã xác nhận";
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "INPROGRESS":
+        return "Đang thực hiện";
+      case "PLANED":
+        return "Đã lên lịch";
+      case "CANCELLED":
+        return "Đã hủy";
+      case "PENDING_CHANGE":
+        return "Chờ duyệt đổi lịch";
+      case "REJECTED_CHANGE":
+        return "Từ chối đổi lịch";
+      case "REJECTED":
+        return "Từ chối yêu cầu đổi lịch";
+      default:
+        return status;
     }
   };
 
@@ -565,6 +650,30 @@ const TreatmentProgress = () => {
     setModalOpen(true);
   };
 
+  // Thêm hàm mở modal xem lịch hẹn của bước
+  const handleShowScheduleModal = async (step) => {
+    setScheduleStep(step);
+    setShowScheduleModal(true);
+    setShowAllAppointments(false); // Reset về hiển thị 3 lịch hẹn đầu
+    try {
+      const response = await treatmentService.getAppointmentsByStepId(step.id);
+      // Lấy đúng mảng appointments (paginated hoặc không)
+      let appointments = [];
+      if (response?.data?.result?.content) {
+        appointments = response.data.result.content;
+      } else if (Array.isArray(response?.data?.result)) {
+        appointments = response.data.result;
+      } else if (Array.isArray(response)) {
+        appointments = response;
+      }
+      // Reset showAll state cho tất cả appointments
+      const appointmentsWithState = appointments.map(app => ({ ...app, showAll: false }));
+      setStepAppointments((prev) => ({ ...prev, [step.id]: appointmentsWithState }));
+    } catch (error) {
+      setStepAppointments((prev) => ({ ...prev, [step.id]: [] }));
+    }
+  };
+
   const getOverallStatus = (status, progress) => {
     if (status === "CANCELLED") {
       return { text: "Đã hủy", color: "error" };
@@ -612,110 +721,61 @@ const TreatmentProgress = () => {
       hoverable
       styles={{ body: { padding: "24px" } }}
     >
-      <Row gutter={[24, 24]}>
-        <Col xs={24} md={12}>
-          <Title level={4} style={{ color: "#1890ff", marginBottom: 24 }}>
-            <MedicineBoxOutlined style={{ marginRight: 8 }} />
-            Quá trình điều trị hiện tại
-          </Title>
-          <Descriptions
-            column={1}
-            style={{
-              background: "#fafafa",
-              padding: "16px",
-              borderRadius: "8px",
-              boxShadow: "inset 0 2px 8px rgba(0,0,0,0.05)",
-            }}
-          >
-            <Descriptions.Item label="Gói điều trị">
-              <MedicineBoxOutlined
-                style={{ marginRight: 8, color: "#1890ff" }}
-              />
-              <Text strong>{treatmentData.type}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="Bác sĩ phụ trách">
-              <UserOutlined style={{ marginRight: 8, color: "#1890ff" }} />
-              <Text strong>{treatmentData.doctor}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="Ngày bắt đầu">
-              <CalendarOutlined style={{ marginRight: 8, color: "#1890ff" }} />
-              {dayjs(treatmentData.startDate).format("DD/MM/YYYY")}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái">
-              {getStatusTag(treatmentData.status)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Kết quả">
-              <Tag
-                color={
-                  treatmentData.result === "SUCCESS"
-                    ? "green"
-                    : treatmentData.result === "FAILURE"
-                    ? "red"
-                    : treatmentData.result === "UNDETERMINED"
-                    ? "orange"
-                    : "default"
-                }
-              >
-                {getResultText(treatmentData.result)}
-              </Tag>
-            </Descriptions.Item>
-          </Descriptions>
-        </Col>
-        <Col xs={24} md={12}>
-          <div style={{ marginBottom: 24 }}>
-            <Title level={5} style={{ color: "#1890ff", marginBottom: 16 }}>
-              <CheckIcon style={{ marginRight: 8 }} />
-              Tiến độ tổng thể
-            </Title>
-            <Progress
-              percent={progress}
-              status="active"
-              strokeColor={{
-                from: getProgressColor(progress),
-                to: getProgressColor(progress),
-              }}
-              size={12}
-              style={{ marginBottom: 8 }}
-            />
-            <Text type="secondary" style={{ fontSize: "14px" }}>
-              {progress}% hoàn thành
-            </Text>
-          </div>
-          <div>
-            <Title level={5} style={{ color: "#1890ff", marginBottom: 16 }}>
-              <HeartOutlined style={{ marginRight: 8 }} />
-              Giai đoạn hiện tại
-            </Title>
-            <div
-              style={{
-                background: "linear-gradient(135deg, #e6f7ff 0%, #f0f7ff 100%)",
-                padding: 20,
-                borderRadius: 12,
-                border: "1px solid #91d5ff",
-                transition: "all 0.3s ease",
-              }}
-            >
-              <Space align="baseline">
-                <HeartOutlined style={{ fontSize: 28, color: "#1890ff" }} />
-                <div>
-                  <div
-                    style={{
-                      fontSize: 18,
-                      fontWeight: "bold",
-                      color: "#1890ff",
-                    }}
-                  >
-                    {currentPhase ? currentPhase.name : "Thăm khám ban đầu"}
-                  </div>
-                  <div style={{ color: "#666", marginTop: 4 }}>
-                    {currentPhase
-                      ? currentPhase.notes
-                      : "Chuẩn bị thăm khám ban đầu"}
-                  </div>
-                </div>
+      <Row gutter={[24, 16]}>
+        <Col xs={24} md={24}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={12}>
+              <Space>
+                <Text strong style={{ fontSize: 16 }}>Gói điều trị:</Text>
+                <Text style={{ fontSize: 16 }}>{treatmentData.type}</Text>
               </Space>
-            </div>
-          </div>
+            </Col>
+            <Col xs={24} md={12}>
+              <Space>
+                <Text strong>Bác sĩ:</Text>
+                <Text>{treatmentData.doctor}</Text>
+              </Space>
+            </Col>
+            <Col xs={24} md={12}>
+              <Space>
+                <Text strong>Ngày bắt đầu:</Text>
+                <Text>{dayjs(treatmentData.startDate).format("DD/MM/YYYY")}</Text>
+              </Space>
+            </Col>
+            <Col xs={24} md={12}>
+              <Space>
+                <Text strong>Trạng thái:</Text>
+                <Tag color={getStatusColor(treatmentData.status)} style={{ fontSize: 15, padding: "4px 16px" }}>
+                  {getStatusText(treatmentData.status)}
+                </Tag>
+              </Space>
+            </Col>
+            <Col xs={24} md={12}>
+              <Space>
+                <Text strong>Kết quả:</Text>
+                <Tag
+                  color={
+                    treatmentData.result === "SUCCESS"
+                      ? "green"
+                      : treatmentData.result === "FAILURE"
+                      ? "red"
+                      : treatmentData.result === "UNDETERMINED"
+                      ? "orange"
+                      : "default"
+                  }
+                  style={{ fontSize: 15, padding: "4px 16px" }}
+                >
+                  {getResultText(treatmentData.result)}
+                </Tag>
+              </Space>
+            </Col>
+            <Col xs={24} md={12}>
+              <Space>
+                <Text strong>Ghi chú:</Text>
+                <Text>{treatmentData.notes || "Không có ghi chú"}</Text>
+              </Space>
+            </Col>
+          </Row>
         </Col>
       </Row>
     </Card>
@@ -723,28 +783,105 @@ const TreatmentProgress = () => {
 
   const renderTreatmentProgress = () => (
     <Card
-      title={
-        <Space>
-          <DeploymentUnitOutlined
-            style={{ color: "#1890ff", fontSize: "20px" }}
-          />
-          <span>Tiến trình điều trị</span>
-        </Space>
-      }
-      style={{
-        marginBottom: 24,
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        transition: "all 0.3s ease",
-      }}
-      hoverable
+      title={<span style={{ fontWeight: 700, fontSize: 20, color: '#1890ff' }}>Các bước điều trị</span>}
+      style={{ marginBottom: 32, borderRadius: 18, boxShadow: "0 4px 16px rgba(24,144,255,0.08)", background: "#fff" }}
+      styles={{ body: { padding: 32 } }}
     >
-      <Collapse
-        defaultActiveKey={["0"]}
-        style={{ background: "transparent" }}
-        expandIconPosition="end"
-        items={renderPhases()}
-      />
+      <Timeline style={{ marginLeft: 16 }}>
+        {treatmentData.phases.map((step, index) => (
+          <Timeline.Item
+            key={step.id}
+            color={getStatusColor(step.statusRaw)}
+            dot={
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: getStatusColor(step.statusRaw) === 'success' ? '#e6fffb' : 
+                           getStatusColor(step.statusRaw) === 'error' ? '#fff1f0' : 
+                           getStatusColor(step.statusRaw) === 'processing' ? '#e6f7ff' : 
+                           getStatusColor(step.statusRaw) === 'orange' ? '#fff7e6' : '#f5f5f5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: `3px solid ${getStatusColor(step.statusRaw) === 'success' ? '#52c41a' : 
+                              getStatusColor(step.statusRaw) === 'error' ? '#ff4d4f' : 
+                              getStatusColor(step.statusRaw) === 'processing' ? '#1890ff' : 
+                              getStatusColor(step.statusRaw) === 'orange' ? '#fa8c16' : '#d9d9d9'}`
+              }}>
+                <span style={{ 
+                  fontSize: 22, 
+                  color: getStatusColor(step.statusRaw) === 'success' ? '#52c41a' : 
+                         getStatusColor(step.statusRaw) === 'error' ? '#ff4d4f' : 
+                         getStatusColor(step.statusRaw) === 'processing' ? '#1890ff' : 
+                         getStatusColor(step.statusRaw) === 'orange' ? '#fa8c16' : '#bfbfbf', 
+                  fontWeight: 700 
+                }}>{index + 1}</span>
+              </div>
+            }
+          >
+            <Card
+              size="small"
+              style={{
+                marginBottom: 24,
+                borderRadius: 16,
+                boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+                background: index === 0 ? "#fafdff" : "#fff",
+                transition: "box-shadow 0.2s",
+                border: `1.5px solid ${getStatusColor(step.statusRaw) === 'success' ? '#52c41a' : 
+                                   getStatusColor(step.statusRaw) === 'error' ? '#ff4d4f' : 
+                                   getStatusColor(step.statusRaw) === 'processing' ? '#1890ff' : 
+                                   getStatusColor(step.statusRaw) === 'orange' ? '#fa8c16' : '#d9d9d9'}`,
+              }}
+              styles={{ body: { padding: 24 } }}
+              hoverable
+            >
+              <Row gutter={[16, 16]} align="middle">
+                <Col xs={24} md={16}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                    <Text strong style={{ fontSize: 18, color: '#1890ff' }}>Bước {index + 1}: {step.name}</Text>
+                    <Tag color={getStatusColor(step.statusRaw)} style={{ fontSize: 15, padding: '4px 16px' }}>{getStatusText(step.statusRaw)}</Tag>
+                  </div>
+                  <Descriptions column={2} size="small" style={{ background: 'transparent' }}>
+                    <Descriptions.Item label="Ngày bắt đầu">
+                      {step.startDate ? dayjs(step.startDate).format("DD/MM/YYYY") : "Chưa có lịch"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Ngày kết thúc">
+                      {step.endDate ? dayjs(step.endDate).format("DD/MM/YYYY") : "Chưa thực hiện"}
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Ghi chú">
+                      {step.notes || "Không có ghi chú"}
+                    </Descriptions.Item>
+                  </Descriptions>
+                </Col>
+                <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+                  <Space direction="vertical" size="small">
+                    <Button
+                      type="primary"
+                      ghost
+                      icon={<FileTextOutlined />}
+                      style={{ borderRadius: 8, fontWeight: 600, minWidth: 140 }}
+                      onClick={() => handleShowScheduleModal(step)}
+                    >
+                      Xem lịch hẹn
+                    </Button>
+                    {step.statusRaw !== "COMPLETED" && (
+                      <Button
+                        type="default"
+                        icon={<EditOutlined />}
+                        style={{ borderRadius: 8, fontWeight: 600, minWidth: 140 }}
+                        onClick={() => handleOpenChangeModal(step)}
+                      >
+                        Gửi yêu cầu đổi hẹn
+                      </Button>
+                    )}
+                  </Space>
+                </Col>
+              </Row>
+            </Card>
+          </Timeline.Item>
+        ))}
+      </Timeline>
     </Card>
   );
 
@@ -807,6 +944,13 @@ const TreatmentProgress = () => {
           {getResultText(result)}
         </Tag>
       ),
+    },
+    // Thêm cột Ghi chú
+    {
+      title: "Ghi chú",
+      dataIndex: "notes",
+      key: "notes",
+      render: (text) => text || "Không có ghi chú",
     },
     {
       title: "Tiến độ",
@@ -899,6 +1043,7 @@ const TreatmentProgress = () => {
         overallProgress: overallProgress,
         customerId: detailData.customerId,
         result: detailData.result, // <--- Bổ sung dòng này
+        notes: detailData.notes || "", // <--- Bổ sung dòng này
         phases: stepsWithAppointments.map((step, index) => ({
           id: step.id,
           name: step.name,
@@ -1207,6 +1352,273 @@ const TreatmentProgress = () => {
             message="Không tìm thấy lịch hẹn tương ứng cho bước này!"
           />
         )}
+      </Modal>
+
+      {/* Modal xem lịch hẹn của bước điều trị */}
+      <Modal
+        title={
+          <div style={{ textAlign: "center" }}>Lịch hẹn của bước điều trị</div>
+        }
+        open={showScheduleModal}
+        onCancel={() => {
+          setShowScheduleModal(false);
+          setScheduleStep(null);
+        }}
+        footer={null}
+        width={700}
+        centered
+      >
+        <div style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
+          <div style={{ fontWeight: 600, marginBottom: 16, fontSize: 16 }}>
+            Các lần hẹn đã đăng ký cho bước này:
+          </div>
+          {!stepAppointments[scheduleStep?.id] ||
+            stepAppointments[scheduleStep?.id].length === 0 ? (
+            <div
+              style={{
+                color: "#888",
+                textAlign: "center",
+                padding: 20,
+                background: "#f5f5f5",
+                borderRadius: 8,
+              }}
+            >
+              Chưa có lịch hẹn nào cho bước này.
+            </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center" }}>
+                {stepAppointments[scheduleStep?.id]?.slice(0, 3).map((appointment, idx) => {
+                  const statusColor = getAppointmentStatusColor(
+                    appointment.status
+                  );
+                  const statusIcon = (() => {
+                    switch (appointment.status) {
+                      case "COMPLETED":
+                        return (
+                          <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                        );
+                      case "CONFIRMED":
+                        return (
+                          <ClockCircleOutlined style={{ color: "#1890ff" }} />
+                        );
+                      case "CANCELLED":
+                        return <CloseOutlined style={{ color: "#ff4d4f" }} />;
+                      case "PENDING":
+                        return (
+                          <ExclamationCircleOutlined
+                            style={{ color: "#faad14" }}
+                          />
+                        );
+                      case "PENDING_CHANGE":
+                        return <SwapOutlined style={{ color: "#faad14" }} />;
+                      default:
+                        return (
+                          <ClockCircleOutlined style={{ color: "#d9d9d9" }} />
+                        );
+                    }
+                  })();
+                  return (
+                    <Card
+                      key={appointment.id}
+                      size="small"
+                      style={{
+                        width: 200,
+                        border: `2px solid ${
+                          statusColor === "default" ? "#d9d9d9" : statusColor
+                        }`,
+                        borderRadius: 14,
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                        position: "relative",
+                        marginBottom: 8,
+                        background: "#fff",
+                        minHeight: 180,
+                      }}
+                      styles={{ body: { padding: 16 } }}
+                    >
+                      <div style={{ position: "absolute", top: 10, right: 10 }}>
+                        {statusIcon}
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <Text strong>Ngày hẹn:</Text>
+                        <br />
+                        <Text>
+                          {dayjs(appointment.appointmentDate).format(
+                            "DD/MM/YYYY"
+                          )}
+                        </Text>
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <Text strong>Ca khám:</Text>
+                        <br />
+                        <Tag color="cyan">
+                          {appointment.shift === "MORNING"
+                            ? "Sáng"
+                            : appointment.shift === "AFTERNOON"
+                            ? "Chiều"
+                            : appointment.shift}
+                        </Tag>
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        <Text strong>Trạng thái:</Text>
+                        <br />
+                        <Tag color={statusColor}>
+                          {getAppointmentStatusText(appointment.status)}
+                        </Tag>
+                      </div>
+                      {appointment.purpose && (
+                        <div style={{ marginTop: 8 }}>
+                          <Text strong>Mục đích:</Text>
+                          <br />
+                          <Text>{appointment.purpose}</Text>
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+              
+              {/* Hiển thị thêm các lịch hẹn còn lại khi đã click "Xem thêm" */}
+              {stepAppointments[scheduleStep?.id]?.some(app => app.showAll) && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center", marginTop: 16 }}>
+                  {stepAppointments[scheduleStep?.id]?.slice(3).map((appointment, idx) => {
+                    const statusColor = getAppointmentStatusColor(
+                      appointment.status
+                    );
+                    const statusIcon = (() => {
+                      switch (appointment.status) {
+                        case "COMPLETED":
+                          return (
+                            <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                          );
+                        case "CONFIRMED":
+                          return (
+                            <ClockCircleOutlined style={{ color: "#1890ff" }} />
+                          );
+                        case "CANCELLED":
+                          return <CloseOutlined style={{ color: "#ff4d4f" }} />;
+                        case "PENDING":
+                          return (
+                            <ExclamationCircleOutlined
+                              style={{ color: "#faad14" }}
+                            />
+                          );
+                        case "PENDING_CHANGE":
+                          return <SwapOutlined style={{ color: "#faad14" }} />;
+                        default:
+                          return (
+                            <ClockCircleOutlined style={{ color: "#d9d9d9" }} />
+                          );
+                      }
+                    })();
+                    return (
+                      <Card
+                        key={appointment.id}
+                        size="small"
+                        style={{
+                          width: 200,
+                          border: `2px solid ${
+                            statusColor === "default" ? "#d9d9d9" : statusColor
+                          }`,
+                          borderRadius: 14,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                          position: "relative",
+                          marginBottom: 8,
+                          background: "#fff",
+                          minHeight: 180,
+                        }}
+                        styles={{ body: { padding: 16 } }}
+                      >
+                        <div style={{ position: "absolute", top: 10, right: 10 }}>
+                          {statusIcon}
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Ngày hẹn:</Text>
+                          <br />
+                          <Text>
+                            {dayjs(appointment.appointmentDate).format(
+                              "DD/MM/YYYY"
+                            )}
+                          </Text>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Ca khám:</Text>
+                          <br />
+                          <Tag color="cyan">
+                            {appointment.shift === "MORNING"
+                              ? "Sáng"
+                              : appointment.shift === "AFTERNOON"
+                              ? "Chiều"
+                              : appointment.shift}
+                          </Tag>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Trạng thái:</Text>
+                          <br />
+                          <Tag color={statusColor}>
+                            {getAppointmentStatusText(appointment.status)}
+                          </Tag>
+                        </div>
+                        {appointment.purpose && (
+                          <div style={{ marginTop: 8 }}>
+                            <Text strong>Mục đích:</Text>
+                            <br />
+                            <Text>{appointment.purpose}</Text>
+                          </div>
+                        )}
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {/* Nút "Xem thêm" hoặc "Ẩn bớt" ở cuối */}
+              {stepAppointments[scheduleStep?.id]?.length > 3 && (
+                <div style={{ textAlign: "center", marginTop: 16 }}>
+                  {stepAppointments[scheduleStep?.id]?.some(app => app.showAll) ? (
+                    <Button
+                      type="default"
+                      icon={<FileTextOutlined />}
+                      onClick={() => {
+                        setStepAppointments((prev) => {
+                          if (prev[scheduleStep?.id]) {
+                            return {
+                              ...prev,
+                              [scheduleStep?.id]: prev[scheduleStep?.id].map(app => ({ ...app, showAll: false }))
+                            };
+                          }
+                          return prev;
+                        });
+                      }}
+                      style={{ borderRadius: 8, minWidth: 140 }}
+                    >
+                      Ẩn bớt
+                    </Button>
+                  ) : (
+                    <Button
+                      type="default"
+                      icon={<FileTextOutlined />}
+                      onClick={() => {
+                        setStepAppointments((prev) => {
+                          if (prev[scheduleStep?.id]) {
+                            return {
+                              ...prev,
+                              [scheduleStep?.id]: prev[scheduleStep?.id].map(app => ({ ...app, showAll: true }))
+                            };
+                          }
+                          return prev;
+                        });
+                      }}
+                      style={{ borderRadius: 8, minWidth: 140 }}
+                    >
+                      Xem thêm ({stepAppointments[scheduleStep?.id]?.length - 3})
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </Modal>
     </div>
   );
