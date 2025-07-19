@@ -408,6 +408,33 @@ const MyServices = () => {
               <Descriptions.Item label="Trạng thái">
                 {getStatusTag(selectedTreatmentDetail.status)}
               </Descriptions.Item>
+              {/* Thêm mục Kết quả */}
+              <Descriptions.Item label="Kết quả">
+                <Tag
+                  color={
+                    selectedTreatmentDetail.result === "SUCCESS"
+                      ? "green"
+                      : selectedTreatmentDetail.result === "FAILURE"
+                      ? "red"
+                      : selectedTreatmentDetail.result === "UNDETERMINED"
+                      ? "orange"
+                      : "default"
+                  }
+                >
+                  {(() => {
+                    switch ((selectedTreatmentDetail.result || "").toUpperCase()) {
+                      case "SUCCESS": return "Thành công";
+                      case "FAILURE": return "Thất bại";
+                      case "UNDETERMINED": return "Chưa xác định";
+                      default: return "Chưa có";
+                    }
+                  })()}
+                </Tag>
+              </Descriptions.Item>
+              {/* Thêm mục Ghi chú */}
+              <Descriptions.Item label="Ghi chú">
+                {selectedTreatmentDetail.notes || "Không có ghi chú"}
+              </Descriptions.Item>
             </Descriptions>
             <div style={{ margin: "24px 0" }}>
               <Progress

@@ -20,6 +20,8 @@ import {
   Switch,
   Radio,
   Dropdown,
+  Timeline,
+  Descriptions,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -34,6 +36,8 @@ import {
   CloseOutlined,
   PlusOutlined,
   ExclamationCircleOutlined,
+  SwapOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
@@ -87,7 +91,7 @@ const TreatmentStageDetails = () => {
     { value: "PLANED", label: "Đã đặt lịch" },
     { value: "PENDING_CHANGE", label: "Chờ duyệt đổi lịch" },
     { value: "CONFIRMED", label: "Đã xác nhận" },
-    { value: "INPROGRESS", label: "Đang thực hiện" },
+    { value: "INPROGRESS", label: "Đang điều trị" },
     { value: "COMPLETED", label: "Hoàn thành" },
     { value: "CANCELLED", label: "Đã hủy" },
   ];
@@ -185,17 +189,17 @@ const TreatmentStageDetails = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "CONFIRMED":
-        return "#1890ff";
-      case "PLANNED":
-        return "#d9d9d9";
+        return "processing";
+      case "PLANED":
+        return "warning";
       case "COMPLETED":
-        return "#52c41a";
+        return "success";
       case "CANCELLED":
-        return "#ff4d4f";
+        return "error";
       case "INPROGRESS":
-        return "#fa8c16";
+        return "orange";
       default:
-        return "#d9d9d9";
+        return "processing";
     }
   };
 
@@ -218,6 +222,25 @@ const TreatmentStageDetails = () => {
     }
   };
 
+  const getAppointmentStatusColor = (status) => {
+    switch (status) {
+      case "PENDING":
+        return "orange";
+      case "CONFIRMED":
+        return "blue";
+      case "COMPLETED":
+        return "green";
+      case "CANCELLED":
+        return "red";
+      case "PLANED":
+        return "yellow";
+      case "PENDING_CHANGE":
+        return "gold";
+      default:
+        return "default";
+    }
+  };
+
   const getAppointmentStatusText = (status) => {
     switch (status) {
       case "CONFIRMED":
@@ -225,7 +248,7 @@ const TreatmentStageDetails = () => {
       case "COMPLETED":
         return "Hoàn thành";
       case "INPROGRESS":
-        return "Đang thực hiện";
+        return "Đang điều trị";
       case "PLANED":
         return "Đã lên lịch";
       case "CANCELLED":
@@ -402,16 +425,11 @@ const TreatmentStageDetails = () => {
       if (response?.data?.code === 1000) {
         showNotification("Tạo lịch hẹn thành công", "success");
 
-        // Thay vì tự set stepAppointments, gọi lại handleStepClick để reload đúng danh sách lịch hẹn cho bước này
+        // Đóng modal tạo lịch hẹn và reset form
         setShowCreateAppointmentModal(false);
-        const step = treatmentData.treatmentSteps.find(
-          (step) => String(step.id) === String(values.treatmentStepId)
-        );
-        if (step) {
-          handleStepClick(step);
-          setShowStepDetailModal(true);
-        }
         scheduleForm.resetFields();
+        
+        // Không mở lại modal xem lịch hẹn nữa, chỉ hiển thị thông báo thành công
       } else {
         showNotification(
           response?.data?.message || "Tạo lịch hẹn thất bại",
@@ -433,7 +451,7 @@ const TreatmentStageDetails = () => {
       form.setFieldsValue({
         startDate: detail?.startDate ? dayjs(detail.startDate) : null,
         endDate: detail?.endDate ? dayjs(detail.endDate) : null,
-        status: detail?.status,
+        status: detail?.status === "CONFIRMED" ? undefined : detail?.status,
         notes: detail?.notes,
       });
     } catch {
@@ -441,7 +459,7 @@ const TreatmentStageDetails = () => {
       form.setFieldsValue({
         startDate: step.startDate ? dayjs(step.startDate) : null,
         endDate: step.endDate ? dayjs(step.endDate) : null,
-        status: step.status,
+        status: step.status === "CONFIRMED" ? undefined : step.status,
         notes: step.notes,
       });
     }
@@ -626,6 +644,23 @@ const TreatmentStageDetails = () => {
     });
   };
 
+  // Thêm hàm xử lý mở modal xem lịch hẹn
+  const handleShowScheduleModal = async (step) => {
+    setScheduleStep(step);
+    setShowScheduleModal(true);
+    setLoadingAppointments(true);
+    try {
+      const response = await treatmentService.getAppointmentsByStepId(step.id);
+      const appointments = response?.data?.result || [];
+      setStepAppointments(appointments);
+    } catch (error) {
+      console.error("❌ Error fetching appointments:", error);
+      setStepAppointments([]);
+    } finally {
+      setLoadingAppointments(false);
+    }
+  };
+
   // Helper function to handle appointment status updates
   const handleAppointmentStatusUpdate = async (
     appointmentId,
@@ -651,13 +686,7 @@ const TreatmentStageDetails = () => {
             : []
         );
 
-        // Refresh data from server
-        if (stepId) {
-          const refreshed = await treatmentService.getAppointmentsByStepId(
-            stepId
-          );
-          setStepAppointments(refreshed?.data?.result?.content || []);
-        }
+        // Không refresh data từ server nữa để tránh nhảy trang
       } else {
         showNotification(res?.data?.message || "Cập nhật thất bại", "error");
       }
@@ -892,8 +921,8 @@ const TreatmentStageDetails = () => {
           borderRadius: 14,
           boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           background: "#fff",
-          width: 800,
-          maxWidth: "98vw",
+          width: "100%",
+          maxWidth: "1200px",
           minWidth: 320,
           padding: 0,
         }}
@@ -909,99 +938,89 @@ const TreatmentStageDetails = () => {
               Quay lại
             </Button>
           </Col>
-          <Col flex="auto">
-            <Title
-              level={3}
-              style={{
-                margin: 0,
-                color: "#1a1a1a",
-                textAlign: "left",
-                fontWeight: 700,
-              }}
-            >
-              Tiến Trình Điều Trị
-            </Title>
-          </Col>
         </Row>
       </Card>
 
       {treatmentData ? (
         <>
-          {/* Patient Info */}
-          <Card
-            style={{
-              marginBottom: "24px",
-              borderRadius: 14,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-              background: "#fff",
-              width: 800,
-              maxWidth: "98vw",
-              minWidth: 320,
-              padding: 0,
-            }}
-          >
-            <Row gutter={[24, 24]} align="middle">
-              <Col>
-                <Avatar
-                  size={64}
-                  icon={<UserOutlined />}
-                  style={{ backgroundColor: "#1890ff" }}
-                />
-              </Col>
-              <Col flex="auto">
-                <Title
-                  level={4}
-                  style={{ margin: 0, color: "#1a1a1a", fontWeight: 600 }}
-                >
-                  {treatmentData.customerName}
-                </Title>
-                <Space size="large">
-                  <Tag
-                    icon={<MedicineBoxOutlined />}
-                    color="blue"
-                    style={{ fontSize: 13, padding: "6px 12px" }}
-                  >
-                    {treatmentData.treatmentServiceName}
-                  </Tag>
-                  <Tag
-                    color="green"
-                    style={{ fontSize: 13, padding: "6px 12px" }}
-                  >
-                    {getStatusText(treatmentData.status)}
-                  </Tag>
-                  {/* Thêm mục Kết quả */}
-                  <Tag
-                    color={
-                      treatmentData.result === "SUCCESS"
-                        ? "green"
-                        : treatmentData.result === "FAILURE"
-                        ? "red"
-                        : treatmentData.result === "UNDETERMINED"
-                        ? "orange"
-                        : "default"
-                    }
-                  >
-                    Kết quả: {getResultText(treatmentData.result)}
-                  </Tag>
-                </Space>
-              </Col>
-            </Row>
-          </Card>
-
           {/* Timeline */}
           <Card
             style={{
               borderRadius: 14,
               boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
               background: "#fff",
-              width: 800,
-              maxWidth: "98vw",
+              width: "100%",
+              maxWidth: "1200px",
               minWidth: 320,
               marginBottom: "24px",
               padding: "24px 0 8px 0",
             }}
           >
-            <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            {/* Patient Info Section */}
+            <div style={{ padding: "0 24px 24px 24px", borderBottom: "1px solid #f0f0f0", marginBottom: 24 }}>
+              <Title level={4} style={{ color: "#1890ff", marginBottom: 16 }}>Thông tin bệnh nhân</Title>
+              <Row gutter={[24, 16]}>
+                <Col xs={24} md={12}>
+                  <Space>
+                    <Text strong style={{ fontSize: 16 }}>Tên bệnh nhân:</Text>
+                    <Text style={{ fontSize: 16 }}>{treatmentData.customerName}</Text>
+                  </Space>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Space>
+                    <Text strong>Bác sĩ:</Text>
+                    <Text>{treatmentData.doctorName}</Text>
+                  </Space>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Space>
+                    <Text strong>Dịch vụ:</Text>
+                    <Text>{treatmentData.treatmentServiceName}</Text>
+                  </Space>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Space>
+                    <Text strong>Ngày bắt đầu:</Text>
+                    <Text>{dayjs(treatmentData.startDate).format("DD/MM/YYYY")}</Text>
+                  </Space>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Space>
+                    <Text strong>Trạng thái:</Text>
+                    <Tag color={getStatusColor(treatmentData.status)} style={{ fontSize: 15, padding: "4px 16px" }}>
+                      {getStatusText(treatmentData.status)}
+                    </Tag>
+                  </Space>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Space>
+                    <Text strong>Kết quả:</Text>
+                    <Tag
+                      color={
+                        treatmentData.result === "SUCCESS"
+                          ? "green"
+                          : treatmentData.result === "FAILURE"
+                          ? "red"
+                          : treatmentData.result === "UNDETERMINED"
+                          ? "orange"
+                          : "default"
+                      }
+                      style={{ fontSize: 15, padding: "4px 16px" }}
+                    >
+                      {getResultText(treatmentData.result)}
+                    </Tag>
+                  </Space>
+                </Col>
+                <Col xs={24} md={24}>
+                  <Space>
+                    <Text strong>Ghi chú:</Text>
+                    <Text>{treatmentData.notes || "Không có ghi chú"}</Text>
+                  </Space>
+                </Col>
+              </Row>
+            </div>
+
+            <div style={{ display: "flex", gap: 12, marginBottom: 16, padding: "0 24px" }}>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -1044,89 +1063,114 @@ const TreatmentStageDetails = () => {
                 </Button>
               </Dropdown>
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 8,
-                padding: "0 16px",
-                marginBottom: 24,
-                justifyContent: "flex-start",
-              }}
-            >
-              {treatmentData.treatmentSteps?.map((step, index) => (
-                <div
-                  key={step.id}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  <Tooltip title={`Bước ${index + 1}: ${step.name}`}>
-                    <div
-                      onClick={() => handleStepClick(step)}
-                      style={{
-                        width: 54,
-                        height: 54,
-                        borderRadius: "50%",
-                        background: `linear-gradient(135deg, ${getStatusColor(
-                          step.status
-                        )} 0%, ${getStatusColor(step.status)}dd 100%)`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-                        transition: "all 0.3s ease",
-                        position: "relative",
-                        border: "3px solid white",
-                      }}
+            
+            {/* Treatment Steps Timeline */}
+            {treatmentData.treatmentSteps && treatmentData.treatmentSteps.length > 0 ? (
+              <Card 
+                title={<span style={{ fontWeight: 700, fontSize: 20, color: '#1890ff' }}>Các bước điều trị</span>} 
+                style={{ marginBottom: 32, borderRadius: 18, boxShadow: "0 4px 16px rgba(24,144,255,0.08)", background: "#fff" }} 
+                bodyStyle={{ padding: 32 }}
+              >
+                <Timeline style={{ marginLeft: 16 }}>
+                  {treatmentData.treatmentSteps.map((step, index) => (
+                    <Timeline.Item
+                      key={step.id}
+                      color={getStatusColor(step.status)}
+                      dot={
+                        <div style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: "50%",
+                          background: getStatusColor(step.status) === 'success' ? '#e6fffb' : 
+                                 getStatusColor(step.status) === 'error' ? '#fff1f0' : 
+                                 getStatusColor(step.status) === 'processing' ? '#e6f7ff' : 
+                                 getStatusColor(step.status) === 'orange' ? '#fff7e6' : '#f5f5f5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: `3px solid ${getStatusColor(step.status) === 'success' ? '#52c41a' : 
+                                        getStatusColor(step.status) === 'error' ? '#ff4d4f' : 
+                                        getStatusColor(step.status) === 'processing' ? '#1890ff' : 
+                                        getStatusColor(step.status) === 'orange' ? '#fa8c16' : '#d9d9d9'}`
+                        }}>
+                          <span style={{ 
+                            fontSize: 22, 
+                            color: getStatusColor(step.status) === 'success' ? '#52c41a' : 
+                                   getStatusColor(step.status) === 'error' ? '#ff4d4f' : 
+                                   getStatusColor(step.status) === 'processing' ? '#1890ff' : 
+                                   getStatusColor(step.status) === 'orange' ? '#fa8c16' : '#bfbfbf', 
+                            fontWeight: 700 
+                          }}>{index + 1}</span>
+                        </div>
+                      }
                     >
-                      <ExperimentOutlined
+                      <Card
+                        size="small"
                         style={{
-                          fontSize: 22,
-                          color: "white",
-                          filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+                          marginBottom: 24,
+                          borderRadius: 16,
+                          boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
+                          background: index === 0 ? "#fafdff" : "#fff",
+                          transition: "box-shadow 0.2s",
+                          border: `1.5px solid ${getStatusColor(step.status) === 'success' ? '#52c41a' : 
+                                           getStatusColor(step.status) === 'error' ? '#ff4d4f' : 
+                                           getStatusColor(step.status) === 'processing' ? '#1890ff' : 
+                                           getStatusColor(step.status) === 'orange' ? '#fa8c16' : '#d9d9d9'}`,
                         }}
-                      />
-                      <Badge
-                        count={index + 1}
-                        style={{
-                          position: "absolute",
-                          top: -8,
-                          right: -8,
-                          backgroundColor: "#1890ff",
-                          color: "white",
-                          fontSize: 11,
-                          fontWeight: "bold",
-                        }}
-                      />
-                    </div>
-                  </Tooltip>
-                  <div style={{ marginTop: 6 }}>
-                    {step.status === "COMPLETED" && (
-                      <CheckOutlined
-                        style={{ color: "#52c41a", fontSize: 16 }}
-                      />
-                    )}
-                    {step.status === "CANCELLED" && (
-                      <CloseOutlined
-                        style={{ color: "#ff4d4f", fontSize: 16 }}
-                      />
-                    )}
-                    {step.status === "INPROGRESS" && (
-                      <ClockCircleOutlined
-                        style={{ color: "#fa8c16", fontSize: 16 }}
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                        bodyStyle={{ padding: 24 }}
+                        hoverable
+                      >
+                        <Row gutter={[16, 16]} align="middle">
+                          <Col xs={24} md={16}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                              <Text strong style={{ fontSize: 18, color: '#1890ff' }}>Bước {index + 1}: {step.stageName || step.name || ""}</Text>
+                              <Tag color={getStatusColor(step.status)} style={{ fontSize: 15, padding: '4px 16px' }}>{getStatusText(step.status)}</Tag>
+                            </div>
+                            <Descriptions column={2} size="small" style={{ background: 'transparent' }}>
+                              <Descriptions.Item label="Ngày bắt đầu">
+                                {step.startDate ? dayjs(step.startDate).format("DD/MM/YYYY") : "Chưa có lịch"}
+                              </Descriptions.Item>
+                              <Descriptions.Item label="Ngày kết thúc">
+                                {step.endDate ? dayjs(step.endDate).format("DD/MM/YYYY") : "Chưa thực hiện"}
+                              </Descriptions.Item>
+                              <Descriptions.Item label="Ghi chú">
+                                {step.notes || "Không có ghi chú"}
+                              </Descriptions.Item>
+                            </Descriptions>
+                          </Col>
+                          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+                            <Space direction="vertical" size="small">
+                              <Button
+                                type="primary"
+                                ghost
+                                icon={<FileTextOutlined />}
+                                style={{ borderRadius: 8, fontWeight: 600, minWidth: 140 }}
+                                onClick={() => handleShowScheduleModal(step)}
+                              >
+                                Xem lịch hẹn
+                              </Button>
+                              <Button
+                                type="default"
+                                icon={<EditOutlined />}
+                                style={{ borderRadius: 8, fontWeight: 600, minWidth: 140 }}
+                                onClick={() => showEditModal(step)}
+                              >
+                                Cập nhật
+                              </Button>
+                            </Space>
+                          </Col>
+                        </Row>
+                      </Card>
+                    </Timeline.Item>
+                  ))}
+                </Timeline>
+              </Card>
+            ) : (
+              <Card title="Các bước điều trị" style={{ marginBottom: 24, borderRadius: 18, boxShadow: "0 4px 16px rgba(24,144,255,0.08)", background: "#fff" }}>
+                <Text type="secondary">Chưa có bước điều trị nào được tạo</Text>
+              </Card>
+            )}
           </Card>
-
           {/* Complete Treatment Button - ĐÃ XÓA */}
         </>
       ) : (
@@ -1164,7 +1208,7 @@ const TreatmentStageDetails = () => {
           setSelectedStep(null);
         }}
         footer={null}
-        width={800}
+        width={600}
         centered
       >
         {selectedStep && (
@@ -1221,173 +1265,6 @@ const TreatmentStageDetails = () => {
                   </div>
                 </Col>
               </Row>
-              <div
-                style={{
-                  fontWeight: 600,
-                  margin: "32px 0 16px 0",
-                  fontSize: 16,
-                  textAlign: "left",
-                }}
-              >
-                Các lần hẹn đã đăng ký cho bước này:
-              </div>
-              <div
-                style={{
-                  background: "#fff",
-                  borderRadius: 8,
-                  padding: 0,
-                  marginBottom: 8,
-                }}
-              >
-                {loadingAppointments ? (
-                  <div style={{ textAlign: "center", padding: 20 }}>
-                    <Spin size="large" />
-                  </div>
-                ) : stepAppointments.length === 0 ? (
-                  <div
-                    style={{
-                      color: "#888",
-                      textAlign: "center",
-                      padding: 20,
-                      background: "#fff",
-                      borderRadius: 8,
-                    }}
-                  >
-                    Chưa có lịch hẹn nào cho bước này.
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      maxHeight: 200,
-                      overflowY: "auto",
-                      marginBottom: 0,
-                    }}
-                  >
-                    {Array.isArray(stepAppointments) &&
-                      stepAppointments.map((app, idx) => (
-                        <Card
-                          key={app.id}
-                          size="small"
-                          style={{
-                            marginBottom: 8,
-                            background: "#f6faff",
-                            border: "1px solid #e6f7ff",
-                            position: "relative",
-                            borderRadius: 8,
-                          }}
-                        >
-                          <Row gutter={[16, 8]}>
-                            <Col span={16}>
-                              <Row gutter={[16, 8]}>
-                                <Col span={12}>
-                                  <div>
-                                    <b>Trạng thái:</b>{" "}
-                                    <Tag
-                                      color={
-                                        app.status === "CONFIRMED"
-                                          ? "blue"
-                                          : app.status === "COMPLETED"
-                                          ? "green"
-                                          : app.status === "CANCELLED"
-                                          ? "red"
-                                          : "orange"
-                                      }
-                                    >
-                                      {getAppointmentStatusText(app.status)}
-                                    </Tag>
-                                  </div>
-                                  <div>
-                                    <b>Ngày hẹn:</b> {app.appointmentDate}
-                                  </div>
-                                  <div>
-                                    <b>Ca khám:</b>{" "}
-                                    {app.shift === "MORNING"
-                                      ? "Sáng"
-                                      : app.shift === "AFTERNOON"
-                                      ? "Chiều"
-                                      : app.shift}
-                                  </div>
-                                </Col>
-                                <Col span={12}>
-                                  <div>
-                                    <b>Ghi chú:</b> {app.notes || "Không có"}
-                                  </div>
-                                  <div>
-                                    <b>Mục đích:</b>{" "}
-                                    {app.purpose ? app.purpose : "Không có"}
-                                  </div>
-                                  <div>
-                                    <b>Bước điều trị:</b>{" "}
-                                    {app.step || "Không có"}
-                                  </div>
-                                </Col>
-                              </Row>
-                            </Col>
-                            <Col span={8} style={{ textAlign: "right" }}>
-                              <Space direction="vertical" align="end">
-                                <Button
-                                  type="primary"
-                                  style={{
-                                    background: "#fa8c16",
-                                    borderColor: "#fa8c16",
-                                    color: "#fff",
-                                  }}
-                                  onClick={() =>
-                                    setStepAppointments((prev) =>
-                                      Array.isArray(prev)
-                                        ? prev.map((a, i) =>
-                                            i === idx
-                                              ? {
-                                                  ...a,
-                                                  showStatusSelect:
-                                                    !a.showStatusSelect,
-                                                }
-                                              : a
-                                          )
-                                        : []
-                                    )
-                                  }
-                                >
-                                  Cập nhật trạng thái
-                                </Button>
-                                {app.showStatusSelect && (
-                                  <Radio.Group
-                                    style={{ width: 160 }}
-                                    value={app.status || undefined}
-                                    onChange={(e) =>
-                                      handleAppointmentStatusUpdate(
-                                        app.id,
-                                        e.target.value,
-                                        scheduleStep?.id
-                                      )
-                                    }
-                                    buttonStyle="solid"
-                                  >
-                                    {statusOptions
-                                      .filter((opt) =>
-                                        ["COMPLETED", "CANCELLED"].includes(
-                                          opt.value
-                                        )
-                                      )
-                                      .map((opt) => (
-                                        <Radio.Button
-                                          key={opt.value}
-                                          value={opt.value}
-                                          style={{ margin: 2, width: "100%" }}
-                                        >
-                                          {opt.label}
-                                        </Radio.Button>
-                                      ))}
-                                  </Radio.Group>
-                                )}
-                              </Space>
-                            </Col>
-                          </Row>
-                        </Card>
-                      ))}
-                  </div>
-                )}
-              </div>
               <div style={{ textAlign: "center", marginTop: 24 }}>
                 <Button
                   type="primary"
@@ -1403,8 +1280,24 @@ const TreatmentStageDetails = () => {
                 </Button>
                 <Button
                   type="default"
+                  icon={<FileTextOutlined />}
+                  onClick={() => {
+                    setShowStepDetailModal(false);
+                    handleShowScheduleModal(selectedStep);
+                  }}
+                  size="large"
+                  style={{ borderRadius: 8, minWidth: 120, marginRight: 16 }}
+                >
+                  Xem lịch hẹn
+                </Button>
+                <Button
+                  type="default"
                   icon={<CalendarOutlined />}
-                  onClick={handleShowCreateAppointment}
+                  onClick={() => {
+                    setShowStepDetailModal(false);
+                    setSelectedStep(selectedStep);
+                    handleShowCreateAppointment();
+                  }}
                   size="large"
                   style={{ borderRadius: 8, minWidth: 120 }}
                 >
@@ -1442,7 +1335,7 @@ const TreatmentStageDetails = () => {
             rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
           >
             <Select>
-              <Select.Option value="INPROGRESS">Đang thực hiện</Select.Option>
+              <Select.Option value="INPROGRESS">Đang điều trị</Select.Option>
               <Select.Option value="COMPLETED">Hoàn thành</Select.Option>
               <Select.Option value="CANCELLED">Đã hủy</Select.Option>
             </Select>
@@ -1452,7 +1345,15 @@ const TreatmentStageDetails = () => {
           </Form.Item>
           <Form.Item style={{ textAlign: "right" }}>
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button 
+                type="primary" 
+                htmlType="submit"
+                style={{ 
+                  background: editingStep?.status === "INPROGRESS" ? "#fa8c16" : "#1890ff", 
+                  borderColor: editingStep?.status === "INPROGRESS" ? "#fa8c16" : "#1890ff",
+                  color: "#fff"
+                }}
+              >
                 Cập nhật
               </Button>
               <Button
@@ -1469,23 +1370,23 @@ const TreatmentStageDetails = () => {
         </Form>
       </Modal>
 
-      {/* Schedule Modal */}
+      {/* Modal xem lịch hẹn của bước điều trị */}
       <Modal
-        title="Lịch hẹn của bước điều trị"
+        title={
+          <div style={{ textAlign: "center" }}>Lịch hẹn của bước điều trị</div>
+        }
         open={showScheduleModal}
         onCancel={() => {
           setShowScheduleModal(false);
           setScheduleStep(null);
-          scheduleForm.resetFields();
-          setStepAppointments([]);
         }}
         footer={null}
-        width={800}
+        width={700}
         centered
       >
         <div style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
           <div style={{ fontWeight: 600, marginBottom: 16, fontSize: 16 }}>
-            📅 Các lần hẹn đã đăng ký cho bước này:
+            Các lần hẹn đã đăng ký cho bước này:
           </div>
           {loadingAppointments ? (
             <div style={{ textAlign: "center", padding: 20 }}>
@@ -1504,76 +1405,102 @@ const TreatmentStageDetails = () => {
               Chưa có lịch hẹn nào cho bước này.
             </div>
           ) : (
-            <div
-              style={{ maxHeight: 300, overflowY: "auto", marginBottom: 16 }}
-            >
-              {Array.isArray(stepAppointments) &&
-                stepAppointments.map((app, idx) => (
-                  <Card
-                    key={app.id}
-                    size="small"
-                    style={{
-                      marginBottom: 8,
-                      background: "#f6faff",
-                      border: "1px solid #e6f7ff",
-                      position: "relative",
-                      borderRadius: 8,
-                    }}
-                  >
-                    <Row gutter={[16, 8]}>
-                      <Col span={16}>
-                        <Row gutter={[16, 8]}>
-                          <Col span={12}>
-                            <div>
-                              <b>Trạng thái:</b>{" "}
-                              <Tag
-                                color={
-                                  app.status === "CONFIRMED"
-                                    ? "blue"
-                                    : app.status === "COMPLETED"
-                                    ? "green"
-                                    : app.status === "CANCELLED"
-                                    ? "red"
-                                    : "orange"
-                                }
-                              >
-                                {getAppointmentStatusText(app.status)}
-                              </Tag>
-                            </div>
-                            <div>
-                              <b>Ngày hẹn:</b> {app.appointmentDate}
-                            </div>
-                            <div>
-                              <b>Ca khám:</b>{" "}
-                              {app.shift === "MORNING"
-                                ? "Sáng"
-                                : app.shift === "AFTERNOON"
-                                ? "Chiều"
-                                : app.shift}
-                            </div>
-                          </Col>
-                          <Col span={12}>
-                            <div>
-                              <b>Ghi chú:</b> {app.notes || "Không có"}
-                            </div>
-                            <div>
-                              <b>Mục đích:</b>{" "}
-                              {app.purpose ? app.purpose : "Không có"}
-                            </div>
-                            <div>
-                              <b>Bước điều trị:</b> {app.step || "Không có"}
-                            </div>
-                          </Col>
-                        </Row>
-                      </Col>
-                      <Col span={8} style={{ textAlign: "right" }}>
-                        <Space direction="vertical" align="end">
+            <>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center" }}>
+                {Array.isArray(stepAppointments) &&
+                  stepAppointments.slice(0, 3).map((app, idx) => {
+                    const statusColor = getAppointmentStatusColor(app.status);
+                    const statusIcon = (() => {
+                      switch (app.status) {
+                        case "COMPLETED":
+                          return (
+                            <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                          );
+                        case "CONFIRMED":
+                          return (
+                            <ClockCircleOutlined style={{ color: "#1890ff" }} />
+                          );
+                        case "CANCELLED":
+                          return <CloseOutlined style={{ color: "#ff4d4f" }} />;
+                        case "PENDING":
+                          return (
+                            <ExclamationCircleOutlined
+                              style={{ color: "#faad14" }}
+                            />
+                          );
+                        case "PENDING_CHANGE":
+                          return <SwapOutlined style={{ color: "#faad14" }} />;
+                        default:
+                          return (
+                            <ClockCircleOutlined style={{ color: "#d9d9d9" }} />
+                          );
+                      }
+                    })();
+                    return (
+                      <Card
+                        key={app.id}
+                        size="small"
+                        style={{
+                          width: 200,
+                          border: `2px solid ${
+                            statusColor === "default" ? "#d9d9d9" : statusColor
+                          }`,
+                          borderRadius: 14,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                          position: "relative",
+                          marginBottom: 8,
+                          background: "#fff",
+                          minHeight: 180,
+                        }}
+                        bodyStyle={{ padding: 16 }}
+                      >
+                        <div style={{ position: "absolute", top: 10, right: 10 }}>
+                          {statusIcon}
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Ngày hẹn:</Text>
+                          <br />
+                          <Text>
+                            {dayjs(app.appointmentDate).format("DD/MM/YYYY")}
+                          </Text>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Ca khám:</Text>
+                          <br />
+                          <Tag color="cyan">
+                            {app.shift === "MORNING"
+                              ? "Sáng"
+                              : app.shift === "AFTERNOON"
+                              ? "Chiều"
+                              : app.shift}
+                          </Tag>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Trạng thái:</Text>
+                          <br />
+                          <Tag color={statusColor}>
+                            {getAppointmentStatusText(app.status)}
+                          </Tag>
+                        </div>
+                        {app.purpose && (
+                          <div style={{ marginTop: 8 }}>
+                            <Text strong>Mục đích:</Text>
+                            <br />
+                            <Text>{app.purpose}</Text>
+                          </div>
+                        )}
+                        {/* Thêm nút cập nhật trạng thái cho bác sĩ */}
+                        <div style={{ marginTop: 12, textAlign: "center" }}>
                           <Button
                             type="primary"
+                            size="small"
                             style={{
                               background: "#fa8c16",
                               borderColor: "#fa8c16",
                               color: "#fff",
+                              borderRadius: 6,
+                              fontSize: 12,
+                              height: 28,
                             }}
                             onClick={() =>
                               setStepAppointments((prev) =>
@@ -1582,8 +1509,7 @@ const TreatmentStageDetails = () => {
                                       i === idx
                                         ? {
                                             ...a,
-                                            showStatusSelect:
-                                              !a.showStatusSelect,
+                                            showStatusSelect: !a.showStatusSelect,
                                           }
                                         : a
                                     )
@@ -1594,107 +1520,261 @@ const TreatmentStageDetails = () => {
                             Cập nhật trạng thái
                           </Button>
                           {app.showStatusSelect && (
-                            <Radio.Group
-                              style={{ width: 160 }}
-                              value={app.status || undefined}
-                              onChange={(e) =>
-                                handleAppointmentStatusUpdate(
-                                  app.id,
-                                  e.target.value,
-                                  scheduleStep?.id
-                                )
-                              }
-                              buttonStyle="solid"
-                            >
-                              {statusOptions
-                                .filter((opt) =>
-                                  ["COMPLETED", "CANCELLED"].includes(opt.value)
-                                )
-                                .map((opt) => (
-                                  <Radio.Button
-                                    key={opt.value}
-                                    value={opt.value}
-                                    style={{ margin: 2, width: "100%" }}
-                                  >
-                                    {opt.label}
-                                  </Radio.Button>
-                                ))}
-                            </Radio.Group>
+                            <div style={{ marginTop: 8 }}>
+                              <Radio.Group
+                                style={{ width: "100%" }}
+                                value={app.status || undefined}
+                                onChange={(e) =>
+                                  handleAppointmentStatusUpdate(
+                                    app.id,
+                                    e.target.value,
+                                    scheduleStep?.id
+                                  )
+                                }
+                                buttonStyle="solid"
+                                size="small"
+                              >
+                                {statusOptions
+                                  .filter((opt) =>
+                                    ["COMPLETED", "CANCELLED"].includes(opt.value)
+                                  )
+                                  .map((opt) => (
+                                    <Radio.Button
+                                      key={opt.value}
+                                      value={opt.value}
+                                      style={{ 
+                                        margin: 2, 
+                                        width: "100%",
+                                        fontSize: 11,
+                                        height: 24,
+                                      }}
+                                    >
+                                      {opt.label}
+                                    </Radio.Button>
+                                  ))}
+                              </Radio.Group>
+                            </div>
                           )}
-                        </Space>
-                      </Col>
-                    </Row>
-                  </Card>
-                ))}
-            </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+              </div>
+              
+              {/* Hiển thị thêm các lịch hẹn còn lại khi đã click "Xem thêm" */}
+              {Array.isArray(stepAppointments) && stepAppointments.some(app => app.showAll) && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center", marginTop: 16 }}>
+                  {stepAppointments.slice(3).map((app, idx) => {
+                    const statusColor = getAppointmentStatusColor(app.status);
+                    const statusIcon = (() => {
+                      switch (app.status) {
+                        case "COMPLETED":
+                          return (
+                            <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                          );
+                        case "CONFIRMED":
+                          return (
+                            <ClockCircleOutlined style={{ color: "#1890ff" }} />
+                          );
+                        case "CANCELLED":
+                          return <CloseOutlined style={{ color: "#ff4d4f" }} />;
+                        case "PENDING":
+                          return (
+                            <ExclamationCircleOutlined
+                              style={{ color: "#faad14" }}
+                            />
+                          );
+                        case "PENDING_CHANGE":
+                          return <SwapOutlined style={{ color: "#faad14" }} />;
+                        default:
+                          return (
+                            <ClockCircleOutlined style={{ color: "#d9d9d9" }} />
+                          );
+                      }
+                    })();
+                    return (
+                      <Card
+                        key={app.id}
+                        size="small"
+                        style={{
+                          width: 200,
+                          border: `2px solid ${
+                            statusColor === "default" ? "#d9d9d9" : statusColor
+                          }`,
+                          borderRadius: 14,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                          position: "relative",
+                          marginBottom: 8,
+                          background: "#fff",
+                          minHeight: 180,
+                        }}
+                        bodyStyle={{ padding: 16 }}
+                      >
+                        <div style={{ position: "absolute", top: 10, right: 10 }}>
+                          {statusIcon}
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Ngày hẹn:</Text>
+                          <br />
+                          <Text>
+                            {dayjs(app.appointmentDate).format("DD/MM/YYYY")}
+                          </Text>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Ca khám:</Text>
+                          <br />
+                          <Tag color="cyan">
+                            {app.shift === "MORNING"
+                              ? "Sáng"
+                              : app.shift === "AFTERNOON"
+                              ? "Chiều"
+                              : app.shift}
+                          </Tag>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Trạng thái:</Text>
+                          <br />
+                          <Tag color={statusColor}>
+                            {getAppointmentStatusText(app.status)}
+                          </Tag>
+                        </div>
+                        {app.purpose && (
+                          <div style={{ marginTop: 8 }}>
+                            <Text strong>Mục đích:</Text>
+                            <br />
+                            <Text>{app.purpose}</Text>
+                          </div>
+                        )}
+                        {/* Thêm nút cập nhật trạng thái cho bác sĩ */}
+                        <div style={{ marginTop: 12, textAlign: "center" }}>
+                          <Button
+                            type="primary"
+                            size="small"
+                            style={{
+                              background: "#fa8c16",
+                              borderColor: "#fa8c16",
+                              color: "#fff",
+                              borderRadius: 6,
+                              fontSize: 12,
+                              height: 28,
+                            }}
+                            onClick={() =>
+                              setStepAppointments((prev) =>
+                                Array.isArray(prev)
+                                  ? prev.map((a, i) =>
+                                      i === idx + 3
+                                        ? {
+                                            ...a,
+                                            showStatusSelect: !a.showStatusSelect,
+                                          }
+                                        : a
+                                    )
+                                  : []
+                              )
+                            }
+                          >
+                            Cập nhật trạng thái
+                          </Button>
+                          {app.showStatusSelect && (
+                            <div style={{ marginTop: 8 }}>
+                              <Radio.Group
+                                style={{ width: "100%" }}
+                                value={app.status || undefined}
+                                onChange={(e) =>
+                                  handleAppointmentStatusUpdate(
+                                    app.id,
+                                    e.target.value,
+                                    scheduleStep?.id
+                                  )
+                                }
+                                buttonStyle="solid"
+                                size="small"
+                              >
+                                {statusOptions
+                                  .filter((opt) =>
+                                    ["COMPLETED", "CANCELLED"].includes(opt.value)
+                                  )
+                                  .map((opt) => (
+                                    <Radio.Button
+                                      key={opt.value}
+                                      value={opt.value}
+                                      style={{ 
+                                        margin: 2, 
+                                        width: "100%",
+                                        fontSize: 11,
+                                        height: 24,
+                                      }}
+                                    >
+                                      {opt.label}
+                                    </Radio.Button>
+                                  ))}
+                              </Radio.Group>
+                            </div>
+                          )}
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+              
+              {/* Nút "Xem thêm" hoặc "Ẩn bớt" ở cuối */}
+              {stepAppointments.length > 3 && (
+                <div style={{ textAlign: "center", marginTop: 16 }}>
+                  {stepAppointments.some(app => app.showAll) ? (
+                    <Button
+                      type="default"
+                      icon={<FileTextOutlined />}
+                      onClick={() => {
+                        // Ẩn bớt - chỉ hiển thị 3 lịch hẹn đầu
+                        setStepAppointments((prev) => {
+                          if (Array.isArray(prev)) {
+                            return prev.map(app => ({ ...app, showAll: false }));
+                          }
+                          return prev;
+                        });
+                      }}
+                      style={{ borderRadius: 8, minWidth: 140 }}
+                    >
+                      Ẩn bớt
+                    </Button>
+                  ) : (
+                    <Button
+                      type="default"
+                      icon={<FileTextOutlined />}
+                      onClick={() => {
+                        // Hiển thị tất cả lịch hẹn
+                        setStepAppointments((prev) => {
+                          if (Array.isArray(prev)) {
+                            return prev.map(app => ({ ...app, showAll: true }));
+                          }
+                          return prev;
+                        });
+                      }}
+                      style={{ borderRadius: 8, minWidth: 140 }}
+                    >
+                      Xem thêm ({stepAppointments.length - 3})
+                    </Button>
+                  )}
+                </div>
+              )}
+            </>
           )}
-          <Form
-            form={scheduleForm}
-            layout="vertical"
-            onFinish={handleScheduleAppointment}
-            initialValues={{
-              shift: "MORNING",
-              treatmentStepId: scheduleStep?.id,
-            }}
-            style={{
-              marginTop: 24,
-              borderTop: "1px solid #eee",
-              paddingTop: 16,
-            }}
-          >
-            <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item label="Bước điều trị" required>
-                  <Input value={selectedStep?.name} disabled />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="appointmentDate"
-                  label="Ngày hẹn"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn ngày hẹn" },
-                  ]}
-                >
-                  <DatePicker style={{ width: "100%" }} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item
-                  name="shift"
-                  label="Ca khám"
-                  rules={[{ required: true, message: "Vui lòng chọn ca khám" }]}
-                >
-                  <Select>
-                    <Select.Option value="MORNING">Sáng</Select.Option>
-                    <Select.Option value="AFTERNOON">Chiều</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item
-              name="purpose"
-              label="Mục đích"
-              rules={[{ required: true, message: "Vui lòng nhập mục đích" }]}
+          <div style={{ textAlign: "center", marginTop: 24 }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setShowScheduleModal(false);
+                setSelectedStep(scheduleStep);
+                handleShowCreateAppointment();
+              }}
+              size="large"
+              style={{ borderRadius: 8, minWidth: 140 }}
             >
-              <Input placeholder="Nhập mục đích của lịch hẹn" />
-            </Form.Item>
-            <Form.Item name="notes" label="Ghi chú">
-              <TextArea rows={2} />
-            </Form.Item>
-            <Form.Item
-              name="treatmentStepId"
-              initialValue={selectedStep?.id}
-              hidden
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item style={{ textAlign: "right" }}>
-              <Button type="primary" htmlType="submit">
-                Tạo lịch hẹn
-              </Button>
-            </Form.Item>
-          </Form>
+              Tạo lịch hẹn mới
+            </Button>
+          </div>
         </div>
       </Modal>
 
