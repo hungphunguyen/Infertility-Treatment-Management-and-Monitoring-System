@@ -29,7 +29,14 @@ const UserHeader = () => {
           res.data.result.roleName.name !== "ADMIN"
         ) {
           setTimeout(() => {
-            navigate(path.updataProfile);
+            if (res.data.result.roleName.name === "CUSTOMER") {
+              navigate(path.customerProfile);
+            } else if (res.data.result.roleName.name === "DOCTOR") {
+              navigate(path.doctorProfile);
+            } else if (res.data.result.roleName.name === "MANAGER") {
+              navigate(path.managerProfile);
+            }
+
             showNotification(
               "You must complete your personal profile.",
               "warning"
