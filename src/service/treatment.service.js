@@ -162,13 +162,13 @@ export const treatmentService = {
     return await http.get(`v1/appointments?doctorId=${doctorId}&date=${date}`);
   },
 
-  updateAppointmentStatus: async (appointmentId, status) => {
+  updateAppointmentStatus: async (appointmentId, status, note) => {
     // Sử dụng format giống như confirmAppointmentChange
     const response = await http.put(
       `v1/appointments/${appointmentId}/status`,
       {
         status: status,
-        note: "Cập nhật trạng thái từ doctor dashboard",
+        note: note,
       },
       {
         headers: {

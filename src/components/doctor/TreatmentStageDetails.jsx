@@ -87,6 +87,10 @@ const TreatmentStageDetails = () => {
   const [cancelReason, setCancelReason] = useState("");
   const [selectedTreatment, setSelectedTreatment] = useState(null);
 
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null); // { appointmentId, newStatus }
+  const [note, setNote] = useState(""); // note nhập từ modal
+
   const statusOptions = [
     { value: "PLANED", label: "Đã đặt lịch" },
     { value: "PENDING_CHANGE", label: "Chờ duyệt đổi lịch" },
@@ -385,24 +389,6 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  // const showScheduleModalForStep = async (step) => {
-  //   setScheduleStep(step);
-  //   setShowScheduleModal(true);
-  //   setShowCreateForm(false);
-  //   scheduleForm.resetFields();
-  //   setLoadingAppointments(true);
-
-  //   try {
-  //     const response = await treatmentService.getAppointmentsByStepId(step.id);
-  //     setStepAppointments(response?.data?.result?.content || []);
-  //   } catch (error) {
-  //     showNotification("Không thể lấy danh sách lịch hẹn", "error");
-  //     setStepAppointments([]);
-  //   } finally {
-  //     setLoadingAppointments(false);
-  //   }
-  // };
-
   const handleScheduleAppointment = async (values) => {
     try {
       // Lấy đúng step object từ treatmentData dựa vào id
@@ -428,7 +414,7 @@ const TreatmentStageDetails = () => {
         // Đóng modal tạo lịch hẹn và reset form
         setShowCreateAppointmentModal(false);
         scheduleForm.resetFields();
-        
+
         // Không mở lại modal xem lịch hẹn nữa, chỉ hiển thị thông báo thành công
       } else {
         showNotification(
@@ -662,11 +648,7 @@ const TreatmentStageDetails = () => {
   };
 
   // Helper function to handle appointment status updates
-  const handleAppointmentStatusUpdate = async (
-    appointmentId,
-    newStatus,
-    stepId
-  ) => {
+  const handleAppointmentStatusUpdate = async (appointmentId, newStatus) => {
     try {
       const res = await treatmentService.updateAppointmentStatus(
         appointmentId,
@@ -693,6 +675,47 @@ const TreatmentStageDetails = () => {
     } catch (err) {
       console.error("Error updating appointment status:", err);
       showNotification(err.response.data.message, "error");
+    }
+  };
+  // Hàm mở modal ghi chú
+  const handleNoteSubmit = async () => {
+    if (!note.trim()) {
+      showNotification("Vui lòng nhập ghi chú!", "warning");
+      return;
+    }
+
+    if (!pendingStatusUpdate) return;
+
+    const { appointmentId, newStatus } = pendingStatusUpdate;
+
+    try {
+      const res = await treatmentService.updateAppointmentStatus(
+        appointmentId,
+        newStatus,
+        note // truyền note
+      );
+      if (res?.data?.code === 1000) {
+        showNotification("Cập nhật trạng thái thành công", "success");
+
+        // Cập nhật local
+        setStepAppointments((prev) =>
+          Array.isArray(prev)
+            ? prev.map((a) =>
+                a.id === appointmentId
+                  ? { ...a, status: newStatus, showStatusSelect: false }
+                  : a
+              )
+            : []
+        );
+      } else {
+        showNotification(res?.data?.message || "Cập nhật thất bại", "error");
+      }
+    } catch (err) {
+      showNotification(err.response?.data?.message || "Lỗi cập nhật", "error");
+    } finally {
+      setShowNoteModal(false);
+      setPendingStatusUpdate(null);
+      setNote("");
     }
   };
 
@@ -957,13 +980,25 @@ const TreatmentStageDetails = () => {
             }}
           >
             {/* Patient Info Section */}
-            <div style={{ padding: "0 24px 24px 24px", borderBottom: "1px solid #f0f0f0", marginBottom: 24 }}>
-              <Title level={4} style={{ color: "#1890ff", marginBottom: 16 }}>Thông tin bệnh nhân</Title>
+            <div
+              style={{
+                padding: "0 24px 24px 24px",
+                borderBottom: "1px solid #f0f0f0",
+                marginBottom: 24,
+              }}
+            >
+              <Title level={4} style={{ color: "#1890ff", marginBottom: 16 }}>
+                Thông tin bệnh nhân
+              </Title>
               <Row gutter={[24, 16]}>
                 <Col xs={24} md={12}>
                   <Space>
-                    <Text strong style={{ fontSize: 16 }}>Tên bệnh nhân:</Text>
-                    <Text style={{ fontSize: 16 }}>{treatmentData.customerName}</Text>
+                    <Text strong style={{ fontSize: 16 }}>
+                      Tên bệnh nhân:
+                    </Text>
+                    <Text style={{ fontSize: 16 }}>
+                      {treatmentData.customerName}
+                    </Text>
                   </Space>
                 </Col>
                 <Col xs={24} md={12}>
@@ -981,13 +1016,18 @@ const TreatmentStageDetails = () => {
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Ngày bắt đầu:</Text>
-                    <Text>{dayjs(treatmentData.startDate).format("DD/MM/YYYY")}</Text>
+                    <Text>
+                      {dayjs(treatmentData.startDate).format("DD/MM/YYYY")}
+                    </Text>
                   </Space>
                 </Col>
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Trạng thái:</Text>
-                    <Tag color={getStatusColor(treatmentData.status)} style={{ fontSize: 15, padding: "4px 16px" }}>
+                    <Tag
+                      color={getStatusColor(treatmentData.status)}
+                      style={{ fontSize: 15, padding: "4px 16px" }}
+                    >
                       {getStatusText(treatmentData.status)}
                     </Tag>
                   </Space>
@@ -1020,7 +1060,14 @@ const TreatmentStageDetails = () => {
               </Row>
             </div>
 
-            <div style={{ display: "flex", gap: 12, marginBottom: 16, padding: "0 24px" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                marginBottom: 16,
+                padding: "0 24px",
+              }}
+            >
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -1063,12 +1110,24 @@ const TreatmentStageDetails = () => {
                 </Button>
               </Dropdown>
             </div>
-            
+
             {/* Treatment Steps Timeline */}
-            {treatmentData.treatmentSteps && treatmentData.treatmentSteps.length > 0 ? (
-              <Card 
-                title={<span style={{ fontWeight: 700, fontSize: 20, color: '#1890ff' }}>Các bước điều trị</span>} 
-                style={{ marginBottom: 32, borderRadius: 18, boxShadow: "0 4px 16px rgba(24,144,255,0.08)", background: "#fff" }} 
+            {treatmentData.treatmentSteps &&
+            treatmentData.treatmentSteps.length > 0 ? (
+              <Card
+                title={
+                  <span
+                    style={{ fontWeight: 700, fontSize: 20, color: "#1890ff" }}
+                  >
+                    Các bước điều trị
+                  </span>
+                }
+                style={{
+                  marginBottom: 32,
+                  borderRadius: 18,
+                  boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
+                  background: "#fff",
+                }}
                 bodyStyle={{ padding: 32 }}
               >
                 <Timeline style={{ marginLeft: 16 }}>
@@ -1077,30 +1136,55 @@ const TreatmentStageDetails = () => {
                       key={step.id}
                       color={getStatusColor(step.status)}
                       dot={
-                        <div style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: "50%",
-                          background: getStatusColor(step.status) === 'success' ? '#e6fffb' : 
-                                 getStatusColor(step.status) === 'error' ? '#fff1f0' : 
-                                 getStatusColor(step.status) === 'processing' ? '#e6f7ff' : 
-                                 getStatusColor(step.status) === 'orange' ? '#fff7e6' : '#f5f5f5',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: `3px solid ${getStatusColor(step.status) === 'success' ? '#52c41a' : 
-                                        getStatusColor(step.status) === 'error' ? '#ff4d4f' : 
-                                        getStatusColor(step.status) === 'processing' ? '#1890ff' : 
-                                        getStatusColor(step.status) === 'orange' ? '#fa8c16' : '#d9d9d9'}`
-                        }}>
-                          <span style={{ 
-                            fontSize: 22, 
-                            color: getStatusColor(step.status) === 'success' ? '#52c41a' : 
-                                   getStatusColor(step.status) === 'error' ? '#ff4d4f' : 
-                                   getStatusColor(step.status) === 'processing' ? '#1890ff' : 
-                                   getStatusColor(step.status) === 'orange' ? '#fa8c16' : '#bfbfbf', 
-                            fontWeight: 700 
-                          }}>{index + 1}</span>
+                        <div
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: "50%",
+                            background:
+                              getStatusColor(step.status) === "success"
+                                ? "#e6fffb"
+                                : getStatusColor(step.status) === "error"
+                                ? "#fff1f0"
+                                : getStatusColor(step.status) === "processing"
+                                ? "#e6f7ff"
+                                : getStatusColor(step.status) === "orange"
+                                ? "#fff7e6"
+                                : "#f5f5f5",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            border: `3px solid ${
+                              getStatusColor(step.status) === "success"
+                                ? "#52c41a"
+                                : getStatusColor(step.status) === "error"
+                                ? "#ff4d4f"
+                                : getStatusColor(step.status) === "processing"
+                                ? "#1890ff"
+                                : getStatusColor(step.status) === "orange"
+                                ? "#fa8c16"
+                                : "#d9d9d9"
+                            }`,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 22,
+                              color:
+                                getStatusColor(step.status) === "success"
+                                  ? "#52c41a"
+                                  : getStatusColor(step.status) === "error"
+                                  ? "#ff4d4f"
+                                  : getStatusColor(step.status) === "processing"
+                                  ? "#1890ff"
+                                  : getStatusColor(step.status) === "orange"
+                                  ? "#fa8c16"
+                                  : "#bfbfbf",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {index + 1}
+                          </span>
                         </div>
                       }
                     >
@@ -1112,39 +1196,76 @@ const TreatmentStageDetails = () => {
                           boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
                           background: index === 0 ? "#fafdff" : "#fff",
                           transition: "box-shadow 0.2s",
-                          border: `1.5px solid ${getStatusColor(step.status) === 'success' ? '#52c41a' : 
-                                           getStatusColor(step.status) === 'error' ? '#ff4d4f' : 
-                                           getStatusColor(step.status) === 'processing' ? '#1890ff' : 
-                                           getStatusColor(step.status) === 'orange' ? '#fa8c16' : '#d9d9d9'}`,
+                          border: `1.5px solid ${
+                            getStatusColor(step.status) === "success"
+                              ? "#52c41a"
+                              : getStatusColor(step.status) === "error"
+                              ? "#ff4d4f"
+                              : getStatusColor(step.status) === "processing"
+                              ? "#1890ff"
+                              : getStatusColor(step.status) === "orange"
+                              ? "#fa8c16"
+                              : "#d9d9d9"
+                          }`,
                         }}
                         bodyStyle={{ padding: 24 }}
                         hoverable
                       >
                         <Row gutter={[16, 16]} align="middle">
                           <Col xs={24} md={16}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                              <Text strong style={{ fontSize: 18, color: '#1890ff' }}>Bước {index + 1}: {step.stageName || step.name || ""}</Text>
-                              <Tag color={getStatusColor(step.status)} style={{ fontSize: 15, padding: '4px 16px' }}>{getStatusText(step.status)}</Tag>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 12,
+                                marginBottom: 8,
+                              }}
+                            >
+                              <Text
+                                strong
+                                style={{ fontSize: 18, color: "#1890ff" }}
+                              >
+                                Bước {index + 1}:{" "}
+                                {step.stageName || step.name || ""}
+                              </Text>
+                              <Tag
+                                color={getStatusColor(step.status)}
+                                style={{ fontSize: 15, padding: "4px 16px" }}
+                              >
+                                {getStatusText(step.status)}
+                              </Tag>
                             </div>
-                            <Descriptions column={2} size="small" style={{ background: 'transparent' }}>
+                            <Descriptions
+                              column={2}
+                              size="small"
+                              style={{ background: "transparent" }}
+                            >
                               <Descriptions.Item label="Ngày bắt đầu">
-                                {step.startDate ? dayjs(step.startDate).format("DD/MM/YYYY") : "Chưa có lịch"}
+                                {step.startDate
+                                  ? dayjs(step.startDate).format("DD/MM/YYYY")
+                                  : "Chưa có lịch"}
                               </Descriptions.Item>
                               <Descriptions.Item label="Ngày kết thúc">
-                                {step.endDate ? dayjs(step.endDate).format("DD/MM/YYYY") : "Chưa thực hiện"}
+                                {step.endDate
+                                  ? dayjs(step.endDate).format("DD/MM/YYYY")
+                                  : "Chưa thực hiện"}
                               </Descriptions.Item>
                               <Descriptions.Item label="Ghi chú">
                                 {step.notes || "Không có ghi chú"}
                               </Descriptions.Item>
                             </Descriptions>
                           </Col>
-                          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+                          <Col xs={24} md={8} style={{ textAlign: "right" }}>
                             <Space direction="vertical" size="small">
                               <Button
                                 type="primary"
                                 ghost
                                 icon={<FileTextOutlined />}
-                                style={{ borderRadius: 8, fontWeight: 600, minWidth: 140 }}
+                                style={{
+                                  borderRadius: 8,
+                                  fontWeight: 600,
+                                  minWidth: 140,
+                                }}
                                 onClick={() => handleShowScheduleModal(step)}
                               >
                                 Xem lịch hẹn
@@ -1152,7 +1273,11 @@ const TreatmentStageDetails = () => {
                               <Button
                                 type="default"
                                 icon={<EditOutlined />}
-                                style={{ borderRadius: 8, fontWeight: 600, minWidth: 140 }}
+                                style={{
+                                  borderRadius: 8,
+                                  fontWeight: 600,
+                                  minWidth: 140,
+                                }}
                                 onClick={() => showEditModal(step)}
                               >
                                 Cập nhật
@@ -1166,7 +1291,15 @@ const TreatmentStageDetails = () => {
                 </Timeline>
               </Card>
             ) : (
-              <Card title="Các bước điều trị" style={{ marginBottom: 24, borderRadius: 18, boxShadow: "0 4px 16px rgba(24,144,255,0.08)", background: "#fff" }}>
+              <Card
+                title="Các bước điều trị"
+                style={{
+                  marginBottom: 24,
+                  borderRadius: 18,
+                  boxShadow: "0 4px 16px rgba(24,144,255,0.08)",
+                  background: "#fff",
+                }}
+              >
                 <Text type="secondary">Chưa có bước điều trị nào được tạo</Text>
               </Card>
             )}
@@ -1345,13 +1478,19 @@ const TreatmentStageDetails = () => {
           </Form.Item>
           <Form.Item style={{ textAlign: "right" }}>
             <Space>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 htmlType="submit"
-                style={{ 
-                  background: editingStep?.status === "INPROGRESS" ? "#fa8c16" : "#1890ff", 
-                  borderColor: editingStep?.status === "INPROGRESS" ? "#fa8c16" : "#1890ff",
-                  color: "#fff"
+                style={{
+                  background:
+                    editingStep?.status === "INPROGRESS"
+                      ? "#fa8c16"
+                      : "#1890ff",
+                  borderColor:
+                    editingStep?.status === "INPROGRESS"
+                      ? "#fa8c16"
+                      : "#1890ff",
+                  color: "#fff",
                 }}
               >
                 Cập nhật
@@ -1406,7 +1545,14 @@ const TreatmentStageDetails = () => {
             </div>
           ) : (
             <>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 16,
+                  justifyContent: "center",
+                }}
+              >
                 {Array.isArray(stepAppointments) &&
                   stepAppointments.slice(0, 3).map((app, idx) => {
                     const statusColor = getAppointmentStatusColor(app.status);
@@ -1454,7 +1600,9 @@ const TreatmentStageDetails = () => {
                         }}
                         bodyStyle={{ padding: 16 }}
                       >
-                        <div style={{ position: "absolute", top: 10, right: 10 }}>
+                        <div
+                          style={{ position: "absolute", top: 10, right: 10 }}
+                        >
                           {statusIcon}
                         </div>
                         <div style={{ marginBottom: 8 }}>
@@ -1480,6 +1628,24 @@ const TreatmentStageDetails = () => {
                           <br />
                           <Tag color={statusColor}>
                             {getAppointmentStatusText(app.status)}
+                          </Tag>
+                        </div>
+                        <div style={{ marginBottom: 8 }}>
+                          <Text strong>Ghi chú:</Text>
+                          <br />
+                          <Tag
+                            color="blue"
+                            style={{
+                              maxWidth: "100%",
+                              overflow: "hidden",
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                              display: "inline-block",
+                              verticalAlign: "top",
+                            }}
+                            title={app.notes} // tooltip đầy đủ khi hover
+                          >
+                            {app.notes}
                           </Tag>
                         </div>
                         {app.purpose && (
@@ -1509,7 +1675,8 @@ const TreatmentStageDetails = () => {
                                       i === idx
                                         ? {
                                             ...a,
-                                            showStatusSelect: !a.showStatusSelect,
+                                            showStatusSelect:
+                                              !a.showStatusSelect,
                                           }
                                         : a
                                     )
@@ -1524,26 +1691,36 @@ const TreatmentStageDetails = () => {
                               <Radio.Group
                                 style={{ width: "100%" }}
                                 value={app.status || undefined}
-                                onChange={(e) =>
-                                  handleAppointmentStatusUpdate(
-                                    app.id,
-                                    e.target.value,
-                                    scheduleStep?.id
-                                  )
-                                }
+                                onChange={(e) => {
+                                  const newStatus = e.target.value;
+                                  if (
+                                    ["COMPLETED", "CANCELLED"].includes(
+                                      newStatus
+                                    )
+                                  ) {
+                                    setPendingStatusUpdate({
+                                      appointmentId: app.id,
+                                      newStatus,
+                                    });
+                                    setNote(""); // clear note cũ
+                                    setShowNoteModal(true); // mở modal nhập note
+                                  }
+                                }}
                                 buttonStyle="solid"
                                 size="small"
                               >
                                 {statusOptions
                                   .filter((opt) =>
-                                    ["COMPLETED", "CANCELLED"].includes(opt.value)
+                                    ["COMPLETED", "CANCELLED"].includes(
+                                      opt.value
+                                    )
                                   )
                                   .map((opt) => (
                                     <Radio.Button
                                       key={opt.value}
                                       value={opt.value}
-                                      style={{ 
-                                        margin: 2, 
+                                      style={{
+                                        margin: 2,
                                         width: "100%",
                                         fontSize: 11,
                                         height: 24,
@@ -1560,168 +1737,220 @@ const TreatmentStageDetails = () => {
                     );
                   })}
               </div>
-              
+
               {/* Hiển thị thêm các lịch hẹn còn lại khi đã click "Xem thêm" */}
-              {Array.isArray(stepAppointments) && stepAppointments.some(app => app.showAll) && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center", marginTop: 16 }}>
-                  {stepAppointments.slice(3).map((app, idx) => {
-                    const statusColor = getAppointmentStatusColor(app.status);
-                    const statusIcon = (() => {
-                      switch (app.status) {
-                        case "COMPLETED":
-                          return (
-                            <CheckCircleOutlined style={{ color: "#52c41a" }} />
-                          );
-                        case "CONFIRMED":
-                          return (
-                            <ClockCircleOutlined style={{ color: "#1890ff" }} />
-                          );
-                        case "CANCELLED":
-                          return <CloseOutlined style={{ color: "#ff4d4f" }} />;
-                        case "PENDING":
-                          return (
-                            <ExclamationCircleOutlined
-                              style={{ color: "#faad14" }}
-                            />
-                          );
-                        case "PENDING_CHANGE":
-                          return <SwapOutlined style={{ color: "#faad14" }} />;
-                        default:
-                          return (
-                            <ClockCircleOutlined style={{ color: "#d9d9d9" }} />
-                          );
-                      }
-                    })();
-                    return (
-                      <Card
-                        key={app.id}
-                        size="small"
-                        style={{
-                          width: 200,
-                          border: `2px solid ${
-                            statusColor === "default" ? "#d9d9d9" : statusColor
-                          }`,
-                          borderRadius: 14,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-                          position: "relative",
-                          marginBottom: 8,
-                          background: "#fff",
-                          minHeight: 180,
-                        }}
-                        bodyStyle={{ padding: 16 }}
-                      >
-                        <div style={{ position: "absolute", top: 10, right: 10 }}>
-                          {statusIcon}
-                        </div>
-                        <div style={{ marginBottom: 8 }}>
-                          <Text strong>Ngày hẹn:</Text>
-                          <br />
-                          <Text>
-                            {dayjs(app.appointmentDate).format("DD/MM/YYYY")}
-                          </Text>
-                        </div>
-                        <div style={{ marginBottom: 8 }}>
-                          <Text strong>Ca khám:</Text>
-                          <br />
-                          <Tag color="cyan">
-                            {app.shift === "MORNING"
-                              ? "Sáng"
-                              : app.shift === "AFTERNOON"
-                              ? "Chiều"
-                              : app.shift}
-                          </Tag>
-                        </div>
-                        <div style={{ marginBottom: 8 }}>
-                          <Text strong>Trạng thái:</Text>
-                          <br />
-                          <Tag color={statusColor}>
-                            {getAppointmentStatusText(app.status)}
-                          </Tag>
-                        </div>
-                        {app.purpose && (
-                          <div style={{ marginTop: 8 }}>
-                            <Text strong>Mục đích:</Text>
-                            <br />
-                            <Text>{app.purpose}</Text>
-                          </div>
-                        )}
-                        {/* Thêm nút cập nhật trạng thái cho bác sĩ */}
-                        <div style={{ marginTop: 12, textAlign: "center" }}>
-                          <Button
-                            type="primary"
-                            size="small"
-                            style={{
-                              background: "#fa8c16",
-                              borderColor: "#fa8c16",
-                              color: "#fff",
-                              borderRadius: 6,
-                              fontSize: 12,
-                              height: 28,
-                            }}
-                            onClick={() =>
-                              setStepAppointments((prev) =>
-                                Array.isArray(prev)
-                                  ? prev.map((a, i) =>
-                                      i === idx + 3
-                                        ? {
-                                            ...a,
-                                            showStatusSelect: !a.showStatusSelect,
-                                          }
-                                        : a
-                                    )
-                                  : []
-                              )
-                            }
+              {Array.isArray(stepAppointments) &&
+                stepAppointments.some((app) => app.showAll) && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 16,
+                      justifyContent: "center",
+                      marginTop: 16,
+                    }}
+                  >
+                    {stepAppointments.slice(3).map((app, idx) => {
+                      const statusColor = getAppointmentStatusColor(app.status);
+                      const statusIcon = (() => {
+                        switch (app.status) {
+                          case "COMPLETED":
+                            return (
+                              <CheckCircleOutlined
+                                style={{ color: "#52c41a" }}
+                              />
+                            );
+                          case "CONFIRMED":
+                            return (
+                              <ClockCircleOutlined
+                                style={{ color: "#1890ff" }}
+                              />
+                            );
+                          case "CANCELLED":
+                            return (
+                              <CloseOutlined style={{ color: "#ff4d4f" }} />
+                            );
+                          case "PENDING":
+                            return (
+                              <ExclamationCircleOutlined
+                                style={{ color: "#faad14" }}
+                              />
+                            );
+                          case "PENDING_CHANGE":
+                            return (
+                              <SwapOutlined style={{ color: "#faad14" }} />
+                            );
+                          default:
+                            return (
+                              <ClockCircleOutlined
+                                style={{ color: "#d9d9d9" }}
+                              />
+                            );
+                        }
+                      })();
+                      return (
+                        <Card
+                          key={app.id}
+                          size="small"
+                          style={{
+                            width: 200,
+                            border: `2px solid ${
+                              statusColor === "default"
+                                ? "#d9d9d9"
+                                : statusColor
+                            }`,
+                            borderRadius: 14,
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                            position: "relative",
+                            marginBottom: 8,
+                            background: "#fff",
+                            minHeight: 180,
+                          }}
+                          bodyStyle={{ padding: 16 }}
+                        >
+                          <div
+                            style={{ position: "absolute", top: 10, right: 10 }}
                           >
-                            Cập nhật trạng thái
-                          </Button>
-                          {app.showStatusSelect && (
+                            {statusIcon}
+                          </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <Text strong>Ngày hẹn:</Text>
+                            <br />
+                            <Text>
+                              {dayjs(app.appointmentDate).format("DD/MM/YYYY")}
+                            </Text>
+                          </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <Text strong>Ca khám:</Text>
+                            <br />
+                            <Tag color="cyan">
+                              {app.shift === "MORNING"
+                                ? "Sáng"
+                                : app.shift === "AFTERNOON"
+                                ? "Chiều"
+                                : app.shift}
+                            </Tag>
+                          </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <Text strong>Trạng thái:</Text>
+                            <br />
+                            <Tag color={statusColor}>
+                              {getAppointmentStatusText(app.status)}
+                            </Tag>
+                          </div>
+                          <div style={{ marginBottom: 8 }}>
+                            <Text strong>Ghi chú:</Text>
+                            <br />
+                            <Tag
+                              color="blue"
+                              style={{
+                                maxWidth: "100%",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis",
+                                display: "inline-block",
+                                verticalAlign: "top",
+                              }}
+                              title={app.notes} // tooltip đầy đủ khi hover
+                            >
+                              {app.notes}
+                            </Tag>
+                          </div>
+                          {app.purpose && (
                             <div style={{ marginTop: 8 }}>
-                              <Radio.Group
-                                style={{ width: "100%" }}
-                                value={app.status || undefined}
-                                onChange={(e) =>
-                                  handleAppointmentStatusUpdate(
-                                    app.id,
-                                    e.target.value,
-                                    scheduleStep?.id
-                                  )
-                                }
-                                buttonStyle="solid"
-                                size="small"
-                              >
-                                {statusOptions
-                                  .filter((opt) =>
-                                    ["COMPLETED", "CANCELLED"].includes(opt.value)
-                                  )
-                                  .map((opt) => (
-                                    <Radio.Button
-                                      key={opt.value}
-                                      value={opt.value}
-                                      style={{ 
-                                        margin: 2, 
-                                        width: "100%",
-                                        fontSize: 11,
-                                        height: 24,
-                                      }}
-                                    >
-                                      {opt.label}
-                                    </Radio.Button>
-                                  ))}
-                              </Radio.Group>
+                              <Text strong>Mục đích:</Text>
+                              <br />
+                              <Text>{app.purpose}</Text>
                             </div>
                           )}
-                        </div>
-                      </Card>
-                    );
-                  })}
-                </div>
-              )}
-              
+                          {/* Thêm nút cập nhật trạng thái cho bác sĩ */}
+                          <div style={{ marginTop: 12, textAlign: "center" }}>
+                            <Button
+                              type="primary"
+                              size="small"
+                              style={{
+                                background: "#fa8c16",
+                                borderColor: "#fa8c16",
+                                color: "#fff",
+                                borderRadius: 6,
+                                fontSize: 12,
+                                height: 28,
+                              }}
+                              onClick={() =>
+                                setStepAppointments((prev) =>
+                                  Array.isArray(prev)
+                                    ? prev.map((a, i) =>
+                                        i === idx + 3
+                                          ? {
+                                              ...a,
+                                              showStatusSelect:
+                                                !a.showStatusSelect,
+                                            }
+                                          : a
+                                      )
+                                    : []
+                                )
+                              }
+                            >
+                              Cập nhật trạng thái
+                            </Button>
+                            {app.showStatusSelect && (
+                              <div style={{ marginTop: 8 }}>
+                                <Radio.Group
+                                  style={{ width: "100%" }}
+                                  value={app.status || undefined}
+                                  onChange={(e) => {
+                                    const newStatus = e.target.value;
+                                    if (
+                                      ["COMPLETED", "CANCELLED"].includes(
+                                        newStatus
+                                      )
+                                    ) {
+                                      setPendingStatusUpdate({
+                                        appointmentId: app.id,
+                                        newStatus,
+                                      });
+                                      setNote(""); // clear note cũ
+                                      setShowNoteModal(true); // mở modal nhập note
+                                    }
+                                  }}
+                                  buttonStyle="solid"
+                                  size="small"
+                                >
+                                  {statusOptions
+                                    .filter((opt) =>
+                                      ["COMPLETED", "CANCELLED"].includes(
+                                        opt.value
+                                      )
+                                    )
+                                    .map((opt) => (
+                                      <Radio.Button
+                                        key={opt.value}
+                                        value={opt.value}
+                                        style={{
+                                          margin: 2,
+                                          width: "100%",
+                                          fontSize: 11,
+                                          height: 24,
+                                        }}
+                                      >
+                                        {opt.label}
+                                      </Radio.Button>
+                                    ))}
+                                </Radio.Group>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+
               {/* Nút "Xem thêm" hoặc "Ẩn bớt" ở cuối */}
               {stepAppointments.length > 3 && (
                 <div style={{ textAlign: "center", marginTop: 16 }}>
-                  {stepAppointments.some(app => app.showAll) ? (
+                  {stepAppointments.some((app) => app.showAll) ? (
                     <Button
                       type="default"
                       icon={<FileTextOutlined />}
@@ -1729,7 +1958,10 @@ const TreatmentStageDetails = () => {
                         // Ẩn bớt - chỉ hiển thị 3 lịch hẹn đầu
                         setStepAppointments((prev) => {
                           if (Array.isArray(prev)) {
-                            return prev.map(app => ({ ...app, showAll: false }));
+                            return prev.map((app) => ({
+                              ...app,
+                              showAll: false,
+                            }));
                           }
                           return prev;
                         });
@@ -1746,7 +1978,10 @@ const TreatmentStageDetails = () => {
                         // Hiển thị tất cả lịch hẹn
                         setStepAppointments((prev) => {
                           if (Array.isArray(prev)) {
-                            return prev.map(app => ({ ...app, showAll: true }));
+                            return prev.map((app) => ({
+                              ...app,
+                              showAll: true,
+                            }));
                           }
                           return prev;
                         });
@@ -1776,6 +2011,26 @@ const TreatmentStageDetails = () => {
             </Button>
           </div>
         </div>
+      </Modal>
+      {/* Note Modal */}
+      <Modal
+        title="Nhập ghi chú"
+        open={showNoteModal}
+        onOk={handleNoteSubmit}
+        onCancel={() => {
+          setShowNoteModal(false);
+          setPendingStatusUpdate(null);
+          setNote("");
+        }}
+        okText="Lưu"
+        cancelText="Huỷ"
+      >
+        <Input.TextArea
+          rows={4}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Nhập ghi chú cho trạng thái này..."
+        />
       </Modal>
 
       {/* Create Appointment Modal */}

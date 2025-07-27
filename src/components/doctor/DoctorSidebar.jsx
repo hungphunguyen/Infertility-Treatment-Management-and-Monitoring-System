@@ -42,13 +42,13 @@ const DoctorSidebar = ({
       title: "Quản lí hồ sơ bệnh nhân",
       path: path.doctorTestResults,
     },
-    ,
+
     {
       key: "my-blogs",
       icon: <ReadOutlined />,
       label: "Bài viết của tôi",
       title: "Xem và quản lý bài viết của bạn",
-      path: "/doctor-dashboard/my-blogs",
+      path: path.doctorBlogs,
     },
     {
       key: "profile",
@@ -62,7 +62,7 @@ const DoctorSidebar = ({
       icon: <ClockCircleOutlined />,
       label: "Yêu cầu đổi lịch hẹn",
       title: "Quản lý yêu cầu đổi lịch",
-      path: "/doctor-dashboard/change-requests",
+      path: path.doctorChangeRequests,
     },
   ];
   const token = useSelector((state) => state.authSlice);
@@ -130,21 +130,20 @@ const DoctorSidebar = ({
           color: "#fff",
           height: "auto",
         }}
+        onClick={({ key }) => {
+          const items = menuItems.find((item) => item.key === key);
+          if (!items) {
+            console.warn(`Không tìm thấy menu item với key: ${key}`);
+            return;
+          }
+          navigate(items.path);
+          setSelectedMenuItem(key);
+        }}
         items={menuItems.map((item) => ({
           key: item.key,
           icon: item.icon,
-          label: (
-            <span
-              onClick={() => {
-                if (item.path) navigate(item.path);
-                setSelectedMenuItem(item.key);
-              }}
-              title={collapsed ? item.title : ""}
-              style={{ color: "#fff", cursor: "pointer" }}
-            >
-              {item.label}
-            </span>
-          ),
+          label: item.label, // không bọc <span> nữa
+          title: collapsed ? item.title : "",
         }))}
       />
 

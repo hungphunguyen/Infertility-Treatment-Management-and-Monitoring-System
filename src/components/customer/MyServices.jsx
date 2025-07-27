@@ -258,19 +258,7 @@ const MyServices = () => {
       key: "status",
       render: (status) => getStatusTag(status),
     },
-    {
-      title: "Tiến độ",
-      dataIndex: "progress",
-      key: "progress",
-      render: (_, record) => {
-        const totalSteps = record.totalSteps || 0;
-        const completedSteps = record.completedSteps || 0;
 
-        if (!totalSteps) return "0%";
-        const percentage = Math.round((completedSteps / totalSteps) * 100);
-        return `${completedSteps}/${totalSteps} (${percentage}%)`;
-      },
-    },
     {
       title: "Chi tiết dịch vụ",
       key: "details",
@@ -342,7 +330,7 @@ const MyServices = () => {
   }
 
   return (
-    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
+    <div>
       <Card
         variant="outlined"
         style={{
@@ -422,11 +410,17 @@ const MyServices = () => {
                   }
                 >
                   {(() => {
-                    switch ((selectedTreatmentDetail.result || "").toUpperCase()) {
-                      case "SUCCESS": return "Thành công";
-                      case "FAILURE": return "Thất bại";
-                      case "UNDETERMINED": return "Chưa xác định";
-                      default: return "Chưa có";
+                    switch (
+                      (selectedTreatmentDetail.result || "").toUpperCase()
+                    ) {
+                      case "SUCCESS":
+                        return "Thành công";
+                      case "FAILURE":
+                        return "Thất bại";
+                      case "UNDETERMINED":
+                        return "Chưa xác định";
+                      default:
+                        return "Chưa có";
                     }
                   })()}
                 </Tag>
@@ -436,19 +430,7 @@ const MyServices = () => {
                 {selectedTreatmentDetail.notes || "Không có ghi chú"}
               </Descriptions.Item>
             </Descriptions>
-            <div style={{ margin: "24px 0" }}>
-              <Progress
-                percent={(() => {
-                  const steps = selectedTreatmentDetail.treatmentSteps || [];
-                  const total = steps.length;
-                  const completed = steps.filter(
-                    (s) => s.status === "COMPLETED"
-                  ).length;
-                  return total > 0 ? Math.round((completed / total) * 100) : 0;
-                })()}
-                status="active"
-              />
-            </div>
+
             <Collapse
               items={(selectedTreatmentDetail.treatmentSteps || []).map(
                 (step, idx) => ({

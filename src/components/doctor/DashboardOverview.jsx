@@ -279,9 +279,9 @@ const DashboardOverview = () => {
       )
     : [];
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       {/* Statistics Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+      <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={8}>
           <Card>
             <Statistic
@@ -414,8 +414,7 @@ const DashboardOverview = () => {
                   boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
                   padding: 12,
                   marginBottom: 12,
-                  minWidth: 400,
-                  maxWidth: 600,
+
                   width: "100%",
                   overflowX: "auto",
                 }}

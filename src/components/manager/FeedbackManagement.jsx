@@ -245,7 +245,7 @@ const FeedbackManagement = () => {
                       Từ chối
                     </Button>
                     <Button
-                      loading={loadingIds.includes(item.id)}
+                      loading={loadingIds.includes(feedbackDetail.id)}
                       type="primary"
                       onClick={() =>
                         openApprovalModal(feedbackDetail.id, "APPROVED")
@@ -306,14 +306,14 @@ const FeedbackManagement = () => {
                 <strong>Ngày gửi:</strong>{" "}
                 {feedbackDetail.submitDate
                   ? dayjs(feedbackDetail.submitDate).format("DD/MM/YYYY")
-                  : ""}
+                  : "Không có"}
               </p>
               <p>
                 <strong>Trạng thái:</strong>{" "}
                 {getStatusLabel(feedbackDetail.status)}
               </p>
               <p>
-                <strong>Note:</strong> {feedbackDetail.note}
+                <strong>Note:</strong> {feedbackDetail.note || "Không có"}
               </p>
               <p>
                 <strong>Người duyệt:</strong>{" "}

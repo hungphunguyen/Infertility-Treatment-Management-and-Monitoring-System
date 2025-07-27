@@ -79,10 +79,10 @@ const ManagerSidebar = ({
       path: "/manager/blog-management",
     },
     {
-      key: "update-profile",
+      key: "profile",
       icon: <FormOutlined />,
       label: "Hồ Sơ",
-      path: path.updataProfile,
+      path: path.managerProfile,
     },
   ];
   const token = useSelector((state) => state.authSlice);

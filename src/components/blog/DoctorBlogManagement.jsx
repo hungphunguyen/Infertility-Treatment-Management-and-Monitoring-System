@@ -607,7 +607,6 @@ const DoctorBlogManagement = () => {
   return (
     <Card className="blog-management-card">
       <div className="flex justify-between items-center mb-4">
-        <Title level={4}>Bài Viết Của Tôi</Title>
         <div className="flex gap-4">
           <Button
             type="primary"

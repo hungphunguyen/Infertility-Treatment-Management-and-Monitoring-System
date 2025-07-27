@@ -18,6 +18,7 @@ import UpdateProfile from "../../components/customer/UpdateProfile";
 import { NotificationContext } from "../../App";
 import BlogManagement from "../../components/blog/BlogManagement";
 import BlogApproval from "../../components/blog/BlogApproval";
+import ManagerProfile from "../../components/manager/ManagerProfile";
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -83,8 +84,8 @@ const ManagerPage = () => {
       pathname.includes("/blog-approval")
     ) {
       setSelectedMenu("blog");
-    } else if (pathname.includes("/update-profile")) {
-      setSelectedMenu("update-profile");
+    } else if (pathname.includes("/profile")) {
+      setSelectedMenu("profile");
     } else if (
       pathname.includes("/treatment-records") ||
       pathname.includes("/treatment-stages-view")
@@ -132,7 +133,7 @@ const ManagerPage = () => {
         return "Quản Lý Dịch Vụ";
       case "blog":
         return "Quản Lý Blog";
-      case "update-profile":
+      case "profile":
         return "Cập nhật thông tin cá nhân";
       case "blog-approval":
         return "Duyệt Bài Viết";
@@ -201,7 +202,7 @@ const ManagerPage = () => {
           style={{
             margin: "24px 16px",
             padding: 24,
-            background: "#f0f2f5",
+            // background: "#f0f2f5",
             marginLeft: 250,
           }}
         >
@@ -224,6 +225,7 @@ const ManagerPage = () => {
               path="treatment-stages-view"
               element={<TreatmentStagesView />}
             />
+            <Route path="profile" element={<ManagerProfile />} />
           </Routes>
         </Content>
       </Layout>
