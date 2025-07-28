@@ -150,25 +150,33 @@ const ChangeRequests = () => {
     setNotes("");
   };
 
-  const handleAction = async () => {
+  const handleAction = async (actionTypeParam) => {
     if (!notes || !notes.trim()) {
       showNotification("Vui lòng nhập ghi chú!", "error");
       return;
     }
     if (!selected) return;
+    
+    // Sử dụng tham số truyền vào thay vì state actionType
+    const finalActionType = actionTypeParam || actionType;
+    
+    // Set actionType cho loading indicator
+    setActionType(finalActionType);
     setActionLoading(true);
     try {
       await treatmentService.confirmAppointmentChange(selected.id, {
-        status: actionType,
+        status: finalActionType,
         note: notes,
       });
       showNotification(
-        actionType === "CONFIRMED"
+        finalActionType === "CONFIRMED"
           ? "Đã duyệt yêu cầu!"
           : "Đã từ chối yêu cầu!",
         "success"
       );
       setModalVisible(false);
+      setNotes("");
+      setActionType(null);
       fetchRequests();
     } catch (err) {
       showNotification("Không thể cập nhật yêu cầu!", "error");
@@ -410,10 +418,7 @@ const ChangeRequests = () => {
                   type="primary"
                   icon={<CheckCircleOutlined />}
                   loading={actionLoading && actionType === "CONFIRMED"}
-                  onClick={() => {
-                    setActionType("CONFIRMED");
-                    handleAction();
-                  }}
+                  onClick={() => handleAction("CONFIRMED")}
                   style={{ minWidth: 120 }}
                 >
                   Duyệt yêu cầu
@@ -422,10 +427,7 @@ const ChangeRequests = () => {
                   danger
                   icon={<CloseCircleOutlined />}
                   loading={actionLoading && actionType === "REJECTED"}
-                  onClick={() => {
-                    setActionType("REJECTED");
-                    handleAction();
-                  }}
+                  onClick={() => handleAction("REJECTED")}
                   style={{ minWidth: 120 }}
                 >
                   Từ chối yêu cầu

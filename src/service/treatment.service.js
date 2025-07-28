@@ -563,8 +563,7 @@ export const treatmentService = {
   getDoctorWorkSchedule: async (doctorId, date) => {
     try {
       const response = await http.get(
-        `v1/doctors/${doctorId}/work-schedule?date=${date}`
-      );
+        `v1/doctors/${doctorId}/work-schedule?date=${date}`      );
       return response;
     } catch (error) {
       console.error("Error fetching doctor work schedule:", error);
@@ -680,3 +679,4 @@ export const treatmentService = {
     }
   },
 };
+
