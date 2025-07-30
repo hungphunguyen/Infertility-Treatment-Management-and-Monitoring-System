@@ -382,7 +382,7 @@ const TreatmentProgress = () => {
       case "COMPLETED":
         return <Tag color="success">Hoàn thành</Tag>;
       case "INPROGRESS":
-        return <Tag color="processing">Đang thực hiện</Tag>;
+        return <Tag color="processing">Đang điều trị</Tag>;
       case "CONFIRMED":
         return <Tag color="processing">Đã xác nhận</Tag>;
       case "PENDING":
@@ -427,7 +427,7 @@ const TreatmentProgress = () => {
       case "CANCELLED":
         return "error";
       case "INPROGRESS":
-        return "orange";
+        return "blue";
       default:
         return "processing";
     }
@@ -478,7 +478,7 @@ const TreatmentProgress = () => {
       case "COMPLETED":
         return "Hoàn thành";
       case "INPROGRESS":
-        return "Đang thực hiện";
+        return "Đang điều trị";
       case "PLANED":
         return "Đã lên lịch";
       case "CANCELLED":
@@ -1337,7 +1337,7 @@ const TreatmentProgress = () => {
                       case "CANCELLED":
                         return <Tag color="error">Đã hủy</Tag>;
                       case "INPROGRESS":
-                        return <Tag color="#1890ff">Đang thực hiện</Tag>;
+                        return <Tag color="#1890ff">Đang điều trị</Tag>;
                       default:
                         return <Tag color="default">{status}</Tag>;
                     }
@@ -1553,8 +1553,7 @@ const TreatmentProgress = () => {
                         <div style={{ marginBottom: 8 }}>
                           <Text strong>Ghi chú:</Text>
                           <br />
-                          <Tag
-                            color="blue"
+                          <Text
                             style={{
                               maxWidth: "100%",
                               overflow: "hidden",
@@ -1565,8 +1564,8 @@ const TreatmentProgress = () => {
                             }}
                             title={appointment.notes} // tooltip đầy đủ khi hover
                           >
-                            {appointment.notes}
-                          </Tag>
+                            {appointment.notes || "Không có ghi chú"}
+                          </Text>
                         </div>
                         {appointment.purpose && (
                           <div style={{ marginTop: 8 }}>
@@ -1690,8 +1689,7 @@ const TreatmentProgress = () => {
                           <div style={{ marginBottom: 8 }}>
                             <Text strong>Ghi chú:</Text>
                             <br />
-                            <Tag
-                              color="blue"
+                            <Text
                               style={{
                                 maxWidth: "100%",
                                 overflow: "hidden",
@@ -1702,8 +1700,8 @@ const TreatmentProgress = () => {
                               }}
                               title={appointment.notes} // tooltip đầy đủ khi hover
                             >
-                              {appointment.notes}
-                            </Tag>
+                              {appointment.notes || "Không có ghi chú"}
+                            </Text>
                           </div>
                           {appointment.purpose && (
                             <div style={{ marginTop: 8 }}>

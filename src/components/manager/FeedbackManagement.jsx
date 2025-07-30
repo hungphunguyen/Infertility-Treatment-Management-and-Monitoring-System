@@ -304,8 +304,8 @@ const FeedbackManagement = () => {
               </p>
               <p>
                 <strong>Ngày gửi:</strong>{" "}
-                {feedbackDetail.submitDate
-                  ? dayjs(feedbackDetail.submitDate).format("DD/MM/YYYY")
+                {feedbackDetail.createdAt
+                  ? dayjs(feedbackDetail.createdAt).format("DD/MM/YYYY")
                   : "Không có"}
               </p>
               <p>

@@ -98,8 +98,11 @@ export function useRegisterLogic() {
         treatmentServiceId: parseInt(values.serviceId),
         startDate: values.startDate.format("YYYY-MM-DD"),
         shift: values.shift.toUpperCase(),
-        cd1Date: values.cd1Date,
+        cd1Date: values.cd1Date
+          ? dayjs(values.cd1Date).format("YYYY-MM-DD")
+          : null,
       };
+      console.log(payload.cd1Date);
 
       await treatmentService.registerTreatmentService(payload);
       showNotification("Đăng kí dịch vụ khám thành công", "success");

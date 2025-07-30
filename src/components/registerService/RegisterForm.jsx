@@ -208,11 +208,11 @@ export default function RegisterForm({
               className="w-full h-[48px] text-base"
               placeholder="(Tùy chọn)"
             />
-            <p className="text-sm text-gray-500 italic mt-1">
-              Thông tin này giúp bác sĩ xác định chu kỳ kinh nguyệt và lập kế
-              hoạch điều trị phù hợp
-            </p>
           </Form.Item>
+          <p className="text-sm text-gray-500 italic mt-1">
+            Thông tin này giúp bác sĩ xác định chu kỳ kinh nguyệt và lập kế
+            hoạch điều trị phù hợp
+          </p>
         </Col>
 
         <Col xs={24} md={12}>
@@ -224,10 +224,6 @@ export default function RegisterForm({
             <DatePicker
               className="w-full h-[48px] text-base"
               placeholder="Chọn ngày bắt đầu"
-              // onChange={(date) => {
-              //   setSelectedDate(date);
-              //   form.setFieldsValue({ startDate: date });
-              // }}
             />
           </Form.Item>
         </Col>

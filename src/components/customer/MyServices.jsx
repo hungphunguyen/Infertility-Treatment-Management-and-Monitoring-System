@@ -161,6 +161,20 @@ const MyServices = () => {
     }
   };
 
+  // Thêm hàm chuyển đổi result sang tiếng Việt
+  const getResultText = (result) => {
+    switch ((result || "").toUpperCase()) {
+      case "SUCCESS":
+        return "Thành công";
+      case "FAILURE":
+        return "Thất bại";
+      case "UNDETERMINED":
+        return "Chưa xác định";
+      default:
+        return "Chưa có";
+    }
+  };
+
   // const handleCancelTreatment = async (record) => {
   //   if (!userId) return;
   //   setCancelLoading((l) => ({ ...l, [record.id]: true }));
@@ -257,6 +271,26 @@ const MyServices = () => {
       dataIndex: "status",
       key: "status",
       render: (status) => getStatusTag(status),
+    },
+    {
+      title: "Kết quả",
+      dataIndex: "result",
+      key: "result",
+      render: (result) => (
+        <Tag
+          color={
+            result === "SUCCESS"
+              ? "green"
+              : result === "FAILURE"
+              ? "red"
+              : result === "UNDETERMINED"
+              ? "orange"
+              : "default"
+          }
+        >
+          {getResultText(result)}
+        </Tag>
+      ),
     },
 
     {

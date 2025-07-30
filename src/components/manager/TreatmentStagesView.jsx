@@ -155,7 +155,7 @@ const TreatmentStagesView = () => {
       case "CANCELLED":
         return "error";
       case "INPROGRESS":
-        return "orange";
+        return "blue";
       default:
         return "processing";
     }
@@ -739,8 +739,7 @@ const TreatmentStagesView = () => {
                         <div style={{ marginBottom: 8 }}>
                           <Text strong>Ghi chú:</Text>
                           <br />
-                          <Tag
-                            color="blue"
+                          <Text
                             style={{
                               maxWidth: "100%",
                               overflow: "hidden",
@@ -751,8 +750,8 @@ const TreatmentStagesView = () => {
                             }}
                             title={appointment.notes} // tooltip đầy đủ khi hover
                           >
-                            {appointment.notes}
-                          </Tag>
+                            {appointment.notes || "Không có ghi chú"}
+                          </Text>
                         </div>
                         {appointment.purpose && (
                           <div style={{ marginTop: 8 }}>
@@ -879,8 +878,7 @@ const TreatmentStagesView = () => {
                             <div style={{ marginBottom: 8 }}>
                               <Text strong>Ghi chú:</Text>
                               <br />
-                              <Tag
-                                color="blue"
+                              <Text
                                 style={{
                                   maxWidth: "100%",
                                   overflow: "hidden",
@@ -891,8 +889,8 @@ const TreatmentStagesView = () => {
                                 }}
                                 title={appointment.notes} // tooltip đầy đủ khi hover
                               >
-                                {appointment.notes}
-                              </Tag>
+                                {appointment.notes || "Không có ghi chú"}
+                              </Text>
                             </div>
                             {appointment.purpose && (
                               <div style={{ marginTop: 8 }}>

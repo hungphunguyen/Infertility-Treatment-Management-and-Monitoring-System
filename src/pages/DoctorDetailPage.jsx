@@ -332,7 +332,7 @@ const DoctorDetailPage = () => {
                           <p>{item.comment}</p>
                           <small>
                             Ngày:{" "}
-                            {new Date(item.submitDate).toLocaleDateString(
+                            {new Date(item.createdAt).toLocaleDateString(
                               "vi-VN"
                             )}
                           </small>

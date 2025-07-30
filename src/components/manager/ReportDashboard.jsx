@@ -63,7 +63,7 @@ const ReportDashboard = () => {
           const parsedChartData = res2.data.result.map((item) => {
             const monthNumber = new Date(item.month + "-01").getMonth() + 1; // fix để parse từ YYYY-MM
             return {
-              month: `T${monthNumber}`,
+              month: `Tháng ${monthNumber}`,
               revenue: Number(item.totalRevenue),
             };
           });

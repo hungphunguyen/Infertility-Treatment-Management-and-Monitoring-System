@@ -201,7 +201,7 @@ const TreatmentStageDetails = () => {
       case "CANCELLED":
         return "error";
       case "INPROGRESS":
-        return "orange";
+        return "blue";
       default:
         return "processing";
     }
@@ -1633,8 +1633,7 @@ const TreatmentStageDetails = () => {
                         <div style={{ marginBottom: 8 }}>
                           <Text strong>Ghi chú:</Text>
                           <br />
-                          <Tag
-                            color="blue"
+                          <Text
                             style={{
                               maxWidth: "100%",
                               overflow: "hidden",
@@ -1645,8 +1644,8 @@ const TreatmentStageDetails = () => {
                             }}
                             title={app.notes} // tooltip đầy đủ khi hover
                           >
-                            {app.notes}
-                          </Tag>
+                            {app.notes || "Không có ghi chú"}
+                          </Text>
                         </div>
                         {app.purpose && (
                           <div style={{ marginTop: 8 }}>
@@ -1841,8 +1840,7 @@ const TreatmentStageDetails = () => {
                           <div style={{ marginBottom: 8 }}>
                             <Text strong>Ghi chú:</Text>
                             <br />
-                            <Tag
-                              color="blue"
+                            <Text
                               style={{
                                 maxWidth: "100%",
                                 overflow: "hidden",
@@ -1853,8 +1851,8 @@ const TreatmentStageDetails = () => {
                               }}
                               title={app.notes} // tooltip đầy đủ khi hover
                             >
-                              {app.notes}
-                            </Tag>
+                              {app.notes || "Không có ghi chú"}
+                            </Text>
                           </div>
                           {app.purpose && (
                             <div style={{ marginTop: 8 }}>
@@ -2174,13 +2172,10 @@ const TreatmentStageDetails = () => {
                     "warning"
                   );
                 }
-              } else {
-                console.warn("❌ Create treatment step failed:", response);
-                showNotification("Thêm bước điều trị thất bại!", "error");
               }
             } catch (err) {
               console.error("❌ Error creating treatment step:", err);
-              showNotification("Thêm bước điều trị thất bại!", "error");
+              showNotification(err.response.data.message, "error");
             } finally {
               setAddStepLoading(false);
             }
@@ -2201,7 +2196,7 @@ const TreatmentStageDetails = () => {
           </Form.Item>
           <Form.Item
             name="startDate"
-            label="Ngày dự kiến"
+            label="Ngày bắt đầu"
             rules={[{ required: true, message: "Chọn ngày dự kiến" }]}
           >
             <DatePicker style={{ width: "100%" }} />

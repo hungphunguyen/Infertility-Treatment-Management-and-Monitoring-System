@@ -52,7 +52,7 @@ export default function GoogleLogin() {
         setLocalStorage("token", res.data.result.token); // coi lai phia be tra du lieu theo format nao.
         dispatch(setToken(res.data.result.token));
 
-        showNotification("Dăng nhập thành công", "success");
+        showNotification("Đăng nhập thành công", "success");
         setTimeout(() => {
           navigate("/");
           window.location.reload();
