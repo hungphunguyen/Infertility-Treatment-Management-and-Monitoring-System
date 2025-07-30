@@ -219,29 +219,35 @@ const ScheduleManagement = () => {
 
   return (
     <div className="rounded-[12px] overflow-hidden shadow bg-white">
-      <>
-        <h1 className="bg-blue-600 text-white px-5 py-3 text-base font-semibold">
-          Bảng ca phân ca làm theo tháng
-        </h1>
-
-        <div className="px-6 py-5 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <label className="">Chọn tháng:</label>
+      <div className="bg-blue-600 text-white px-5 py-3 text-base font-semibold rounded-t">
+        Bảng ca phân ca làm theo tháng
+      </div>
+      <div className="px-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-5">
+          {/* Cột chọn tháng */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-gray-700 font-medium">
+              Chọn tháng:
+            </label>
             <input
               type="month"
-              className="h-10 w-full px-3 border border-gray-300 rounded-md text-sm"
+              className="h-10 border border-gray-300 rounded-md px-3 text-sm"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
             />
           </div>
 
-          <div>
-            <label className="block font-semibold mb-1">Chọn bác sĩ:</label>
+          {/* Cột chọn bác sĩ */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-gray-700 font-medium">
+              Chọn bác sĩ:
+            </label>
             <Select
               showSearch
               placeholder="Chọn bác sĩ"
+              className="w-full h-10 text-sm"
+              dropdownStyle={{ fontSize: "14px" }}
               optionFilterProp="children"
-              className="w-full h-[40px] text-sm" // <- thêm h-[40px] và text-sm
               filterOption={(input, option) =>
                 option.children.toLowerCase().includes(input.toLowerCase())
               }
@@ -258,105 +264,98 @@ const ScheduleManagement = () => {
             </Select>
           </div>
         </div>
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full table-fixed border-collapse border border-gray-300 text-sm">
-            <thead>
-              <tr className="bg-blue-300 text-black font-semibold text-center">
-                {days.map((day) => (
-                  <th
-                    key={day}
-                    className="border border-gray-300 px-2 py-2 whitespace-nowrap"
-                  >
-                    {dayDisplayMap[day] || day}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {days.map((day) => (
-                  <td
-                    key={day}
-                    className="border border-gray-300 px-2 py-1 text-center"
-                  >
-                    <select
-                      className="w-full h-9 px-2 border border-gray-300 rounded-md text-sm"
-                      value={shiftByDay[day] || ""}
-                      onChange={(e) => handleChange(day, e.target.value)}
-                    >
-                      <option value="">-- chọn ca --</option>
-                      {shiftOptions
-                        .filter((s) => s)
-                        .map((shift) => (
-                          <option key={shift} value={shift}>
-                            {shiftDisplayMap[shift] || shift}
-                          </option>
-                        ))}
-                    </select>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+
+        {/* Bảng chọn ca */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4 mt-6 ">
+          {days.map((day) => (
+            <div key={day} className="border rounded-md p-3 text-center">
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                {dayDisplayMap[day]}
+              </div>
+              <select
+                className="w-full h-9 border border-gray-300 rounded-md text-sm px-2"
+                value={shiftByDay[day] || ""}
+                onChange={(e) => handleChange(day, e.target.value)}
+              >
+                <option value="">-- chọn ca --</option>
+                {shiftOptions
+                  .filter((s) => s)
+                  .map((shift) => (
+                    <option key={shift} value={shift}>
+                      {shiftDisplayMap[shift] || shift}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          ))}
         </div>
 
-        <div className="flex justify-end mt-6">
+        <div className="flex justify-end py-5">
           <button
             onClick={handleSubmit}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md font-medium shadow text-sm"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md text-sm font-medium shadow"
           >
             Xác nhận
           </button>
         </div>
-      </>
+      </div>
 
-      <table className="w-full border border-gray-300 table-fixed text-sm mt-10">
-        <thead>
-          <tr className="bg-blue-100 text-center text-gray-700 font-semibold">
-            {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"].map(
-              (day) => (
-                <th key={day} className="border border-gray-300 py-2">
-                  {day}
-                </th>
-              )
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {getCalendarGrid(selectedMonth).map((week, i) => (
-            <tr key={i}>
-              {week.map((dateStr, j) => (
-                <td
-                  key={j}
-                  onClick={() => dateStr && openEditModal(dateStr)}
-                  className="group h-28 border border-gray-300 p-2 align-top relative hover:bg-gray-50 cursor-pointer"
-                >
-                  {dateStr && (
-                    <>
-                      <div className="text-right text-xs font-medium text-gray-600">
-                        {+dateStr.split("-")[2]}
-                      </div>
+      <div className="rounded-[12px] overflow-hidden shadow bg-white mt-10">
+        <div className="bg-purple-600 text-white px-5 py-3 text-base font-semibold">
+          Lịch tháng
+        </div>
 
-                      {scheduleMap[dateStr] ? (
-                        <div className="mt-1 space-y-1">
-                          <div className="text-green-700 text-xs font-semibold text-center">
-                            {shiftDisplayMap[scheduleMap[dateStr]] ||
-                              scheduleMap[dateStr]}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center text-xs italic text-gray-400 mt-1">
-                          + Thêm ca làm <br /> (nghỉ)
-                        </div>
-                      )}
-                    </>
-                  )}
-                </td>
-              ))}
+        <table className="w-full table-fixed border-collapse text-sm">
+          <thead>
+            <tr className="bg-gray-100 text-gray-800">
+              {["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"].map(
+                (day) => (
+                  <th key={day} className="py-2 border text-center font-medium">
+                    {day}
+                  </th>
+                )
+              )}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {getCalendarGrid(selectedMonth).map((week, i) => (
+              <tr key={i}>
+                {week.map((dateStr, j) => (
+                  <td
+                    key={j}
+                    onClick={() => dateStr && openEditModal(dateStr)}
+                    className="h-28 border p-2 align-top relative hover:bg-gray-50 cursor-pointer"
+                  >
+                    {dateStr && (
+                      <>
+                        <div className="text-right text-xs font-medium text-gray-600">
+                          {+dateStr.split("-")[2]}
+                        </div>
+
+                        {scheduleMap[dateStr] ? (
+                          <div className="mt-1">
+                            <div className="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                              {shiftDisplayMap[scheduleMap[dateStr]] ||
+                                scheduleMap[dateStr]}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center text-xs italic text-gray-400 mt-2">
+                            + Thêm ca làm
+                            <br />
+                            (nghỉ)
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <Modal
         title={`Cập nhật lịch: ${editingDate}`}
         open={isModalVisible}
