@@ -169,7 +169,7 @@ const ChangeRequests = () => {
         note: notes,
       });
       showNotification(
-        finalActionType === "CONFIRMED"
+        finalActionType === "PLANED"
           ? "Đã duyệt yêu cầu!"
           : "Đã từ chối yêu cầu!",
         "success"
@@ -355,16 +355,11 @@ const ChangeRequests = () => {
               >
                 <Descriptions.Item label="Bệnh nhân">
                   <Space>
-                    <Avatar icon={<UserOutlined />} />
                     <Text strong>{selected.customerName}</Text>
                   </Space>
                 </Descriptions.Item>
                 <Descriptions.Item label="Bác sĩ">
                   <Space>
-                    <Avatar
-                      style={{ background: "#a084ee" }}
-                      icon={<UserOutlined />}
-                    />
                     <Text strong>{selected.doctorName}</Text>
                   </Space>
                 </Descriptions.Item>

@@ -154,10 +154,10 @@ const AppointmentManagement = () => {
       );
       notification.success({
         message:
-          status === "CONFIRMED" ? "Đã duyệt yêu cầu!" : "Đã từ chối yêu cầu!",
+          status === "PLANED" ? "Đã duyệt yêu cầu!" : "Đã từ chối yêu cầu!",
         description: `Yêu cầu thay đổi lịch hẹn của ${
           selectedChangeRequest.customerName
-        } đã được ${status === "CONFIRMED" ? "duyệt" : "từ chối"} thành công.`,
+        } đã được ${status === "PLANED" ? "duyệt" : "từ chối"} thành công.`,
       });
       setChangeRequestModalVisible(false);
       setChangeRequestNotes("");
@@ -302,7 +302,6 @@ const AppointmentManagement = () => {
       key: "customerName",
       render: (name, record) => (
         <Space>
-          <Avatar size="small" icon={<UserOutlined />} />
           <div>
             <Text strong>{name}</Text>
             {record.customerPhone && (
@@ -384,7 +383,6 @@ const AppointmentManagement = () => {
       key: "customerName",
       render: (name, record) => (
         <Space>
-          <Avatar size="small" icon={<UserOutlined />} />
           <div>
             <Text strong>{name}</Text>
             {record.customerEmail && (
@@ -405,7 +403,6 @@ const AppointmentManagement = () => {
       key: "doctorName",
       render: (name, record) => (
         <Space>
-          <UserOutlined style={{ color: "#722ed1" }} />
           <div>
             <Text>{name}</Text>
             {record.doctorEmail && (
@@ -666,7 +663,6 @@ const AppointmentManagement = () => {
           <Descriptions column={2} bordered>
             <Descriptions.Item label="Bệnh nhân" span={2}>
               <Space>
-                <Avatar icon={<UserOutlined />} />
                 <div>
                   <Text strong>{selectedAppointment.customerName}</Text>
                   {selectedAppointment.customerPhone && (
@@ -727,7 +723,6 @@ const AppointmentManagement = () => {
             <Descriptions column={2} bordered style={{ marginBottom: 16 }}>
               <Descriptions.Item label="Bệnh nhân" span={2}>
                 <Space>
-                  <Avatar icon={<UserOutlined />} />
                   <div>
                     <Text strong>{selectedChangeRequest.customerName}</Text>
                     {selectedChangeRequest.customerEmail && (
@@ -743,7 +738,6 @@ const AppointmentManagement = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Bác sĩ" span={2}>
                 <Space>
-                  <UserOutlined style={{ color: "#722ed1" }} />
                   <div>
                     <Text>{selectedChangeRequest.doctorName}</Text>
                     {selectedChangeRequest.doctorEmail && (
