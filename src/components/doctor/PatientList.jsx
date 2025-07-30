@@ -152,18 +152,10 @@ const PatientList = () => {
       dataIndex: "customerName",
       key: "customerName",
       render: (name, record) => (
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Avatar
-            size={40}
-            icon={<UserOutlined />}
-            style={{ marginRight: 12, backgroundColor: "#1890ff" }}
-          />
+        <div>
           <div>
             <Text strong>{name}</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: "12px" }}>
-              ID: {record.id}
-            </Text>
           </div>
         </div>
       ),

@@ -29,6 +29,7 @@ const statusMap = {
   APPROVED: { color: "green", text: "Đã duyệt" },
   REJECTED: { color: "red", text: "Đã từ chối" },
   DRAFT: { color: "blue", text: "Bản nháp" },
+  HIDDEN: { color: "#bfbfbf", text: "Đã ẩn" },
   all: { color: "default", text: "Tất cả" },
 };
 
@@ -577,27 +578,25 @@ const DoctorBlogManagement = () => {
             </Button>
           </Space>
           <Space wrap>
-            {record.status === "DRAFT" && (
-              <Button
-                size="small"
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  setSelectedBlog(record);
-                  setModalType("edit");
-                  form.setFieldsValue({
-                    title: record.title,
-                    content: record.content,
-                    sourceReference: record.sourceReference,
-                    featured: record.featured || false,
-                  });
-                  setIsModalVisible(true);
-                }}
-                loading={actionLoading}
-              >
-                Sửa
-              </Button>
-            )}
+            <Button
+              size="small"
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setSelectedBlog(record);
+                setModalType("edit");
+                form.setFieldsValue({
+                  title: record.title,
+                  content: record.content,
+                  sourceReference: record.sourceReference,
+                  featured: record.featured || false,
+                });
+                setIsModalVisible(true);
+              }}
+              loading={actionLoading}
+            >
+              Sửa
+            </Button>
           </Space>
         </Space>
       ),

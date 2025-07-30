@@ -853,7 +853,7 @@ const AppointmentManagement = () => {
                 size="large"
                 icon={<CheckOutlined />}
                 loading={actionLoading}
-                onClick={() => handleChangeRequestAction("CONFIRMED")}
+                onClick={() => handleChangeRequestAction("PLANED")}
                 style={{ minWidth: 120 }}
               >
                 Duyệt yêu cầu

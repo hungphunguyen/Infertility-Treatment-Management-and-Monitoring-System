@@ -26,7 +26,6 @@ const ProfileUpdate = () => {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [selectedMenu, setSelectedMenu] = useState("update-profile");
   const role = userInfo?.roleName?.name || "";
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -38,7 +37,7 @@ const ProfileUpdate = () => {
         const response = await authService.getMyInfo();
         setUserInfo(response.data.result);
       } catch (error) {
-        showNotification("Không thể lấy thông tin người dùng", "error");
+        showNotification(error.response.data.message, "error");
       }
     };
 
@@ -58,7 +57,7 @@ const ProfileUpdate = () => {
           setDoctorInfo(res.data.result);
         } catch (error) {
           console.log(error);
-          showNotification("Không thể lấy thông tin người dùng", "error");
+          showNotification(error.response.data.message, "error");
         }
       } else {
         try {
@@ -66,7 +65,7 @@ const ProfileUpdate = () => {
           setDoctorInfo(res.data.result);
         } catch (error) {
           console.log(error);
-          showNotification("Không thể lấy thông tin người dùng", "error");
+          showNotification(error.response.data.message, "error");
         }
       }
     };
@@ -188,9 +187,6 @@ const ProfileUpdate = () => {
             setIsEditing(false);
 
             showNotification("Cập nhật thông tin thành công", "success");
-            // setTimeout(() => {
-            //   navigate("/");
-            // }, 1000);
           } catch (err) {
             console.log(err);
             showNotification(err.response?.data?.message, "error");

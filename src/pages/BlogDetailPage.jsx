@@ -118,12 +118,6 @@ const BlogDetailPage = () => {
             <Col xs={24} lg={16}>
               {/* Author Info */}
               <div className="flex items-center mb-8">
-                <Avatar
-                  src={blogPost.authorImage || "/images/default-avatar.jpg"}
-                  size={64}
-                  icon={<UserOutlined />}
-                  className="mr-4"
-                />
                 <div>
                   <Text strong className="block text-lg">
                     {blogPost.authorName}

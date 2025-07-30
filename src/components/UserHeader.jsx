@@ -38,7 +38,7 @@ const UserHeader = () => {
             }
 
             showNotification(
-              "You must complete your personal profile.",
+              "Bạn phải cập nhật thông tin cá nhân trước khi sử dụng các chức năng khác",
               "warning"
             );
           }, 1000);

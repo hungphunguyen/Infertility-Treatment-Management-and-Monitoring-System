@@ -129,13 +129,18 @@ const BlogManagement = () => {
 
   useEffect(() => {
     const filtered = blogs.filter((blog) => {
+      const isNotDraft = blog.status !== "DRAFT";
+
       const matchesStatus =
         statusFilter === "all" ? true : blog.status === statusFilter;
+
       const matchesSearch =
         blog.title.toLowerCase().includes(searchText.toLowerCase()) ||
         blog.authorName.toLowerCase().includes(searchText.toLowerCase());
-      return matchesStatus && matchesSearch;
+
+      return isNotDraft && matchesStatus && matchesSearch;
     });
+
     setFilteredData(filtered);
   }, [blogs, statusFilter, searchText]);
 

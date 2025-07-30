@@ -14,7 +14,6 @@ import ManagerTreatmentRecords from "../../components/manager/ManagerTreatmentRe
 import TreatmentStagesView from "../../components/manager/TreatmentStagesView";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
-import UpdateProfile from "../../components/customer/UpdateProfile";
 import { NotificationContext } from "../../App";
 import BlogManagement from "../../components/blog/BlogManagement";
 import BlogApproval from "../../components/blog/BlogApproval";

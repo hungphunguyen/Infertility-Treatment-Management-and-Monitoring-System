@@ -156,10 +156,10 @@ const ChangeRequests = () => {
       return;
     }
     if (!selected) return;
-    
+
     // Sử dụng tham số truyền vào thay vì state actionType
     const finalActionType = actionTypeParam || actionType;
-    
+
     // Set actionType cho loading indicator
     setActionType(finalActionType);
     setActionLoading(true);
@@ -417,8 +417,8 @@ const ChangeRequests = () => {
                 <Button
                   type="primary"
                   icon={<CheckCircleOutlined />}
-                  loading={actionLoading && actionType === "CONFIRMED"}
-                  onClick={() => handleAction("CONFIRMED")}
+                  loading={actionLoading && actionType === "PLANED"}
+                  onClick={() => handleAction("PLANED")}
                   style={{ minWidth: 120 }}
                 >
                   Duyệt yêu cầu
