@@ -247,7 +247,7 @@ const PaymentPage = () => {
                 </p>
                 <p>
                   <strong className="text-gray-700">Số tiền</strong>{" "}
-                  {payment.price}
+                  {payment.price.toLocaleString("vi-VN")} VNĐ
                 </p>
                 <p>
                   <strong className="text-gray-700">Trạng thái:</strong>{" "}

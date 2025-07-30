@@ -54,7 +54,7 @@ const AppointmentSchedule = () => {
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
       case "REJECTED":
-        return "Từ chối yêu cầu thay đổi";
+        return "Từ chối yêu cầu đổi lịch";
       default:
         return "Không xác định";
     }
@@ -141,6 +141,7 @@ const AppointmentSchedule = () => {
       showNotification("Yêu cầu thay đổi lịch thành công", "success");
     } catch (error) {
       console.log(error);
+      showNotification(error.response.data.message, "error");
     }
   };
 
@@ -302,31 +303,38 @@ const AppointmentSchedule = () => {
           <Button key="close" onClick={() => setIsModalOpen(false)}>
             Đóng
           </Button>,
+          (appointmentDetail?.status !== "PENDING_CHANGE" ||
+            appointmentDetail?.status !== "COMPLETED") && (
+            <Button
+              danger
+              onClick={() => {
+                setIsModalOpenUpdate(true);
+                setIsModalOpen(false);
+              }}
+            >
+              Yêu cầu đổi lịch khám
+            </Button>
+          ),
           appointmentDetail?.status === "PLANED" && (
-            <>
-              <Button
-                danger
-                onClick={() => {
-                  setIsModalOpenUpdate(true);
+            <Button
+              type="primary"
+              onClick={async () => {
+                try {
+                  await treatmentService.updateAppointmentStatusCustomer(
+                    appointmentDetail.id,
+                    { status: "CONFIRMED", note: appointmentDetail.notes }
+                  );
+                  showNotification("Đã checkin thành công", "success");
+                  getApointmentCustomer();
                   setIsModalOpen(false);
-                }}
-              >
-                Yêu cầu đổi lịch khám
-              </Button>
-              <Button
-                type="primary"
-                onClick={() => {
-                  setChangeRequestForm({
-                    requestedDate: null,
-                    requestedShift: "",
-                    notes: "",
-                  });
-                  openApprovalModal(appointmentDetail.id, "CONFIRMED");
-                }}
-              >
-                Xác nhận
-              </Button>
-            </>
+                } catch (err) {
+                  console.error(err);
+                  showNotification(err.response.data.message, "error");
+                }
+              }}
+            >
+              Xác nhận
+            </Button>
           ),
         ]}
       >
@@ -417,46 +425,6 @@ const AppointmentSchedule = () => {
             </Descriptions.Item>
           </Descriptions>
         )}
-      </Modal>
-
-      {/* modal chọn xác nhận đã checkin */}
-      <Modal
-        title={currentStatus === "CONFIRMED" ? "Xác nhận?" : "Hủy"}
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        onOk={async () => {
-          if (!infoUser?.id || !currentId) return;
-
-          setLoadingIds((prev) => [...prev, currentId]);
-
-          try {
-            await treatmentService.updateAppointmentStatusCustomer(currentId, {
-              status: currentStatus,
-              note: note || "",
-            });
-
-            showNotification("Checkin buổi khám thành công", "success");
-            setNote(null);
-            getApointmentCustomer();
-          } catch (err) {
-            console.error(err);
-            showNotification(err.response.data.message, "error");
-          } finally {
-            setModalVisible(false);
-            setIsModalOpen(false);
-            setLoadingIds((prev) => prev.filter((id) => id !== currentId));
-            noteRef.current = "";
-          }
-        }}
-        okText="Xác nhận"
-        cancelText="Huỷ"
-      >
-        <Input.TextArea
-          rows={4}
-          placeholder="Nhập ghi chú"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
       </Modal>
 
       {/* modal gửi yêu cầu đổi lịch hẹn */}

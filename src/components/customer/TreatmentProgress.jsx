@@ -754,6 +754,12 @@ const TreatmentProgress = () => {
             </Col>
             <Col xs={24} md={12}>
               <Space>
+                <Text strong>Ngày đầu chu kì:</Text>
+                <Text>{dayjs(treatmentData.cd1Date).format("DD/MM/YYYY")}</Text>
+              </Space>
+            </Col>
+            <Col xs={24} md={12}>
+              <Space>
                 <Text strong>Trạng thái:</Text>
                 <Tag
                   color={getStatusColor(treatmentData.status)}
@@ -945,7 +951,8 @@ const TreatmentProgress = () => {
                     >
                       Xem lịch hẹn
                     </Button>
-                    {step.statusRaw !== "COMPLETED" && (
+                    {(step.statusRaw !== "COMPLETED" ||
+                      step.statusRaw !== "PENDING_CHANGE") && (
                       <Button
                         type="default"
                         icon={<EditOutlined />}

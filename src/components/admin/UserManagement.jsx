@@ -30,7 +30,7 @@ const UserManagement = () => {
       case "ADMIN":
         return "Người quản trị";
       case "DOCTOR":
-        return "BÁC SĨ";
+        return "Bác Sĩ";
       case "MANAGER":
         return "Người quản lý";
       default:
@@ -43,7 +43,7 @@ const UserManagement = () => {
     if (!token) return;
 
     try {
-      const res = await adminService.getUsers(isRemove, page, 12);
+      const res = await adminService.getUsers(isRemove, page, 9);
       setUsers(res.data.result.content);
       setTotalPages(res.data.result.totalPages);
 
@@ -165,22 +165,10 @@ const UserManagement = () => {
   };
 
   return (
-    <div
-      className="min-h-screen px-6 py-6"
-      style={{
-        background: "linear-gradient(135deg, #f0f4f8, #e8f0ff)",
-      }}
-    >
+    <div className="px-6 py-6">
       <div className="flex justify-between items-center mb-6">
         <Title level={3}>Quản Lý User</Title>
         <Space>
-          <input
-            type="text"
-            placeholder="Tìm kiếm..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="border border-gray-300 px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition w-80"
-          />
           <Button
             type="default"
             className={!showRemoved ? "border-green-500 text-green-600" : ""}

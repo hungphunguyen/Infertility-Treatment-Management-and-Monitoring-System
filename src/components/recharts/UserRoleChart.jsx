@@ -67,12 +67,7 @@ const UserRoleChart = () => {
     fetchData();
   }, [token]);
   return (
-    <div
-      className="min-h-screen px-8 py-6"
-      style={{
-        background: "linear-gradient(135deg, #f0f4f8 0%, #e0ecf7 100%)",
-      }}
-    >
+    <div className="px-8 py-6">
       <div
         style={{
           display: "flex",
