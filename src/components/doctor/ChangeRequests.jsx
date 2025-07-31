@@ -13,6 +13,7 @@ import {
   Avatar,
   Timeline,
   Divider,
+  Tooltip,
 } from "antd";
 import { treatmentService } from "../../service/treatment.service";
 import { authService } from "../../service/auth.service";
@@ -398,6 +399,14 @@ const ChangeRequests = () => {
                   ) : (
                     <Text type="secondary">Chưa có</Text>
                   )}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Lý do thay đổi">
+                  <Tooltip title={selected.reasonChange}>
+                    <Text ellipsis style={{ maxWidth: 500 }}>
+                      {selected.reasonChange}
+                    </Text>
+                  </Tooltip>
                 </Descriptions.Item>
               </Descriptions>
               <Divider />
