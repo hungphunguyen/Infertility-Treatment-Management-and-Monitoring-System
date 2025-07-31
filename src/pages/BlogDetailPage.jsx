@@ -120,8 +120,13 @@ const BlogDetailPage = () => {
               <div className="flex items-center mb-8">
                 <div>
                   <Text strong className="block text-lg">
-                    {blogPost.authorName}
+                    Tác giả: {blogPost.authorName}
                   </Text>
+                  <Text strong className="block font-bold text-lg">
+                    Nguồn tham khảo:{" "}
+                    {blogPost.sourceReference || "Không có tham khảo nguồn"}
+                  </Text>
+
                   <Text type="secondary" className="flex items-center">
                     <CalendarOutlined className="mr-2" />{" "}
                     {dayjs(blogPost.createdAt).format("DD/MM/YYYY")}

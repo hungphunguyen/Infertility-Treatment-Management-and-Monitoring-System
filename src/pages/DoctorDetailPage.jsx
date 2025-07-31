@@ -324,8 +324,7 @@ const DoctorDetailPage = () => {
                 renderItem={(item) => (
                   <List.Item>
                     <List.Item.Meta
-                      avatar={<Avatar icon={<UserOutlined />} />}
-                      title={item.customerName}
+                      title={item.customerFullName}
                       description={
                         <>
                           <Rate disabled defaultValue={item.rating} />

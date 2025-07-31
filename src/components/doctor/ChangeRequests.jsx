@@ -404,7 +404,7 @@ const ChangeRequests = () => {
                 <Descriptions.Item label="Lý do thay đổi">
                   <Tooltip title={selected.reasonChange}>
                     <Text ellipsis style={{ maxWidth: 500 }}>
-                      {selected.reasonChange}
+                      {selected.reasonChange || "Chưa có"}
                     </Text>
                   </Tooltip>
                 </Descriptions.Item>
@@ -414,7 +414,7 @@ const ChangeRequests = () => {
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Nhập ghi chú bắt buộc"
+                placeholder="Nhập lí do bắt buộc"
                 style={{ marginBottom: 16 }}
               />
               <Space style={{ width: "100%", justifyContent: "center" }}>

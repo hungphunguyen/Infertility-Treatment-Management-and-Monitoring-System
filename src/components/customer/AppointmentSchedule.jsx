@@ -480,10 +480,10 @@ const AppointmentSchedule = () => {
             <option value="AFTERNOON">Buổi chiều</option>
           </select>
 
-          <label>Ghi chú</label>
+          <label>Lí do</label>
           <Input.TextArea
             rows={4}
-            placeholder="Nhập ghi chú (tuỳ chọn)"
+            placeholder="Nhập lí do (tuỳ chọn)"
             value={changeRequestForm.notes}
             onChange={(e) =>
               setChangeRequestForm((prev) => ({

@@ -442,12 +442,6 @@ const TreatmentStagesView = () => {
                     </Tag>
                   </Space>
                 </Col>
-                <Col xs={24} md={24}>
-                  <Space>
-                    <Text strong>Ghi chú:</Text>
-                    <Text>{treatmentData.notes || "Không có ghi chú"}</Text>
-                  </Space>
-                </Col>
               </Row>
             </Col>
           </Row>

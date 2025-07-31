@@ -823,6 +823,11 @@ const AppointmentManagement = () => {
                 </Card>
               </Timeline.Item>
             </Timeline>
+            <Card className="mt-4" size="small" title="Lí do">
+              <Text>
+                {selectedChangeRequest.reasonChange || "Chưa có thông tin"}
+              </Text>
+            </Card>
             {selectedChangeRequest.notes && (
               <>
                 <Divider />
@@ -833,12 +838,12 @@ const AppointmentManagement = () => {
             )}
             <Divider />
             <div style={{ marginBottom: 16 }}>
-              <Text strong>Ghi chú xử lý:</Text>
+              <Text strong>Lí do xử lý:</Text>
               <Input.TextArea
                 rows={3}
                 value={changeRequestNotes}
                 onChange={(e) => setChangeRequestNotes(e.target.value)}
-                placeholder="Nhập ghi chú bắt buộc"
+                placeholder="Nhập lí do bắt buộc"
                 style={{ marginTop: 8 }}
               />
             </div>

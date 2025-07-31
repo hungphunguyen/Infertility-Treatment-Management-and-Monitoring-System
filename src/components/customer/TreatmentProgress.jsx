@@ -781,12 +781,6 @@ const TreatmentProgress = () => {
                 </Tag>
               </Space>
             </Col>
-            <Col xs={24} md={12}>
-              <Space>
-                <Text strong>Ghi chú:</Text>
-                <Text>{treatmentData.notes || "Không có ghi chú"}</Text>
-              </Space>
-            </Col>
           </Row>
         </Col>
       </Row>
@@ -1030,12 +1024,6 @@ const TreatmentProgress = () => {
       ),
     },
     // Thêm cột Ghi chú
-    {
-      title: "Ghi chú",
-      dataIndex: "notes",
-      key: "notes",
-      render: (text) => text || "Không có ghi chú",
-    },
 
     {
       title: "Chi tiết dịch vụ",
@@ -1329,7 +1317,9 @@ const TreatmentProgress = () => {
                       case "PENDING_CHANGE":
                         return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
                       case "REJECTED":
-                        return <Tag color="volcano">Từ chối yêu cầu đổi lịch</Tag>;
+                        return (
+                          <Tag color="volcano">Từ chối yêu cầu đổi lịch</Tag>
+                        );
                       case "COMPLETED":
                         return <Tag color="green">Đã hoàn thành</Tag>;
                       case "CANCELLED":
@@ -1342,7 +1332,7 @@ const TreatmentProgress = () => {
                   },
                 },
                 {
-                  title: "Ghi chú",
+                  title: "Lí do",
                   dataIndex: "notes",
                   key: "notes",
                   render: (notes) => notes || "-",
@@ -1407,10 +1397,10 @@ const TreatmentProgress = () => {
                       <Option value="AFTERNOON">Chiều</Option>
                     </Select>
                   </Form.Item>
-                  <Form.Item label="Ghi chú" name="notes">
+                  <Form.Item label="Lí do" name="notes">
                     <Input.TextArea
                       rows={2}
-                      placeholder="Ghi chú thêm (nếu có)"
+                      placeholder="Nhập lí do (nếu có)"
                     />
                   </Form.Item>
                 </Form>

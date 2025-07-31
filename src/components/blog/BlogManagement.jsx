@@ -378,10 +378,7 @@ const BlogManagement = () => {
       dataIndex: "authorName",
       key: "authorName",
       render: (authorName) => (
-        <div className="flex items-center">
-          <Avatar size="small" icon={<UserOutlined />} className="mr-2" />
-          {authorName}
-        </div>
+        <div className="flex items-center">{authorName}</div>
       ),
     },
     {
