@@ -392,10 +392,8 @@ const TreatmentProgress = () => {
         return <Tag color="error">Đã hủy</Tag>;
       case "PENDING_CHANGE":
         return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
-      case "REJECTED_CHANGE":
-        return <Tag color="red">Từ chối đổi lịch</Tag>;
       case "REJECTED":
-        return <Tag color="error">Từ chối thay đổi lịch hẹn</Tag>;
+        return <Tag color="volcano">Từ chối yêu cầu đổi lịch</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -427,7 +425,7 @@ const TreatmentProgress = () => {
       case "CANCELLED":
         return "error";
       case "INPROGRESS":
-        return "blue";
+        return "orange";
       default:
         return "processing";
     }
@@ -485,8 +483,6 @@ const TreatmentProgress = () => {
         return "Đã hủy";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
-      case "REJECTED_CHANGE":
-        return "Từ chối đổi lịch";
       case "REJECTED":
         return "Từ chối yêu cầu đổi lịch";
       default:
@@ -1335,10 +1331,8 @@ const TreatmentProgress = () => {
                         return <Tag color="orange">Đã đặt lịch</Tag>;
                       case "PENDING_CHANGE":
                         return <Tag color="purple">Chờ duyệt đổi lịch</Tag>;
-                      case "REJECTED_CHANGE":
-                        return <Tag color="red">Từ chối đổi lịch</Tag>;
                       case "REJECTED":
-                        return <Tag color="red">Đã từ chối</Tag>;
+                        return <Tag color="volcano">Từ chối yêu cầu đổi lịch</Tag>;
                       case "COMPLETED":
                         return <Tag color="green">Đã hoàn thành</Tag>;
                       case "CANCELLED":

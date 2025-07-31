@@ -2,7 +2,7 @@ import axios from "axios";
 
 //setup axios custom xử lí gọi API cho dự án
 const http = axios.create({
-  baseURL: "https://manufacturers-happening-musical-minus.trycloudflare.com/infertility-system/api/", // domain
+  baseURL: "https://techleaf.pro/infertility-system/api/", // domain
   timeout: 30000,
   headers: {},
 });

@@ -97,7 +97,7 @@ const TreatmentStageDetails = () => {
     { value: "CONFIRMED", label: "Đã xác nhận" },
     { value: "INPROGRESS", label: "Đang điều trị" },
     { value: "COMPLETED", label: "Hoàn thành" },
-    { value: "CANCELLED", label: "Đã hủy" },
+    { value: "CANCELLED", label: "Hủy" },
   ];
 
   useEffect(() => {
@@ -201,7 +201,7 @@ const TreatmentStageDetails = () => {
       case "CANCELLED":
         return "error";
       case "INPROGRESS":
-        return "blue";
+        return "orange";
       default:
         return "processing";
     }
@@ -240,6 +240,8 @@ const TreatmentStageDetails = () => {
         return "yellow";
       case "PENDING_CHANGE":
         return "gold";
+      case "REJECTED":
+        return "volcano";
       default:
         return "default";
     }
@@ -259,8 +261,6 @@ const TreatmentStageDetails = () => {
         return "Đã hủy";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
-      case "REJECTED_CHANGE":
-        return "Từ chối đổi lịch";
       case "REJECTED":
         return "Từ chối yêu cầu đổi lịch";
       default:
@@ -1478,7 +1478,7 @@ const TreatmentStageDetails = () => {
             <Select>
               <Select.Option value="INPROGRESS">Đang điều trị</Select.Option>
               <Select.Option value="COMPLETED">Hoàn thành</Select.Option>
-              <Select.Option value="CANCELLED">Đã hủy</Select.Option>
+              <Select.Option value="CANCELLED">Hủy</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item name="notes" label="Ghi chú">

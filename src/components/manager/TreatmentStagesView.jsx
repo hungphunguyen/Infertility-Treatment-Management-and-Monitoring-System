@@ -155,7 +155,7 @@ const TreatmentStagesView = () => {
       case "CANCELLED":
         return "error";
       case "INPROGRESS":
-        return "blue";
+        return "orange";
       default:
         return "processing";
     }
@@ -175,6 +175,8 @@ const TreatmentStagesView = () => {
         return "Đang điều trị";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
+      case "REJECTED":
+        return "Từ chối yêu cầu đổi lịch";
       default:
         return status;
     }
@@ -187,6 +189,10 @@ const TreatmentStagesView = () => {
       case "CONFIRMED":
         return <ClockCircleOutlined style={{ color: "#1890ff" }} />;
       case "CANCELLED":
+        return <CloseOutlined style={{ color: "#ff4d4f" }} />;
+      case "INPROGRESS":
+        return <ClockCircleOutlined style={{ color: "#fa8c16" }} />;
+      case "REJECTED":
         return <CloseOutlined style={{ color: "#ff4d4f" }} />;
       case "PLANNED":
       default:
@@ -206,8 +212,12 @@ const TreatmentStagesView = () => {
         return "red";
       case "PLANED":
         return "yellow";
+      case "INPROGRESS":
+        return "orange";
       case "PENDING_CHANGE":
         return "gold";
+      case "REJECTED":
+        return "volcano";
       default:
         return "default";
     }
@@ -225,8 +235,12 @@ const TreatmentStagesView = () => {
         return "Đã hủy";
       case "PLANED":
         return "Đã lên lịch";
+      case "INPROGRESS":
+        return "Đang điều trị";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
+      case "REJECTED":
+        return "Từ chối yêu cầu đổi lịch";
       default:
         return status;
     }

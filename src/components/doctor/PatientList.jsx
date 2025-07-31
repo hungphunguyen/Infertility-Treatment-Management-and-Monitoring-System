@@ -106,12 +106,11 @@ const PatientList = () => {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       PENDING: { color: "orange", text: "Chờ xác nhận" },
       PLANED: { color: "orange", text: "Đã đặt lịch" },
-      REJECTED: { color: "red", text: "Từ chối yêu cầu thay đổi" },
-      REJECTED_CHANGE: { color: "red", text: "Từ chối thay đổi" },
+      REJECTED: { color: "volcano", text: "Từ chối yêu cầu đổi lịch" },
       PENDING_CHANGE: { color: "gold", text: "Yêu cầu thay đổi" },
       CANCELLED: { color: "red", text: "Đã hủy" },
       COMPLETED: { color: "green", text: "Đã hoàn thành" },
-      INPROGRESS: { color: "blue", text: "Đang thực hiện" },
+      INPROGRESS: { color: "orange", text: "Đang điều trị" },
     };
     return (
       <Tag color={statusMap[status]?.color}>

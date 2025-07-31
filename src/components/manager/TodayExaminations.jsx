@@ -83,10 +83,10 @@ const TodayExaminations = () => {
     const statusMap = {
       CONFIRMED: { color: "blue", text: "Đã xác nhận" },
       PENDING: { color: "orange", text: "Chờ xác nhận" },
-      REJECTED_CHANGE: { color: "red", text: "Từ chối thay đổi" },
+      REJECTED: { color: "volcano", text: "Từ chối yêu cầu đổi lịch" },
       CANCELLED: { color: "red", text: "Đã hủy" },
       COMPLETED: { color: "green", text: "Đã hoàn thành" },
-      INPROGRESS: { color: "blue", text: "Đang thực hiện" },
+      INPROGRESS: { color: "orange", text: "Đang điều trị" },
       PENDING_CHANGE: { color: "gold", text: "Chờ duyệt đổi lịch" },
     };
     return (

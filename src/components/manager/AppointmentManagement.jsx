@@ -185,11 +185,11 @@ const AppointmentManagement = () => {
         return "green";
       case "PENDING_CHANGE":
         return "gold";
-      case "REJECTED_CHANGE":
-        return "volcano";
       case "REJECTED":
         return "volcano";
       case "PLANED":
+        return "orange";
+      case "INPROGRESS":
         return "orange";
       default:
         return "default";
@@ -208,12 +208,12 @@ const AppointmentManagement = () => {
         return "Hoàn thành";
       case "PENDING_CHANGE":
         return "Chờ duyệt đổi lịch";
-      case "REJECTED_CHANGE":
-        return "Từ chối đổi lịch";
       case "REJECTED":
         return "Từ chối yêu cầu thay đổi";
       case "PLANED":
         return "Đã đặt lịch";
+      case "INPROGRESS":
+        return "Đang điều trị";
       default:
         return status;
     }
@@ -510,6 +510,7 @@ const AppointmentManagement = () => {
                     { value: "COMPLETED", label: "Hoàn thành" },
                     { value: "CANCELLED", label: "Đã hủy" },
                     { value: "PENDING_CHANGE", label: "Chờ đổi lịch" },
+                    { value: "INPROGRESS", label: "Đang điều trị" },
                   ]}
                 />
               </Col>
