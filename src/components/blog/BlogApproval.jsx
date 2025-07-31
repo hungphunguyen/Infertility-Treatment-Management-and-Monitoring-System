@@ -14,6 +14,23 @@ import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { EyeOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
 
+/**
+ * ✅ BLOG APPROVAL COMPONENT - DUYỆT BÀI VIẾT
+ * 
+ * Chức năng chính:
+ * - Quản lý duyệt bài viết chờ xử lý
+ * - Xem chi tiết bài viết trước khi duyệt
+ * - Thêm comment khi duyệt/từ chối
+ * - Chỉ hiển thị bài viết có status "PENDING_REVIEW"
+ * 
+ * Workflow:
+ * 1. Fetch pending blogs từ API
+ * 2. Hiển thị danh sách bài viết chờ duyệt
+ * 3. View chi tiết bài viết
+ * 4. Approve/Reject với comment
+ * 5. Refresh danh sách sau khi duyệt
+ */
+
 const { Title } = Typography;
 
 const BlogApproval = () => {

@@ -19,6 +19,23 @@ import { useSelector } from "react-redux";
 import { NotificationContext } from "../../App";
 import { authService } from "../../service/auth.service";
 
+/**
+ * 👤 CUSTOMER BLOG MANAGEMENT COMPONENT - QUẢN LÝ BLOG CỦA KHÁCH HÀNG
+ * 
+ * Chức năng chính:
+ * - Khách hàng tạo và quản lý blog chia sẻ kinh nghiệm
+ * - Upload ảnh cho blog với compression tự động
+ * - Gửi bài viết đi duyệt
+ * - Chỉnh sửa bài viết nháp
+ * 
+ * Workflow:
+ * 1. Load user info (khách hàng hiện tại)
+ * 2. Fetch blogs của khách hàng này
+ * 3. Create/Edit blog với form
+ * 4. Upload image với compression
+ * 5. Submit for review
+ */
+
 const { Option } = Select;
 const { Search } = Input;
 const { TextArea } = Input;
@@ -410,7 +427,7 @@ const CustomerBlogManagement = () => {
     });
   };
 
-  // ✅ Handle Upload Img
+  // Handle Upload Img
   const handleUploadImg = async () => {
     if (!selectedFile || !selectedBlog?.id) return;
     setUploadingImage(true); // 🔥 Start loading

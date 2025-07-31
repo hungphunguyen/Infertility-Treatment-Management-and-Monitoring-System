@@ -10,6 +10,23 @@ import { FileTextOutlined, CloseOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { authService } from "../../service/auth.service";
 
+/**
+ * ✍️ CREATE BLOG COMPONENT - TRANG TẠO BLOG ĐỘC LẬP
+ * 
+ * Chức năng chính:
+ * - Trang tạo blog riêng biệt cho tất cả user
+ * - Sử dụng Formik cho form validation
+ * - Có 3 action: Lưu nháp, Gửi duyệt, Hủy
+ * - Modal xác nhận khi thoát có dữ liệu
+ * 
+ * Workflow:
+ * 1. Load user info
+ * 2. Validate form với Yup
+ * 3. Submit form với Formik
+ * 4. Handle save draft hoặc submit for review
+ * 5. Navigate về dashboard tương ứng
+ */
+
 const { Title } = Typography;
 
 const CreateBlogPage = () => {
