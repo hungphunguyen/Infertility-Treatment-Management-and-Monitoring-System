@@ -21,6 +21,9 @@ const ServiceManagement = () => {
   const [selectedServiceId, setSelectedServiceId] = useState();
   const [isTreatmentTypeModalOpen, setIsTreatmentTypeModalOpen] =
     useState(false);
+  const [editingStageId, setEditingStageId] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   const [isCreateServiceModalOpen, setIsCreateServiceModalOpen] =
     useState(false);
@@ -187,6 +190,19 @@ const ServiceManagement = () => {
     setSelectedTypeId(null);
     setTreatmentStages([]);
   };
+  // updateTreatmentStage
+  const updateTreatmentStage = async (stageId, updatedFields) => {
+    try {
+      await managerService.updateTreatmentStage(stageId, updatedFields);
+      showNotification("Cập nhật liệu trình thành công", "success");
+
+      // Sau khi update, reload lại stages
+      fetchTreatmentStage(selectedServiceId);
+    } catch (err) {
+      showNotification(err.response.data.message, "error");
+      console.error(err);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -223,14 +239,6 @@ const ServiceManagement = () => {
             <PlusOutlined />
             <span> Tạo dịch vụ điều trị</span>
           </button>
-
-          {/* <button
-            onClick={() => setIsCreateServiceModalOpen(true)}
-            className="bg-purple-600 text-white px-6 py-2 rounded-md shadow-md hover:bg-purple-700"
-          >
-            <PlusOutlined />
-            <span> Tạo dịch vụ điều trị</span>
-          </button> */}
         </div>
       </div>
       <div className="overflow-x-auto bg-white shadow-md rounded-lg">
@@ -425,13 +433,73 @@ const ServiceManagement = () => {
                               <ul className="list-disc pl-6 text-sm text-gray-800 space-y-1">
                                 {treatmentStages.map((stage) => (
                                   <li key={stage.id}>
-                                    <span className="font-medium text-blue-700">
-                                      {stage.name}
-                                    </span>{" "}
-                                    – {stage.description}
+                                    {editingStageId === stage.id ? (
+                                      <div className="space-y-1">
+                                        <input
+                                          type="text"
+                                          value={editName}
+                                          onChange={(e) =>
+                                            setEditName(e.target.value)
+                                          }
+                                          className="border p-1 w-full"
+                                        />
+                                        <textarea
+                                          value={editDescription}
+                                          onChange={(e) =>
+                                            setEditDescription(e.target.value)
+                                          }
+                                          className="border p-1 w-full"
+                                        />
+                                        <div className="space-x-2 mt-1">
+                                          <button
+                                            onClick={() =>
+                                              updateTreatmentStage(stage.id, {
+                                                serviceId: selectedServiceId,
+                                                name: editName,
+                                                description: editDescription,
+                                                expectedDayRange:
+                                                  stage.expectedDayRange,
+                                                orderIndex: stage.orderIndex,
+                                              })
+                                            }
+                                            className="bg-green-500 hover:bg-green-600 text-white text-sm font-medium px-4 py-1 rounded-md shadow-sm"
+                                          >
+                                            Lưu
+                                          </button>
+                                          <button
+                                            onClick={() =>
+                                              setEditingStageId(null)
+                                            }
+                                            className="bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium px-4 py-1 rounded-md shadow-sm"
+                                          >
+                                            Hủy
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div>
+                                        <span className="font-medium text-blue-700">
+                                          {stage.name}
+                                        </span>{" "}
+                                        – {stage.description}
+                                        <button
+                                          onClick={() => {
+                                            setEditingStageId(stage.id);
+                                            setEditName(stage.name);
+                                            setEditDescription(
+                                              stage.description
+                                            );
+                                          }}
+                                          className="ml-2 text-blue-600 text-sm underline"
+                                        >
+                                          Chỉnh sửa
+                                        </button>
+                                      </div>
+                                    )}
                                   </li>
                                 ))}
                               </ul>
+
                               <button
                                 onClick={() => {
                                   setSelectedServiceId(null);

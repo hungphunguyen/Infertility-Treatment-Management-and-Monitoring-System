@@ -451,170 +451,6 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  const handleCompleteTreatment = async () => {
-    try {
-      console.log("🔍 handleCompleteTreatment called:", {
-        treatmentId: treatmentData.id,
-        status: "COMPLETED",
-      });
-
-      const response = await treatmentService.updateTreatmentStatus(
-        treatmentData.id,
-        "COMPLETED"
-      );
-
-      console.log("🔍 Complete treatment response:", response);
-      console.log("🔍 Response code:", response?.code || response?.data?.code);
-
-      if (response?.data?.code === 1000 || response?.code === 1000) {
-        console.log("✅ Treatment completed successfully, refreshing data...");
-        showNotification("Hoàn thành điều trị thành công", "success");
-
-        // Thử lấy treatment record với steps để refresh data
-        try {
-          const detailedResponse =
-            await treatmentService.getTreatmentRecordById(treatmentData.id);
-          const detailedData = detailedResponse?.data?.result;
-
-          console.log(
-            "🔍 Detailed response after completion:",
-            detailedResponse
-          );
-          console.log("🔍 Detailed data after completion:", detailedData);
-
-          if (detailedData && detailedData.treatmentSteps) {
-            console.log(
-              "✅ Setting updated treatment data after completion:",
-              detailedData
-            );
-            setTreatmentData(detailedData);
-          } else {
-            console.warn("❌ Treatment record không có steps sau khi complete");
-            // Fallback to old method
-            const updatedResponse =
-              await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-
-            // Đảm bảo updatedResponse là array
-            let treatmentRecords = [];
-            if (Array.isArray(updatedResponse)) {
-              treatmentRecords = updatedResponse;
-            } else if (updatedResponse?.data?.result) {
-              if (Array.isArray(updatedResponse.data.result)) {
-                treatmentRecords = updatedResponse.data.result;
-              } else if (
-                updatedResponse.data.result.content &&
-                Array.isArray(updatedResponse.data.result.content)
-              ) {
-                treatmentRecords = updatedResponse.data.result.content;
-              }
-            }
-
-            if (treatmentRecords && treatmentRecords.length > 0) {
-              const updatedRecord = treatmentRecords.find(
-                (record) => record.id === treatmentData.id
-              );
-              if (updatedRecord) {
-                console.log(
-                  "✅ Setting updated record from list after completion:",
-                  updatedRecord
-                );
-                setTreatmentData(updatedRecord);
-              }
-            }
-          }
-        } catch (refreshError) {
-          console.warn(
-            "❌ Không thể refresh data after completion:",
-            refreshError
-          );
-          // Fallback to old method
-          const updatedResponse =
-            await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-
-          // Đảm bảo updatedResponse là array
-          let treatmentRecords = [];
-          if (Array.isArray(updatedResponse)) {
-            treatmentRecords = updatedResponse;
-          } else if (updatedResponse?.data?.result) {
-            if (Array.isArray(updatedResponse.data.result)) {
-              treatmentRecords = updatedResponse.data.result;
-            } else if (
-              updatedResponse.data.result.content &&
-              Array.isArray(updatedResponse.data.result.content)
-            ) {
-              treatmentRecords = updatedResponse.data.result.content;
-            }
-          }
-
-          if (treatmentRecords && treatmentRecords.length > 0) {
-            const updatedRecord = treatmentRecords.find(
-              (record) => record.id === treatmentData.id
-            );
-            if (updatedRecord) {
-              console.log(
-                "✅ Setting updated record from fallback after completion:",
-                updatedRecord
-              );
-              setTreatmentData(updatedRecord);
-            }
-          }
-        }
-      } else {
-        console.warn(
-          "❌ Treatment completion failed - invalid response code:",
-          response?.code || response?.data?.code
-        );
-        showNotification("Hoàn thành điều trị thất bại", "error");
-      }
-    } catch (error) {
-      showNotification(error.response?.data.message, "error");
-    }
-  };
-
-  const isAllStepsCompleted = () => {
-    if (!treatmentData?.treatmentSteps) return false;
-    const activeSteps = treatmentData.treatmentSteps.filter(
-      (step) => step.status !== "CANCELLED"
-    );
-    return (
-      activeSteps.length > 0 &&
-      activeSteps.every((step) => step.status === "COMPLETED")
-    );
-  };
-
-  const calculateProgress = () => {
-    if (!treatmentData?.treatmentSteps) return 0;
-    const completedSteps = treatmentData.treatmentSteps.filter(
-      (step) => step.status === "COMPLETED"
-    ).length;
-    return Math.round(
-      (completedSteps / treatmentData.treatmentSteps.length) * 100
-    );
-  };
-
-  const handleStepClick = async (step) => {
-    console.log("🎯 Step clicked:", step);
-    console.log("🎯 Step ID:", step.id);
-    setSelectedStep(step);
-    setShowStepDetailModal(true);
-    setShowCreateAppointmentModal(false);
-    setLoadingAppointments(true);
-    try {
-      const response = await treatmentService.getAppointmentsByStepId(step.id);
-
-      // Lấy content array từ paginated response
-      const appointments = response?.data?.result || [];
-
-      setStepAppointments(appointments);
-    } catch (error) {
-      console.error("❌ Error fetching appointments:", error);
-      console.error("❌ Error details:", error.response?.data);
-      setStepAppointments([]);
-    } finally {
-      setLoadingAppointments(false);
-    }
-  };
-
   const handleShowCreateAppointment = () => {
     console.log(
       "🔍 handleShowCreateAppointment called with selectedStep:",
@@ -647,36 +483,6 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  // Helper function to handle appointment status updates
-  const handleAppointmentStatusUpdate = async (appointmentId, newStatus) => {
-    try {
-      const res = await treatmentService.updateAppointmentStatus(
-        appointmentId,
-        newStatus
-      );
-      if (res?.data?.code === 1000) {
-        showNotification("Cập nhật trạng thái thành công", "success");
-
-        // Update local state immediately
-        setStepAppointments((prev) =>
-          Array.isArray(prev)
-            ? prev.map((a) =>
-                a.id === appointmentId
-                  ? { ...a, status: newStatus, showStatusSelect: false }
-                  : a
-              )
-            : []
-        );
-
-        // Không refresh data từ server nữa để tránh nhảy trang
-      } else {
-        showNotification(res?.data?.message || "Cập nhật thất bại", "error");
-      }
-    } catch (err) {
-      console.error("Error updating appointment status:", err);
-      showNotification(err.response.data.message, "error");
-    }
-  };
   // Hàm mở modal ghi chú
   const handleNoteSubmit = async () => {
     if (!note.trim()) {
@@ -696,7 +502,7 @@ const TreatmentStageDetails = () => {
       );
       if (res?.data?.code === 1000) {
         showNotification("Cập nhật trạng thái thành công", "success");
-
+        setShowScheduleModal(false);
         // Cập nhật local
         setStepAppointments((prev) =>
           Array.isArray(prev)
