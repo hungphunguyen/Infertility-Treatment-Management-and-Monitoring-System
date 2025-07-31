@@ -32,43 +32,60 @@ import { NotificationContext } from "../../App";
 const { Title, Text } = Typography;
 
 const MyServices = () => {
-  const { showNotification } = useContext(NotificationContext);
-  const [loading, setLoading] = useState(true);
-  const [treatmentRecords, setTreatmentRecords] = useState([]);
+  // ===== CONTEXT & NAVIGATION =====
+  const { showNotification } = useContext(NotificationContext);            // Context hiển thị thông báo
+  const navigate = useNavigate();                                          // Hook điều hướng
+  
+  // ===== STATE MANAGEMENT =====
+  // State quản lý loading và data
+  const [loading, setLoading] = useState(true);                           // Loading state chính
+  const [treatmentRecords, setTreatmentRecords] = useState([]);           // Danh sách treatment records
+  const [userId, setUserId] = useState(null);                             // ID của customer hiện tại
+  
+  // State quản lý statistics
   const [statistics, setStatistics] = useState({
-    totalServices: 0,
-    cancelledServices: 0,
-    inProgressServices: 0,
+    totalServices: 0,           // Tổng số dịch vụ
+    cancelledServices: 0,       // Số dịch vụ đã hủy
+    inProgressServices: 0,      // Số dịch vụ đang thực hiện
   });
-  const [cancelLoading, setCancelLoading] = useState({});
-  const [userId, setUserId] = useState(null);
-  const navigate = useNavigate();
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
-  const [selectedTreatmentDetail, setSelectedTreatmentDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
-  const [totalPages, setTotalPages] = useState(1);
+  
+  // State quản lý cancel actions
+  const [cancelLoading, setCancelLoading] = useState({});                 // Loading state cho từng record
+  const [isModalVisible, setIsModalVisible] = useState(false);            // Hiển thị modal cancel
+  const [cancelReason, setCancelReason] = useState("");                   // Lý do cancel
+  const [selectedTreatment, setSelectedTreatment] = useState(null);       // Treatment được chọn để cancel
+  const [cancelLoadingRecord, setCancelLoadingRecord] = useState(false);  // Loading state cancel action
+  
+  // State quản lý detail modal
+  const [detailModalVisible, setDetailModalVisible] = useState(false);    // Hiển thị modal chi tiết
+  const [selectedTreatmentDetail, setSelectedTreatmentDetail] = useState(null); // Treatment detail được chọn
+  const [detailLoading, setDetailLoading] = useState(false);              // Loading state detail modal
+  
+  // State quản lý pagination
+  const [currentPage, setCurrentPage] = useState(0);                      // Trang hiện tại (0-based)
+  const [totalPages, setTotalPages] = useState(1);                        // Tổng số trang
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
-  const [selectedTreatment, setSelectedTreatment] = useState(null);
-  const [cancelLoadingRecord, setCancelLoadingRecord] = useState(false);
-
+  // ===== USEEFFECT: INITIAL DATA LOAD =====
+  // useEffect này chạy khi component mount để load data
   useEffect(() => {
-    fetchTreatmentRecords();
+    fetchTreatmentRecords();                                               // Load treatment records
+    
+    // Fetch user info async
     const fetchUser = async () => {
       try {
-        const res = await authService.getMyInfo();
-        setUserId(res?.data?.result?.id);
+        const res = await authService.getMyInfo();                        // Gọi API lấy thông tin user
+        setUserId(res?.data?.result?.id);                                 // Set user ID
       } catch {}
     };
     fetchUser();
   }, []);
 
+  // ===== API FUNCTION: FETCH TREATMENT RECORDS =====
+  // Hàm lấy danh sách treatment records với pagination
   const fetchTreatmentRecords = async (page = 0) => {
     try {
       setLoading(true);
-      const userResponse = await authService.getMyInfo();
+      const userResponse = await authService.getMyInfo();                 // Lấy thông tin user
 
       if (!userResponse?.data?.result?.id) {
         showNotification("Không tìm thấy thông tin người dùng", "error");
@@ -89,6 +106,7 @@ const MyServices = () => {
       // Cảnh báo nếu đang sử dụng test data
       // (Đã xóa thông báo demo, chỉ dùng dữ liệu thật)
 
+      // Gọi API lấy treatment records với pagination
       const response = await treatmentService.getTreatmentRecords({
         customerId: customerId,
         page,
@@ -99,22 +117,23 @@ const MyServices = () => {
         const records = response.data.result.content;
         console.log(records);
 
-        // chỉ cho nhấn feedback khi đã hoàn thành hồ sơ điều trị
+        // Chỉ cho nhấn feedback khi đã hoàn thành hồ sơ điều trị
         const enrichedRecords = records.map((record) => ({
           ...record,
-          canFeedback: record.status === "COMPLETED",
+          canFeedback: record.status === "COMPLETED",                     // Flag để enable feedback button
         }));
-        setTreatmentRecords(enrichedRecords);
-        setCurrentPage(page);
-        setTotalPages(response.data.result.totalPages);
+        
+        setTreatmentRecords(enrichedRecords);                             // Set records data
+        setCurrentPage(page);                                             // Update current page
+        setTotalPages(response.data.result.totalPages);                   // Update total pages
+        
+        // Calculate statistics
         const stats = {
           totalServices: records.length,
-          cancelledServices: records.filter((r) => r.status === "CANCELLED")
-            .length,
-          inProgressServices: records.filter((r) => r.status === "INPROGRESS")
-            .length,
+          cancelledServices: records.filter((r) => r.status === "CANCELLED").length,
+          inProgressServices: records.filter((r) => r.status === "INPROGRESS").length,
         };
-        setStatistics(stats);
+        setStatistics(stats);                                             // Set statistics
       }
     } catch (error) {
       console.error("Error fetching treatment records:", error);
@@ -124,6 +143,9 @@ const MyServices = () => {
     }
   };
 
+  // ===== UTILITY FUNCTIONS: STATUS MAPPING =====
+  
+  // Hàm lấy status tag với màu sắc cho treatment records
   const getStatusTag = (status) => {
     switch (status) {
       case "COMPLETED":
@@ -143,6 +165,7 @@ const MyServices = () => {
     }
   };
 
+  // Hàm lấy status tag cho treatment steps
   const getStepStatusTag = (status) => {
     switch ((status || "").toUpperCase()) {
       case "COMPLETED":
@@ -161,7 +184,7 @@ const MyServices = () => {
     }
   };
 
-  // Thêm hàm chuyển đổi result sang tiếng Việt
+  // Hàm chuyển đổi result sang tiếng Việt
   const getResultText = (result) => {
     switch ((result || "").toUpperCase()) {
       case "SUCCESS":
@@ -175,42 +198,32 @@ const MyServices = () => {
     }
   };
 
-  // const handleCancelTreatment = async (record) => {
-  //   if (!userId) return;
-  //   setCancelLoading((l) => ({ ...l, [record.id]: true }));
-  //   try {
-  //     const res = await treatmentService.cancelTreatmentRecord(record.id);
-  //     showNotification(
-  //       res?.data?.message || "Hủy hồ sơ điều trị thành công.",
-  //       "success"
-  //     );
-  //     fetchTreatmentRecords();
-  //   } catch (err) {
-  //     showNotification(err?.response?.data?.message, "error");
-  //   } finally {
-  //     setCancelLoading((l) => ({ ...l, [record.id]: false }));
-  //   }
-  // };
-
+  // ===== HANDLERS =====
+  
+  // Hàm xử lý cancel treatment (mở modal)
   const handleCancelTreatment = (treatment) => {
-    setSelectedTreatment(treatment);
-    setIsModalVisible(true);
+    setSelectedTreatment(treatment);                                      // Set treatment được chọn
+    setIsModalVisible(true);                                              // Mở modal
   };
 
+  // Hàm xử lý confirm cancel trong modal
   const handleOk = async () => {
-    if (!cancelReason.trim()) {
+    if (!cancelReason.trim()) {                                           // Validate lý do cancel
       showNotification("Vui lòng nhập lý do huỷ!", "warning");
       return;
     }
+    
     setCancelLoadingRecord(true);
     try {
+      // Gọi API cancel treatment record
       await treatmentService.cancelTreatmentRecord(
         selectedTreatment.id,
         cancelReason
       );
+      
       showNotification("Hủy hồ sơ thành công!", "success");
-      setIsModalVisible(false);
-      setCancelReason("");
+      setIsModalVisible(false);                                           // Đóng modal
+      setCancelReason("");                                                // Reset lý do
     } catch (err) {
       showNotification(err.response?.data?.message, "error");
     } finally {
@@ -218,33 +231,41 @@ const MyServices = () => {
     }
   };
 
+  // Hàm xử lý cancel modal
   const handleCancel = () => {
-    setIsModalVisible(false);
-    setCancelReason("");
+    setIsModalVisible(false);                                             // Đóng modal
+    setCancelReason("");                                                  // Reset lý do
   };
 
+  // Hàm mở feedback form
   const handleOpenFeedbackForm = (record) => {
-    if (!record.canFeedback) return;
+    if (!record.canFeedback) return;                                      // Chỉ cho feedback khi completed
+    
     navigate(path.customerFeedback, {
       state: {
-        recordId: record.id,
+        recordId: record.id,                                              // Pass record ID để tạo feedback
       },
     });
   };
 
+  // Hàm xem chi tiết treatment
   const handleViewTreatmentDetail = async (record) => {
     setDetailLoading(true);
-    setDetailModalVisible(true);
+    setDetailModalVisible(true);                                          // Mở modal
+    
     try {
+      // Gọi API lấy chi tiết treatment record
       const res = await treatmentService.getTreatmentRecordById(record.id);
-      setSelectedTreatmentDetail(res?.data?.result || record);
+      setSelectedTreatmentDetail(res?.data?.result || record);           // Set detail data
     } catch (err) {
-      setSelectedTreatmentDetail(record);
+      setSelectedTreatmentDetail(record);                                 // Fallback với record gốc
     } finally {
       setDetailLoading(false);
     }
   };
 
+  // ===== TABLE COLUMNS CONFIGURATION =====
+  // Cấu hình các columns cho bảng treatment records
   const columns = [
     {
       title: "Gói điều trị",
@@ -307,7 +328,7 @@ const MyServices = () => {
           }}
           onClick={(e) => {
             e.stopPropagation();
-            handleViewTreatmentDetail(record);
+            handleViewTreatmentDetail(record);                            // Xem chi tiết
           }}
         >
           Xem
@@ -323,9 +344,9 @@ const MyServices = () => {
           loading={!!cancelLoading[record.id]}
           onClick={(e) => {
             e.stopPropagation();
-            handleCancelTreatment(record);
+            handleCancelTreatment(record);                                // Cancel treatment
           }}
-          disabled={!userId || record.status === "CANCELLED"}
+          disabled={!userId || record.status === "CANCELLED"}           // Disable nếu đã cancel
           style={
             record.status === "CANCELLED"
               ? { opacity: 0.5, cursor: "not-allowed" }
@@ -344,10 +365,10 @@ const MyServices = () => {
           type="primary"
           onClick={(e) => {
             e.stopPropagation();
-            handleOpenFeedbackForm(record);
+            handleOpenFeedbackForm(record);                             // Mở feedback form
             console.log(record.id);
           }}
-          disabled={!record.canFeedback}
+          disabled={!record.canFeedback}                                 // Chỉ enable khi completed
         >
           Feedback
         </Button>
@@ -355,6 +376,7 @@ const MyServices = () => {
     },
   ];
 
+  // ===== LOADING STATE =====
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "50px" }}>
@@ -363,8 +385,11 @@ const MyServices = () => {
     );
   }
 
+  // ===== RENDER MAIN COMPONENT =====
   return (
     <div>
+      {/* ===== MAIN TABLE SECTION ===== */}
+      {/* Card chính chứa bảng treatment records */}
       <Card
         variant="outlined"
         style={{
@@ -374,16 +399,18 @@ const MyServices = () => {
         }}
       >
         <Table
-          columns={columns}
-          dataSource={treatmentRecords}
-          rowKey="id"
-          pagination={false}
+          columns={columns}                                               // Columns configuration
+          dataSource={treatmentRecords}                                  // Treatment records data
+          rowKey="id"                                                     // Unique key cho mỗi row
+          pagination={false}                                              // Disable built-in pagination
           bordered
           style={{ borderRadius: 12, overflow: "hidden" }}
         />
+        
+        {/* Custom pagination controls */}
         <div className="flex justify-end mt-4">
           <Button
-            disabled={currentPage === 0}
+            disabled={currentPage === 0}                                 // Disable nếu ở trang đầu
             onClick={() => fetchTreatmentRecords(currentPage - 1)}
             className="mr-2"
           >
@@ -393,7 +420,7 @@ const MyServices = () => {
             Trang {currentPage + 1} / {totalPages}
           </span>
           <Button
-            disabled={currentPage + 1 >= totalPages}
+            disabled={currentPage + 1 >= totalPages}                     // Disable nếu ở trang cuối
             onClick={() => fetchTreatmentRecords(currentPage + 1)}
             className="ml-2"
           >
@@ -401,10 +428,13 @@ const MyServices = () => {
           </Button>
         </div>
       </Card>
+      
+      {/* ===== TREATMENT DETAIL MODAL ===== */}
+      {/* Modal hiển thị chi tiết treatment record */}
       <Modal
         open={detailModalVisible}
         onCancel={() => setDetailModalVisible(false)}
-        footer={null}
+        footer={null}                                                     // Custom footer
         title="Chi tiết quá trình điều trị"
         width={900}
       >
@@ -412,6 +442,8 @@ const MyServices = () => {
           <Spin />
         ) : selectedTreatmentDetail ? (
           <div>
+            {/* ===== TREATMENT BASIC INFO ===== */}
+            {/* Thông tin cơ bản của treatment */}
             <Descriptions bordered column={2} size="small">
               <Descriptions.Item label="Gói điều trị">
                 {selectedTreatmentDetail.treatmentServiceName ||
@@ -422,15 +454,14 @@ const MyServices = () => {
               </Descriptions.Item>
               <Descriptions.Item label="Ngày bắt đầu">
                 {selectedTreatmentDetail.startDate
-                  ? dayjs(selectedTreatmentDetail.startDate).format(
-                      "DD/MM/YYYY"
-                    )
+                  ? dayjs(selectedTreatmentDetail.startDate).format("DD/MM/YYYY")
                   : "-"}
               </Descriptions.Item>
               <Descriptions.Item label="Trạng thái">
                 {getStatusTag(selectedTreatmentDetail.status)}
               </Descriptions.Item>
-              {/* Thêm mục Kết quả */}
+              
+              {/* Kết quả điều trị */}
               <Descriptions.Item label="Kết quả">
                 <Tag
                   color={
@@ -444,9 +475,7 @@ const MyServices = () => {
                   }
                 >
                   {(() => {
-                    switch (
-                      (selectedTreatmentDetail.result || "").toUpperCase()
-                    ) {
+                    switch ((selectedTreatmentDetail.result || "").toUpperCase()) {
                       case "SUCCESS":
                         return "Thành công";
                       case "FAILURE":
@@ -459,12 +488,15 @@ const MyServices = () => {
                   })()}
                 </Tag>
               </Descriptions.Item>
-              {/* Thêm mục Ghi chú */}
+              
+              {/* Ghi chú */}
               <Descriptions.Item label="Ghi chú">
                 {selectedTreatmentDetail.notes || "Không có ghi chú"}
               </Descriptions.Item>
             </Descriptions>
 
+            {/* ===== TREATMENT STEPS COLLAPSE ===== */}
+            {/* Collapse hiển thị các bước điều trị */}
             <Collapse
               items={(selectedTreatmentDetail.treatmentSteps || []).map(
                 (step, idx) => ({
@@ -501,18 +533,22 @@ const MyServices = () => {
           <Text type="secondary">Không có dữ liệu chi tiết</Text>
         )}
       </Modal>
-      {/* Modal hủy hồ sơ */}
+      
+      {/* ===== CANCEL MODAL ===== */}
+      {/* Modal confirm cancel treatment */}
       <Modal
         title="Bạn có chắc chắn muốn hủy hồ sơ/dịch vụ này?"
         open={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        confirmLoading={cancelLoadingRecord}
+        onOk={handleOk}                                                   // Handler confirm cancel
+        onCancel={handleCancel}                                           // Handler close modal
+        confirmLoading={cancelLoadingRecord}                              // Loading state
         okText="Hủy hồ sơ"
         okType="danger"
         cancelText="Không"
       >
         <div>Bệnh nhân: {selectedTreatment?.customerName}</div>
+        
+        {/* Textarea nhập lý do cancel */}
         <Input.TextArea
           rows={3}
           placeholder="Nhập lý do huỷ"
@@ -525,4 +561,5 @@ const MyServices = () => {
   );
 };
 
+// ===== EXPORT COMPONENT =====
 export default MyServices;

@@ -46,20 +46,29 @@ const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const AppointmentManagement = () => {
-  const [loadingAppointments, setLoadingAppointments] = useState(false);
-  const [loadingChangeRequests, setLoadingChangeRequests] = useState(false);
-  const [appointments, setAppointments] = useState([]);
-  const [changeRequests, setChangeRequests] = useState([]);
-  const [filteredAppointments, setFilteredAppointments] = useState([]);
-  const [filteredChangeRequests, setFilteredChangeRequests] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState(null);
-  const [searchText, setSearchText] = useState("");
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [selectedChangeRequest, setSelectedChangeRequest] = useState(null);
-  const [appointmentModalVisible, setAppointmentModalVisible] = useState(false);
-  const [changeRequestModalVisible, setChangeRequestModalVisible] =
-    useState(false);
+  // ===== STATE MANAGEMENT =====
+  // State quản lý loading states
+  const [loadingAppointments, setLoadingAppointments] = useState(false);      // Loading appointments
+  const [loadingChangeRequests, setLoadingChangeRequests] = useState(false);  // Loading change requests
+  
+  // State quản lý data
+  const [appointments, setAppointments] = useState([]);                       // Danh sách appointments
+  const [changeRequests, setChangeRequests] = useState([]);                   // Danh sách yêu cầu đổi lịch
+  const [filteredAppointments, setFilteredAppointments] = useState([]);       // Appointments sau khi filter
+  const [filteredChangeRequests, setFilteredChangeRequests] = useState([]);   // Change requests sau khi filter
+  
+  // State quản lý filters
+  const [statusFilter, setStatusFilter] = useState("all");                    // Filter theo trạng thái
+  const [dateFilter, setDateFilter] = useState(null);                        // Filter theo ngày
+  const [searchText, setSearchText] = useState("");                          // Text tìm kiếm
+  
+  // State quản lý modal
+  const [selectedAppointment, setSelectedAppointment] = useState(null);       // Appointment được chọn trong modal
+  const [selectedChangeRequest, setSelectedChangeRequest] = useState(null);   // Change request được chọn trong modal
+  const [appointmentModalVisible, setAppointmentModalVisible] = useState(false); // Hiển thị modal appointment
+  const [changeRequestModalVisible, setChangeRequestModalVisible] = useState(false); // Hiển thị modal change request
+  
+  // State quản lý statistics (unused hiện tại)
   const [stats, setStats] = useState({
     totalAppointments: 0,
     todayAppointments: 0,
@@ -67,18 +76,23 @@ const AppointmentManagement = () => {
     completedAppointments: 0,
     changeRequests: 0,
   });
-  const [changeRequestNotes, setChangeRequestNotes] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0); // page index (0-based)
-  const [totalPages, setTotalPages] = useState(1);
+  
+  // State quản lý actions
+  const [changeRequestNotes, setChangeRequestNotes] = useState("");          // Notes khi xử lý change request
+  const [actionLoading, setActionLoading] = useState(false);                 // Loading khi xử lý action
+  
+  // State quản lý pagination
+  const [currentPage, setCurrentPage] = useState(0);                         // Trang hiện tại cho appointments (0-based)
+  const [totalPages, setTotalPages] = useState(1);                           // Tổng số trang cho appointments
+  const [changeRequestPage, setChangeRequestPage] = useState(0);             // Trang hiện tại cho change requests
+  const [changeRequestTotalPages, setChangeRequestTotalPages] = useState(1); // Tổng số trang cho change requests
 
-  const [changeRequestPage, setChangeRequestPage] = useState(0);
-  const [changeRequestTotalPages, setChangeRequestTotalPages] = useState(1);
-
-  // Fetch Appointments (không lấy PENDING_CHANGE)
+  // ===== API FUNCTION: FETCH APPOINTMENTS =====
+  // Hàm lấy danh sách appointments (không bao gồm PENDING_CHANGE)
   const fetchAppointments = async (page = 0) => {
     try {
       setLoadingAppointments(true);
+      // Gọi API lấy appointments với pagination
       const response = await treatmentService.getAppointments({
         page: page,
         size: 8,
@@ -86,14 +100,16 @@ const AppointmentManagement = () => {
         // status: "NOT_PENDING_CHANGE" // hoặc bỏ tham số này
       });
       const data = response?.data?.result?.content || [];
-      // Nếu API trả về cả PENDING_CHANGE, filter ở đây:
+      
+      // Nếu API trả về cả PENDING_CHANGE, filter ở đây để chỉ lấy appointments thường
       const appointmentsOnly = data.filter(
         (x) => x.status !== "PENDING_CHANGE"
       );
-      setAppointments(appointmentsOnly);
-      setFilteredAppointments(appointmentsOnly);
-      setCurrentPage(page);
-      setTotalPages(response?.data?.result?.totalPages);
+      
+      setAppointments(appointmentsOnly);                               // Set raw appointments
+      setFilteredAppointments(appointmentsOnly);                      // Set filtered appointments
+      setCurrentPage(page);                                           // Update current page
+      setTotalPages(response?.data?.result?.totalPages);              // Update total pages
     } catch (err) {
       notification.error({ message: "Lỗi khi tải lịch hẹn." });
     } finally {
@@ -101,34 +117,38 @@ const AppointmentManagement = () => {
     }
   };
 
-  // Fetch Change Requests (PENDING_CHANGE, lấy cả detail từng item)
+  // ===== API FUNCTION: FETCH CHANGE REQUESTS =====
+  // Hàm lấy danh sách change requests (chỉ status PENDING_CHANGE)
   const fetchChangeRequests = async (page = 0) => {
     try {
       setLoadingChangeRequests(true);
+      // Gọi API lấy appointments với status PENDING_CHANGE
       const response = await treatmentService.getAppointments({
         status: "PENDING_CHANGE",
         page: page,
         size: 8,
       });
       const pendingChangeAppointments = response?.data?.result?.content || [];
+      
       // Lấy detail từng item (có thể song song, tối ưu performance):
       const detailPromises = pendingChangeAppointments.map(
         async (appointment) => {
           try {
+            // Gọi API lấy chi tiết từng appointment để có thêm thông tin
             const detail = await http.get(`v1/appointments/${appointment.id}`);
             const detailData = detail?.data?.result;
-            return { ...appointment, ...detailData };
+            return { ...appointment, ...detailData };              // Merge appointment với detail
           } catch (error) {
-            return appointment; // fallback
+            return appointment;                                     // Fallback nếu không lấy được detail
           }
         }
       );
       const detailedChangeRequests = await Promise.all(detailPromises);
 
-      setChangeRequests(detailedChangeRequests);
-      setFilteredChangeRequests(detailedChangeRequests);
-      setChangeRequestPage(page);
-      setChangeRequestTotalPages(response?.data?.result?.totalPages);
+      setChangeRequests(detailedChangeRequests);                    // Set raw change requests
+      setFilteredChangeRequests(detailedChangeRequests);           // Set filtered change requests
+      setChangeRequestPage(page);                                  // Update current page
+      setChangeRequestTotalPages(response?.data?.result?.totalPages); // Update total pages
     } catch (err) {
       notification.error({ message: "Lỗi khi tải yêu cầu đổi lịch." });
     } finally {
@@ -136,22 +156,28 @@ const AppointmentManagement = () => {
     }
   };
 
-  // useEffect độc lập cho mỗi loại
+  // ===== USEEFFECT: INITIAL DATA LOAD =====
+  // useEffect này chạy khi component mount để load appointments
   useEffect(() => {
     fetchAppointments();
   }, []);
 
+  // ===== HANDLER: CHANGE REQUEST ACTION =====
+  // Hàm xử lý approve/reject change request
   const handleChangeRequestAction = async (status) => {
     if (!changeRequestNotes || !changeRequestNotes.trim()) {
       notification.error({ message: "Vui lòng nhập ghi chú!" });
       return;
     }
+    
     setActionLoading(true);
     try {
+      // Gọi API confirm change request với status và notes
       await treatmentService.confirmAppointmentChange(
         selectedChangeRequest.id,
         { status: status, note: changeRequestNotes }
       );
+      
       notification.success({
         message:
           status === "PLANED" ? "Đã duyệt yêu cầu!" : "Đã từ chối yêu cầu!",
@@ -159,9 +185,10 @@ const AppointmentManagement = () => {
           selectedChangeRequest.customerName
         } đã được ${status === "PLANED" ? "duyệt" : "từ chối"} thành công.`,
       });
-      setChangeRequestModalVisible(false);
-      setChangeRequestNotes("");
-      await fetchChangeRequests();
+      
+      setChangeRequestModalVisible(false);                         // Đóng modal
+      setChangeRequestNotes("");                                   // Reset notes
+      await fetchChangeRequests();                                // Refresh change requests list
     } catch (err) {
       notification.error({
         message: "Không thể cập nhật yêu cầu!",
@@ -173,6 +200,9 @@ const AppointmentManagement = () => {
     }
   };
 
+  // ===== UTILITY FUNCTIONS: STATUS MAPPING =====
+  
+  // Hàm lấy màu cho status tag
   const getStatusColor = (status) => {
     switch (status) {
       case "PENDING":
@@ -196,6 +226,7 @@ const AppointmentManagement = () => {
     }
   };
 
+  // Hàm lấy text hiển thị cho status
   const getStatusText = (status) => {
     switch (status) {
       case "PENDING":
@@ -219,6 +250,7 @@ const AppointmentManagement = () => {
     }
   };
 
+  // Hàm lấy icon cho status
   const getStatusIcon = (status) => {
     switch (status) {
       case "COMPLETED":
@@ -236,19 +268,27 @@ const AppointmentManagement = () => {
     }
   };
 
+  // ===== MODAL HANDLERS =====
+  
+  // Hàm hiển thị modal chi tiết appointment
   const showAppointmentDetail = (appointment) => {
     setSelectedAppointment(appointment);
     setAppointmentModalVisible(true);
   };
 
+  // Hàm hiển thị modal chi tiết change request
   const showChangeRequestDetail = (request) => {
     setSelectedChangeRequest(request);
     setChangeRequestModalVisible(true);
   };
 
+  // ===== FILTER FUNCTIONS =====
+  
+  // Hàm filter appointments theo search text, status, và date
   const filterAppointments = () => {
     let filtered = [...appointments];
 
+    // Filter theo search text
     if (searchText) {
       const lower = searchText.toLowerCase();
       filtered = filtered.filter(
@@ -259,10 +299,12 @@ const AppointmentManagement = () => {
       );
     }
 
+    // Filter theo status
     if (statusFilter !== "all") {
       filtered = filtered.filter((apt) => apt.status === statusFilter);
     }
 
+    // Filter theo date
     if (dateFilter) {
       filtered = filtered.filter((apt) =>
         dayjs(apt.appointmentDate).isSame(dateFilter, "day")
@@ -272,9 +314,11 @@ const AppointmentManagement = () => {
     setFilteredAppointments(filtered);
   };
 
+  // Hàm filter change requests theo search text
   const filterChangeRequests = () => {
     let filtered = [...changeRequests];
 
+    // Filter theo search text
     if (searchText) {
       const lower = searchText.toLowerCase();
       filtered = filtered.filter(
@@ -287,14 +331,22 @@ const AppointmentManagement = () => {
     setFilteredChangeRequests(filtered);
   };
 
+  // ===== USEEFFECT: AUTO FILTER =====
+  // useEffect này chạy khi data hoặc filter thay đổi để auto filter
+
+  // Auto filter appointments khi data hoặc filters thay đổi
   useEffect(() => {
     filterAppointments();
   }, [appointments, searchText, statusFilter, dateFilter]);
 
+  // Auto filter change requests khi data hoặc search text thay đổi
   useEffect(() => {
     filterChangeRequests();
   }, [changeRequests, searchText]);
 
+  // ===== TABLE COLUMNS CONFIGURATION =====
+  
+  // Cấu hình columns cho bảng appointments
   const appointmentColumns = [
     {
       title: "Bệnh nhân",
@@ -308,7 +360,7 @@ const AppointmentManagement = () => {
               <>
                 <br />
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  {record.customerPhone}
+                  {record.customerPhone}                               {/* Số điện thoại bệnh nhân */}
                 </Text>
               </>
             )}
@@ -332,7 +384,7 @@ const AppointmentManagement = () => {
       key: "appointmentDate",
       render: (date) => (
         <Space direction="vertical" size="small">
-          <Text strong>{dayjs(date).format("DD/MM/YYYY")}</Text>
+          <Text strong>{dayjs(date).format("DD/MM/YYYY")}</Text>       {/* Format ngày hiển thị */}
         </Space>
       ),
     },
@@ -376,6 +428,7 @@ const AppointmentManagement = () => {
     },
   ];
 
+  // Cấu hình columns cho bảng change requests
   const changeRequestColumns = [
     {
       title: "Bệnh nhân",
@@ -389,7 +442,7 @@ const AppointmentManagement = () => {
               <>
                 <br />
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  {record.customerEmail}
+                  {record.customerEmail}                               {/* Email bệnh nhân */}
                 </Text>
               </>
             )}
@@ -409,7 +462,7 @@ const AppointmentManagement = () => {
               <>
                 <br />
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  {record.doctorEmail}
+                  {record.doctorEmail}                                 {/* Email bác sĩ */}
                 </Text>
               </>
             )}
@@ -423,10 +476,10 @@ const AppointmentManagement = () => {
       render: (_, record) => (
         <Space direction="vertical" size="small">
           <Text strong>
-            {dayjs(record.appointmentDate).format("DD/MM/YYYY")}
+            {dayjs(record.appointmentDate).format("DD/MM/YYYY")}       {/* Ngày hiện tại */}
           </Text>
           <Tag color="blue">
-            {record.shift === "MORNING" ? "Sáng" : "Chiều"}
+            {record.shift === "MORNING" ? "Sáng" : "Chiều"}           {/* Ca hiện tại */}
           </Tag>
         </Space>
       ),
@@ -438,7 +491,7 @@ const AppointmentManagement = () => {
       render: (t) =>
         t ? (
           <Text strong style={{ color: "#faad14" }}>
-            {dayjs(t).format("DD/MM/YYYY")}
+            {dayjs(t).format("DD/MM/YYYY")}                           {/* Ngày yêu cầu đổi */}
           </Text>
         ) : (
           <Text type="secondary">Chưa có thông tin</Text>
@@ -448,6 +501,7 @@ const AppointmentManagement = () => {
       title: "Ca yêu cầu",
       dataIndex: "requestedShift",
       key: "requestedShift",
+      // Ca yêu cầu đổi - render text dựa trên shift value
       render: (s) =>
         s === "MORNING"
           ? "Sáng"
@@ -471,7 +525,8 @@ const AppointmentManagement = () => {
     },
   ];
 
-  // Tabs items for Antd 5+
+  // ===== TABS CONFIGURATION =====
+  // Cấu hình tabs items cho Antd 5+
   const tabItems = [
     {
       key: "appointments",
@@ -483,12 +538,14 @@ const AppointmentManagement = () => {
       ),
       children: (
         <>
-          {/* Filters */}
+          {/* ===== FILTER SECTION ===== */}
+          {/* Card chứa các filter controls */}
           <Card
             size="small"
             style={{ marginBottom: 16, background: "#fafafa" }}
           >
             <Row gutter={16} align="middle">
+              {/* Search input */}
               <Col span={6}>
                 <Input.Search
                   placeholder="Tìm kiếm bệnh nhân, bác sĩ..."
@@ -497,6 +554,8 @@ const AppointmentManagement = () => {
                   prefix={<SearchOutlined />}
                 />
               </Col>
+              
+              {/* Status filter */}
               <Col span={4}>
                 <Select
                   placeholder="Trạng thái"
@@ -514,6 +573,8 @@ const AppointmentManagement = () => {
                   ]}
                 />
               </Col>
+              
+              {/* Date filter */}
               <Col span={4}>
                 <DatePicker
                   placeholder="Chọn ngày"
@@ -522,6 +583,8 @@ const AppointmentManagement = () => {
                   style={{ width: "100%" }}
                 />
               </Col>
+              
+              {/* Reset button */}
               <Col span={4}>
                 <Button
                   icon={<ReloadOutlined />}
@@ -537,22 +600,25 @@ const AppointmentManagement = () => {
             </Row>
           </Card>
 
+          {/* ===== APPOINTMENTS TABLE ===== */}
+          {/* Bảng hiển thị danh sách appointments với loading và pagination */}
           <Spin spinning={loadingAppointments}>
             <Table
-              pagination={false}
-              columns={appointmentColumns}
-              dataSource={filteredAppointments}
-              rowKey="id"
+              pagination={false}                                      // Disable built-in pagination
+              columns={appointmentColumns}                            // Columns configuration
+              dataSource={filteredAppointments}                      // Data đã được filter
+              rowKey="id"                                             // Unique key cho mỗi row
               locale={{
                 emptyText: loadingAppointments
                   ? ""
                   : "Không có lịch hẹn nào phù hợp hoặc dữ liệu chưa sẵn sàng.",
               }}
             />
-            {/* Pagination buttons giống feedback */}
+            
+            {/* Custom pagination controls */}
             <div className="flex justify-end mt-4">
               <Button
-                disabled={currentPage === 0}
+                disabled={currentPage === 0}                         // Disable nếu ở trang đầu
                 onClick={() => fetchAppointments(currentPage - 1)}
                 className="mr-2"
               >
@@ -562,7 +628,7 @@ const AppointmentManagement = () => {
                 Trang {currentPage + 1} / {totalPages}
               </span>
               <Button
-                disabled={currentPage + 1 >= totalPages}
+                disabled={currentPage + 1 >= totalPages}             // Disable nếu ở trang cuối
                 onClick={() => fetchAppointments(currentPage + 1)}
                 className="ml-2"
               >
@@ -586,6 +652,7 @@ const AppointmentManagement = () => {
       ),
       children: (
         <>
+          {/* Alert thông báo số lượng change requests cần xử lý */}
           {stats.changeRequests > 0 && (
             <Alert
               message={`Có ${stats.changeRequests} yêu cầu thay đổi lịch hẹn cần xử lý`}
@@ -595,21 +662,25 @@ const AppointmentManagement = () => {
             />
           )}
 
+          {/* ===== CHANGE REQUESTS TABLE ===== */}
+          {/* Bảng hiển thị danh sách change requests với loading và pagination */}
           <Spin spinning={loadingChangeRequests}>
             <Table
-              columns={changeRequestColumns}
-              pagination={false}
-              dataSource={filteredChangeRequests}
-              rowKey="id"
+              columns={changeRequestColumns}                         // Columns configuration
+              pagination={false}                                     // Disable built-in pagination
+              dataSource={filteredChangeRequests}                   // Data đã được filter
+              rowKey="id"                                            // Unique key cho mỗi row
               locale={{
                 emptyText: loadingChangeRequests
                   ? ""
                   : "Không có yêu cầu thay đổi lịch hẹn nào hoặc dữ liệu chưa sẵn sàng.",
               }}
             />
+            
+            {/* Custom pagination controls cho change requests */}
             <div className="flex justify-end mt-4">
               <Button
-                disabled={changeRequestPage === 0}
+                disabled={changeRequestPage === 0}                   // Disable nếu ở trang đầu
                 onClick={() => fetchChangeRequests(changeRequestPage - 1)}
                 className="mr-2"
               >
@@ -619,7 +690,7 @@ const AppointmentManagement = () => {
                 Trang {changeRequestPage + 1} / {changeRequestTotalPages}
               </span>
               <Button
-                disabled={changeRequestPage + 1 >= changeRequestTotalPages}
+                disabled={changeRequestPage + 1 >= changeRequestTotalPages} // Disable nếu ở trang cuối
                 onClick={() => fetchChangeRequests(changeRequestPage + 1)}
                 className="ml-2"
               >
@@ -632,19 +703,20 @@ const AppointmentManagement = () => {
     },
   ];
 
+  // ===== RENDER MAIN COMPONENT =====
   return (
     <div>
-      {/* Statistics */}
-
-      {/* Main Content */}
+      {/* ===== MAIN CONTENT SECTION ===== */}
+      {/* Card chính chứa tabs quản lý appointments và change requests */}
       <Card
         style={{ borderRadius: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
       >
         <Tabs
           defaultActiveKey="appointments"
           size="large"
-          items={tabItems}
+          items={tabItems}                                            // Tabs configuration
           onChange={(key) => {
+            // Khi chuyển sang tab change requests thì fetch data
             if (key === "changeRequests") {
               fetchChangeRequests();
             }
@@ -652,12 +724,13 @@ const AppointmentManagement = () => {
         />
       </Card>
 
-      {/* Appointment Detail Modal */}
+      {/* ===== APPOINTMENT DETAIL MODAL ===== */}
+      {/* Modal hiển thị chi tiết appointment */}
       <Modal
         title="Chi tiết lịch hẹn"
         open={appointmentModalVisible}
         onCancel={() => setAppointmentModalVisible(false)}
-        footer={null}
+        footer={null}                                                 // Custom footer
         width={600}
       >
         {selectedAppointment && (
@@ -711,16 +784,19 @@ const AppointmentManagement = () => {
         )}
       </Modal>
 
-      {/* Change Request Detail Modal */}
+      {/* ===== CHANGE REQUEST DETAIL MODAL ===== */}
+      {/* Modal hiển thị chi tiết change request với approve/reject actions */}
       <Modal
         title="Chi tiết yêu cầu thay đổi lịch hẹn"
         open={changeRequestModalVisible}
         onCancel={() => setChangeRequestModalVisible(false)}
-        footer={null}
+        footer={null}                                                 // Custom footer
         width={700}
       >
         {selectedChangeRequest && (
           <div>
+            {/* ===== BASIC INFO SECTION ===== */}
+            {/* Thông tin cơ bản về bệnh nhân và bác sĩ */}
             <Descriptions column={2} bordered style={{ marginBottom: 16 }}>
               <Descriptions.Item label="Bệnh nhân" span={2}>
                 <Space>
@@ -756,6 +832,9 @@ const AppointmentManagement = () => {
                 <Text>{selectedChangeRequest.step}</Text>
               </Descriptions.Item>
             </Descriptions>
+            
+            {/* ===== TIMELINE SECTION ===== */}
+            {/* Timeline so sánh lịch hiện tại và lịch yêu cầu */}
             <Timeline>
               <Timeline.Item color="blue">
                 <Card size="small" title="Thông tin hiện tại">
@@ -823,11 +902,16 @@ const AppointmentManagement = () => {
                 </Card>
               </Timeline.Item>
             </Timeline>
+            
+            {/* ===== REASON SECTION ===== */}
+            {/* Card hiển thị lý do thay đổi */}
             <Card className="mt-4" size="small" title="Lí do">
               <Text>
                 {selectedChangeRequest.reasonChange || "Chưa có thông tin"}
               </Text>
             </Card>
+            
+            {/* Notes nếu có */}
             {selectedChangeRequest.notes && (
               <>
                 <Divider />
@@ -836,6 +920,9 @@ const AppointmentManagement = () => {
                 </Card>
               </>
             )}
+            
+            {/* ===== ACTION SECTION ===== */}
+            {/* Phần nhập lý do và buttons approve/reject */}
             <Divider />
             <div style={{ marginBottom: 16 }}>
               <Text strong>Lí do xử lý:</Text>
@@ -847,6 +934,8 @@ const AppointmentManagement = () => {
                 style={{ marginTop: 8 }}
               />
             </div>
+            
+            {/* Action buttons */}
             <Space style={{ width: "100%", justifyContent: "center" }}>
               <Button
                 type="primary"
@@ -876,4 +965,5 @@ const AppointmentManagement = () => {
   );
 };
 
+// ===== EXPORT COMPONENT =====
 export default AppointmentManagement;

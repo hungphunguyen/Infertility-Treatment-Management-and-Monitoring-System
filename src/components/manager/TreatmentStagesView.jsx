@@ -42,18 +42,25 @@ const { Title, Text } = Typography;
 const TreatmentStagesView = () => {
   console.log("🚀 TreatmentStagesView component loaded");
 
-  const [loading, setLoading] = useState(true);
-  const [treatmentData, setTreatmentData] = useState(null);
-  const [stepAppointments, setStepAppointments] = useState({});
-  const [loadingAppointments, setLoadingAppointments] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { showNotification } = useContext(NotificationContext);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [scheduleStep, setScheduleStep] = useState(null);
-  const [showAllAppointments, setShowAllAppointments] = useState(false);
+  // ===== NAVIGATION & CONTEXT =====
+  const location = useLocation();                                            // Hook để lấy location state
+  const navigate = useNavigate();                                            // Hook điều hướng
+  const { showNotification } = useContext(NotificationContext);              // Context hiển thị thông báo
 
-  // Debug log khi treatmentData thay đổi
+  // ===== STATE MANAGEMENT =====
+  // State quản lý data
+  const [loading, setLoading] = useState(true);                              // Loading state chính
+  const [treatmentData, setTreatmentData] = useState(null);                  // Data treatment record chi tiết
+  const [stepAppointments, setStepAppointments] = useState({});              // Appointments cho từng step
+  const [loadingAppointments, setLoadingAppointments] = useState(false);     // Loading state cho appointments
+
+  // State quản lý modal và UI
+  const [showScheduleModal, setShowScheduleModal] = useState(false);         // Modal lên lịch appointment
+  const [scheduleStep, setScheduleStep] = useState(null);                    // Step được chọn để lên lịch
+  const [showAllAppointments, setShowAllAppointments] = useState(false);     // Flag hiển thị tất cả appointments
+
+  // ===== USEEFFECT: DEBUG LOG TREATMENT DATA =====
+  // useEffect để debug log khi treatmentData thay đổi
   useEffect(() => {
     console.log("🔄 TreatmentData state changed:", treatmentData);
     console.log("🔄 Has treatmentSteps?", !!treatmentData?.treatmentSteps);
@@ -61,16 +68,21 @@ const TreatmentStagesView = () => {
     console.log("🔄 Steps data:", treatmentData?.treatmentSteps);
   }, [treatmentData]);
 
+  // ===== USEEFFECT: FETCH TREATMENT DATA =====
+  // useEffect này chạy khi component mount để lấy treatment data
   useEffect(() => {
     const fetchData = async () => {
       console.log("🚀 Starting to fetch treatment data...");
 
       try {
+        // Lấy data từ location state (từ ManagerTreatmentRecords)
         const { patientInfo, treatmentData: passedTreatmentData } =
           location.state || {};
+        
+        // Validate patientInfo required
         if (!patientInfo) {
           showNotification("Không tìm thấy thông tin bệnh nhân", "warning");
-          navigate(-1);
+          navigate(-1);                                                       // Go back
           return;
         }
 
@@ -79,19 +91,20 @@ const TreatmentStagesView = () => {
           treatmentData: passedTreatmentData,
         });
 
-        // Nếu đã có treatmentData với steps thì dùng luôn
+        // Nếu đã có treatmentData với ID thì xử lý
         if (passedTreatmentData && passedTreatmentData.id) {
           console.log(
             "✅ Using treatmentData from ManagerTreatmentRecords:",
             passedTreatmentData.id
           );
 
+          // Nếu đã có steps thì dùng luôn
           if (
             passedTreatmentData.treatmentSteps &&
             passedTreatmentData.treatmentSteps.length > 0
           ) {
             console.log("✅ TreatmentData already has steps, using directly");
-            setTreatmentData(passedTreatmentData);
+            setTreatmentData(passedTreatmentData);                            // Set treatment data
             setLoading(false);
             return;
           } else {
@@ -103,11 +116,11 @@ const TreatmentStagesView = () => {
               const detailedResponse =
                 await treatmentService.getTreatmentRecordById(
                   passedTreatmentData.id
-                );
+                );                                                            // Gọi API lấy chi tiết
               const detailedData = detailedResponse?.data?.result;
               if (detailedData) {
                 console.log("✅ Got detailed treatment data with steps");
-                setTreatmentData(detailedData);
+                setTreatmentData(detailedData);                               // Set detailed data
                 setLoading(false);
                 return;
               }
@@ -118,8 +131,9 @@ const TreatmentStagesView = () => {
               );
             }
 
+            // Fallback: sử dụng data được pass mà không có steps
             console.log("⚠️ Using passed treatmentData without steps");
-            setTreatmentData(passedTreatmentData);
+            setTreatmentData(passedTreatmentData);                            // Fallback data
             setLoading(false);
             return;
           }
@@ -133,7 +147,7 @@ const TreatmentStagesView = () => {
           "Không nhận được dữ liệu điều trị từ danh sách hồ sơ",
           "error"
         );
-        navigate(-1);
+        navigate(-1);                                                         // Go back
       } catch (error) {
         console.error("❌ Error fetching treatment data:", error);
         showNotification("Không thể lấy thông tin điều trị", "error");
@@ -144,62 +158,74 @@ const TreatmentStagesView = () => {
     fetchData();
   }, []);
 
+  // ===== UTILITY FUNCTION: STATUS COLOR MAPPING =====
+  // Hàm lấy màu sắc cho status
   const getStatusColor = (status) => {
     switch (status) {
       case "CONFIRMED":
         return "processing";
-      case "PLANED":
-        return "warning";
+      case "INPROGRESS":
+        return "processing";
       case "COMPLETED":
         return "success";
       case "CANCELLED":
         return "error";
-      case "INPROGRESS":
-        return "orange";
+      case "PENDING":
       default:
-        return "processing";
+        return "warning";
     }
   };
 
+  // ===== UTILITY FUNCTION: STATUS TEXT MAPPING =====
+  // Hàm lấy text hiển thị cho status
   const getStatusText = (status) => {
     switch (status) {
       case "CONFIRMED":
         return "Đã xác nhận";
+      case "PENDING":
+        return "Đang chờ xử lý";
       case "PLANED":
-        return "Chờ xếp lịch";
+        return "Đã lên lịch";
       case "COMPLETED":
-        return "Hoàn thành";
+        return "Đã hoàn thành";
       case "CANCELLED":
         return "Đã hủy";
       case "INPROGRESS":
         return "Đang điều trị";
-      case "PENDING_CHANGE":
-        return "Chờ duyệt đổi lịch";
-      case "REJECTED":
-        return "Từ chối yêu cầu đổi lịch";
       default:
         return status;
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "COMPLETED":
-        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
-      case "CONFIRMED":
-        return <ClockCircleOutlined style={{ color: "#1890ff" }} />;
-      case "CANCELLED":
-        return <CloseOutlined style={{ color: "#ff4d4f" }} />;
-      case "INPROGRESS":
-        return <ClockCircleOutlined style={{ color: "#fa8c16" }} />;
-      case "REJECTED":
-        return <CloseOutlined style={{ color: "#ff4d4f" }} />;
-      case "PLANNED":
+  // ===== UTILITY FUNCTION: RESULT TEXT MAPPING =====
+  // Hàm lấy text hiển thị cho result
+  const getResultText = (result) => {
+    switch (result) {
+      case "SUCCESS":
+        return "Thành công";
+      case "FAILURE":
+        return "Thất bại";
+      case "UNDETERMINED":
+        return "Chưa xác định";
       default:
-        return <ClockCircleOutlined style={{ color: "#d9d9d9" }} />;
+        return "Chưa có kết quả";
     }
   };
 
+  // ===== UTILITY FUNCTION: CALCULATE PROGRESS =====
+  // Hàm tính tỉ lệ tiến trình hoàn thành
+  const calculateProgress = () => {
+    if (!treatmentData?.treatmentSteps) return 0;
+    const completedSteps = treatmentData.treatmentSteps.filter(
+      (step) => step.status === "COMPLETED"
+    ).length;
+    return Math.round(
+      (completedSteps / treatmentData.treatmentSteps.length) * 100            // Tính % hoàn thành
+    );
+  };
+
+  // ===== UTILITY FUNCTION: APPOINTMENT STATUS COLOR MAPPING =====
+  // Hàm lấy màu sắc cho trạng thái appointment
   const getAppointmentStatusColor = (status) => {
     switch (status) {
       case "PENDING":
@@ -223,6 +249,8 @@ const TreatmentStagesView = () => {
     }
   };
 
+  // ===== UTILITY FUNCTION: APPOINTMENT STATUS TEXT MAPPING =====
+  // Hàm lấy text hiển thị cho trạng thái appointment
   const getAppointmentStatusText = (status) => {
     switch (status) {
       case "PENDING":
@@ -246,82 +274,63 @@ const TreatmentStagesView = () => {
     }
   };
 
-  const getResultText = (result) => {
-    switch ((result || "").toUpperCase()) {
-      case "SUCCESS":
-        return "Thành công";
-      case "FAILURE":
-        return "Thất bại";
-      case "UNDETERMINED":
-        return "Chưa xác định";
+  // ===== UTILITY FUNCTION: GET STATUS ICON =====
+  // Hàm lấy icon cho status
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "COMPLETED":
+        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+      case "CONFIRMED":
+        return <ClockCircleOutlined style={{ color: "#1890ff" }} />;
+      case "CANCELLED":
+        return <CloseOutlined style={{ color: "#ff4d4f" }} />;
+      case "INPROGRESS":
+        return <ClockCircleOutlined style={{ color: "#fa8c16" }} />;
+      case "REJECTED":
+        return <CloseOutlined style={{ color: "#ff4d4f" }} />;
+      case "PLANNED":
       default:
-        return "Chưa có";
+        return <ClockCircleOutlined style={{ color: "#d9d9d9" }} />;
     }
   };
 
-  const fetchAppointmentsForStep = async (stepId) => {
-    if (stepAppointments[stepId]) return; // Already loaded
-
-    try {
-      setLoadingAppointments(true);
-      const response = await treatmentService.getAppointmentsByStepId(stepId);
-      const appointments = response?.data?.result || [];
-      setStepAppointments((prev) => ({
-        ...prev,
-        [stepId]: appointments,
-      }));
-    } catch (error) {
-      console.error("Error fetching appointments for step:", stepId, error);
-      setStepAppointments((prev) => ({
-        ...prev,
-        [stepId]: [],
-      }));
-    } finally {
-      setLoadingAppointments(false);
-    }
-  };
-
-  const calculateProgress = () => {
-    if (!treatmentData?.treatmentSteps) return 0;
-    const completedSteps = treatmentData.treatmentSteps.filter(
-      (step) => step.status === "COMPLETED"
-    ).length;
-    return Math.round(
-      (completedSteps / treatmentData.treatmentSteps.length) * 100
-    );
-  };
-
-  // Thêm hàm mở modal xem lịch hẹn của bước
+  // ===== HANDLER: SHOW SCHEDULE MODAL =====
+  // Hàm mở modal xem lịch hẹn của bước điều trị
   const handleShowScheduleModal = async (step) => {
-    setScheduleStep(step);
-    setShowScheduleModal(true);
-    setShowAllAppointments(false); // Reset về hiển thị 3 lịch hẹn đầu
-    setLoadingAppointments(true);
+    setScheduleStep(step);                                                    // Set step được chọn
+    setShowScheduleModal(true);                                               // Mở modal
+    setShowAllAppointments(false);                                            // Reset về hiển thị 3 lịch hẹn đầu
+    setLoadingAppointments(true);                                             // Start loading
+    
     try {
-      const response = await treatmentService.getAppointmentsByStepId(step.id);
-      // Lấy đúng mảng appointments (paginated hoặc không)
+      const response = await treatmentService.getAppointmentsByStepId(step.id); // Gọi API lấy appointments
+      
+      // Lấy đúng mảng appointments (handle different response formats)
       let appointments = [];
       if (response?.data?.result?.content) {
-        appointments = response.data.result.content;
+        appointments = response.data.result.content;                          // Paginated response
       } else if (Array.isArray(response?.data?.result)) {
-        appointments = response.data.result;
+        appointments = response.data.result;                                  // Direct array response
       } else if (Array.isArray(response)) {
-        appointments = response;
+        appointments = response;                                              // Direct array
       }
-      setStepAppointments((prev) => ({ ...prev, [step.id]: appointments }));
+      
+      setStepAppointments((prev) => ({ ...prev, [step.id]: appointments })); // Set appointments cho step
     } catch (error) {
-      setStepAppointments((prev) => ({ ...prev, [step.id]: [] }));
+      setStepAppointments((prev) => ({ ...prev, [step.id]: [] }));           // Set empty array on error
     } finally {
-      setLoadingAppointments(false);
+      setLoadingAppointments(false);                                          // End loading
     }
   };
 
-  // Lấy tên các bước điều trị
+  // ===== DEBUG: EXTRACT STEP INFO =====
+  // Lấy tên các bước điều trị cho debug
   const stepNames =
     treatmentData?.treatmentSteps?.map(
       (step) => step.stageName || step.name || ""
     ) || [];
-  // Lấy tên, số thứ tự và trạng thái của từng bước điều trị
+    
+  // Lấy tên, số thứ tự và trạng thái của từng bước điều trị cho debug
   const stepLogs = (treatmentData?.treatmentSteps || []).map((step, idx) => {
     const name = step.stageName || step.name || "";
     const status = getStatusText ? getStatusText(step.status) : step.status;
@@ -329,6 +338,8 @@ const TreatmentStagesView = () => {
   });
   console.log("Các bước điều trị:", stepLogs);
 
+  // ===== LOADING STATE =====
+  // Render loading spinner khi đang tải dữ liệu
   if (loading) {
     return (
       <div style={{ padding: "24px", textAlign: "center" }}>
@@ -337,6 +348,8 @@ const TreatmentStagesView = () => {
     );
   }
 
+  // ===== EMPTY STATE =====
+  // Render empty state khi không có dữ liệu
   if (!treatmentData) {
     return (
       <div style={{ padding: "24px", textAlign: "center" }}>
@@ -345,20 +358,25 @@ const TreatmentStagesView = () => {
     );
   }
 
+  // ===== RENDER MAIN COMPONENT =====
   return (
     <div style={{ padding: "24px" }}>
+      {/* ===== MAIN CONTAINER CARD ===== */}
       <Card>
+        {/* ===== BACK BUTTON SECTION ===== */}
+        {/* Nút quay lại trang trước */}
         <div style={{ marginBottom: 24 }}>
           <Button
             icon={<ArrowLeftOutlined />}
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(-1)}                                     // Go back
             style={{ marginBottom: 16 }}
           >
             Quay lại
           </Button>
         </div>
 
-        {/* Patient Information */}
+        {/* ===== PATIENT INFORMATION CARD ===== */}
+        {/* Card hiển thị thông tin bệnh nhân và treatment */}
         <Card
           title={null}
           style={{
@@ -373,6 +391,7 @@ const TreatmentStagesView = () => {
           <Row gutter={[24, 24]} align="middle">
             <Col xs={24} md={24}>
               <Row gutter={[16, 16]}>
+                {/* Patient name */}
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong style={{ fontSize: 16 }}>
@@ -383,18 +402,24 @@ const TreatmentStagesView = () => {
                     </Text>
                   </Space>
                 </Col>
+                
+                {/* Doctor name */}
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Bác sĩ:</Text>
                     <Text>{treatmentData.doctorName}</Text>
                   </Space>
                 </Col>
+                
+                {/* Treatment service */}
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Dịch vụ:</Text>
                     <Text>{treatmentData.treatmentServiceName}</Text>
                   </Space>
                 </Col>
+                
+                {/* CD1 date */}
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Ngày đầu chu kì:</Text>
@@ -403,6 +428,8 @@ const TreatmentStagesView = () => {
                     </Text>
                   </Space>
                 </Col>
+                
+                {/* Start date */}
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Ngày bắt đầu:</Text>
@@ -412,6 +439,7 @@ const TreatmentStagesView = () => {
                   </Space>
                 </Col>
 
+                {/* Treatment status */}
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Trạng thái:</Text>
@@ -423,6 +451,8 @@ const TreatmentStagesView = () => {
                     </Tag>
                   </Space>
                 </Col>
+                
+                {/* Treatment result */}
                 <Col xs={24} md={12}>
                   <Space>
                     <Text strong>Kết quả:</Text>
@@ -447,7 +477,8 @@ const TreatmentStagesView = () => {
           </Row>
         </Card>
 
-        {/* Treatment Steps Timeline */}
+        {/* ===== TREATMENT STEPS TIMELINE SECTION ===== */}
+        {/* Timeline hiển thị các bước điều trị */}
         {treatmentData.treatmentSteps &&
         treatmentData.treatmentSteps.length > 0 ? (
           <Card
@@ -470,6 +501,7 @@ const TreatmentStagesView = () => {
                   key={step.id}
                   color={getStatusColor(step.status)}
                   dot={
+                    // Custom timeline dot với số thứ tự
                     <div
                       style={{
                         width: 30,
@@ -517,18 +549,20 @@ const TreatmentStagesView = () => {
                           fontWeight: 700,
                         }}
                       >
-                        {index + 1}
+                        {index + 1}                                           {/* Số thứ tự bước */}
                       </span>
                     </div>
                   }
                 >
+                  {/* ===== STEP DETAIL CARD ===== */}
+                  {/* Card chi tiết cho từng bước điều trị */}
                   <Card
                     size="small"
                     style={{
                       marginBottom: 24,
                       borderRadius: 16,
                       boxShadow: "0 2px 8px rgba(24,144,255,0.08)",
-                      background: index === 0 ? "#fafdff" : "#fff",
+                      background: index === 0 ? "#fafdff" : "#fff",             // Highlight first step
                       transition: "box-shadow 0.2s",
                       border: `1.5px solid ${
                         getStatusColor(step.status) === "success"
@@ -547,6 +581,7 @@ const TreatmentStagesView = () => {
                   >
                     <Row gutter={[16, 16]} align="middle">
                       <Col xs={24} md={16}>
+                        {/* Step title and status */}
                         <div
                           style={{
                             display: "flex",
@@ -569,6 +604,8 @@ const TreatmentStagesView = () => {
                             {getStatusText(step.status)}
                           </Tag>
                         </div>
+                        
+                        {/* Step details */}
                         <Descriptions
                           column={2}
                           size="small"

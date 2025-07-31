@@ -5,6 +5,9 @@ import { Table, Button, Spin, notification, Tag } from "antd";
 import { treatmentService } from "../../service/treatment.service";
 import dayjs from "dayjs";
 import { EyeOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
+
+// ===== STATUS & RESULT MAPPING =====
+// Map để dịch status codes thành text và màu sắc tiếng Việt
 const statusMap = {
   PENDING: { text: "Đang chờ xử lý", color: "gold" },
   INPROGRESS: { text: "Đang điều trị", color: "blue" },
@@ -13,12 +16,15 @@ const statusMap = {
   CONFIRMED: { text: "Đã xác nhận", color: "cyan" },
 };
 
+// Map để dịch result codes thành text và màu sắc
 const resultMap = {
   SUCCESS: { text: "Thành công", color: "green" },
   FAILURE: { text: "Thất bại", color: "red" },
   UNDETERMINED: { text: "Chưa xác định", color: "gold" },
 };
 
+// ===== TABLE COLUMNS CONFIGURATION =====
+// Hàm tạo cấu hình columns cho bảng treatment details
 const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
   {
     title: "Dịch vụ",
@@ -27,7 +33,7 @@ const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
   },
   {
     title: "Ngày bắt đầu",
-    dataIndex: "startDate",
+    dataIndex: "startDate", 
     key: "startDate",
     render: (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "Không có"),
   },
@@ -41,7 +47,7 @@ const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
     },
   },
   {
-    title: "Kết quả",
+    title: "Kết quả", 
     dataIndex: "result",
     key: "result",
     render: (result) => {
@@ -54,13 +60,18 @@ const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
     key: "action",
     render: (_, treatment) => (
       <div className="flex gap-2">
+        {/* Button xem chi tiết treatment */}
         <Button icon={<EyeOutlined />} onClick={() => viewRecord(treatment)} />
+        
+        {/* Button approve - chỉ hiển thị cho status PENDING */}
         {treatment.status === "PENDING" && (
           <Button
             icon={<CheckOutlined />}
             onClick={() => handleApprove(treatment)}
           />
         )}
+        
+        {/* Button cancel - chỉ hiển thị cho treatments chưa hoàn thành/hủy */}
         {treatment.status !== "CANCELLED" &&
           treatment.status !== "COMPLETED" && (
             <Button
@@ -75,27 +86,32 @@ const columnsChiTiet = (viewRecord, handleApprove, handleCancelService) => [
 ];
 
 export default function TreatmentDetailRow({
-  customerId,
-  doctorId,
-  viewRecord,
-  handleApprove,
-  handleCancelService,
+  customerId,              // ID khách hàng để filter treatments
+  doctorId,                // ID bác sĩ để filter treatments
+  viewRecord,              // Callback khi click xem chi tiết
+  handleApprove,           // Callback khi approve treatment
+  handleCancelService,     // Callback khi cancel treatment
 }) {
-  const [recordExpand, setRecordExpand] = useState([]);
+  // ===== STATE MANAGEMENT =====
+  const [recordExpand, setRecordExpand] = useState([]);             // State lưu expanded records
 
+  // ===== API FUNCTION =====
+  // Hàm fetch treatment details với pagination
   const fetchTreatmentDetails = async ({ pageParam = 0 }) => {
     try {
+      // Gọi API lấy treatment records với expand details
       const res = await treatmentService.getTreatmentRecordsExpand({
-        customerId,
-        doctorId,
-        page: pageParam,
-        size: 5,
+        customerId,           // Filter theo customer
+        doctorId,             // Filter theo doctor
+        page: pageParam,      // Page số (0-based)
+        size: 5,              // Số items per page
       });
       const data = res?.data?.result;
-      setRecordExpand(data.content);
+      setRecordExpand(data.content);        // Update expanded records state
+      
       return {
-        list: data?.content || [],
-        hasNextPage: !data?.last,
+        list: data?.content || [],          // Danh sách treatments
+        hasNextPage: !data?.last,          // Còn page tiếp theo không
       };
     } catch (err) {
       notification.error({
@@ -105,46 +121,56 @@ export default function TreatmentDetailRow({
     }
   };
 
+  // ===== REACT QUERY INFINITE QUERY =====
+  // Setup infinite query để load treatments với pagination
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
-      queryKey: ["treatments", customerId],
-      queryFn: fetchTreatmentDetails,
-      getNextPageParam: (lastPage, pages) =>
+      queryKey: ["treatments", customerId],           // Query key với customerId
+      queryFn: fetchTreatmentDetails,                 // Fetch function
+      getNextPageParam: (lastPage, pages) =>         // Logic xác định next page param
         lastPage.hasNextPage ? pages.length : undefined,
-      enabled: !!customerId && !!doctorId,
-
+      enabled: !!customerId && !!doctorId,           // Chỉ enabled khi có cả 2 IDs
+      
+      // Optimization settings để tránh refetch không cần thiết
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       refetchInterval: false,
-      staleTime: Infinity, // hoặc vài phút nếu muốn
+      staleTime: Infinity,                            // Cache permanently hoặc vài phút
     });
 
+  // Flatten tất cả pages thành 1 mảng treatments
   const treatments = data?.pages.flatMap((page) => page.list) || [];
 
+  // ===== RENDER MAIN COMPONENT =====
   return (
     <div className="p-4 bg-white border rounded">
+      {/* ===== LOADING WRAPPER ===== */}
       <Spin spinning={isLoading}>
+        {/* ===== TREATMENTS TABLE ===== */}
+        {/* Bảng hiển thị danh sách treatments với các actions */}
         <Table
-          dataSource={treatments}
-          columns={columnsChiTiet(
+          dataSource={treatments}                     // Data từ infinite query
+          columns={columnsChiTiet(                    // Columns config với callbacks
             viewRecord,
             handleApprove,
             handleCancelService
           )}
-          pagination={false}
-          size="small"
-          rowKey="id"
+          pagination={false}                          // Disable built-in pagination
+          size="small"                                // Compact table size
+          rowKey="id"                                 // Unique key cho mỗi row
         />
+        
+        {/* ===== LOAD MORE BUTTON ===== */}
+        {/* Button "Xem thêm" để load next page */}
         {hasNextPage && (
           <div className="text-center mt-4">
             <Button
               onClick={() => {
-                fetchNextPage();
-
-                console.log(recordExpand);
+                fetchNextPage();                       // Trigger fetch next page
+                console.log(recordExpand);            // Debug log
               }}
-              loading={isFetchingNextPage}
-              disabled={recordExpand.length === 0}
+              loading={isFetchingNextPage}            // Loading state
+              disabled={recordExpand.length === 0}    // Disable nếu không có records
             >
               {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
             </Button>
@@ -154,3 +180,6 @@ export default function TreatmentDetailRow({
     </div>
   );
 }
+
+// ===== EXPORT COMPONENT =====
+// Component được export default để sử dụng trong các pages khác

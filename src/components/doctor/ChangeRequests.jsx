@@ -33,33 +33,47 @@ import { NotificationContext } from "../../App";
 const { Text } = Typography;
 
 const ChangeRequests = () => {
-  const [loading, setLoading] = useState(true);
-  const [requests, setRequests] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [notes, setNotes] = useState("");
-  const [doctorId, setDoctorId] = useState(null);
-  const { showNotification } = useContext(NotificationContext);
-  const [actionType, setActionType] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0); // backend page = 0-based
-  const [totalPages, setTotalPages] = useState(1);
+  // ===== STATE MANAGEMENT =====
+  // State quản lý loading và data
+  const [loading, setLoading] = useState(true);                              // Loading state chính
+  const [requests, setRequests] = useState([]);                              // Danh sách change requests
+  const [selected, setSelected] = useState(null);                           // Request được chọn trong modal
+  
+  // State quản lý modal
+  const [modalVisible, setModalVisible] = useState(false);                   // Hiển thị modal
+  const [actionLoading, setActionLoading] = useState(false);                 // Loading khi xử lý action
+  const [notes, setNotes] = useState("");                                    // Notes khi approve/reject
+  const [actionType, setActionType] = useState(null);                       // Loại action hiện tại
+  
+  // State quản lý doctor và pagination
+  const [doctorId, setDoctorId] = useState(null);                           // ID của doctor hiện tại
+  const [currentPage, setCurrentPage] = useState(0);                        // Trang hiện tại (0-based)
+  const [totalPages, setTotalPages] = useState(1);                          // Tổng số trang
 
+  // ===== CONTEXT =====
+  const { showNotification } = useContext(NotificationContext);              // Context hiển thị thông báo
+
+  // ===== USEEFFECT: TẢI THÔNG TIN DOCTOR =====
+  // useEffect này chạy khi component mount để lấy doctor ID
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
-        const res = await authService.getMyInfo();
-        setDoctorId(res?.data?.result?.id);
+        const res = await authService.getMyInfo();                          // Gọi API lấy thông tin user
+        setDoctorId(res?.data?.result?.id);                                 // Set doctor ID
       } catch {}
     };
     fetchDoctor();
   }, []);
 
+  // ===== USEEFFECT: TẢI REQUESTS KHI CÓ DOCTOR ID =====
+  // useEffect này chạy khi có doctorId để load change requests
   useEffect(() => {
-    if (doctorId) fetchRequests();
+    if (doctorId) fetchRequests();                                          // Load requests khi có doctor ID
     // eslint-disable-next-line
   }, [doctorId]);
 
+  // ===== API FUNCTION: FETCH CHANGE REQUESTS =====
+  // Hàm lấy danh sách change requests với pagination
   const fetchRequests = async (page = 0) => {
     setLoading(true);
     try {
@@ -70,8 +84,8 @@ const ChangeRequests = () => {
         page,
         size: 5,
       });
-      setCurrentPage(page);
-      setTotalPages(changeRequestsResponse.data.result.totalPages);
+      setCurrentPage(page);                                                 // Update current page
+      setTotalPages(changeRequestsResponse.data.result.totalPages);         // Update total pages
       const pendingChangeAppointments =
         changeRequestsResponse?.data?.result?.content || [];
       console.log(
@@ -83,12 +97,13 @@ const ChangeRequests = () => {
       const detailedChangeRequests = [];
       for (const appointment of pendingChangeAppointments) {
         try {
+          // Gọi API lấy chi tiết từng appointment
           const detailResponse = await http.get(
             `v1/appointments/${appointment.id}`
           );
           const detailData = detailResponse?.data?.result;
           if (detailData) {
-            // Merge thông tin từ cả 2 API
+            // Merge thông tin từ cả 2 API để có đầy đủ data
             const mergedData = {
               ...appointment,
               ...detailData,
@@ -112,7 +127,7 @@ const ChangeRequests = () => {
             `Failed to get details for appointment ${appointment.id}:`,
             error
           );
-          // Fallback: sử dụng data từ API đầu tiên
+          // Fallback: sử dụng data từ API đầu tiên nếu không lấy được detail
           detailedChangeRequests.push(appointment);
         }
       }
@@ -121,7 +136,7 @@ const ChangeRequests = () => {
         "✅ Detailed change requests loaded for doctor:",
         detailedChangeRequests.length
       );
-      setRequests(detailedChangeRequests);
+      setRequests(detailedChangeRequests);                                  // Set requests data
     } catch (err) {
       showNotification("Không thể tải yêu cầu đổi lịch!", "error");
       setRequests([]);
@@ -130,29 +145,36 @@ const ChangeRequests = () => {
     }
   };
 
+  // ===== MODAL HANDLERS =====
+  
+  // Hàm hiển thị modal chi tiết request
   const showDetail = (record) => {
-    setSelected(record);
-    setModalVisible(true);
-    setActionType(null);
-    setNotes("");
+    setSelected(record);                                                    // Set request được chọn
+    setModalVisible(true);                                                  // Mở modal
+    setActionType(null);                                                    // Reset action type
+    setNotes("");                                                           // Reset notes
   };
 
+  // Hàm hiển thị modal approve
   const handleApproveClick = (record) => {
-    setSelected(record);
-    setModalVisible(true);
-    setActionType("CONFIRMED");
-    setNotes("");
+    setSelected(record);                                                    // Set request được chọn
+    setModalVisible(true);                                                  // Mở modal
+    setActionType("CONFIRMED");                                             // Set action type approve
+    setNotes("");                                                           // Reset notes
   };
 
+  // Hàm hiển thị modal reject
   const handleRejectClick = (record) => {
-    setSelected(record);
-    setModalVisible(true);
-    setActionType("REJECTED");
-    setNotes("");
+    setSelected(record);                                                    // Set request được chọn
+    setModalVisible(true);                                                  // Mở modal
+    setActionType("REJECTED");                                              // Set action type reject
+    setNotes("");                                                           // Reset notes
   };
 
+  // ===== HANDLER: PROCESS ACTION =====
+  // Hàm xử lý approve/reject change request
   const handleAction = async (actionTypeParam) => {
-    if (!notes || !notes.trim()) {
+    if (!notes || !notes.trim()) {                                         // Validate notes required
       showNotification("Vui lòng nhập ghi chú!", "error");
       return;
     }
@@ -165,20 +187,23 @@ const ChangeRequests = () => {
     setActionType(finalActionType);
     setActionLoading(true);
     try {
+      // Gọi API confirm change request
       await treatmentService.confirmAppointmentChange(selected.id, {
         status: finalActionType,
         note: notes,
       });
+      
       showNotification(
         finalActionType === "PLANED"
           ? "Đã duyệt yêu cầu!"
           : "Đã từ chối yêu cầu!",
         "success"
       );
-      setModalVisible(false);
-      setNotes("");
-      setActionType(null);
-      fetchRequests();
+      
+      setModalVisible(false);                                               // Đóng modal
+      setNotes("");                                                         // Reset notes
+      setActionType(null);                                                  // Reset action type
+      fetchRequests();                                                      // Refresh requests list
     } catch (err) {
       showNotification("Không thể cập nhật yêu cầu!", "error");
     } finally {
@@ -186,6 +211,8 @@ const ChangeRequests = () => {
     }
   };
 
+  // ===== TABLE COLUMNS CONFIGURATION =====
+  // Cấu hình các columns cho bảng change requests
   const columns = [
     {
       title: "Bệnh nhân",
@@ -199,7 +226,7 @@ const ChangeRequests = () => {
               <>
                 <br />
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  {record.customerEmail}
+                  {record.customerEmail}                                    {/* Email bệnh nhân */}
                 </Text>
               </>
             )}
@@ -219,7 +246,7 @@ const ChangeRequests = () => {
               <>
                 <br />
                 <Text type="secondary" style={{ fontSize: "12px" }}>
-                  {record.doctorEmail}
+                  {record.doctorEmail}                                      {/* Email bác sĩ */}
                 </Text>
               </>
             )}
@@ -234,7 +261,7 @@ const ChangeRequests = () => {
         <div>
           <div>
             {record.appointmentDate
-              ? dayjs(record.appointmentDate).format("DD/MM/YYYY")
+              ? dayjs(record.appointmentDate).format("DD/MM/YYYY")         // Format ngày hiện tại
               : ""}
           </div>
           <Tag color="blue">
@@ -242,7 +269,7 @@ const ChangeRequests = () => {
               ? "Sáng"
               : record.shift === "AFTERNOON"
               ? "Chiều"
-              : record.shift}
+              : record.shift}                                               {/* Ca hiện tại */}
           </Tag>
         </div>
       ),
@@ -254,7 +281,7 @@ const ChangeRequests = () => {
       render: (t) =>
         t ? (
           <Text style={{ color: "#faad14" }}>
-            {dayjs(t).format("DD/MM/YYYY")}
+            {dayjs(t).format("DD/MM/YYYY")}                                 {/* Ngày yêu cầu đổi */}
           </Text>
         ) : (
           <Text type="secondary">Chưa có</Text>
@@ -264,6 +291,7 @@ const ChangeRequests = () => {
       title: "Ca yêu cầu",
       dataIndex: "requestedShift",
       key: "requestedShift",
+      // Ca yêu cầu đổi - render text dựa trên shift value
       render: (s) =>
         s ? (
           s === "MORNING" ? (
@@ -292,8 +320,11 @@ const ChangeRequests = () => {
     },
   ];
 
+  // ===== RENDER MAIN COMPONENT =====
   return (
     <div>
+      {/* ===== MAIN CARD SECTION ===== */}
+      {/* Card chính chứa bảng change requests */}
       <Card
         title={
           <Space>
@@ -307,20 +338,24 @@ const ChangeRequests = () => {
         styles={{ body: { padding: 24 } }}
         hoverable
       >
+        {/* ===== TABLE SECTION ===== */}
+        {/* Bảng hiển thị danh sách change requests với loading và pagination */}
         <Spin spinning={loading} tip="Đang tải...">
           <Table
-            columns={columns}
-            dataSource={requests}
-            rowKey="id"
-            pagination={false}
+            columns={columns}                                               // Columns configuration
+            dataSource={requests}                                          // Data change requests
+            rowKey="id"                                                     // Unique key cho mỗi row
+            pagination={false}                                              // Disable built-in pagination
             bordered
             size="middle"
             style={{ background: "white", borderRadius: 8 }}
-            scroll={{ x: "max-content" }}
+            scroll={{ x: "max-content" }}                                  // Horizontal scroll
           />
+          
+          {/* Custom pagination controls */}
           <div className="flex justify-end mt-4">
             <Button
-              disabled={currentPage === 0}
+              disabled={currentPage === 0}                                 // Disable nếu ở trang đầu
               onClick={() => fetchRequests(currentPage - 1)}
               className="mr-2"
             >
@@ -330,7 +365,7 @@ const ChangeRequests = () => {
               Trang {currentPage + 1} / {totalPages}
             </span>
             <Button
-              disabled={currentPage + 1 >= totalPages}
+              disabled={currentPage + 1 >= totalPages}                     // Disable nếu ở trang cuối
               onClick={() => fetchRequests(currentPage + 1)}
               className="ml-2"
             >
@@ -338,16 +373,21 @@ const ChangeRequests = () => {
             </Button>
           </div>
         </Spin>
+        
+        {/* ===== DETAIL MODAL ===== */}
+        {/* Modal hiển thị chi tiết change request và approve/reject actions */}
         <Modal
           title="Chi tiết yêu cầu đổi lịch"
           open={modalVisible}
           onCancel={() => setModalVisible(false)}
-          footer={null}
+          footer={null}                                                     // Custom footer
           centered
           width={500}
         >
           {selected && (
             <div style={{ padding: 8 }}>
+              {/* ===== REQUEST DETAILS ===== */}
+              {/* Hiển thị thông tin chi tiết của change request */}
               <Descriptions
                 column={1}
                 size="small"
@@ -409,6 +449,9 @@ const ChangeRequests = () => {
                   </Tooltip>
                 </Descriptions.Item>
               </Descriptions>
+              
+              {/* ===== ACTION SECTION ===== */}
+              {/* Phần nhập notes và buttons approve/reject */}
               <Divider />
               <Input.TextArea
                 rows={3}
@@ -417,6 +460,8 @@ const ChangeRequests = () => {
                 placeholder="Nhập lí do bắt buộc"
                 style={{ marginBottom: 16 }}
               />
+              
+              {/* Action buttons */}
               <Space style={{ width: "100%", justifyContent: "center" }}>
                 <Button
                   type="primary"
@@ -445,4 +490,5 @@ const ChangeRequests = () => {
   );
 };
 
+// ===== EXPORT COMPONENT =====
 export default ChangeRequests;
