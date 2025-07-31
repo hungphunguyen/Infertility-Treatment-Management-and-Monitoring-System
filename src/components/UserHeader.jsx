@@ -10,28 +10,28 @@ import { clearAuth, setToken } from "../redux/authSlice";
 
 const UserHeader = () => {
   // ===== REDUX & NAVIGATION =====
-  const token = useSelector((state) => state.authSlice);                 // Token từ Redux store
-  const location = useLocation();                                        // Current location
-  const navigate = useNavigate();                                        // Hook điều hướng
-  const dispatch = useDispatch();                                        // Redux dispatch
+  const token = useSelector((state) => state.authSlice); // Token từ Redux store
+  const location = useLocation(); // Current location
+  const navigate = useNavigate(); // Hook điều hướng
+  const dispatch = useDispatch(); // Redux dispatch
 
   // ===== STATE MANAGEMENT =====
-  const [infoUser, setInfoUser] = useState();                           // Thông tin user hiện tại
+  const [infoUser, setInfoUser] = useState(); // Thông tin user hiện tại
 
   // ===== CONTEXT =====
-  const { showNotification } = useContext(NotificationContext);          // Context hiển thị thông báo
+  const { showNotification } = useContext(NotificationContext); // Context hiển thị thông báo
 
   // ===== USEEFFECT: TẢI THÔNG TIN USER =====
   // useEffect này chạy khi có token để lấy thông tin user và check profile hoàn thiện
   useEffect(() => {
-    if (!token) return;  // Nếu không có token thì return
+    if (!token) return; // Nếu không có token thì return
 
     authService
-      .getMyInfo(token.token)                                           // Gọi API lấy thông tin user
+      .getMyInfo(token.token) // Gọi API lấy thông tin user
       .then((res) => {
-        setInfoUser(res.data.result);                                   // Set thông tin user vào state
+        setInfoUser(res.data.result); // Set thông tin user vào state
         console.log(res.data.result.avatarUrl);
-        
+
         // Kiểm tra xem user đã cập nhật thông tin cá nhân chưa (trừ admin)
         if (
           !res.data.result.phoneNumber &&
@@ -65,8 +65,8 @@ const UserHeader = () => {
   useEffect(() => {
     const loginFlag = localStorage.getItem("loginJustNow");
     if (token?.token && loginFlag === "true") {
-      checkRefreshToken();                                              // Refresh token
-      localStorage.removeItem("loginJustNow");                         // Clear flag
+      checkRefreshToken(); // Refresh token
+      localStorage.removeItem("loginJustNow"); // Clear flag
     }
   }, []);
 
@@ -74,7 +74,7 @@ const UserHeader = () => {
   // useEffect này chạy để kiểm tra token còn hợp lệ không
   useEffect(() => {
     if (token.token) {
-      checkIntrospect();                                                // Validate token
+      checkIntrospect(); // Validate token
     }
   }, []);
 
@@ -86,11 +86,11 @@ const UserHeader = () => {
       navigate(path.updataProfile);
     } else if (key === "logout") {
       // Xử lý logout
-      dispatch(clearAuth());                                            // Clear Redux state
-      localStorage.removeItem("token");                                 // Clear token từ localStorage
-      localStorage.removeItem("userInfo");                             // Clear user info từ localStorage
-      setInfoUser(null);                                                // Clear user info từ state
-      navigate(path.homePage);                                          // Chuyển hướng về trang chủ
+      dispatch(clearAuth()); // Clear Redux state
+      localStorage.removeItem("token"); // Clear token từ localStorage
+      localStorage.removeItem("userInfo"); // Clear user info từ localStorage
+      setInfoUser(null); // Clear user info từ state
+      navigate(path.homePage); // Chuyển hướng về trang chủ
     }
   };
 
@@ -125,7 +125,7 @@ const UserHeader = () => {
           </Link>
         </Menu.Item>
       )}
-      
+
       {/* Dashboard link cho MANAGER */}
       {infoUser && infoUser.roleName.name === "MANAGER" && (
         <Menu.Item key="manager" icon={<DashboardOutlined />}>
@@ -134,7 +134,7 @@ const UserHeader = () => {
           </Link>
         </Menu.Item>
       )}
-      
+
       {/* Dashboard link cho CUSTOMER */}
       {infoUser && infoUser.roleName.name === "CUSTOMER" && (
         <Menu.Item key="customer" icon={<DashboardOutlined />}>
@@ -143,7 +143,7 @@ const UserHeader = () => {
           </Link>
         </Menu.Item>
       )}
-      
+
       {/* Dashboard link cho DOCTOR */}
       {infoUser && infoUser.roleName.name === "DOCTOR" && (
         <Menu.Item key="doctor" icon={<DashboardOutlined />}>
@@ -152,7 +152,7 @@ const UserHeader = () => {
           </Link>
         </Menu.Item>
       )}
-      
+
       {/* Logout menu item */}
       <Menu.Item key="logout" icon={<LogoutOutlined />} danger>
         Đăng xuất
@@ -171,7 +171,7 @@ const UserHeader = () => {
     ) {
       return true;
     }
-    
+
     // Special case cho services page
     if (
       pathname === path.services &&
@@ -179,7 +179,7 @@ const UserHeader = () => {
     ) {
       return true;
     }
-    
+
     // Default check
     return (
       location.pathname === pathname ||
@@ -200,10 +200,10 @@ const UserHeader = () => {
         <div className="flex items-center gap-2 select-none cursor-pointer ">
           <Avatar
             className="w-12 h-12 rounded-full justify-center text-white font-bold hover:border-4 hover:border-orange-400 transition-all duration-300"
-            src={infoUser.avatarUrl || undefined}                      // Avatar URL hoặc default
+            src={infoUser.avatarUrl || undefined} // Avatar URL hoặc default
           ></Avatar>
           <span className="text-sm font-medium text-gray-700">
-            {infoUser.fullName}                                        // Tên user
+            {infoUser.fullName}
           </span>
         </div>
       </Dropdown>
@@ -231,10 +231,11 @@ const UserHeader = () => {
   const checkIntrospect = async () => {
     const res = await authService.checkIntrospect(token.token);
     try {
-      if (!res.data.result.valid) {                                     // Nếu token không hợp lệ
+      if (!res.data.result.valid) {
+        // Nếu token không hợp lệ
         console.log(res);
-        localStorage.removeItem("token");                               // Remove token
-        window.location.reload();                                       // Reload page
+        localStorage.removeItem("token"); // Remove token
+        window.location.reload(); // Reload page
       }
     } catch (error) {}
   };
@@ -246,7 +247,7 @@ const UserHeader = () => {
       const res = await authService.refreshToken(token.token);
 
       if (res.data.result.token) {
-        dispatch(setToken(res.data.result.token));                     // Cập nhật Redux
+        dispatch(setToken(res.data.result.token)); // Cập nhật Redux
         localStorage.setItem("token", JSON.stringify(res.data.result.token)); // Ghi đè vào localStorage
       }
     } catch (error) {
@@ -312,7 +313,7 @@ const UserHeader = () => {
           >
             Dịch vụ
           </Link>
-          
+
           <Link
             to={path.ourStaff}
             onClick={() => window.scrollTo(0, 0)}
@@ -324,7 +325,7 @@ const UserHeader = () => {
           >
             Bác sĩ
           </Link>
-          
+
           <Link
             to={path.blog}
             onClick={() => window.scrollTo(0, 0)}
@@ -336,10 +337,10 @@ const UserHeader = () => {
           >
             Blogs
           </Link>
-          
+
           <Link
             to={path.appointment}
-            onClick={handleAppointmentClick}                           // Special handler with role check
+            onClick={handleAppointmentClick} // Special handler with role check
             className={`hover:text-orange-400 transition-colors ${
               isActive(path.appointment)
                 ? "text-orange-400 font-bold text-2xl"
@@ -348,7 +349,7 @@ const UserHeader = () => {
           >
             Đăng kí khám
           </Link>
-          
+
           <Link
             to={path.contacts}
             onClick={() => window.scrollTo(0, 0)}
