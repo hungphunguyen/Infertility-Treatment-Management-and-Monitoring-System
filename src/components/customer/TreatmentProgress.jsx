@@ -8,7 +8,6 @@ import {
   Tag,
   Space,
   Divider,
-  Progress,
   Collapse,
   Spin,
   message,
@@ -23,13 +22,11 @@ import {
   Timeline,
 } from "antd";
 import {
-  HeartOutlined,
   MedicineBoxOutlined,
   CalendarOutlined,
   UserOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  DeploymentUnitOutlined,
   ExperimentOutlined as TestTubeIcon,
   ArrowLeftOutlined,
   EditOutlined,

@@ -155,12 +155,7 @@ const ProfileUpdate = () => {
 
             console.log(res);
             showNotification("Cập nhật thông tin thành công", "success");
-            setTimeout(() => {
-              navigate("/");
-            }, 1000);
           } catch (error) {
-            console.log(values);
-
             console.log(error);
             showNotification(error.response?.data?.message, "error");
           }
@@ -172,16 +167,14 @@ const ProfileUpdate = () => {
 
             setIsEditing(false);
             showNotification("Cập nhật thông tin thành công", "success");
-            setTimeout(() => {
-              navigate("/");
-            }, 1000);
           } catch (error) {
             console.log(userInfo.id);
             console.log(values);
             console.log(error);
             showNotification(error.response?.data?.message, "error");
           }
-        } else {
+        }
+        if (userInfo?.roleName.name === "CUSTOMER") {
           try {
             const res = await authService.updateUser(userInfo.id, values);
             setIsEditing(false);
@@ -358,7 +351,7 @@ const ProfileUpdate = () => {
                 <div>
                   <label
                     htmlFor="gender"
-                    className="block mb-2 text-sm font-medium text-gray-900"
+                    className="block text-sm text-gray-900"
                   >
                     Giới tính
                   </label>
@@ -372,7 +365,7 @@ const ProfileUpdate = () => {
                     classWrapper={
                       !isEditing ? "opacity-60 pointer-events-none" : ""
                     }
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 focus:ring-blue-500 focus:border-blue-500"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">-- Chọn giới tính --</option>
                     <option value="male">Nam</option>
