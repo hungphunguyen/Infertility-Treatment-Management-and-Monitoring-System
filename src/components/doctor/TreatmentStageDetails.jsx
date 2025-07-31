@@ -50,47 +50,67 @@ const { TextArea } = Input;
 const TreatmentStageDetails = () => {
   console.log("🚀 TreatmentStageDetails component loaded");
 
-  const [loading, setLoading] = useState(true);
-  const [treatmentData, setTreatmentData] = useState(null);
-  const [doctorId, setDoctorId] = useState(null);
-  const [editingStep, setEditingStep] = useState(null);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [form] = Form.useForm();
-  const [scheduleForm] = Form.useForm();
-  const [scheduleStep, setScheduleStep] = useState(null);
-  const [stepAppointments, setStepAppointments] = useState([]);
-  const [loadingAppointments, setLoadingAppointments] = useState(false);
-  const [selectedStep, setSelectedStep] = useState(null);
-  const [showStepDetailModal, setShowStepDetailModal] = useState(false);
-  const [showCreateAppointmentModal, setShowCreateAppointmentModal] =
-    useState(false);
-  const [showAddStepModal, setShowAddStepModal] = useState(false);
-  const [addStepForm] = Form.useForm();
-  const [showChangeServiceModal, setShowChangeServiceModal] = useState(false);
-  const [serviceOptions, setServiceOptions] = useState([]);
-  const [selectedServiceId, setSelectedServiceId] = useState(null);
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { showNotification } = useContext(NotificationContext);
-  const dataLoadedRef = React.useRef(false);
-  const [addStepAuto, setAddStepAuto] = useState(false);
-  const [addStepLoading, setAddStepLoading] = useState(false);
-  const [stageOptions, setStageOptions] = useState([]);
-  const [editingStepStageId, setEditingStepStageId] = useState(null);
-  // 1. Thêm state cho modal chọn kết quả
-  const [showResultModal, setShowResultModal] = useState(false);
-  const [pendingCompleteStatus, setPendingCompleteStatus] = useState(null);
-  const [selectedResult, setSelectedResult] = useState(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
-
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [cancelReason, setCancelReason] = useState("");
-  const [selectedTreatment, setSelectedTreatment] = useState(null);
-
-  const [showNoteModal, setShowNoteModal] = useState(false);
-  const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null); // { appointmentId, newStatus }
-  const [note, setNote] = useState(""); // note nhập từ modal
-
+  // ===== KHAI BÁO CÁC STATE CHÍNH =====
+  
+  // State quản lý loading và dữ liệu chính
+  const [loading, setLoading] = useState(true);                    // Trạng thái loading tổng thể
+  const [treatmentData, setTreatmentData] = useState(null);        // Dữ liệu điều trị chính (bao gồm steps)
+  const [doctorId, setDoctorId] = useState(null);                  // ID của bác sĩ hiện tại
+  
+  // State quản lý modal và form chỉnh sửa step
+  const [editingStep, setEditingStep] = useState(null);            // Step đang được chỉnh sửa
+  const [form] = Form.useForm();                                   // Form instance cho chỉnh sửa step
+  
+  // State quản lý modal xem lịch hẹn
+  const [showScheduleModal, setShowScheduleModal] = useState(false);   // Hiển thị modal xem lịch hẹn
+  const [scheduleForm] = Form.useForm();                              // Form instance cho lịch hẹn
+  const [scheduleStep, setScheduleStep] = useState(null);             // Step được chọn để xem lịch
+  const [stepAppointments, setStepAppointments] = useState([]);       // Danh sách lịch hẹn của step
+  const [loadingAppointments, setLoadingAppointments] = useState(false); // Loading khi tải lịch hẹn
+  
+  // State quản lý modal chi tiết step
+  const [selectedStep, setSelectedStep] = useState(null);             // Step được chọn để xem chi tiết
+  const [showStepDetailModal, setShowStepDetailModal] = useState(false); // Hiển thị modal chi tiết step
+  
+  // State quản lý modal tạo lịch hẹn mới
+  const [showCreateAppointmentModal, setShowCreateAppointmentModal] = useState(false);
+  
+  // State quản lý modal thêm step mới
+  const [showAddStepModal, setShowAddStepModal] = useState(false);     // Hiển thị modal thêm step
+  const [addStepForm] = Form.useForm();                               // Form instance cho thêm step
+  const [addStepAuto, setAddStepAuto] = useState(false);              // Tự động thêm step theo giai đoạn
+  const [addStepLoading, setAddStepLoading] = useState(false);        // Loading khi thêm step
+  const [stageOptions, setStageOptions] = useState([]);              // Danh sách giai đoạn có thể chọn
+  const [editingStepStageId, setEditingStepStageId] = useState(null); // Stage ID của step đang edit
+  
+  // State quản lý modal thay đổi dịch vụ
+  const [showChangeServiceModal, setShowChangeServiceModal] = useState(false); // Hiển thị modal đổi dịch vụ
+  const [serviceOptions, setServiceOptions] = useState([]);                   // Danh sách dịch vụ có thể chọn
+  const [selectedServiceId, setSelectedServiceId] = useState(null);           // Dịch vụ được chọn
+  
+  // State quản lý modal chọn kết quả điều trị
+  const [showResultModal, setShowResultModal] = useState(false);              // Hiển thị modal chọn kết quả
+  const [pendingCompleteStatus, setPendingCompleteStatus] = useState(null);   // Trạng thái chờ hoàn thành
+  const [selectedResult, setSelectedResult] = useState(null);                 // Kết quả điều trị được chọn
+  
+  // State quản lý modal hủy điều trị
+  const [isModalVisible, setIsModalVisible] = useState(false);                // Hiển thị modal hủy điều trị
+  const [cancelReason, setCancelReason] = useState("");                       // Lý do hủy điều trị
+  const [selectedTreatment, setSelectedTreatment] = useState(null);           // Điều trị được chọn để hủy
+  const [cancelLoading, setCancelLoading] = useState(false);                  // Loading khi hủy điều trị
+  
+  // State quản lý modal ghi chú
+  const [showNoteModal, setShowNoteModal] = useState(false);                  // Hiển thị modal nhập ghi chú
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState(null);       // Cập nhật trạng thái chờ xử lý { appointmentId, newStatus }
+  const [note, setNote] = useState("");                                       // Ghi chú nhập từ modal
+  
+  // ===== HOOKS VÀ CONTEXT =====
+  const location = useLocation();                                             // Hook lấy thông tin route hiện tại
+  const navigate = useNavigate();                                             // Hook điều hướng
+  const { showNotification } = useContext(NotificationContext);               // Context hiển thị thông báo
+  const dataLoadedRef = React.useRef(false);                                  // Ref để tránh load dữ liệu trùng lặp
+  
+  // ===== CÁC OPTION CHO SELECT =====
   const statusOptions = [
     { value: "PLANED", label: "Đã đặt lịch" },
     { value: "PENDING_CHANGE", label: "Chờ duyệt đổi lịch" },
@@ -100,18 +120,23 @@ const TreatmentStageDetails = () => {
     { value: "CANCELLED", label: "Hủy" },
   ];
 
+  // ===== USEEFFECT: LẤY THÔNG TIN BÁC SĨ =====
+  // useEffect này chạy khi component mount để lấy thông tin bác sĩ hiện tại
   useEffect(() => {
     const fetchDoctorInfo = async () => {
       try {
+        // Gọi API lấy thông tin bác sĩ từ token
         const res = await authService.getMyInfo();
         const id = res?.data?.result?.id;
         if (id) {
-          setDoctorId(id);
+          setDoctorId(id);  // Lưu ID bác sĩ vào state
         } else {
+          // Nếu không lấy được ID, hiển thị lỗi và quay lại trang trước
           showNotification("Không thể lấy thông tin bác sĩ", "error");
           navigate(-1);
         }
       } catch (error) {
+        // Xử lý lỗi khi gọi API
         showNotification("Không thể lấy thông tin bác sĩ", "error");
         navigate(-1);
       }
@@ -119,18 +144,24 @@ const TreatmentStageDetails = () => {
     fetchDoctorInfo();
   }, [navigate, showNotification]);
 
+  // ===== USEEFFECT: TẢI DỮ LIỆU ĐIỀU TRỊ =====
+  // useEffect này chạy sau khi có doctorId để tải dữ liệu điều trị
   useEffect(() => {
     const fetchData = async () => {
+      // Kiểm tra điều kiện: cần có doctorId và chưa load dữ liệu
       if (!doctorId || dataLoadedRef.current) return;
 
-      dataLoadedRef.current = true;
+      dataLoadedRef.current = true;  // Đánh dấu đã load để tránh load trùng lặp
 
       try {
+        // Lấy dữ liệu từ location.state (được truyền từ PatientList)
         const {
-          patientInfo,
-          treatmentData: passedTreatmentData,
-          appointmentData,
+          patientInfo,           // Thông tin bệnh nhân
+          treatmentData: passedTreatmentData,  // Dữ liệu điều trị
+          appointmentData,       // Dữ liệu lịch hẹn
         } = location.state || {};
+        
+        // Kiểm tra có thông tin bệnh nhân không
         if (!patientInfo) {
           showNotification("Không tìm thấy thông tin bệnh nhân", "warning");
           navigate(-1);
@@ -143,18 +174,19 @@ const TreatmentStageDetails = () => {
           appointmentData,
         });
 
-        // Chỉ sử dụng treatmentData được truyền từ PatientList
+        // Xử lý dữ liệu điều trị được truyền từ PatientList
         if (passedTreatmentData && passedTreatmentData.id) {
-          // Nếu đã có đủ steps thì dùng luôn
+          // Kiểm tra xem có đầy đủ steps không
           if (
             passedTreatmentData.treatmentSteps &&
             passedTreatmentData.treatmentSteps.length > 0
           ) {
+            // Nếu đã có đủ steps thì sử dụng luôn
             setTreatmentData(passedTreatmentData);
             setLoading(false);
             return;
           } else {
-            // Gọi API lấy chi tiết để có steps
+            // Nếu thiếu steps, gọi API để lấy chi tiết đầy đủ
             console.log(
               "⚠️ TreatmentData missing steps, calling API to get details..."
             );
@@ -168,6 +200,7 @@ const TreatmentStageDetails = () => {
               setLoading(false);
               return;
             } else {
+              // Nếu API thất bại, vẫn sử dụng dữ liệu ban đầu
               setTreatmentData(passedTreatmentData);
               setLoading(false);
               return;
@@ -190,23 +223,27 @@ const TreatmentStageDetails = () => {
     fetchData();
   }, [doctorId]); // Chỉ phụ thuộc vào doctorId
 
+  // ===== UTILITY FUNCTIONS - HÀM TIỆN ÍCH =====
+  
+  // Hàm lấy màu sắc cho trạng thái của treatment step
   const getStatusColor = (status) => {
     switch (status) {
-      case "CONFIRMED":
+      case "CONFIRMED":      // Đã xác nhận
         return "processing";
-      case "PLANED":
+      case "PLANED":         // Đã lên lịch  
         return "warning";
-      case "COMPLETED":
+      case "COMPLETED":      // Hoàn thành
         return "success";
-      case "CANCELLED":
+      case "CANCELLED":      // Đã hủy
         return "error";
-      case "INPROGRESS":
+      case "INPROGRESS":     // Đang điều trị
         return "orange";
       default:
         return "processing";
     }
   };
 
+  // Hàm lấy text hiển thị cho trạng thái của treatment step
   const getStatusText = (status) => {
     switch (status) {
       case "CONFIRMED":
@@ -226,27 +263,29 @@ const TreatmentStageDetails = () => {
     }
   };
 
+  // Hàm lấy màu sắc cho trạng thái của appointment (lịch hẹn)
   const getAppointmentStatusColor = (status) => {
     switch (status) {
-      case "PENDING":
+      case "PENDING":        // Chờ xử lý
         return "orange";
-      case "CONFIRMED":
+      case "CONFIRMED":      // Đã xác nhận
         return "blue";
-      case "COMPLETED":
+      case "COMPLETED":      // Hoàn thành
         return "green";
-      case "CANCELLED":
+      case "CANCELLED":      // Đã hủy
         return "red";
-      case "PLANED":
+      case "PLANED":         // Đã lên lịch
         return "yellow";
-      case "PENDING_CHANGE":
+      case "PENDING_CHANGE": // Chờ duyệt đổi lịch
         return "gold";
-      case "REJECTED":
+      case "REJECTED":       // Từ chối
         return "volcano";
       default:
         return "default";
     }
   };
 
+  // Hàm lấy text hiển thị cho trạng thái của appointment (lịch hẹn)
   const getAppointmentStatusText = (status) => {
     switch (status) {
       case "CONFIRMED":
@@ -268,31 +307,39 @@ const TreatmentStageDetails = () => {
     }
   };
 
+  // ===== HANDLER FUNCTIONS - CÁC HÀM XỬ LÝ CHÍNH =====
+  
+  // Hàm cập nhật treatment step - Được gọi khi submit form chỉnh sửa step
   const handleUpdateStep = async (values) => {
-    if (!editingStep) return;
+    if (!editingStep) return;  // Kiểm tra có step đang edit không
+    
     try {
+      // Chuẩn bị dữ liệu cập nhật từ form values
       const updateData = {
-        stageId: editingStepStageId,
-        startDate: values.startDate
+        stageId: editingStepStageId,     // ID của giai đoạn
+        startDate: values.startDate      // Ngày bắt đầu (format YYYY-MM-DD)
           ? values.startDate.format("YYYY-MM-DD")
           : undefined,
-        endDate: values.endDate
+        endDate: values.endDate          // Ngày kết thúc (format YYYY-MM-DD)
           ? values.endDate.format("YYYY-MM-DD")
           : undefined,
-        status: values.status,
-        notes: values.notes,
+        status: values.status,           // Trạng thái mới
+        notes: values.notes,             // Ghi chú
       };
+      
+      // Gọi API cập nhật treatment step
       const response = await treatmentService.updateTreatmentStep(
-        editingStep.id,
-        updateData
+        editingStep.id,  // ID của step cần cập nhật
+        updateData       // Dữ liệu cập nhật
       );
       console.log("🔍 Update response:", response);
       console.log("🔍 Response code:", response?.code || response?.data?.code);
 
+      // Kiểm tra response thành công (code 1000)
       if (response?.code === 1000 || response?.data?.code === 1000) {
         console.log("✅ Update successful, refreshing data...");
 
-        // Thử lấy treatment record với steps để refresh data
+        // BƯỚC 1: Thử lấy treatment record chi tiết để refresh data
         try {
           const detailedResponse =
             await treatmentService.getTreatmentRecordById(treatmentData.id);
@@ -301,16 +348,19 @@ const TreatmentStageDetails = () => {
           console.log("🔍 Detailed response after update:", detailedResponse);
           console.log("🔍 Detailed data after update:", detailedData);
 
+          // Nếu có dữ liệu chi tiết với steps
           if (detailedData && detailedData.treatmentSteps) {
             console.log("✅ Setting updated treatment data:", detailedData);
-            setTreatmentData(detailedData);
+            setTreatmentData(detailedData);  // Cập nhật state với dữ liệu mới
           } else {
+            // BƯỚC 2: Fallback - Nếu không có steps, dùng phương pháp cũ
             console.warn("❌ Treatment record không có steps sau khi update");
-            // Fallback to old method
+            
+            // Lấy danh sách treatment records của doctor
             const updatedResponse =
               await treatmentService.getTreatmentRecordsByDoctor(doctorId);
 
-            // Đảm bảo updatedResponse là array
+            // Xử lý response có thể có nhiều format khác nhau
             let treatmentRecords = [];
             if (Array.isArray(updatedResponse)) {
               treatmentRecords = updatedResponse;
@@ -325,6 +375,7 @@ const TreatmentStageDetails = () => {
               }
             }
 
+            // Tìm record được cập nhật trong danh sách
             if (treatmentRecords && treatmentRecords.length > 0) {
               const updatedRecord = treatmentRecords.find(
                 (record) => record.id === treatmentData.id
@@ -334,17 +385,18 @@ const TreatmentStageDetails = () => {
                   "✅ Setting updated record from list:",
                   updatedRecord
                 );
-                setTreatmentData(updatedRecord);
+                setTreatmentData(updatedRecord);  // Cập nhật state
               }
             }
           }
         } catch (refreshError) {
+          // BƯỚC 3: Fallback cuối cùng nếu bước 1 thất bại
           console.warn("❌ Không thể refresh data:", refreshError);
-          // Fallback to old method
+          
+          // Lặp lại logic fallback (tương tự bước 2)
           const updatedResponse =
             await treatmentService.getTreatmentRecordsByDoctor(doctorId);
 
-          // Đảm bảo updatedResponse là array
           let treatmentRecords = [];
           if (Array.isArray(updatedResponse)) {
             treatmentRecords = updatedResponse;
@@ -368,16 +420,18 @@ const TreatmentStageDetails = () => {
                 "✅ Setting updated record from fallback:",
                 updatedRecord
               );
-              setTreatmentData(updatedRecord);
+              setTreatmentData(updatedRecord);  // Cập nhật state từ fallback
             }
           }
         }
 
-        setEditingStep(null);
-        form.resetFields();
-        setEditingStepStageId(null);
-        showNotification("Cập nhật thành công", "success");
+        // Đóng modal edit và reset form sau khi cập nhật thành công
+        setEditingStep(null);           // Clear step đang edit
+        form.resetFields();             // Reset form về trạng thái ban đầu
+        setEditingStepStageId(null);    // Clear stage ID
+        showNotification("Cập nhật thành công", "success");  // Hiển thị thông báo thành công
       } else {
+        // Xử lý khi API trả về code không phải 1000 (thất bại)
         console.warn(
           "❌ Update failed - invalid response code:",
           response?.code || response?.data?.code
@@ -385,62 +439,78 @@ const TreatmentStageDetails = () => {
         showNotification("Cập nhật thất bại", "error");
       }
     } catch (error) {
+      // Xử lý lỗi exception
       showNotification(error.response?.data.message, "error");
     }
   };
 
+  // Hàm tạo lịch hẹn mới - Được gọi khi submit form tạo appointment
   const handleScheduleAppointment = async (values) => {
     try {
-      // Lấy đúng step object từ treatmentData dựa vào id
+      // Tìm step object từ treatmentData dựa vào treatmentStepId
       const stepObj = treatmentData.treatmentSteps.find(
         (step) => String(step.id) === String(values.treatmentStepId)
       );
 
+      // Chuẩn bị dữ liệu appointment từ form values
       const appointmentData = {
-        customerId: treatmentData.customerId,
-        doctorId: doctorId,
-        appointmentDate: values.appointmentDate.format("YYYY-MM-DD"),
-        shift: values.shift,
-        purpose: values.purpose, // Lấy từ form
-        notes: values.notes,
-        treatmentStepId: values.treatmentStepId,
+        customerId: treatmentData.customerId,                    // ID bệnh nhân
+        doctorId: doctorId,                                      // ID bác sĩ
+        appointmentDate: values.appointmentDate.format("YYYY-MM-DD"), // Ngày hẹn
+        shift: values.shift,                                     // Ca khám (MORNING/AFTERNOON)
+        purpose: values.purpose,                                 // Mục đích khám (từ form)
+        notes: values.notes,                                     // Ghi chú
+        treatmentStepId: values.treatmentStepId,                 // ID của treatment step
       };
+      
+      // Gọi API tạo appointment
       const response = await treatmentService.createAppointment(
         appointmentData
       );
+      
+      // Kiểm tra response thành công
       if (response?.data?.code === 1000) {
         showNotification("Tạo lịch hẹn thành công", "success");
 
-        // Đóng modal tạo lịch hẹn và reset form
+        // Đóng modal và reset form sau khi tạo thành công
         setShowCreateAppointmentModal(false);
         scheduleForm.resetFields();
 
-        // Không mở lại modal xem lịch hẹn nữa, chỉ hiển thị thông báo thành công
+        // Note: Không mở lại modal xem lịch hẹn, chỉ hiển thị thông báo thành công
       } else {
+        // Xử lý khi API trả về lỗi
         showNotification(
           response?.data?.message || "Tạo lịch hẹn thất bại",
           "error"
         );
       }
     } catch (error) {
+      // Xử lý lỗi exception
       showNotification(error.response.data.message, "error");
     }
   };
 
+  // Hàm hiển thị modal chỉnh sửa step - Được gọi khi click nút Edit
   const showEditModal = async (step) => {
-    setEditingStep(step);
-    // Lấy treatmentStageId từ API
+    setEditingStep(step);  // Set step đang được edit
+    
+    // Lấy chi tiết treatment step từ API để có đầy đủ thông tin
     try {
       const res = await treatmentService.getTreatmentStepById(step.id);
       const detail = res?.data?.result;
+      
+      // Set stage ID từ API response
       setEditingStepStageId(detail?.treatmentStageId);
+      
+      // Điền dữ liệu vào form với xử lý đặc biệt cho status CONFIRMED
       form.setFieldsValue({
         startDate: detail?.startDate ? dayjs(detail.startDate) : null,
         endDate: detail?.endDate ? dayjs(detail.endDate) : null,
-        status: detail?.status === "CONFIRMED" ? undefined : detail?.status,
+        status: detail?.status === "CONFIRMED" ? undefined : detail?.status,  // CONFIRMED sẽ hiển thị placeholder
         notes: detail?.notes,
       });
     } catch {
+      // Fallback: Nếu API thất bại, sử dụng dữ liệu từ step object
       setEditingStepStageId(step.stageId);
       form.setFieldsValue({
         startDate: step.startDate ? dayjs(step.startDate) : null,
@@ -451,253 +521,68 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  const handleCompleteTreatment = async () => {
-    try {
-      console.log("🔍 handleCompleteTreatment called:", {
-        treatmentId: treatmentData.id,
-        status: "COMPLETED",
-      });
-
-      const response = await treatmentService.updateTreatmentStatus(
-        treatmentData.id,
-        "COMPLETED"
-      );
-
-      console.log("🔍 Complete treatment response:", response);
-      console.log("🔍 Response code:", response?.code || response?.data?.code);
-
-      if (response?.data?.code === 1000 || response?.code === 1000) {
-        console.log("✅ Treatment completed successfully, refreshing data...");
-        showNotification("Hoàn thành điều trị thành công", "success");
-
-        // Thử lấy treatment record với steps để refresh data
-        try {
-          const detailedResponse =
-            await treatmentService.getTreatmentRecordById(treatmentData.id);
-          const detailedData = detailedResponse?.data?.result;
-
-          console.log(
-            "🔍 Detailed response after completion:",
-            detailedResponse
-          );
-          console.log("🔍 Detailed data after completion:", detailedData);
-
-          if (detailedData && detailedData.treatmentSteps) {
-            console.log(
-              "✅ Setting updated treatment data after completion:",
-              detailedData
-            );
-            setTreatmentData(detailedData);
-          } else {
-            console.warn("❌ Treatment record không có steps sau khi complete");
-            // Fallback to old method
-            const updatedResponse =
-              await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-
-            // Đảm bảo updatedResponse là array
-            let treatmentRecords = [];
-            if (Array.isArray(updatedResponse)) {
-              treatmentRecords = updatedResponse;
-            } else if (updatedResponse?.data?.result) {
-              if (Array.isArray(updatedResponse.data.result)) {
-                treatmentRecords = updatedResponse.data.result;
-              } else if (
-                updatedResponse.data.result.content &&
-                Array.isArray(updatedResponse.data.result.content)
-              ) {
-                treatmentRecords = updatedResponse.data.result.content;
-              }
-            }
-
-            if (treatmentRecords && treatmentRecords.length > 0) {
-              const updatedRecord = treatmentRecords.find(
-                (record) => record.id === treatmentData.id
-              );
-              if (updatedRecord) {
-                console.log(
-                  "✅ Setting updated record from list after completion:",
-                  updatedRecord
-                );
-                setTreatmentData(updatedRecord);
-              }
-            }
-          }
-        } catch (refreshError) {
-          console.warn(
-            "❌ Không thể refresh data after completion:",
-            refreshError
-          );
-          // Fallback to old method
-          const updatedResponse =
-            await treatmentService.getTreatmentRecordsByDoctor(doctorId);
-
-          // Đảm bảo updatedResponse là array
-          let treatmentRecords = [];
-          if (Array.isArray(updatedResponse)) {
-            treatmentRecords = updatedResponse;
-          } else if (updatedResponse?.data?.result) {
-            if (Array.isArray(updatedResponse.data.result)) {
-              treatmentRecords = updatedResponse.data.result;
-            } else if (
-              updatedResponse.data.result.content &&
-              Array.isArray(updatedResponse.data.result.content)
-            ) {
-              treatmentRecords = updatedResponse.data.result.content;
-            }
-          }
-
-          if (treatmentRecords && treatmentRecords.length > 0) {
-            const updatedRecord = treatmentRecords.find(
-              (record) => record.id === treatmentData.id
-            );
-            if (updatedRecord) {
-              console.log(
-                "✅ Setting updated record from fallback after completion:",
-                updatedRecord
-              );
-              setTreatmentData(updatedRecord);
-            }
-          }
-        }
-      } else {
-        console.warn(
-          "❌ Treatment completion failed - invalid response code:",
-          response?.code || response?.data?.code
-        );
-        showNotification("Hoàn thành điều trị thất bại", "error");
-      }
-    } catch (error) {
-      showNotification(error.response?.data.message, "error");
-    }
-  };
-
-  const isAllStepsCompleted = () => {
-    if (!treatmentData?.treatmentSteps) return false;
-    const activeSteps = treatmentData.treatmentSteps.filter(
-      (step) => step.status !== "CANCELLED"
-    );
-    return (
-      activeSteps.length > 0 &&
-      activeSteps.every((step) => step.status === "COMPLETED")
-    );
-  };
-
-  const calculateProgress = () => {
-    if (!treatmentData?.treatmentSteps) return 0;
-    const completedSteps = treatmentData.treatmentSteps.filter(
-      (step) => step.status === "COMPLETED"
-    ).length;
-    return Math.round(
-      (completedSteps / treatmentData.treatmentSteps.length) * 100
-    );
-  };
-
-  const handleStepClick = async (step) => {
-    console.log("🎯 Step clicked:", step);
-    console.log("🎯 Step ID:", step.id);
-    setSelectedStep(step);
-    setShowStepDetailModal(true);
-    setShowCreateAppointmentModal(false);
-    setLoadingAppointments(true);
-    try {
-      const response = await treatmentService.getAppointmentsByStepId(step.id);
-
-      // Lấy content array từ paginated response
-      const appointments = response?.data?.result || [];
-
-      setStepAppointments(appointments);
-    } catch (error) {
-      console.error("❌ Error fetching appointments:", error);
-      console.error("❌ Error details:", error.response?.data);
-      setStepAppointments([]);
-    } finally {
-      setLoadingAppointments(false);
-    }
-  };
-
+  // Hàm hiển thị modal tạo lịch hẹn mới - Được gọi từ modal chi tiết step
   const handleShowCreateAppointment = () => {
     console.log(
       "🔍 handleShowCreateAppointment called with selectedStep:",
       selectedStep
     );
+    
+    // Đóng modal chi tiết và mở modal tạo appointment
     setShowStepDetailModal(false);
     setShowCreateAppointmentModal(true);
+    
+    // Reset form và điền giá trị mặc định
     scheduleForm.resetFields();
-    // Đảm bảo form có treatmentStepId đúng
     scheduleForm.setFieldsValue({
-      treatmentStepId: selectedStep?.id,
-      shift: "MORNING",
+      treatmentStepId: selectedStep?.id,  // ID của step được chọn
+      shift: "MORNING",                   // Ca mặc định là sáng
     });
   };
 
-  // Thêm hàm xử lý mở modal xem lịch hẹn
+  // Hàm mở modal xem lịch hẹn - Được gọi khi click nút "Xem lịch hẹn"
   const handleShowScheduleModal = async (step) => {
-    setScheduleStep(step);
-    setShowScheduleModal(true);
-    setLoadingAppointments(true);
+    setScheduleStep(step);           // Set step để xem lịch
+    setShowScheduleModal(true);      // Hiển thị modal
+    setLoadingAppointments(true);    // Bắt đầu loading
+    
     try {
+      // Gọi API lấy lịch hẹn của step
       const response = await treatmentService.getAppointmentsByStepId(step.id);
       const appointments = response?.data?.result || [];
       setStepAppointments(appointments);
     } catch (error) {
       console.error("❌ Error fetching appointments:", error);
-      setStepAppointments([]);
+      setStepAppointments([]);  // Fallback nếu lỗi
     } finally {
       setLoadingAppointments(false);
     }
   };
 
-  // Helper function to handle appointment status updates
-  const handleAppointmentStatusUpdate = async (appointmentId, newStatus) => {
-    try {
-      const res = await treatmentService.updateAppointmentStatus(
-        appointmentId,
-        newStatus
-      );
-      if (res?.data?.code === 1000) {
-        showNotification("Cập nhật trạng thái thành công", "success");
-
-        // Update local state immediately
-        setStepAppointments((prev) =>
-          Array.isArray(prev)
-            ? prev.map((a) =>
-                a.id === appointmentId
-                  ? { ...a, status: newStatus, showStatusSelect: false }
-                  : a
-              )
-            : []
-        );
-
-        // Không refresh data từ server nữa để tránh nhảy trang
-      } else {
-        showNotification(res?.data?.message || "Cập nhật thất bại", "error");
-      }
-    } catch (err) {
-      console.error("Error updating appointment status:", err);
-      showNotification(err.response.data.message, "error");
-    }
-  };
-  // Hàm mở modal ghi chú
+  // Hàm xử lý submit ghi chú - Được gọi khi cập nhật status COMPLETED hoặc CANCELLED
   const handleNoteSubmit = async () => {
     if (!note.trim()) {
       showNotification("Vui lòng nhập ghi chú!", "warning");
       return;
     }
 
-    if (!pendingStatusUpdate) return;
+    if (!pendingStatusUpdate) return;  // Không có update nào đang pending
 
     const { appointmentId, newStatus } = pendingStatusUpdate;
 
     try {
+      // Gọi API cập nhật status với ghi chú
       const res = await treatmentService.updateAppointmentStatus(
         appointmentId,
         newStatus,
-        note // truyền note
+        note  // Truyền note làm tham số thứ 3
       );
+      
       if (res?.data?.code === 1000) {
         showNotification("Cập nhật trạng thái thành công", "success");
-
-        // Cập nhật local
+        setShowScheduleModal(false);
+        
+        // Cập nhật local state
         setStepAppointments((prev) =>
           Array.isArray(prev)
             ? prev.map((a) =>
@@ -713,102 +598,127 @@ const TreatmentStageDetails = () => {
     } catch (err) {
       showNotification(err.response?.data?.message || "Lỗi cập nhật", "error");
     } finally {
+      // Cleanup: đóng modal và reset state
       setShowNoteModal(false);
       setPendingStatusUpdate(null);
       setNote("");
     }
   };
 
-  // Hàm mở modal và load danh sách dịch vụ
+  // ===== CÁC HÀM XỬ LÝ DỊCH VỤ VÀ TRẠNG THÁI =====
+  
+  // Hàm mở modal đổi dịch vụ và tải danh sách dịch vụ
   const handleShowChangeService = async () => {
-    setShowChangeServiceModal(true);
+    setShowChangeServiceModal(true);  // Hiển thị modal
+    
     try {
+      // Gọi API lấy danh sách tất cả dịch vụ có thể chọn
       const res = await treatmentService.getAllServicesForSelect();
       if (res?.data?.result) {
-        setServiceOptions(res.data.result);
+        setServiceOptions(res.data.result);  // Cập nhật danh sách dịch vụ
       } else {
-        setServiceOptions([]);
+        setServiceOptions([]);  // Fallback nếu không có dịch vụ
       }
     } catch {
-      setServiceOptions([]);
+      setServiceOptions([]);  // Fallback nếu API lỗi
     }
   };
 
-  // Hàm xác nhận đổi dịch vụ
+  // Hàm xác nhận đổi dịch vụ - Được gọi khi click "Xác nhận" trong modal
   const handleChangeService = async () => {
-    if (!selectedServiceId) return;
+    if (!selectedServiceId) return;  // Phải chọn dịch vụ trước
+    
     try {
+      // Gọi API cập nhật dịch vụ cho treatment record
       await treatmentService.updateTreatmentRecordService(
-        treatmentData.id,
-        selectedServiceId
+        treatmentData.id,        // ID của treatment record
+        selectedServiceId        // ID dịch vụ mới được chọn
       );
+      
       showNotification("Đã chọn dịch vụ thành công!", "success");
+      
+      // Cleanup modal state
       setShowChangeServiceModal(false);
       setSelectedServiceId(null);
-      // Reload treatment record
+      
+      // Reload treatment record để cập nhật thông tin dịch vụ mới
       const detail = await treatmentService.getTreatmentRecordById(
         treatmentData.id
       );
-      setTreatmentData(detail?.data?.result);
+      setTreatmentData(detail?.data?.result);  // Cập nhật state với dữ liệu mới
     } catch {
       showNotification("Đổi dịch vụ thất bại!", "error");
     }
   };
 
-  // Thêm hàm hủy dịch vụ tương tự như trong TestResults
+  // Hàm khởi tạo hủy dịch vụ - Mở modal xác nhận hủy
   const handleCancelService = (treatment) => {
-    setSelectedTreatment(treatment);
-    setIsModalVisible(true);
+    setSelectedTreatment(treatment);  // Set treatment cần hủy
+    setIsModalVisible(true);          // Hiển thị modal xác nhận
   };
 
+  // Hàm xác nhận hủy treatment record - Được gọi khi click "Hủy hồ sơ"
   const handleOk = async () => {
     if (!cancelReason.trim()) {
       showNotification("Vui lòng nhập lý do huỷ!", "warning");
       return;
     }
-    setCancelLoading(true);
+    
+    setCancelLoading(true);  // Bắt đầu loading
     try {
+      // Gọi API hủy treatment record với lý do
       await treatmentService.cancelTreatmentRecord(
-        selectedTreatment.id,
-        cancelReason
+        selectedTreatment.id,    // ID của treatment record
+        cancelReason             // Lý do hủy
       );
+      
       showNotification("Hủy hồ sơ thành công!", "success");
+      
+      // Cleanup modal state
       setIsModalVisible(false);
       setCancelReason("");
+      
+      // Reload trang sau 800ms để người dùng thấy thông báo thành công
       setTimeout(() => window.location.reload(), 800);
     } catch (err) {
       showNotification(err.response?.data?.message, "error");
     } finally {
-      setCancelLoading(false);
+      setCancelLoading(false);  // Tắt loading
     }
   };
 
+  // Hàm hủy modal hủy treatment - Đóng modal mà không thực hiện hành động
   const handleCancel = () => {
     setIsModalVisible(false);
     setCancelReason("");
   };
 
-  //2a hàm handleUpdateTreatmentStatus để nếu status === 'COMPLETED' thì show modal chọn kết quả
+  // Hàm cập nhật trạng thái treatment - Xử lý đặc biệt cho status COMPLETED
   const handleUpdateTreatmentStatus = async (status) => {
+    // Nếu status là COMPLETED, cần chọn kết quả trước
     if (status === "COMPLETED") {
-      setShowResultModal(true);
-      setPendingCompleteStatus(status);
+      setShowResultModal(true);         // Hiển thị modal chọn kết quả
+      setPendingCompleteStatus(status); // Lưu status pending
       return;
     }
+    
     try {
+      // Gọi API cập nhật trạng thái treatment
       const response = await treatmentService.updateTreatmentStatus(
-        treatmentData.id,
-        status
+        treatmentData.id,  // ID của treatment record
+        status             // Trạng thái mới
       );
+      
       if (response?.data?.code === 1000 || response?.code === 1000) {
         showNotification("Cập nhật trạng thái dịch vụ thành công", "success");
-        // Refresh data
+        
+        // Refresh data để hiển thị trạng thái mới
         try {
           const detailedResponse =
             await treatmentService.getTreatmentRecordById(treatmentData.id);
           const detailedData = detailedResponse?.data?.result;
           if (detailedData) setTreatmentData(detailedData);
-        } catch {}
+        } catch {}  // Ignore refresh errors
       } else {
         showNotification(
           response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại",
@@ -823,30 +733,36 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  // 3. Hàm xác nhận hoàn thành với kết quả
+  // Hàm xác nhận hoàn thành với kết quả - Được gọi từ modal chọn kết quả
   const handleConfirmCompleteWithResult = async () => {
     if (!selectedResult) {
       showNotification("Vui lòng chọn kết quả cuối cùng!", "warning");
       return;
     }
+    
     try {
+      // Gọi API cập nhật trạng thái COMPLETED với kết quả
       const response = await treatmentService.updateTreatmentStatus(
-        treatmentData.id,
-        "COMPLETED",
-        selectedResult
+        treatmentData.id,    // ID của treatment record
+        "COMPLETED",         // Trạng thái
+        selectedResult       // Kết quả: SUCCESS hoặc FAILURE
       );
+      
       if (response?.data?.code === 1000 || response?.code === 1000) {
         showNotification("Hoàn thành điều trị thành công", "success");
+        
+        // Cleanup modal state
         setShowResultModal(false);
         setSelectedResult(null);
         setPendingCompleteStatus(null);
-        // Refresh data
+        
+        // Refresh data để hiển thị trạng thái và kết quả mới
         try {
           const detailedResponse =
             await treatmentService.getTreatmentRecordById(treatmentData.id);
           const detailedData = detailedResponse?.data?.result;
           if (detailedData) setTreatmentData(detailedData);
-        } catch {}
+        } catch {}  // Ignore refresh errors
       } else {
         showNotification(
           response?.data?.message || "Cập nhật trạng thái dịch vụ thất bại",
@@ -861,52 +777,65 @@ const TreatmentStageDetails = () => {
     }
   };
 
-  // Khi mở modal thêm step, load stage theo serviceId (API mới)
+  // ===== USEEFFECT: TẢI STAGE OPTIONS KHI MỞ MODAL THÊM STEP =====
+  // useEffect này chạy khi showAddStepModal thay đổi để tải danh sách giai đoạn có thể chọn
   useEffect(() => {
+    // Khi mở modal thêm step và có treatmentServiceId
     if (showAddStepModal && treatmentData?.treatmentServiceId) {
+      // Gọi API lấy danh sách stages có thể chọn theo serviceId
       treatmentService
         .getSelectableStagesByServiceId(treatmentData.treatmentServiceId)
         .then((res) => {
-          setStageOptions(res?.data?.result || []);
+          setStageOptions(res?.data?.result || []);  // Cập nhật danh sách stages
         })
-        .catch(() => setStageOptions([]));
+        .catch(() => setStageOptions([]));  // Fallback nếu API lỗi
     }
+    
+    // Khi đóng modal, cleanup state
     if (!showAddStepModal) {
-      setAddStepAuto(false);
-      setStageOptions([]);
-      addStepForm.resetFields();
+      setAddStepAuto(false);      // Reset switch tự động tạo lịch hẹn
+      setStageOptions([]);        // Clear danh sách stages
+      addStepForm.resetFields();  // Reset form
     }
   }, [showAddStepModal, treatmentData?.treatmentServiceId]);
 
-  // Tự động cập nhật selectedStep khi treatmentData thay đổi
+  // ===== USEEFFECT: TỰ ĐỘNG CẬP NHẬT SELECTED STEP =====
+  // useEffect này đảm bảo selectedStep luôn có dữ liệu mới nhất khi treatmentData thay đổi
   useEffect(() => {
+    // Nếu có selectedStep và treatmentData có steps
     if (selectedStep && treatmentData?.treatmentSteps) {
+      // Tìm step updated từ treatmentData dựa vào ID
       const updatedStep = treatmentData.treatmentSteps.find(
         (step) => String(step.id) === String(selectedStep.id)
       );
+      
+      // Nếu tìm thấy và có sự thay đổi, cập nhật selectedStep
       if (
         updatedStep &&
         JSON.stringify(updatedStep) !== JSON.stringify(selectedStep)
       ) {
         console.log("🔄 Updating selectedStep with new data:", updatedStep);
-        setSelectedStep(updatedStep);
+        setSelectedStep(updatedStep);  // Cập nhật selectedStep với dữ liệu mới
       }
     }
   }, [treatmentData, selectedStep]);
 
+  // Hàm utility: chuyển đổi mã kết quả thành text hiển thị tiếng Việt
   const getResultText = (result) => {
     switch ((result || "").toUpperCase()) {
       case "SUCCESS":
-        return "Thành công";
+        return "Thành công";    // Điều trị thành công
       case "FAILURE":
-        return "Thất bại";
+        return "Thất bại";      // Điều trị thất bại  
       case "UNDETERMINED":
-        return "Chưa xác định";
+        return "Chưa xác định"; // Kết quả chưa rõ ràng
       default:
-        return "Chưa có";
+        return "Chưa có";       // Chưa có kết quả
     }
   };
 
+  // ===== RENDER LOADING STATE =====
+  // Nếu đang loading, hiển thị spinner toàn màn hình
   if (loading) {
     return (
       <div
@@ -914,9 +843,9 @@ const TreatmentStageDetails = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
-          background: "#fff",
-          overflow: "hidden",
+          height: "100vh",          // Chiều cao toàn màn hình
+          background: "#fff",       // Nền trắng
+          overflow: "hidden",       // Ẩn scrollbar
         }}
       >
         <Spin size="large" />
@@ -924,20 +853,21 @@ const TreatmentStageDetails = () => {
     );
   }
 
+  // ===== RENDER MAIN COMPONENT =====
   return (
     <div
       style={{
-        minHeight: "100vh",
-        background: "#fff",
-        padding: "32px 0",
-        overflow: "hidden",
+        minHeight: "100vh",        // Chiều cao tối thiểu toàn màn hình
+        background: "#fff",        // Nền trắng
+        padding: "32px 0",         // Padding trên dưới
+        overflow: "hidden",        // Ẩn scrollbar
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
+        flexDirection: "column",   // Layout dọc
+        alignItems: "center",      // Căn giữa theo chiều ngang
+        justifyContent: "flex-start", // Căn đầu theo chiều dọc
       }}
     >
-      {/* Header */}
+      {/* ===== HEADER SECTION - Nút quay lại ===== */}
       <Card
         style={{
           marginBottom: "24px",
@@ -945,8 +875,8 @@ const TreatmentStageDetails = () => {
           boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           background: "#fff",
           width: "100%",
-          maxWidth: "1200px",
-          minWidth: 320,
+          maxWidth: "1200px",      // Giới hạn chiều rộng tối đa
+          minWidth: 320,           // Chiều rộng tối thiểu cho mobile
           padding: 0,
         }}
       >
@@ -954,7 +884,7 @@ const TreatmentStageDetails = () => {
           <Col>
             <Button
               icon={<ArrowLeftOutlined />}
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(-1)}     // Quay lại trang trước
               style={{ borderRadius: 8, height: 40 }}
               size="large"
             >
@@ -964,9 +894,10 @@ const TreatmentStageDetails = () => {
         </Row>
       </Card>
 
+      {/* ===== MAIN CONTENT - Hiển thị khi có dữ liệu ===== */}
       {treatmentData ? (
         <>
-          {/* Timeline */}
+          {/* ===== TREATMENT INFO & TIMELINE SECTION ===== */}
           <Card
             style={{
               borderRadius: 14,
@@ -979,17 +910,19 @@ const TreatmentStageDetails = () => {
               padding: "24px 0 8px 0",
             }}
           >
-            {/* Patient Info Section */}
+            {/* ===== PATIENT INFO SECTION - Thông tin bệnh nhân ===== */}
             <div
               style={{
                 padding: "0 24px 24px 24px",
-                borderBottom: "1px solid #f0f0f0",
+                borderBottom: "1px solid #f0f0f0",  // Đường kẻ phân cách
                 marginBottom: 24,
               }}
             >
               <Title level={4} style={{ color: "#1890ff", marginBottom: 16 }}>
                 Thông tin bệnh nhân
               </Title>
+              
+              {/* Grid layout hiển thị thông tin bệnh nhân */}
               <Row gutter={[24, 16]}>
                 <Col xs={24} md={12}>
                   <Space>
@@ -1062,6 +995,7 @@ const TreatmentStageDetails = () => {
               </Row>
             </div>
 
+            {/* ===== ACTION BUTTONS SECTION - Các nút hành động ===== */}
             <div
               style={{
                 display: "flex",
@@ -1070,6 +1004,7 @@ const TreatmentStageDetails = () => {
                 padding: "0 24px",
               }}
             >
+              {/* Nút thêm bước điều trị mới */}
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -1079,6 +1014,8 @@ const TreatmentStageDetails = () => {
               >
                 Thêm bước điều trị mới
               </Button>
+              
+              {/* Dropdown menu cập nhật trạng thái dịch vụ */}
               <Dropdown
                 menu={{
                   items: [
@@ -1096,7 +1033,7 @@ const TreatmentStageDetails = () => {
                       key: "CANCELLED",
                       label: "Hủy",
                       onClick: () => handleCancelService(treatmentData),
-                      danger: true,
+                      danger: true,  // Hiển thị màu đỏ
                     },
                   ],
                 }}
@@ -1113,7 +1050,7 @@ const TreatmentStageDetails = () => {
               </Dropdown>
             </div>
 
-            {/* Treatment Steps Timeline */}
+            {/* ===== TREATMENT STEPS TIMELINE ===== */}
             {treatmentData.treatmentSteps &&
             treatmentData.treatmentSteps.length > 0 ? (
               <Card
@@ -1293,6 +1230,7 @@ const TreatmentStageDetails = () => {
                 </Timeline>
               </Card>
             ) : (
+              // ===== EMPTY STATE - Khi chưa có bước điều trị =====
               <Card
                 title="Các bước điều trị"
                 style={{
@@ -1306,16 +1244,17 @@ const TreatmentStageDetails = () => {
               </Card>
             )}
           </Card>
-          {/* Complete Treatment Button - ĐÃ XÓA */}
+          {/* ===== COMPLETE TREATMENT BUTTON - ĐÃ XÓA ===== */}
         </>
       ) : (
+        // ===== ERROR STATE - Không tìm thấy dữ liệu =====
         <Card
           style={{
             borderRadius: 14,
             textAlign: "center",
             background: "#fff",
             width: 800,
-            maxWidth: "98vw",
+            maxWidth: "98vw",        // Responsive cho mobile
             minWidth: 320,
             boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
           }}
@@ -1327,7 +1266,11 @@ const TreatmentStageDetails = () => {
         </Card>
       )}
 
-      {/* Step Detail Modal */}
+      {/* ===== TẤT CẢ CÁC MODAL COMPONENTS ===== */}
+      {/* Từ đây trở xuống là các Modal components để hiển thị các popup dialog */}
+      
+      {/* ===== STEP DETAIL MODAL ===== */}
+      {/* Modal hiển thị chi tiết của một treatment step */}
       <Modal
         title={
           <div style={{ textAlign: "center" }}>
@@ -1444,7 +1387,8 @@ const TreatmentStageDetails = () => {
         )}
       </Modal>
 
-      {/* Update Step Modal */}
+      {/* ===== UPDATE STEP MODAL ===== */}
+      {/* Modal chỉnh sửa thông tin treatment step */}
       <Modal
         title="Cập nhật thông tin điều trị"
         open={!!editingStep}
@@ -1511,7 +1455,8 @@ const TreatmentStageDetails = () => {
         </Form>
       </Modal>
 
-      {/* Modal xem lịch hẹn của bước điều trị */}
+      {/* ===== MODAL XEM LỊCH HẸN CỦA BƯỚC ĐIỀU TRỊ ===== */}
+      {/* Modal hiển thị danh sách appointments của một treatment step */}
       <Modal
         title={
           <div style={{ textAlign: "center" }}>Lịch hẹn của bước điều trị</div>
@@ -1530,10 +1475,12 @@ const TreatmentStageDetails = () => {
             Các lần hẹn đã đăng ký cho bước này:
           </div>
           {loadingAppointments ? (
+            // Hiển thị loading spinner khi đang tải appointments
             <div style={{ textAlign: "center", padding: 20 }}>
               <Spin size="large" />
             </div>
           ) : stepAppointments.length === 0 ? (
+            // Hiển thị empty state khi không có appointments
             <div
               style={{
                 color: "#888",
@@ -1547,6 +1494,7 @@ const TreatmentStageDetails = () => {
             </div>
           ) : (
             <>
+              {/* ===== DANH SÁCH APPOINTMENTS - Hiển thị tối đa 3 appointments đầu tiên ===== */}
               <div
                 style={{
                   display: "flex",
@@ -1558,6 +1506,7 @@ const TreatmentStageDetails = () => {
                 {Array.isArray(stepAppointments) &&
                   stepAppointments.slice(0, 3).map((app, idx) => {
                     const statusColor = getAppointmentStatusColor(app.status);
+                    // Xác định icon theo trạng thái appointment
                     const statusIcon = (() => {
                       switch (app.status) {
                         case "COMPLETED":
@@ -1585,6 +1534,7 @@ const TreatmentStageDetails = () => {
                       }
                     })();
                     return (
+                      // Card hiển thị thông tin appointment
                       <Card
                         key={app.id}
                         size="small"
@@ -1602,11 +1552,14 @@ const TreatmentStageDetails = () => {
                         }}
                         bodyStyle={{ padding: 16 }}
                       >
+                        {/* Icon trạng thái ở góc phải trên */}
                         <div
                           style={{ position: "absolute", top: 10, right: 10 }}
                         >
                           {statusIcon}
                         </div>
+                        
+                        {/* Thông tin ngày hẹn */}
                         <div style={{ marginBottom: 8 }}>
                           <Text strong>Ngày hẹn:</Text>
                           <br />
@@ -1614,6 +1567,8 @@ const TreatmentStageDetails = () => {
                             {dayjs(app.appointmentDate).format("DD/MM/YYYY")}
                           </Text>
                         </div>
+                        
+                        {/* Thông tin ca khám */}
                         <div style={{ marginBottom: 8 }}>
                           <Text strong>Ca khám:</Text>
                           <br />
@@ -1625,6 +1580,8 @@ const TreatmentStageDetails = () => {
                               : app.shift}
                           </Tag>
                         </div>
+                        
+                        {/* Trạng thái appointment */}
                         <div style={{ marginBottom: 8 }}>
                           <Text strong>Trạng thái:</Text>
                           <br />
@@ -1632,6 +1589,8 @@ const TreatmentStageDetails = () => {
                             {getAppointmentStatusText(app.status)}
                           </Tag>
                         </div>
+                        
+                        {/* Ghi chú với ellipsis overflow */}
                         <div style={{ marginBottom: 8 }}>
                           <Text strong>Ghi chú:</Text>
                           <br />
@@ -1649,6 +1608,8 @@ const TreatmentStageDetails = () => {
                             {app.notes || "Không có ghi chú"}
                           </Text>
                         </div>
+                        
+                        {/* Mục đích appointment (nếu có) */}
                         {app.purpose && (
                           <div style={{ marginTop: 8 }}>
                             <Text strong>Mục đích:</Text>
@@ -1656,7 +1617,8 @@ const TreatmentStageDetails = () => {
                             <Text>{app.purpose}</Text>
                           </div>
                         )}
-                        {/* Thêm nút cập nhật trạng thái cho bác sĩ */}
+                        
+                        {/* ===== NÚT CẬP NHẬT TRẠNG THÁI APPOINTMENT ===== */}
                         <div style={{ marginTop: 12, textAlign: "center" }}>
                           <Button
                             type="primary"
@@ -1687,6 +1649,8 @@ const TreatmentStageDetails = () => {
                           >
                             Cập nhật trạng thái
                           </Button>
+                          
+                          {/* Radio buttons để chọn trạng thái mới (chỉ hiển thị khi click nút) */}
                           {app.showStatusSelect && (
                             <div style={{ marginTop: 8 }}>
                               <Radio.Group
@@ -1694,6 +1658,7 @@ const TreatmentStageDetails = () => {
                                 value={app.status || undefined}
                                 onChange={(e) => {
                                   const newStatus = e.target.value;
+                                  // Nếu chọn COMPLETED hoặc CANCELLED, cần nhập ghi chú
                                   if (
                                     ["COMPLETED", "CANCELLED"].includes(
                                       newStatus
@@ -1739,7 +1704,7 @@ const TreatmentStageDetails = () => {
                   })}
               </div>
 
-              {/* Hiển thị thêm các lịch hẹn còn lại khi đã click "Xem thêm" */}
+              {/* ===== HIỂN THỊ THÊM CÁC APPOINTMENTS CÒN LẠI ===== */}
               {Array.isArray(stepAppointments) &&
                 stepAppointments.some((app) => app.showAll) && (
                   <div
@@ -1863,7 +1828,7 @@ const TreatmentStageDetails = () => {
                               <Text>{app.purpose}</Text>
                             </div>
                           )}
-                          {/* Thêm nút cập nhật trạng thái cho bác sĩ */}
+                          {/* Nút cập nhật trạng thái cho appointments từ thứ 4 trở đi */}
                           <div style={{ marginTop: 12, textAlign: "center" }}>
                             <Button
                               type="primary"
@@ -1947,10 +1912,11 @@ const TreatmentStageDetails = () => {
                   </div>
                 )}
 
-              {/* Nút "Xem thêm" hoặc "Ẩn bớt" ở cuối */}
+              {/* ===== NÚT "XEM THÊM" HOẶC "ẨN BỚT" ===== */}
               {stepAppointments.length > 3 && (
                 <div style={{ textAlign: "center", marginTop: 16 }}>
                   {stepAppointments.some((app) => app.showAll) ? (
+                    // Nút "Ẩn bớt" - chỉ hiển thị 3 appointments đầu
                     <Button
                       type="default"
                       icon={<FileTextOutlined />}
@@ -1971,6 +1937,7 @@ const TreatmentStageDetails = () => {
                       Ẩn bớt
                     </Button>
                   ) : (
+                    // Nút "Xem thêm" - hiển thị tất cả appointments
                     <Button
                       type="default"
                       icon={<FileTextOutlined />}
@@ -1995,6 +1962,8 @@ const TreatmentStageDetails = () => {
               )}
             </>
           )}
+          
+          {/* Nút tạo lịch hẹn mới ở cuối modal */}
           <div style={{ textAlign: "center", marginTop: 24 }}>
             <Button
               type="primary"
@@ -2012,7 +1981,9 @@ const TreatmentStageDetails = () => {
           </div>
         </div>
       </Modal>
-      {/* Note Modal */}
+      
+      {/* ===== NOTE MODAL ===== */}
+      {/* Modal nhập ghi chú khi cập nhật status appointment thành COMPLETED hoặc CANCELLED */}
       <Modal
         title="Nhập ghi chú"
         open={showNoteModal}
@@ -2033,7 +2004,8 @@ const TreatmentStageDetails = () => {
         />
       </Modal>
 
-      {/* Create Appointment Modal */}
+      {/* ===== CREATE APPOINTMENT MODAL ===== */}
+      {/* Modal tạo lịch hẹn mới cho treatment step */}
       {showCreateAppointmentModal && (
         <Modal
           title="Tạo lịch hẹn mới"
@@ -2048,16 +2020,18 @@ const TreatmentStageDetails = () => {
             layout="vertical"
             onFinish={handleScheduleAppointment}
             initialValues={{
-              shift: "MORNING",
-              treatmentStepId: selectedStep?.id,
+              shift: "MORNING",                    // Ca mặc định
+              treatmentStepId: selectedStep?.id,   // ID step được chọn
             }}
           >
             <Row gutter={16}>
+              {/* Hiển thị tên bước điều trị (disabled input) */}
               <Col span={8}>
                 <Form.Item label="Bước điều trị" required>
                   <Input value={selectedStep?.name} disabled />
                 </Form.Item>
               </Col>
+              {/* DatePicker chọn ngày hẹn */}
               <Col span={8}>
                 <Form.Item
                   name="appointmentDate"
@@ -2069,6 +2043,7 @@ const TreatmentStageDetails = () => {
                   <DatePicker style={{ width: "100%" }} />
                 </Form.Item>
               </Col>
+              {/* Select chọn ca khám */}
               <Col span={8}>
                 <Form.Item
                   name="shift"
@@ -2082,6 +2057,8 @@ const TreatmentStageDetails = () => {
                 </Form.Item>
               </Col>
             </Row>
+            
+            {/* Input mục đích appointment */}
             <Form.Item
               name="purpose"
               label="Mục đích"
@@ -2089,9 +2066,13 @@ const TreatmentStageDetails = () => {
             >
               <Input placeholder="Nhập mục đích của lịch hẹn" />
             </Form.Item>
+            
+            {/* TextArea ghi chú */}
             <Form.Item name="notes" label="Ghi chú">
               <TextArea rows={2} />
             </Form.Item>
+            
+            {/* Hidden input lưu treatmentStepId */}
             <Form.Item
               name="treatmentStepId"
               initialValue={selectedStep?.id}
@@ -2099,6 +2080,8 @@ const TreatmentStageDetails = () => {
             >
               <Input />
             </Form.Item>
+            
+            {/* Submit button */}
             <Form.Item style={{ textAlign: "right" }}>
               <Button type="primary" htmlType="submit">
                 Tạo lịch hẹn
@@ -2108,7 +2091,8 @@ const TreatmentStageDetails = () => {
         </Modal>
       )}
 
-      {/* Modal Thêm Step */}
+      {/* ===== MODAL THÊM STEP ===== */}
+      {/* Modal thêm treatment step mới vào treatment record */}
       <Modal
         title="Thêm bước điều trị mới"
         open={showAddStepModal}
@@ -2121,33 +2105,41 @@ const TreatmentStageDetails = () => {
           form={addStepForm}
           layout="vertical"
           onFinish={async (values) => {
-            setAddStepLoading(true);
+            setAddStepLoading(true);  // Bắt đầu loading
             try {
+              // Chuẩn bị dữ liệu để tạo step mới
               const data = {
-                treatmentRecordId: treatmentData.id,
-                stageId: values.stageId,
-                startDate: values.startDate
+                treatmentRecordId: treatmentData.id,                    // ID treatment record
+                stageId: values.stageId,                                // ID giai đoạn được chọn
+                startDate: values.startDate                             // Ngày bắt đầu
                   ? values.startDate.format("YYYY-MM-DD")
                   : undefined,
-                status: "CONFIRMED",
-                notes: values.notes,
-                auto: addStepAuto,
+                status: "CONFIRMED",                                    // Trạng thái mặc định
+                notes: values.notes,                                    // Ghi chú
+                auto: addStepAuto,                                      // Có tự động tạo appointment không
               };
+              
+              // Nếu chọn tự động tạo appointment, thêm thông tin appointment
               if (addStepAuto) {
-                data.purpose = values.purpose;
-                data.shift = values.shift;
+                data.purpose = values.purpose;  // Mục đích appointment
+                data.shift = values.shift;      // Ca khám
               }
 
               console.log("🔍 Creating treatment step with data:", data);
+              
+              // Gọi API tạo treatment step
               const response = await treatmentService.createTreatmentStep(data);
               console.log("🔍 Create treatment step response:", response);
 
+              // Kiểm tra tạo thành công
               if (response?.data?.code === 1000 || response?.code === 1000) {
                 showNotification("Đã thêm bước điều trị mới!", "success");
+                
+                // Đóng modal và reset form
                 setShowAddStepModal(false);
                 addStepForm.resetFields();
 
-                // Reload treatment record
+                // Reload treatment record để cập nhật danh sách steps
                 try {
                   console.log(
                     "🔄 Reloading treatment record after creating step..."
@@ -2179,10 +2171,11 @@ const TreatmentStageDetails = () => {
               console.error("❌ Error creating treatment step:", err);
               showNotification(err.response.data.message, "error");
             } finally {
-              setAddStepLoading(false);
+              setAddStepLoading(false);  // Tắt loading
             }
           }}
         >
+          {/* Select chọn giai đoạn điều trị */}
           <Form.Item
             name="stageId"
             label="Tên bước điều trị"
@@ -2196,6 +2189,8 @@ const TreatmentStageDetails = () => {
               ))}
             </Select>
           </Form.Item>
+          
+          {/* DatePicker chọn ngày bắt đầu */}
           <Form.Item
             name="startDate"
             label="Ngày bắt đầu"
@@ -2203,9 +2198,13 @@ const TreatmentStageDetails = () => {
           >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
+          
+          {/* Switch bật/tắt tự động tạo lịch hẹn */}
           <Form.Item label="Tạo lịch hẹn:">
             <Switch checked={addStepAuto} onChange={setAddStepAuto} />
           </Form.Item>
+          
+          {/* Các field chỉ hiển thị khi bật switch tự động tạo lịch hẹn */}
           {addStepAuto && (
             <>
               <Form.Item
@@ -2227,9 +2226,13 @@ const TreatmentStageDetails = () => {
               </Form.Item>
             </>
           )}
+          
+          {/* TextArea ghi chú */}
           <Form.Item name="notes" label="Ghi chú">
             <TextArea rows={2} placeholder="Ghi chú (nếu có)" />
           </Form.Item>
+          
+          {/* Submit button */}
           <Form.Item style={{ textAlign: "right" }}>
             <Button type="primary" htmlType="submit" loading={addStepLoading}>
               Thêm bước
@@ -2238,7 +2241,8 @@ const TreatmentStageDetails = () => {
         </Form>
       </Modal>
 
-      {/* Modal chọn dịch vụ phù hợp */}
+      {/* ===== MODAL CHỌN DỊCH VỤ PHÙ HỢP ===== */}
+      {/* Modal cho phép bác sĩ đổi dịch vụ điều trị cho bệnh nhân */}
       <Modal
         title="Chọn dịch vụ phù hợp"
         open={showChangeServiceModal}
@@ -2259,12 +2263,13 @@ const TreatmentStageDetails = () => {
           onChange={setSelectedServiceId}
           options={serviceOptions.map((s) => ({
             value: s.id,
-            label: `${s.name} - ${s.price?.toLocaleString()}đ`,
+            label: `${s.name} - ${s.price?.toLocaleString()}đ`,  // Hiển thị tên và giá
           }))}
         />
       </Modal>
 
-      {/* Modal chọn kết quả điều trị cuối cùng */}
+      {/* ===== MODAL CHỌN KẾT QUẢ ĐIỀU TRỊ CUỐI CÙNG ===== */}
+      {/* Modal hiển thị khi bác sĩ chọn hoàn thành điều trị */}
       <Modal
         title="Chọn kết quả:"
         open={showResultModal}
@@ -2288,7 +2293,8 @@ const TreatmentStageDetails = () => {
         </Radio.Group>
       </Modal>
 
-      {/* Modal hủy hồ sơ */}
+      {/* ===== MODAL HỦY HỒ SƠ ===== */}
+      {/* Modal xác nhận hủy treatment record với lý do */}
       <Modal
         title="Bạn có chắc chắn muốn hủy hồ sơ/dịch vụ này?"
         open={isModalVisible}
@@ -2296,7 +2302,7 @@ const TreatmentStageDetails = () => {
         onCancel={handleCancel}
         confirmLoading={cancelLoading}
         okText="Hủy hồ sơ"
-        okType="danger"
+        okType="danger"                    // Nút OK màu đỏ để cảnh báo
         cancelText="Không"
       >
         <div>Bệnh nhân: {selectedTreatment?.customerName}</div>
@@ -2312,4 +2318,6 @@ const TreatmentStageDetails = () => {
   );
 };
 
+// ===== EXPORT COMPONENT =====
+// Export component TreatmentStageDetails để sử dụng trong routing system
 export default TreatmentStageDetails;

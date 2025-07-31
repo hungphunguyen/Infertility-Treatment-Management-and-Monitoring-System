@@ -33,42 +33,60 @@ import ManagerTreatmentDetailRow from "./ManagerTreatmentDetailRow";
 
 const { Search } = Input;
 const { Text } = Typography;
-const ManagerTreatmentRecords = () => {
-  const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const [expandedRows, setExpandedRows] = useState([]);
-  const [stats, setStats] = useState({
-    totalRecords: 0,
-    pendingRecords: 0,
-    inProgressRecords: 0,
-    completedRecords: 0,
-  });
-  const [totalItems, setTotalItems] = useState(0);
-  const [treatmentDetails, setTreatmentDetails] = useState({});
-  const [loadingRows, setLoadingRows] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1); // Page từ 1
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPageExpand, setCurrentPageExpand] = useState(0); // backend page = 0-based
-  const [totalPagesExpand, setTotalPagesExpand] = useState(1);
 
+const ManagerTreatmentRecords = () => {
+  // ===== NAVIGATION =====
+  const navigate = useNavigate();                                            // Hook điều hướng
+
+  // ===== STATE MANAGEMENT =====
+  // State quản lý search và filter
+  const [searchText, setSearchText] = useState("");                          // Text tìm kiếm
+  const [statusFilter, setStatusFilter] = useState("all");                   // Filter theo status
+
+  // State quản lý data
+  const [records, setRecords] = useState([]);                                // Danh sách treatment records
+  const [loading, setLoading] = useState(true);                              // Loading state chính
+  const [totalItems, setTotalItems] = useState(0);                           // Tổng số items
+  
+  // State quản lý expanded rows
+  const [expandedRows, setExpandedRows] = useState([]);                      // Danh sách rows đã expand
+  const [treatmentDetails, setTreatmentDetails] = useState({});              // Chi tiết treatments khi expand
+  const [loadingRows, setLoadingRows] = useState([]);                        // Loading state cho từng row
+
+  // State quản lý statistics
+  const [stats, setStats] = useState({
+    totalRecords: 0,          // Tổng số records
+    pendingRecords: 0,        // Số records chờ duyệt
+    inProgressRecords: 0,     // Số records đang điều trị
+    completedRecords: 0,      // Số records hoàn thành
+  });
+
+  // State quản lý pagination
+  const [currentPage, setCurrentPage] = useState(1);                         // Trang hiện tại (1-based)
+  const [totalPages, setTotalPages] = useState(1);                           // Tổng số trang
+  const [currentPageExpand, setCurrentPageExpand] = useState(0);             // Trang expand hiện tại (0-based)
+  const [totalPagesExpand, setTotalPagesExpand] = useState(1);               // Tổng số trang expand
+
+  // ===== USEEFFECT: INITIAL DATA LOAD =====
+  // useEffect này chạy khi component mount để load treatment records
   useEffect(() => {
-    fetchRecords(); // API backend nhận page bắt đầu từ 0
+    fetchRecords();                                                          // Load records khi component mount
   }, []);
 
+  // ===== API FUNCTION: FETCH TREATMENT RECORDS =====
+  // Hàm lấy danh sách treatment records với pagination
   const fetchRecords = async (page = 0) => {
     try {
       setLoading(true);
       const response = await treatmentService.getTreatmentRecordsPagination({
-        page,
-        size: 8,
+        page,                                                                // Page từ 0-based
+        size: 8,                                                             // Size mỗi page
       });
 
       const data = response?.data?.result;
       const content = data?.content || [];
 
+      // Format records để phù hợp với Table component
       const formattedRecords = content.map((item) => ({
         key: item.customerId,
         customerId: item.customerId,
@@ -77,26 +95,29 @@ const ManagerTreatmentRecords = () => {
           {
             id: item.customerId + "-summary",
             customerName: item.customerName,
-            totalRecord: item.totalRecord,
+            totalRecord: item.totalRecord,                                   // Tổng số dịch vụ của customer
           },
         ],
       }));
-      setCurrentPage(page);
-      setTotalPages(response.data.result.totalPages);
-      setRecords(formattedRecords);
-      setTotalItems(data?.totalElements || content.length);
+      
+      setCurrentPage(page);                                                  // Update current page
+      setTotalPages(response.data.result.totalPages);                        // Update total pages
+      setRecords(formattedRecords);                                          // Set formatted records
+      setTotalItems(data?.totalElements || content.length);                 // Set total items
     } catch (error) {
       console.error("❌ Error fetching records:", error);
       notification.error({
         message: "Lỗi",
         description: "Không thể lấy danh sách hồ sơ điều trị.",
       });
-      setRecords([]);
+      setRecords([]);                                                        // Set empty array on error
     } finally {
       setLoading(false);
     }
   };
 
+  // ===== UTILITY FUNCTION: STATUS TAG MAPPING =====
+  // Hàm tạo status tag với màu sắc tương ứng
   const getStatusTag = (status) => {
     const statusMap = {
       PENDING: { color: "orange", text: "Đang chờ xử lý" },
@@ -112,6 +133,8 @@ const ManagerTreatmentRecords = () => {
     );
   };
 
+  // ===== HANDLER: VIEW TREATMENT RECORD =====
+  // Hàm xử lý xem chi tiết treatment record (navigate to treatment stages)
   const viewRecord = (record) => {
     console.log("🔍 Navigating to treatment-stages-view with record:", record);
     navigate("/manager/treatment-stages-view", {
@@ -121,24 +144,25 @@ const ManagerTreatmentRecords = () => {
           customerName: record.customerName,
         },
         treatmentData: record,
-        sourcePage: "manager-treatment-records",
+        sourcePage: "manager-treatment-records",                            // Tracking source page
       },
     });
   };
 
+  // ===== HANDLER: APPROVE TREATMENT =====
+  // Hàm xử lý duyệt treatment record
   const handleApprove = async (treatment) => {
     try {
       const response = await treatmentService.updateTreatmentStatus(
         treatment.id,
-        "INPROGRESS"
+        "INPROGRESS"                                                         // Change status to INPROGRESS
       );
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Duyệt hồ sơ thành công!",
           description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã chuyển sang trạng thái 'Đang điều trị'.`,
         });
-        // Refresh the list
-        fetchRecords();
+        fetchRecords();                                                      // Refresh the list
       } else {
         notification.error({
           message: "Duyệt hồ sơ thất bại!",
@@ -155,19 +179,20 @@ const ManagerTreatmentRecords = () => {
     }
   };
 
+  // ===== HANDLER: CANCEL TREATMENT =====
+  // Hàm xử lý hủy treatment record
   const handleCancel = async (treatment) => {
     try {
       const response = await treatmentService.updateTreatmentStatus(
         treatment.id,
-        "CANCELLED"
+        "CANCELLED"                                                          // Change status to CANCELLED
       );
       if (response?.data?.code === 1000) {
         notification.success({
           message: "Hủy hồ sơ thành công!",
           description: `Hồ sơ của bệnh nhân ${treatment.customerName} đã được hủy.`,
         });
-        // Refresh the list
-        fetchRecords();
+        fetchRecords();                                                      // Refresh the list
       } else {
         notification.error({
           message: "Hủy hồ sơ thất bại!",
@@ -183,11 +208,13 @@ const ManagerTreatmentRecords = () => {
     }
   };
 
+  // ===== HANDLER: EXPAND CHANGE =====
+  // Hàm xử lý khi expand/collapse rows (hiện không sử dụng)
   const handleExpandChange = async (expanded, record, page = 0) => {
     const customerId = record.customerId;
 
     if (expanded) {
-      setLoadingRows((prev) => [...prev, customerId]);
+      setLoadingRows((prev) => [...prev, customerId]);                      // Add loading state
 
       try {
         console.log("➡️ Gọi API khi mở rộng với:", customerId);
@@ -204,12 +231,12 @@ const ManagerTreatmentRecords = () => {
           key: item.id,
         }));
 
-        setCurrentPageExpand(page);
-        setTotalPagesExpand(res.data.result.totalPages);
+        setCurrentPageExpand(page);                                          // Update expand page
+        setTotalPagesExpand(res.data.result.totalPages);                     // Update expand total pages
 
         setTreatmentDetails((prev) => ({
           ...prev,
-          [customerId]: treatmentsWithKey,
+          [customerId]: treatmentsWithKey,                                   // Set treatments for this customer
         }));
       } catch (error) {
         notification.error({
@@ -217,70 +244,29 @@ const ManagerTreatmentRecords = () => {
           description: error.message || "Vui lòng thử lại.",
         });
       } finally {
-        setLoadingRows((prev) => prev.filter((id) => id !== customerId));
+        setLoadingRows((prev) => prev.filter((id) => id !== customerId));   // Remove loading state
       }
     }
   };
 
+  // ===== EXPANDED ROW RENDER FUNCTION =====
+  // Hàm render nội dung khi expand row (sử dụng ManagerTreatmentDetailRow component)
   const expandedRowRender = (record) => {
-    // const isLoading = loadingRows.includes(record.customerId);
-    // const treatments = treatmentDetails[record.customerId] || [];
-
-    // return (
-    //   <div
-    //     style={{
-    //       padding: "16px",
-    //       background: "#ffffff",
-    //       borderRadius: "8px",
-    //       margin: "8px 0",
-    //       border: "1px solid #dee2e6",
-    //     }}
-    //   >
-    //     <Spin spinning={isLoading}>
-    //       <Table
-    //         columns={columnsChiTiet}
-    //         dataSource={treatments}
-    //         pagination={false}
-    //         size="small"
-    //       />
-    //       <div className="flex justify-end mt-4">
-    //         <Button
-    //           disabled={currentPageExpand === 0}
-    //           onClick={() =>
-    //             handleExpandChange(true, record, currentPageExpand - 1)
-    //           }
-    //           className="mr-2"
-    //         >
-    //           Trang trước
-    //         </Button>
-    //         <span className="px-4 py-1 bg-gray-100 rounded text-sm">
-    //           Trang {currentPageExpand + 1} / {totalPagesExpand}
-    //         </span>
-
-    //         <Button
-    //           disabled={currentPageExpand + 1 >= totalPagesExpand}
-    //           onClick={async () => {
-    //             await handleExpandChange(true, record, currentPageExpand + 1);
-    //           }}
-    //           className="ml-2"
-    //         >
-    //           Trang tiếp
-    //         </Button>
-    //       </div>
-    //     </Spin>
-    //   </div>
-    // );
-
+    // ===== COMMENTED OLD IMPLEMENTATION =====
+    // Code cũ đã comment để chuyển sang sử dụng ManagerTreatmentDetailRow component
+    
     return (
       <ManagerTreatmentDetailRow
-        customerId={record.customerId}
-        viewRecord={viewRecord}
-        handleApprove={handleApprove}
-        handleCancel={handleCancel}
+        customerId={record.customerId}                                       // Pass customer ID
+        viewRecord={viewRecord}                                              // Pass view record handler
+        handleApprove={handleApprove}                                        // Pass approve handler
+        handleCancel={handleCancel}                                          // Pass cancel handler
       />
     );
   };
 
+  // ===== MAIN TABLE COLUMNS CONFIGURATION =====
+  // Cấu hình columns cho bảng chính
   const columns = [
     {
       title: "Bệnh nhân",
@@ -299,7 +285,7 @@ const ManagerTreatmentRecords = () => {
       key: "totalRecord",
       render: (treatments) => {
         const record = treatments?.[0];
-        return <Tag color="blue">{record.totalRecord} dịch vụ</Tag>;
+        return <Tag color="blue">{record.totalRecord} dịch vụ</Tag>;         // Hiển thị số dịch vụ
       },
     },
 
@@ -319,12 +305,12 @@ const ManagerTreatmentRecords = () => {
             onClick={() => {
               const isExpanded = expandedRows.includes(record.key);
               const newExpanded = isExpanded
-                ? expandedRows.filter((key) => key !== record.key)
-                : [...expandedRows, record.key];
+                ? expandedRows.filter((key) => key !== record.key)           // Collapse row
+                : [...expandedRows, record.key];                             // Expand row
 
               setExpandedRows(newExpanded);
 
-              // GỌI `onExpand` thủ công để kích hoạt xử lý logic
+              // Trigger expand change handler manually
               handleExpandChange(!isExpanded, record);
             }}
           >
@@ -335,7 +321,8 @@ const ManagerTreatmentRecords = () => {
     },
   ];
 
-  // cột dữ liệu render ra khi nhấn mở rộng
+  // ===== DETAIL TABLE COLUMNS CONFIGURATION =====
+  // Cấu hình columns cho bảng chi tiết khi expand (hiện không sử dụng)
   const columnsChiTiet = [
     {
       title: "Dịch vụ",
@@ -437,7 +424,7 @@ const ManagerTreatmentRecords = () => {
             type="primary"
             icon={<EyeOutlined />}
             size="small"
-            onClick={() => viewRecord(treatment)}
+            onClick={() => viewRecord(treatment)}                            // View treatment detail
             style={{ width: "100%", marginBottom: 4 }}
           >
             Xem chi tiết
@@ -448,7 +435,7 @@ const ManagerTreatmentRecords = () => {
                 type="primary"
                 icon={<CheckOutlined />}
                 size="small"
-                onClick={() => handleApprove(treatment)}
+                onClick={() => handleApprove(treatment)}                     // Approve treatment
                 style={{
                   width: "100%",
                   background: "#28a745",
@@ -462,7 +449,7 @@ const ManagerTreatmentRecords = () => {
                 danger
                 icon={<CloseOutlined />}
                 size="small"
-                onClick={() => handleCancel(treatment)}
+                onClick={() => handleCancel(treatment)}                      // Cancel treatment
                 style={{ width: "100%" }}
               >
                 Hủy
@@ -474,54 +461,63 @@ const ManagerTreatmentRecords = () => {
     },
   ];
 
+  // ===== FILTER FUNCTION =====
+  // Hàm filter records theo search text và status
   const filteredRecords = records.filter((record) => {
     const matchesSearch = record.customerName
       .toLowerCase()
-      .includes(searchText.toLowerCase());
+      .includes(searchText.toLowerCase());                                   // Filter theo tên customer
     const matchesStatus =
       statusFilter === "all" ||
-      record.treatments.some((treatment) => treatment.status === statusFilter);
+      record.treatments.some((treatment) => treatment.status === statusFilter); // Filter theo status
     return matchesSearch && matchesStatus;
   });
 
+  // ===== RENDER MAIN COMPONENT =====
   return (
     <div>
+      {/* ===== MAIN CARD SECTION ===== */}
+      {/* Card chính chứa search, filters và table */}
       <Card>
+        {/* ===== SEARCH AND FILTER SECTION ===== */}
+        {/* Phần search và filter controls */}
         <Space style={{ marginBottom: 16 }}>
           <Search
             placeholder="Tìm kiếm theo tên bệnh nhân..."
             value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={(e) => setSearchText(e.target.value)}                  // Update search text
             allowClear
             style={{ width: 300 }}
           />
 
           <Button
             onClick={() => {
-              setSearchText("");
-              setStatusFilter("all");
+              setSearchText("");                                             // Clear search text
+              setStatusFilter("all");                                        // Reset status filter
             }}
           >
             Đặt lại
           </Button>
         </Space>
 
+        {/* ===== MAIN TABLE SECTION ===== */}
+        {/* Bảng chính với expandable rows */}
         <Spin spinning={loading}>
           <Table
-            columns={columns}
-            dataSource={filteredRecords}
+            columns={columns}                                                // Main table columns
+            dataSource={filteredRecords}                                    // Filtered records data
             expandable={{
-              expandedRowRender,
-              expandedRowKeys: expandedRows,
+              expandedRowRender,                                             // Render function cho expanded rows
+              expandedRowKeys: expandedRows,                                 // Keys của expanded rows
               onExpand: async (expanded, record) => {
                 const customerId = record.customerId;
 
                 if (expanded && !expandedRows.includes(record.key)) {
-                  setExpandedRows([...expandedRows, record.key]);
+                  setExpandedRows([...expandedRows, record.key]);            // Add to expanded rows
 
                   // Nếu chưa có data thì gọi API
                   if (!treatmentDetails[customerId]) {
-                    setLoadingRows((prev) => [...prev, customerId]);
+                    setLoadingRows((prev) => [...prev, customerId]);        // Add loading state
 
                     try {
                       const res =
@@ -539,7 +535,7 @@ const ManagerTreatmentRecords = () => {
 
                       setTreatmentDetails((prev) => ({
                         ...prev,
-                        [customerId]: treatmentsWithKey,
+                        [customerId]: treatmentsWithKey,                     // Set treatments data
                       }));
                     } catch (error) {
                       notification.error({
@@ -548,31 +544,27 @@ const ManagerTreatmentRecords = () => {
                       });
                     } finally {
                       setLoadingRows((prev) =>
-                        prev.filter((id) => id !== customerId)
+                        prev.filter((id) => id !== customerId)              // Remove loading state
                       );
                     }
                   }
                 } else {
                   setExpandedRows(
-                    expandedRows.filter((key) => key !== record.key)
+                    expandedRows.filter((key) => key !== record.key)        // Remove from expanded rows
                   );
                 }
               },
               expandIcon: () => {
-                null;
+                null;                                                        // Hide default expand icon
               },
             }}
-            pagination={
-              // pageSize: 10,
-              // showSizeChanger: true,
-              // showTotal: (total) => `Tổng số ${total} bệnh nhân`,
-              false
-            }
+            pagination={false}                                               // Disable built-in pagination
           />
 
+          {/* Custom pagination controls */}
           <div className="flex justify-end mt-4">
             <Button
-              disabled={currentPage === 0}
+              disabled={currentPage === 0}                                  // Disable nếu ở trang đầu
               onClick={() => fetchRecords(currentPage - 1)}
               className="mr-2"
             >
@@ -582,7 +574,7 @@ const ManagerTreatmentRecords = () => {
               Trang {currentPage + 1} / {totalPages}
             </span>
             <Button
-              disabled={currentPage + 1 >= totalPages}
+              disabled={currentPage + 1 >= totalPages}                      // Disable nếu ở trang cuối
               onClick={() => fetchRecords(currentPage + 1)}
               className="ml-2"
             >
@@ -595,4 +587,5 @@ const ManagerTreatmentRecords = () => {
   );
 };
 
+// ===== EXPORT COMPONENT =====
 export default ManagerTreatmentRecords;
