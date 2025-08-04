@@ -120,14 +120,14 @@ export const createLabTestHandlers = (
     await loadLabTestTypes();
     
     if (labTest) {
-      // Edit mode
+      // Edit mode - set tất cả fields bao gồm result
       labTestForm.setFieldsValue({
         testName: labTest.testName,
         notes: labTest.notes,
         result: labTest.result,
       });
     } else {
-      // Add mode
+      // Add mode - chỉ reset fields, không set result
       labTestForm.resetFields();
     }
   };

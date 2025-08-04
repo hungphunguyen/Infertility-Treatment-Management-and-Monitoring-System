@@ -895,7 +895,7 @@ const TreatmentStageDetails = () => {
       case "FAILURE":
         return "Thất bại";      // Điều trị thất bại  
       case "UNDETERMINED":
-        return "Chưa xác định"; // Kết quả chưa rõ ràng
+        return "Đang kiểm tra"; // Kết quả chưa rõ ràng
       default:
         return "Chưa có";       // Chưa có kết quả
     }
@@ -2562,7 +2562,7 @@ const TreatmentStageDetails = () => {
                             : test.result === "FAILURE"
                             ? "Thất bại"
                             : test.result === "UNDETERMINED"
-                            ? "Chưa xác định"
+                            ? "Đang kiểm tra"
                             : "Chưa có"}
                         </Tag>
                       </div>
@@ -2795,7 +2795,7 @@ const TreatmentStageDetails = () => {
       {/* ===== MODAL THÊM/SỬA LAB TEST ===== */}
       {/* Modal thêm/sửa lab test cho một treatment step */}
       <Modal
-        title="Thêm/Sửa xét nghiệm"
+        title={editingLabTest ? "Sửa xét nghiệm" : "Tạo xét nghiệm mới"}
         open={showAddLabTestModal}
         onCancel={() => {
           setShowAddLabTestModal(false);
@@ -2812,7 +2812,7 @@ const TreatmentStageDetails = () => {
           initialValues={{
             testName: editingLabTest?.testName,
             notes: editingLabTest?.notes,
-            result: editingLabTest?.result,
+            ...(editingLabTest && { result: editingLabTest?.result }),
           }}
         >
           <Form.Item
@@ -2837,20 +2837,20 @@ const TreatmentStageDetails = () => {
             <TextArea rows={2} placeholder="Ghi chú (nếu có)" />
           </Form.Item>
           
-          <Form.Item name="result" label="Kết quả">
-            <Select
-              style={{ width: "100%" }}
-              placeholder="Chọn kết quả"
-              value={editingLabTest?.result}
-              onChange={(value) => {
-                labTestForm.setFieldsValue({ result: value });
-              }}
-            >
-              <Select.Option value="SUCCESS">Thành công</Select.Option>
-              <Select.Option value="FAILURE">Thất bại</Select.Option>
-              <Select.Option value="UNDETERMINED">Chưa xác định</Select.Option>
-            </Select>
-          </Form.Item>
+          {/* Hiển thị trường kết quả chỉ khi đang sửa lab test */}
+          {editingLabTest && (
+            <Form.Item name="result" label="Kết quả">
+              <Select
+                style={{ width: "100%" }}
+                placeholder="Chọn kết quả"
+                defaultValue={editingLabTest?.result}
+              >
+                <Select.Option value="SUCCESS">Thành công</Select.Option>
+                <Select.Option value="FAILURE">Thất bại</Select.Option>
+                <Select.Option value="UNDETERMINED">Đang kiểm tra</Select.Option>
+              </Select>
+            </Form.Item>
+          )}
           
           <Form.Item style={{ textAlign: "right" }}>
             <Space>
